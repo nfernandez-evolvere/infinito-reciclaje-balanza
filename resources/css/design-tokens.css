@@ -1,0 +1,597 @@
+/* ============================================================
+   DESIGN TOKENS
+   Fuente de verdad de todo el sistema visual.
+   Cambiar un valor aquí propaga el cambio a todos los componentes.
+
+   Estructura:
+   1.  Paleta primitiva (colores raw)
+   2.  Tema claro — tokens semánticos
+   3.  Tema oscuro — override de tokens semánticos
+   4.  Tipografía — escala y roles
+   5.  Espaciado — tamaños de componente (sm/md/lg)
+   6.  Elevación — sombras
+   7.  Movimiento — duración y easing
+   8.  Layout — breakpoints y contenedores
+   9.  Z-index — capas
+   10. Densidad — escala de compresión
+============================================================ */
+
+
+/* ────────────────────────────────────────────────────────────
+   1. PALETA PRIMITIVA
+   Colores raw en escala de 11 pasos (50–950).
+   Los tokens semánticos apuntan a estos valores.
+   Nunca usar directamente en componentes — usar los semánticos.
+──────────────────────────────────────────────────────────── */
+:root {
+    /* Neutral */
+    --neutral-50:  oklch(0.985 0 0);
+    --neutral-100: oklch(0.961 0 0);
+    --neutral-200: oklch(0.922 0 0);
+    --neutral-300: oklch(0.869 0 0);
+    --neutral-400: oklch(0.708 0 0);
+    --neutral-500: oklch(0.556 0 0);
+    --neutral-600: oklch(0.439 0 0);
+    --neutral-700: oklch(0.371 0 0);
+    --neutral-800: oklch(0.269 0 0);
+    --neutral-900: oklch(0.205 0 0);
+    --neutral-950: oklch(0.145 0 0);
+
+    /* Blue */
+    --blue-50:  oklch(0.970 0.015 250);
+    --blue-100: oklch(0.932 0.032 250);
+    --blue-200: oklch(0.882 0.059 250);
+    --blue-300: oklch(0.810 0.101 250);
+    --blue-400: oklch(0.707 0.143 250);
+    --blue-500: oklch(0.623 0.178 250);
+    --blue-600: oklch(0.546 0.197 250);
+    --blue-700: oklch(0.470 0.185 250);
+    --blue-800: oklch(0.401 0.154 250);
+    --blue-900: oklch(0.349 0.119 250);
+    --blue-950: oklch(0.231 0.077 250);
+
+    /* Green */
+    --green-50:  oklch(0.971 0.030 145);
+    --green-100: oklch(0.933 0.063 145);
+    --green-200: oklch(0.873 0.107 145);
+    --green-300: oklch(0.794 0.151 145);
+    --green-400: oklch(0.698 0.185 145);
+    --green-500: oklch(0.604 0.196 145);
+    --green-600: oklch(0.519 0.181 145);
+    --green-700: oklch(0.435 0.153 145);
+    --green-800: oklch(0.370 0.122 145);
+    --green-900: oklch(0.313 0.093 145);
+    --green-950: oklch(0.207 0.060 145);
+
+    /* Yellow / Amber */
+    --yellow-50:  oklch(0.980 0.040 95);
+    --yellow-100: oklch(0.952 0.083 95);
+    --yellow-200: oklch(0.916 0.135 95);
+    --yellow-300: oklch(0.869 0.180 95);
+    --yellow-400: oklch(0.811 0.205 95);
+    --yellow-500: oklch(0.745 0.210 95);
+    --yellow-600: oklch(0.660 0.196 95);
+    --yellow-700: oklch(0.560 0.168 95);
+    --yellow-800: oklch(0.465 0.134 95);
+    --yellow-900: oklch(0.390 0.101 95);
+    --yellow-950: oklch(0.261 0.064 95);
+
+    /* Red — hue 27 (rojo puro, sin vira a naranja) */
+    --red-50:  oklch(0.971 0.018 27);
+    --red-100: oklch(0.936 0.045 27);
+    --red-200: oklch(0.886 0.090 27);
+    --red-300: oklch(0.820 0.148 27);
+    --red-400: oklch(0.737 0.211 27);
+    --red-500: oklch(0.648 0.258 27);
+    --red-600: oklch(0.568 0.268 27);
+    --red-700: oklch(0.482 0.241 27);
+    --red-800: oklch(0.410 0.198 27);
+    --red-900: oklch(0.355 0.154 27);
+    --red-950: oklch(0.234 0.099 27);
+}
+
+
+/* ────────────────────────────────────────────────────────────
+   2. TEMA CLARO — tokens semánticos
+──────────────────────────────────────────────────────────── */
+:root {
+    /* — Base — */
+    --background:            var(--neutral-50);
+    --foreground:            var(--neutral-950);
+
+    /* — Superficies — */
+    --surface-0:             var(--neutral-50);     /* página base */
+    --surface-1:             oklch(1 0 0);           /* cards, inputs */
+    --surface-2:             var(--neutral-100);     /* dropdowns, hover bg */
+    --surface-3:             var(--neutral-200);     /* tooltips, popovers */
+    --surface-overlay:       oklch(0 0 0 / 40%);    /* backdrop de modales */
+
+    /* — Superficies nombradas — */
+    --card:                  oklch(1 0 0);
+    --card-foreground:       var(--neutral-950);
+    --popover:               oklch(1 0 0);
+    --popover-foreground:    var(--neutral-950);
+
+    /* — Semánticos de rol — */
+    --primary:               var(--neutral-900);
+    --primary-foreground:    var(--neutral-50);
+    --secondary:             var(--neutral-100);
+    --secondary-foreground:  var(--neutral-900);
+    --muted:                 var(--neutral-100);
+    --muted-foreground:      var(--neutral-500);
+    --accent:                var(--neutral-100);
+    --accent-foreground:     var(--neutral-900);
+
+    /* — Estados de feedback — */
+    --destructive:                   var(--red-600);
+    --destructive-foreground:        var(--neutral-50);
+    --destructive-subtle:            var(--red-50);
+    --destructive-subtle-foreground: var(--red-900);
+    --destructive-border:            var(--red-300);
+
+    --success:                       var(--green-600);
+    --success-foreground:            var(--neutral-50);
+    --success-subtle:                var(--green-50);
+    --success-subtle-foreground:     var(--green-900);
+    --success-border:                var(--green-300);
+
+    --warning:                       var(--yellow-500);
+    --warning-foreground:            var(--neutral-950);
+    --warning-subtle:                var(--yellow-50);
+    --warning-subtle-foreground:     var(--yellow-900);
+    --warning-border:                var(--yellow-300);
+
+    --info:                          var(--blue-600);
+    --info-foreground:               var(--neutral-50);
+    --info-subtle:                   var(--blue-50);
+    --info-subtle-foreground:        var(--blue-900);
+    --info-border:                   var(--blue-300);
+
+    /* — Texto jerárquico — */
+    --text-primary:          var(--neutral-950);
+    --text-secondary:        var(--neutral-700);
+    --text-tertiary:         var(--neutral-500);
+    --text-disabled:         var(--neutral-400);
+    --text-placeholder:      var(--neutral-400);
+    --text-inverse:          var(--neutral-50);
+    --text-destructive:      var(--red-600);
+    --text-success:          var(--green-700);
+    --text-warning:          var(--yellow-700);
+    --text-info:             var(--blue-700);
+
+    /* — UI controls — */
+    --border:                var(--neutral-200);
+    --border-width:          1px;
+    --input:                 var(--neutral-200);
+    --ring:                  var(--neutral-950);
+    --ring-width:            2px;
+    --ring-offset:           2px;
+    --ring-offset-color:     var(--background);
+
+    /* — Charts — */
+    --chart-1:               var(--blue-500);
+    --chart-2:               var(--green-500);
+    --chart-3:               var(--yellow-500);
+    --chart-4:               var(--red-500);
+    --chart-5:               var(--neutral-500);
+
+    /* — Sidebar — */
+    --sidebar:                       var(--neutral-50);
+    --sidebar-foreground:            var(--neutral-950);
+    --sidebar-primary:               var(--neutral-900);
+    --sidebar-primary-foreground:    var(--neutral-50);
+    --sidebar-accent:                var(--neutral-100);
+    --sidebar-accent-foreground:     var(--neutral-900);
+    --sidebar-border:                var(--neutral-200);
+    --sidebar-ring:                  var(--neutral-950);
+
+    /* — Radio (border-radius) — */
+    --radius:                0.5rem;       /* 8px — base */
+    --radius-sm:             0.25rem;      /* 4px */
+    --radius-md:             0.375rem;     /* 6px */
+    --radius-lg:             0.5rem;       /* 8px */
+    --radius-xl:             0.75rem;      /* 12px */
+    --radius-2xl:            1rem;         /* 16px */
+    --radius-full:           9999px;
+}
+
+
+/* ────────────────────────────────────────────────────────────
+   3. TEMA OSCURO — override de tokens semánticos
+──────────────────────────────────────────────────────────── */
+.dark {
+    /* — Base — */
+    --background:            var(--neutral-950);
+    --foreground:            var(--neutral-50);
+
+    /* — Superficies — */
+    --surface-0:             var(--neutral-950);
+    --surface-1:             var(--neutral-900);
+    --surface-2:             var(--neutral-800);
+    --surface-3:             var(--neutral-700);
+    --surface-overlay:       oklch(0 0 0 / 60%);
+
+    /* — Superficies nombradas — */
+    --card:                  var(--neutral-900);
+    --card-foreground:       var(--neutral-50);
+    --popover:               var(--neutral-900);
+    --popover-foreground:    var(--neutral-50);
+
+    /* — Semánticos de rol — */
+    --primary:               var(--neutral-50);
+    --primary-foreground:    var(--neutral-900);
+    --secondary:             var(--neutral-800);
+    --secondary-foreground:  var(--neutral-50);
+    --muted:                 var(--neutral-800);
+    --muted-foreground:      var(--neutral-400);
+    --accent:                var(--neutral-800);
+    --accent-foreground:     var(--neutral-50);
+
+    /* — Estados de feedback (dark) — */
+    --destructive:                   var(--red-500);
+    --destructive-foreground:        var(--neutral-50);
+    --destructive-subtle:            oklch(0.241 0.099 27 / 30%);
+    --destructive-subtle-foreground: var(--red-200);
+    --destructive-border:            var(--red-800);
+
+    --success:                       var(--green-500);
+    --success-foreground:            var(--neutral-50);
+    --success-subtle:                oklch(0.207 0.060 145 / 30%);
+    --success-subtle-foreground:     var(--green-200);
+    --success-border:                var(--green-800);
+
+    --warning:                       var(--yellow-400);
+    --warning-foreground:            var(--neutral-950);
+    --warning-subtle:                oklch(0.261 0.064 95 / 30%);
+    --warning-subtle-foreground:     var(--yellow-200);
+    --warning-border:                var(--yellow-800);
+
+    --info:                          var(--blue-400);
+    --info-foreground:               var(--neutral-50);
+    --info-subtle:                   oklch(0.231 0.077 250 / 30%);
+    --info-subtle-foreground:        var(--blue-200);
+    --info-border:                   var(--blue-800);
+
+    /* — Texto jerárquico (dark) — */
+    --text-primary:          var(--neutral-50);
+    --text-secondary:        var(--neutral-300);
+    --text-tertiary:         var(--neutral-400);
+    --text-disabled:         var(--neutral-600);
+    --text-placeholder:      var(--neutral-600);
+    --text-inverse:          var(--neutral-950);
+    --text-destructive:      var(--red-400);
+    --text-success:          var(--green-400);
+    --text-warning:          var(--yellow-400);
+    --text-info:             var(--blue-400);
+
+    /* — UI controls (dark) — */
+    --border:                oklch(1 0 0 / 10%);
+    --input:                 oklch(1 0 0 / 15%);
+    --ring:                  var(--neutral-300);
+    --ring-offset-color:     var(--background);
+
+    /* — Sidebar (dark) — */
+    --sidebar:                       var(--neutral-900);
+    --sidebar-foreground:            var(--neutral-50);
+    --sidebar-primary:               var(--blue-500);
+    --sidebar-primary-foreground:    var(--neutral-50);
+    --sidebar-accent:                var(--neutral-800);
+    --sidebar-accent-foreground:     var(--neutral-50);
+    --sidebar-border:                oklch(1 0 0 / 10%);
+    --sidebar-ring:                  var(--neutral-300);
+}
+
+
+/* ────────────────────────────────────────────────────────────
+   4. TIPOGRAFÍA
+──────────────────────────────────────────────────────────── */
+:root {
+    /* — Familias — */
+    --font-sans:    'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-mono:    ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
+    --font-serif:   ui-serif, Georgia, serif;
+
+    /* — Escala de tamaños (font-size / line-height) — */
+    --text-2xs:  0.6875rem;   /* 11px */
+    --text-xs:   0.75rem;     /* 12px */
+    --text-sm:   0.8125rem;   /* 13px */
+    --text-base: 0.875rem;    /* 14px */
+    --text-md:   1rem;        /* 16px */
+    --text-lg:   1.125rem;    /* 18px */
+    --text-xl:   1.375rem;    /* 22px */
+    --text-2xl:  1.5rem;      /* 24px */
+    --text-3xl:  1.875rem;    /* 30px */
+    --text-4xl:  2.5rem;      /* 40px */
+    --text-5xl:  3.75rem;     /* 60px */
+
+    /* — Pesos — */
+    --font-normal:    400;
+    --font-medium:    500;
+    --font-semibold:  600;
+    --font-bold:      700;
+
+    /* — Line-heights — */
+    --leading-none:    1;
+    --leading-tight:   1.1;
+    --leading-snug:    1.2;
+    --leading-normal:  1.4;
+    --leading-relaxed: 1.6;
+    --leading-loose:   1.8;
+
+    /* — Letter-spacing — */
+    --tracking-tighter:  -0.05em;
+    --tracking-tight:    -0.025em;
+    --tracking-normal:    0em;
+    --tracking-wide:      0.025em;
+    --tracking-wider:     0.05em;
+    --tracking-widest:    0.1em;
+
+    /* — Roles tipográficos (desktop) — */
+    --type-display:    var(--text-5xl) / var(--leading-tight)   var(--font-sans);
+    --type-h1:         var(--text-4xl) / var(--leading-tight)   var(--font-sans);
+    --type-h2:         var(--text-3xl) / var(--leading-snug)    var(--font-sans);
+    --type-h3:         var(--text-xl)  / var(--leading-snug)    var(--font-sans);
+    --type-h4:         var(--text-md)  / var(--leading-normal)  var(--font-sans);
+    --type-body:       var(--text-md)  / var(--leading-relaxed) var(--font-sans);
+    --type-small:      var(--text-sm)  / var(--leading-normal)  var(--font-sans);
+    --type-caption:    var(--text-xs)  / var(--leading-normal)  var(--font-sans);
+    --type-code:       var(--text-sm)  / var(--leading-relaxed) var(--font-mono);
+    --type-label:      var(--text-sm)  / var(--leading-none)    var(--font-sans);
+}
+
+
+/* ────────────────────────────────────────────────────────────
+   5. ESPACIADO — tamaños de componente (sm / md / lg)
+   Todos los componentes interactivos comparten esta escala.
+   Un Button sm y un Input sm tienen la misma altura.
+──────────────────────────────────────────────────────────── */
+:root {
+    --density-scale: 1; /* overrideado por [data-density] */
+
+    /* — Alturas de componente — */
+    --height-sm: calc(2rem    * var(--density-scale));  /* 32px */
+    --height-md: calc(2.5rem  * var(--density-scale));  /* 40px */
+    --height-lg: calc(3rem    * var(--density-scale));  /* 48px */
+
+    /* — Padding horizontal — */
+    --px-sm: calc(0.75rem  * var(--density-scale));  /* 12px */
+    --px-md: calc(1rem     * var(--density-scale));  /* 16px */
+    --px-lg: calc(1.25rem  * var(--density-scale));  /* 20px */
+
+    /* — Padding vertical — */
+    --py-sm: calc(0.375rem * var(--density-scale));  /* 6px */
+    --py-md: calc(0.5rem   * var(--density-scale));  /* 8px */
+    --py-lg: calc(0.625rem * var(--density-scale));  /* 10px */
+
+    /* — Gap interno de componente — */
+    --gap-sm: calc(0.375rem * var(--density-scale));  /* 6px */
+    --gap-md: calc(0.5rem   * var(--density-scale));  /* 8px */
+    --gap-lg: calc(0.625rem * var(--density-scale));  /* 10px */
+
+    /* — Tamaños de ícono — */
+    --icon-sm: 0.875rem;   /* 14px */
+    --icon-md: 1rem;       /* 16px */
+    --icon-lg: 1.125rem;   /* 18px */
+}
+
+/* — Densidades — */
+[data-density="compact"]     { --density-scale: 0.75; }
+[data-density="default"]     { --density-scale: 1; }
+[data-density="comfortable"] { --density-scale: 1.25; }
+
+
+/* ────────────────────────────────────────────────────────────
+   6. ELEVACIÓN — sombras
+──────────────────────────────────────────────────────────── */
+:root {
+    --shadow-xs:  0 1px 2px oklch(0 0 0 / 5%);
+    --shadow-sm:  0 1px 3px oklch(0 0 0 / 10%), 0 1px 2px oklch(0 0 0 / 6%);
+    --shadow-md:  0 4px 6px oklch(0 0 0 / 7%),  0 2px 4px oklch(0 0 0 / 6%);
+    --shadow-lg:  0 10px 15px oklch(0 0 0 / 10%), 0 4px 6px oklch(0 0 0 / 5%);
+    --shadow-xl:  0 20px 25px oklch(0 0 0 / 10%), 0 10px 10px oklch(0 0 0 / 4%);
+    --shadow-2xl: 0 25px 50px oklch(0 0 0 / 25%);
+    --shadow-inner: inset 0 2px 4px oklch(0 0 0 / 6%);
+    --shadow-none: none;
+}
+
+.dark {
+    --shadow-xs:  0 1px 2px oklch(0 0 0 / 20%);
+    --shadow-sm:  0 1px 3px oklch(0 0 0 / 30%), 0 1px 2px oklch(0 0 0 / 20%);
+    --shadow-md:  0 4px 6px oklch(0 0 0 / 25%), 0 2px 4px oklch(0 0 0 / 20%);
+    --shadow-lg:  0 10px 15px oklch(0 0 0 / 30%), 0 4px 6px oklch(0 0 0 / 20%);
+    --shadow-xl:  0 20px 25px oklch(0 0 0 / 35%), 0 10px 10px oklch(0 0 0 / 20%);
+    --shadow-2xl: 0 25px 50px oklch(0 0 0 / 50%);
+}
+
+
+/* ────────────────────────────────────────────────────────────
+   7. MOVIMIENTO — duración y easing
+──────────────────────────────────────────────────────────── */
+:root {
+    --duration-instant: 0ms;
+    --duration-fast:    100ms;
+    --duration-normal:  200ms;
+    --duration-slow:    300ms;
+    --duration-slower:  500ms;
+
+    --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-in:      cubic-bezier(0.4, 0, 1, 1);
+    --ease-out:     cubic-bezier(0, 0, 0.2, 1);
+    --ease-spring:  cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    --transition-colors:    color var(--duration-fast) var(--ease-default),
+                            background-color var(--duration-fast) var(--ease-default),
+                            border-color var(--duration-fast) var(--ease-default),
+                            text-decoration-color var(--duration-fast) var(--ease-default),
+                            fill var(--duration-fast) var(--ease-default),
+                            stroke var(--duration-fast) var(--ease-default);
+    --transition-opacity:   opacity var(--duration-normal) var(--ease-default);
+    --transition-transform: transform var(--duration-normal) var(--ease-default);
+    --transition-shadow:    box-shadow var(--duration-fast) var(--ease-default);
+}
+
+/* Respeta prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --duration-fast:   0ms;
+        --duration-normal: 0ms;
+        --duration-slow:   0ms;
+        --duration-slower: 0ms;
+    }
+}
+
+
+/* ────────────────────────────────────────────────────────────
+   8. LAYOUT — contenedores
+──────────────────────────────────────────────────────────── */
+:root {
+    --container-xs:  36rem;    /* 576px */
+    --container-sm:  40rem;    /* 640px */
+    --container-md:  48rem;    /* 768px */
+    --container-lg:  64rem;    /* 1024px */
+    --container-xl:  80rem;    /* 1280px */
+    --container-2xl: 96rem;    /* 1536px */
+
+    /* Padding de página por viewport (usar como referencia) */
+    /* mobile:  px-4  (16px)  */
+    /* tablet:  px-6  (24px)  */
+    /* desktop: px-8  (32px)  */
+    /* wide:    px-10 (40px)  */
+}
+
+
+/* ────────────────────────────────────────────────────────────
+   Violet — hue 300 (purple/violet)
+──────────────────────────────────────────────────────────── */
+:root {
+    --violet-50:  oklch(0.971 0.022 300);
+    --violet-100: oklch(0.940 0.050 300);
+    --violet-200: oklch(0.895 0.090 300);
+    --violet-300: oklch(0.830 0.148 300);
+    --violet-400: oklch(0.743 0.203 300);
+    --violet-500: oklch(0.640 0.242 300);
+    --violet-600: oklch(0.553 0.252 300);
+    --violet-700: oklch(0.466 0.224 300);
+    --violet-800: oklch(0.393 0.184 300);
+    --violet-900: oklch(0.335 0.140 300);
+    --violet-950: oklch(0.220 0.087 300);
+}
+
+
+/* ────────────────────────────────────────────────────────────
+   THEMES — overrides de tokens semánticos por tema de marca
+   Aplicar [data-theme="nombre"] en <html> para activar.
+   Solo se redefinen --primary, --ring y --radius-*.
+   El resto del sistema (estados, superficies, texto) no cambia.
+──────────────────────────────────────────────────────────── */
+
+/* — Sapphire — Azul profesional · SaaS / Enterprise · radio 6px — */
+[data-theme="sapphire"] {
+    --primary:                       var(--blue-600);
+    --primary-foreground:            var(--neutral-50);
+    --ring:                          var(--blue-600);
+    --sidebar-primary:               var(--blue-600);
+    --sidebar-primary-foreground:    var(--neutral-50);
+    --sidebar-ring:                  var(--blue-600);
+    --radius-sm:  0.125rem;
+    --radius-md:  0.25rem;
+    --radius-lg:  0.375rem;
+    --radius-xl:  0.5rem;
+    --radius-2xl: 0.75rem;
+}
+.dark[data-theme="sapphire"] {
+    --primary:                       var(--blue-400);
+    --primary-foreground:            var(--neutral-950);
+    --ring:                          var(--blue-400);
+    --sidebar-primary:               var(--blue-500);
+    --sidebar-primary-foreground:    var(--neutral-50);
+    --sidebar-ring:                  var(--blue-400);
+}
+
+/* — Emerald — Verde amigable · Consumer / Salud · radio 12px — */
+[data-theme="emerald"] {
+    --primary:                       var(--green-600);
+    --primary-foreground:            var(--neutral-50);
+    --ring:                          var(--green-600);
+    --sidebar-primary:               var(--green-600);
+    --sidebar-primary-foreground:    var(--neutral-50);
+    --sidebar-ring:                  var(--green-600);
+    --radius-sm:  0.375rem;
+    --radius-md:  0.5rem;
+    --radius-lg:  0.75rem;
+    --radius-xl:  1rem;
+    --radius-2xl: 1.25rem;
+}
+.dark[data-theme="emerald"] {
+    --primary:                       var(--green-400);
+    --primary-foreground:            var(--neutral-950);
+    --ring:                          var(--green-400);
+    --sidebar-primary:               var(--green-500);
+    --sidebar-primary-foreground:    var(--neutral-50);
+    --sidebar-ring:                  var(--green-400);
+}
+
+/* — Rose — Rojo assertivo · Fintech / Urgente · radio 4px — */
+[data-theme="rose"] {
+    --primary:                       var(--red-600);
+    --primary-foreground:            var(--neutral-50);
+    --ring:                          var(--red-600);
+    --sidebar-primary:               var(--red-600);
+    --sidebar-primary-foreground:    var(--neutral-50);
+    --sidebar-ring:                  var(--red-600);
+    --radius-sm:  0;
+    --radius-md:  0.125rem;
+    --radius-lg:  0.25rem;
+    --radius-xl:  0.375rem;
+    --radius-2xl: 0.5rem;
+}
+.dark[data-theme="rose"] {
+    --primary:                       var(--red-400);
+    --primary-foreground:            var(--neutral-950);
+    --ring:                          var(--red-400);
+    --sidebar-primary:               var(--red-500);
+    --sidebar-primary-foreground:    var(--neutral-50);
+    --sidebar-ring:                  var(--red-400);
+}
+
+/* — Violet — Creativo · Startup / Diseño · radio 16px — */
+[data-theme="violet"] {
+    --primary:                       var(--violet-600);
+    --primary-foreground:            var(--neutral-50);
+    --ring:                          var(--violet-600);
+    --sidebar-primary:               var(--violet-600);
+    --sidebar-primary-foreground:    var(--neutral-50);
+    --sidebar-ring:                  var(--violet-600);
+    --radius-sm:  0.5rem;
+    --radius-md:  0.75rem;
+    --radius-lg:  1rem;
+    --radius-xl:  1.25rem;
+    --radius-2xl: 1.5rem;
+}
+.dark[data-theme="violet"] {
+    --primary:                       var(--violet-400);
+    --primary-foreground:            var(--neutral-950);
+    --ring:                          var(--violet-400);
+    --sidebar-primary:               var(--violet-500);
+    --sidebar-primary-foreground:    var(--neutral-50);
+    --sidebar-ring:                  var(--violet-400);
+}
+
+
+/* ────────────────────────────────────────────────────────────
+   9. Z-INDEX — capas nombradas
+──────────────────────────────────────────────────────────── */
+:root {
+    --z-base:      0;
+    --z-raised:    10;
+    --z-dropdown:  100;
+    --z-sticky:    200;
+    --z-fixed:     300;
+    --z-overlay:   400;
+    --z-sidebar:   450;
+    --z-modal:     500;
+    --z-popover:   600;
+    --z-tooltip:   700;
+    --z-toast:     800;
+    --z-top:       900;
+}
