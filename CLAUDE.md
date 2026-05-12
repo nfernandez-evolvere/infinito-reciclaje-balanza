@@ -1,3 +1,20 @@
+# Sistema de Gestión de Balanza — Infinito Reciclaje
+
+## Documentación del proyecto
+
+| Documento | Descripción |
+|-----------|-------------|
+| [`docs/roadmap.md`](docs/roadmap.md) | Plan de desarrollo completo: sprints, schema de DB, arquitectura de pantallas, criterios de go-live |
+| [`docs/ux-writing.md`](docs/ux-writing.md) | Voz y tono del sistema, reglas de escritura diferenciadas por rol (operador vs admin), formatos, ejemplos |
+| [`docs/Brief_Producto_Etapa1.md`](docs/Brief_Producto_Etapa1.md) | Requerimientos funcionales y no funcionales de Etapa 1 |
+| [`docs/design-system.md`](docs/design-system.md) | Documentación del design system Blade (`x-ui.*`) |
+| [`docs/knowledge/README.md`](docs/knowledge/README.md) | Base de conocimiento de usuario: onboarding, configuración inicial y referencia de cada módulo (preparada para RAG) |
+
+> **Al escribir cualquier texto en vistas Blade, consultar `docs/ux-writing.md`.**
+> Las reglas de escritura para el operador y el admin son distintas — aplicarlas según el perfil de la pantalla.
+
+---
+
 # Laravel Design System — shadcn/ui en Blade
 
 Stack: **Laravel 13 + Tailwind CSS v4 + Alpine.js + Blade components**

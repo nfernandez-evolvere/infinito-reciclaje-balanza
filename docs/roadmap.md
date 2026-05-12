@@ -176,6 +176,136 @@ Voz: **español operativo argentino** — directo, sin rodeos, como un colega en
 
 ---
 
+## Base de conocimiento y onboarding
+
+### Propósito
+
+Cada módulo del sistema tiene un archivo de conocimiento en `docs/knowledge/`. Estos archivos cumplen tres funciones:
+
+1. **Onboarding de usuarios reales** — guías paso a paso diferenciadas por perfil (operador / admin) para que cualquier usuario pueda usar el sistema desde el día 1, escritas en lenguaje no técnico.
+2. **Configuración inicial** — checklist ordenado de los pasos que deben completarse antes del go-live.
+3. **Base para RAG / chatbot de soporte** — los archivos están estructurados para ser ingestados por un sistema de recuperación semántica. Cada documento es autocontenido, con encabezados claros para chunking.
+
+### Estructura
+
+```
+docs/knowledge/
+├── README.md                   → índice y guía de uso de la base de conocimiento
+├── configuracion-inicial.md    → checklist pre-go-live para el admin
+├── onboarding-operador.md      → guía de uso para Roberto (y cualquier operador nuevo)
+├── onboarding-admin.md         → guía de uso para Nacho (y cualquier admin nuevo)
+├── modulo-balanza.md           → cómo funciona el registro de pesajes
+├── modulo-abms.md              → cómo gestionar los datos maestros
+├── modulo-dashboard.md         → cómo leer e interpretar el dashboard
+├── modulo-pesajes-admin.md     → cómo usar el log de pesajes como admin
+├── modulo-reportes.md          → cómo generar y exportar reportes
+└── modulo-alarmas.md           → cómo funcionan las alarmas y cómo configurarlas
+```
+
+### Reglas para escribir en la base de conocimiento
+
+- **Lenguaje del usuario, no del desarrollador** — sin mencionar modelos, controladores, migraciones ni SQL.
+- **Autocontenido** — cada archivo debe entenderse sin leer los otros.
+- **Encabezados descriptivos** — facilitan el chunking para RAG (`## Cómo registrar un pesaje`, no `## Paso 1`).
+- **Rol explícito al principio** — cada archivo indica a quién está dirigido.
+- **FAQs al final** — preguntas reales que surgen en el uso diario.
+
+### Onboarding por perfil
+
+#### Perfil: Operador (Roberto y cualquier operador nuevo)
+
+| Documento | Contenido | Sprint |
+|-----------|-----------|--------|
+| `onboarding-operador.md` | Login, formulario de pesaje paso a paso, atajos de teclado, egreso, historial del turno, cómo corregir un error, qué hacer si el vehículo no aparece | Sprint 1 |
+| `modulo-balanza.md` | Referencia completa del módulo de pesaje: todos los campos, comportamientos, avisos y casos borde | Sprint 3 |
+
+**Entrega:** `onboarding-operador.md` se imprime o comparte antes del día 1. `modulo-balanza.md` queda disponible como referencia durante la operación.
+
+---
+
+#### Perfil: Administrador (Nacho y cualquier admin nuevo)
+
+| Documento | Contenido | Sprint |
+|-----------|-----------|--------|
+| `configuracion-inicial.md` | Checklist pre-go-live: qué cargar en qué orden antes de que los operadores empiecen a usar el sistema | Sprint 1 |
+| `onboarding-admin.md` | Visión general del sistema, panel de administración, qué gestionar antes del día 1, uso diario | Sprint 1 |
+| `modulo-abms.md` | Referencia de los 5 padrones: campos, reglas de baja lógica, qué no editar y por qué | Sprint 2 |
+| `modulo-dashboard.md` | Cómo leer cada KPI, qué hace el gráfico, cuándo actuar ante una alerta | Sprint 4 |
+| `modulo-pesajes-admin.md` | Filtros del log, edición con motivo obligatorio, auditoría, gestión de estados | Sprint 4 |
+| `modulo-reportes.md` | Configuración de período y filtros, qué incluye cada sección, PDF vs Excel | Sprint 5 |
+| `modulo-alarmas.md` | Tipos de alarma, cómo resolverlas, configuración de umbrales | Sprint 6 |
+
+**Entrega:** `configuracion-inicial.md` y `onboarding-admin.md` se entregan antes del go-live. Los módulos de referencia quedan disponibles en el sistema o en la base de conocimiento compartida.
+
+---
+
+### Onboarding guiado en el sistema
+
+Además de los documentos externos, el sistema tiene dos experiencias de onboarding integradas que guían a cada perfil durante sus primeros usos.
+
+---
+
+#### Admin — Checklist de configuración inicial (Sprint 2)
+
+Un widget persistente que aparece en todas las pantallas del panel de administración hasta que los 5 padrones obligatorios estén completos.
+
+**Cuándo aparece:** desde el primer login del admin hasta que el sistema detecta que el setup está completo.
+
+**Lógica de completitud (data-driven, sin flags):**
+
+| Paso | Condición para marcar como completo |
+|------|-------------------------------------|
+| 1. Tipos de vehículo | `tipos_vehiculo.count > 0` |
+| 2. Tipos de servicio | `tipos_servicio.count > 0` |
+| 3. Zonas | `zonas.count > 0` |
+| 4. Padrón de vehículos | `vehiculos.count > 0` |
+| 5. Usuarios operadores | `users.count > 0` donde `role = 'operador'` |
+
+**UI:**
+- Banner en la parte superior del layout admin (por encima del contenido de cada página)
+- Barra de progreso: `X de 5 pasos completados`
+- Lista de los 5 pasos con check verde o círculo vacío según estado; cada paso incompleto tiene link directo al ABM correspondiente
+- Cuando los 5 están completos: el banner muestra "El sistema está listo para operar" y desaparece de forma permanente en el próximo refresh
+
+---
+
+#### Operador — Modal de bienvenida al primer login (Sprint 3)
+
+Un modal que aparece automáticamente la primera vez que el operador inicia sesión, mostrando el flujo de pesaje en tres pasos.
+
+**Cuándo aparece:** al completar el login cuando `onboarding_visto = false` en el usuario.
+
+**UI:**
+- Modal centrado con título: *"Bienvenido al sistema de pesajes"*
+- Los tres pasos del formulario explicados con un ícono cada uno:
+  1. Buscá el camión por patente o número interno
+  2. Elegí el tipo de servicio
+  3. Ingresá el peso que muestra la balanza
+- Mención de los atajos de teclado: Enter · Ctrl+S · Esc
+- Botón **Entendido** → cierra el modal y setea `onboarding_visto = true`
+- Ícono `?` en el header del layout operador que reabre el modal en cualquier momento
+
+**DB:** campo `onboarding_visto` (boolean, default `false`) en la tabla `users`. Se setea a `true` vía `POST /operador/onboarding/visto` al cerrar el modal.
+
+---
+
+### Cuándo se escribe cada archivo
+
+| Archivo | Perfil | Sprint |
+|---------|--------|--------|
+| `README.md` | — | Sprint 1 |
+| `configuracion-inicial.md` | Admin | Sprint 1 |
+| `onboarding-admin.md` | Admin | Sprint 1 |
+| `onboarding-operador.md` | Operador | Sprint 1 |
+| `modulo-abms.md` | Admin | Sprint 2 |
+| `modulo-balanza.md` | Operador | Sprint 3 |
+| `modulo-dashboard.md` | Admin | Sprint 4 |
+| `modulo-pesajes-admin.md` | Admin | Sprint 4 |
+| `modulo-reportes.md` | Admin | Sprint 5 |
+| `modulo-alarmas.md` | Admin | Sprint 6 |
+
+---
+
 ## Datos maestros iniciales (seeders)
 
 Deben estar listos desde el Sprint 2 para que el módulo Balanza funcione.
@@ -209,7 +339,7 @@ Base técnica funcional: conexión a SQL Server, autenticación real con 2 roles
 **Autenticación con Breeze**
 - [ ] `composer require laravel/breeze --dev`
 - [ ] `php artisan breeze:install blade`
-- [ ] Migración `users`: campos `role` (enum) y `turno` (nullable)
+- [ ] Migración `users`: campos `role` (enum), `turno` (nullable), `onboarding_visto` (boolean, default `false`)
 - [ ] Reescribir vista `login` con componentes `x-ui.*` y UX Writing del sistema
 - [ ] Eliminar vista `register` de Breeze — usuarios solo se crean desde ABM Usuarios
 
@@ -228,8 +358,14 @@ Base técnica funcional: conexión a SQL Server, autenticación real con 2 roles
 - [ ] `UserSeeder`: 1 operador (roberto, turno Tarde) + 1 admin (nacho) de prueba
 - [ ] `DatabaseSeeder` orquestando el orden correcto
 
+**Base de conocimiento — Sprint 1**
+- [ ] Crear carpeta `docs/knowledge/` con `README.md` (índice)
+- [ ] `configuracion-inicial.md` — checklist pre-go-live ordenado por etapa
+- [ ] `onboarding-operador.md` — guía completa para Roberto: login, pesaje, historial, egreso
+- [ ] `onboarding-admin.md` — guía completa para Nacho: primeros pasos, qué configurar antes del día 1
+
 ### Entregable
-Login funcional → redirección al layout correcto según rol. Rutas protegidas. Layouts con navegación operativa.
+Login funcional → redirección al layout correcto según rol. Rutas protegidas. Layouts con navegación operativa. Guías de onboarding listas para entregar a los usuarios.
 
 ---
 
@@ -287,8 +423,17 @@ Los 5 ABMs 100% funcionales. Condición crítica de go-live: sin padrón complet
 - [ ] Acciones por fila: editar, resetear contraseña, activar/desactivar
 - [ ] Baja lógica — nunca eliminar un usuario que tiene pesajes registrados
 
+**Onboarding guiado — Sprint 2: checklist admin**
+- [ ] `SetupChecklistService`: método `getEstado()` que devuelve array con el estado (completo/pendiente) de cada uno de los 5 pasos, calculado en tiempo real desde conteos de DB
+- [ ] Componente Blade `components/onboarding/setup-checklist.blade.php`: banner con barra de progreso, lista de 5 pasos con estado visual y links, mensaje de completitud
+- [ ] Incluir el componente en `layouts/admin.blade.php` — visible en todas las pantallas del admin hasta que `getEstado()` devuelva todos completos
+- [ ] El banner desaparece automáticamente cuando los 5 pasos están completos (sin acción del usuario)
+
+**Base de conocimiento — Sprint 2**
+- [ ] `modulo-abms.md` — qué son los datos maestros, cómo cargar cada entidad, orden recomendado, errores frecuentes
+
 ### Entregable
-Admin puede cargar el padrón completo. 5 ABMs funcionales. Usuarios gestionables sin acceso a la DB.
+Admin puede cargar el padrón completo. 5 ABMs funcionales. Usuarios gestionables sin acceso a la DB. Checklist de configuración inicial visible en el panel. Guía de ABMs lista.
 
 ---
 
@@ -332,8 +477,17 @@ Pantalla principal del operador: flujo completo de pesaje en menos de 10 segundo
 - [ ] **Acción Editar** (propios del turno): modal con campos editables y `motivo` obligatorio; cada campo modificado genera entrada en `pesajes_log`
 - [ ] **Acción Ver historial**: modal read-only con el log de cambios (campo · anterior → nuevo · motivo · usuario · fecha)
 
+**Onboarding guiado — Sprint 3: modal de bienvenida al operador**
+- [ ] Componente Blade `components/onboarding/bienvenida-operador.blade.php`: modal con los 3 pasos del formulario, atajos de teclado, botón "Entendido"
+- [ ] Mostrar el modal automáticamente en el layout operador cuando `auth()->user()->onboarding_visto === false`
+- [ ] Ruta `POST /operador/onboarding/visto` → setea `onboarding_visto = true` en el usuario autenticado; responde JSON para Alpine
+- [ ] Botón `?` en el header del layout operador que reabre el modal en cualquier momento (sin modificar el flag)
+
+**Base de conocimiento — Sprint 3**
+- [ ] `modulo-balanza.md` — cómo funciona el flujo de pesaje, atajos de teclado, qué hacer si el vehículo no aparece, cómo registrar egreso, cómo corregir un pesaje
+
 ### Entregable
-Operador registra pesaje completo en < 10 seg. Historial con egreso, edición auditada e historial de cambios.
+Operador registra pesaje completo en < 10 seg. Historial con egreso, edición auditada e historial de cambios. Modal de bienvenida al primer login. Manual del módulo Balanza listo.
 
 ---
 
@@ -363,8 +517,12 @@ Visibilidad completa de la operación para el admin: log filtrable de todos los 
 - [ ] Tabla por zona: pesajes, toneladas, kg/ha
 - [ ] Tabla por tipo de vehículo: viajes, toneladas, barra horizontal de % del total
 
+**Base de conocimiento — Sprint 4**
+- [ ] `modulo-dashboard.md` — cómo leer cada KPI, qué significa cada gráfico, cómo interpretar alertas, cómo usar el widget de camiones en predio
+- [ ] `modulo-pesajes-admin.md` — cómo filtrar, cómo editar con motivo, qué es el historial de cambios, cómo registrar egreso desde el panel admin
+
 ### Entregable
-Admin ve log completo de pesajes editable y panel de análisis con KPIs, gráficos y alertas.
+Admin ve log completo de pesajes editable y panel de análisis con KPIs, gráficos y alertas. Manuales de Dashboard y Pesajes listos.
 
 ---
 
@@ -403,8 +561,11 @@ Reemplazar 2–3 horas de Excel manual por generación en menos de 5 minutos.
 - [ ] `ReporteExport` class con datos crudos
 - [ ] Ruta `GET /admin/reportes/excel`
 
+**Base de conocimiento — Sprint 5**
+- [ ] `modulo-reportes.md` — cómo configurar filtros, qué incluye cada sección del reporte, cómo exportar, cómo interpretar densidad y per cápita
+
 ### Entregable
-Admin genera y descarga reporte en PDF y Excel en menos de 5 minutos, con preview en pantalla antes de exportar.
+Admin genera y descarga reporte en PDF y Excel en menos de 5 minutos, con preview en pantalla antes de exportar. Manual de Reportes listo.
 
 ---
 
@@ -447,8 +608,13 @@ Detección proactiva de anomalías. QA end-to-end con datos reales. Buffer para 
 - [ ] Verificar generación de PDF y Excel en servidor Linux
 - [ ] Buffer de 2 días para correcciones
 
+**Base de conocimiento — Sprint 6**
+- [ ] `modulo-alarmas.md` — qué tipos de alarmas existen, qué significa cada una, cómo configurar umbrales, cómo marcar como resuelta
+- [ ] Revisión final de todos los archivos de `docs/knowledge/` con los usuarios reales (Roberto y Nacho)
+- [ ] Verificar que cada archivo sea autocontenido y esté en lenguaje no técnico
+
 ### Entregable
-Sistema completo y operativo. Alarmas detectando anomalías reales. Listo para go-live el 14/07/2026.
+Sistema completo y operativo. Base de conocimiento completa y revisada. Listo para go-live el 14/07/2026.
 
 ---
 
@@ -468,6 +634,10 @@ Sistema completo y operativo. Alarmas detectando anomalías reales. Listo para g
 | Alarmas | Detección de gaps y valores fuera de rango, visibles en dashboard |
 | General | Login con 2 perfiles diferenciados (operador / admin) |
 | General | Sistema operativo el día 1 con padrón cargado |
+| Documentación | Base de conocimiento completa en `docs/knowledge/` (10 archivos) |
+| Documentación | Guías de onboarding entregadas a Roberto y Nacho antes del go-live |
+| Onboarding | Checklist de configuración inicial visible en el panel admin hasta completar los 5 pasos |
+| Onboarding | Modal de bienvenida al primer login del operador funcional |
 
 ---
 
@@ -482,5 +652,7 @@ Sistema completo y operativo. Alarmas detectando anomalías reales. Listo para g
 
 ---
 
-*Documento generado: 12/05/2026 | Versión: 1.2 — Actualizado 12/05/2026*
-*Cambios v1.2: IA alineada al prototipo — arquitectura de pantallas completa, tabla pesajes_log nueva, schema actualizado (estado, hora_salida, bruto_salida_kg, editado, turno en users, barrios en zonas), ABM Usuarios agregado, pantalla Pesajes admin agregada, Sprint 4 expandido, UX Writing incorporado como sección.*
+*Documento generado: 12/05/2026 | Versión: 1.5 — Actualizado 12/05/2026*
+*Cambios v1.5: Onboarding guiado en el sistema — nueva subsección con diseño de las dos experiencias in-app (checklist admin + modal operador), campo `onboarding_visto` en users, tareas en Sprint 1/2/3, criterios de go-live actualizados.*
+*Cambios v1.4: Onboarding por perfil documentado — nueva subsección con tabla de documentos por perfil (operador / admin), columna Perfil agregada a la tabla de sprints, propósito generalizado a roles (no a personas).*
+*Cambios v1.3: Base de conocimiento y onboarding agregados — nueva sección, estructura docs/knowledge/, tareas de documentación en cada sprint, criterios de go-live actualizados.*
