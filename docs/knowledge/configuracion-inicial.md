@@ -43,19 +43,21 @@ Ir a **Padrones → Tipos de vehículo** y verificar que estén cargados:
 
 ## Paso 3 — Cargar los tipos de servicio
 
-Los tipos de servicio definen qué zona y qué tipo de vehículo se sugieren automáticamente cuando el operador elige un servicio.
+Los tipos de servicio definen el tipo de vehículo habitual y, para los servicios con horario fijo, el turno de operación.
 
-Ir a **Padrones → Tipos de servicio** y cargar:
+Ir a **Padrones → Tipos de servicio** y verificar que estén cargados:
 
-| Servicio | Zona predeterminada | Tipo de vehículo sugerido |
-|----------|-------------------|--------------------------|
-| Domiciliario | (definir con el equipo) | Compactador |
-| Voluminoso | (definir con el equipo) | Volquete |
-| Barrido | (definir con el equipo) | Volcador |
-| Servicios Especiales | (definir con el equipo) | Compactador |
-| Centros de Transferencia | (definir con el equipo) | Compactador |
+| Servicio | Turnos disponibles | Tipo de vehículo sugerido |
+|----------|--------------------|--------------------------|
+| Domiciliario | Diurna, Nocturna | Compactador |
+| Voluminoso | — | Volquete |
+| Barrido | — | Volcador |
+| Servicios Especiales | — | Compactador |
+| Centros de Transferencia | — | Compactador |
 
-> La zona predeterminada es una sugerencia — el operador puede cambiarla en cada pesaje.
+> Los turnos determinan si el operador debe elegir Diurna o Nocturna al registrar un pesaje de ese servicio. Domiciliario opera en ambos turnos, por eso el operador siempre debe indicar cuál es.
+>
+> Las zonas no se asignan acá. Cada zona se asocia a su tipo de servicio en el Paso 4 (carga de zonas). Al registrar un pesaje, el operador elige el servicio y el sistema muestra solo las zonas de ese servicio.
 
 ---
 
@@ -65,7 +67,7 @@ Las zonas son las áreas geográficas de recolección. Los datos de hectáreas y
 
 Ir a **Padrones → Zonas** y cargar cada zona con:
 - Nombre de la zona
-- Servicio al que pertenece principalmente
+- **Servicio al que pertenece** — este campo es clave: determina qué zonas le aparecen al operador cuando elige un tipo de servicio en el formulario de pesaje
 - Hectáreas de la zona
 - Cantidad de barrios
 - Cantidad de habitantes
@@ -107,7 +109,6 @@ Para cada usuario cargar:
 - Nombre de usuario (para el login)
 - Nombre completo
 - Rol: **Operador**
-- Turno: Mañana / Tarde / Noche
 - Contraseña inicial (el operador puede cambiarla después)
 
 > Crear un usuario por persona, nunca compartir credenciales. Si dos operadores comparten usuario, no se puede saber quién registró cada pesaje.
@@ -119,8 +120,8 @@ Para cada usuario cargar:
 Antes de habilitar el sistema para operación real:
 
 - [ ] Tipos de vehículo cargados con rangos correctos
-- [ ] Tipos de servicio cargados con zonas y sugerencias
-- [ ] Zonas cargadas (al menos nombre y servicio; hectáreas y habitantes si están disponibles)
+- [ ] Tipos de servicio cargados con turno (si corresponde) y tipo de vehículo sugerido
+- [ ] Zonas cargadas con su tipo de servicio asignado (al menos nombre y servicio; hectáreas y habitantes si están disponibles)
 - [ ] Padrón de vehículos completo y con taras verificadas
 - [ ] Usuarios operadores creados y con contraseñas entregadas
 - [ ] Hacer un pesaje de prueba con un vehículo real para verificar el autocompletado
@@ -135,7 +136,7 @@ Antes de habilitar el sistema para operación real:
 | No aparece el autocompletado de un vehículo | Verificar que la patente o número interno estén cargados exactamente como el operador los ingresa |
 | El peso neto parece incorrecto | Verificar la tara del vehículo en el padrón |
 | Un operador no puede ingresar | Verificar que su usuario esté activo en Padrones → Usuarios |
-| Un servicio no autocompleta la zona | Verificar la configuración en Padrones → Tipos de servicio |
+| Un servicio no muestra zonas en el select | Verificar que la zona tenga asignado el tipo de servicio correcto en Padrones → Zonas |
 
 ---
 

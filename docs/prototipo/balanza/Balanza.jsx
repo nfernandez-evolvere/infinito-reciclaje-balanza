@@ -1,5 +1,5 @@
 /* global React, Icon, Button, Field, Card, Pill, Badge, Banner, SuccessOverlay,
-   VEHICLES, SERVICIOS, SERVICIO_CASCADE, VEHICLE_TYPES, fmtKg, fmtN */
+   VEHICLES, SERVICIOS, SERVICIOS_DATA, SERVICIO_CASCADE, ZONAS_DATA, VEHICLE_TYPES, fmtKg, fmtN */
 const { useState, useMemo, useRef, useEffect } = React;
 
 function Balanza({ pesajes, onSave, onDirtyChange }) {
@@ -8,6 +8,7 @@ function Balanza({ pesajes, onSave, onDirtyChange }) {
   const [showSugg, setShowSugg] = useState(false);
   const [servicio, setServicio] = useState("");
   const [zona, setZona] = useState("");
+  const [turno, setTurno] = useState("");
   const [bruto, setBruto] = useState("");
   const [success, setSuccess] = useState(null);
 
@@ -25,6 +26,11 @@ function Balanza({ pesajes, onSave, onDirtyChange }) {
 
   const cascade = servicio ? SERVICIO_CASCADE[servicio] : null;
   const tipoSugerido = cascade?.tipoSugerido;
+  const turnosDelServicio = cascade?.turnos ?? [];
+  const servicioRequiereTurno = turnosDelServicio.length > 0;
+  const zonasDelServicio = servicio
+    ? ZONAS_DATA.filter((z) => z.tipoServicio === servicio && z.estado === "Activo")
+    : [];
   const tipoActivo = vehicle?.tipo;
   const tipoMismatch = vehicle && tipoSugerido && tipoSugerido !== tipoActivo;
   const range = tipoActivo ? VEHICLE_TYPES[tipoActivo] : null;
@@ -42,18 +48,18 @@ function Balanza({ pesajes, onSave, onDirtyChange }) {
 
   const pickService = (s) => {
     setServicio(s);
-    const c = SERVICIO_CASCADE[s];
-    if (c) setZona(c.zona);
+    setZona("");
+    setTurno("");
     if (s) setTimeout(() => brutoRef.current?.focus(), 50);
   };
 
   const reset = () => {
     setQuery(""); setVehicle(null); setServicio("");
-    setZona(""); setBruto("");
+    setZona(""); setTurno(""); setBruto("");
     setTimeout(() => vehicleRef.current?.focus(), 50);
   };
 
-  const canSave = vehicle && servicio && zona && brutoN > 0;
+  const canSave = vehicle && servicio && zona && (!servicioRequiereTurno || turno) && brutoN > 0;
 
   const save = () => {
     if (!canSave) return;
@@ -63,7 +69,7 @@ function Balanza({ pesajes, onSave, onDirtyChange }) {
       id: Date.now(),
       horaEntrada: hora, horaSalida: null, brutoSalida: null,
       patente: vehicle.patente, tipo: tipoActivo,
-      servicio, zona, bruto: brutoN, tara: vehicle.tara, neto,
+      servicio, zona, turno: turno || null, bruto: brutoN, tara: vehicle.tara, neto,
       operador: "roberto",
       estado: "En predio",
     });
@@ -154,30 +160,55 @@ function Balanza({ pesajes, onSave, onDirtyChange }) {
           </Step>
         </Card>
 
-        {/* Step 2: Service */}
+        {/* Step 2: Service + Zone + Turno */}
         <Card>
-          <Step number={2} title="Tipo de servicio" complete={!!servicio} disabled={!vehicle} last>
-            <Field>
-              <select
-                ref={servicioRef}
-                className="select"
-                value={servicio}
-                onChange={(e) => pickService(e.target.value)}
-                disabled={!vehicle}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && servicio) {
-                    e.preventDefault();
-                    brutoRef.current?.focus();
-                  }
-                }}
-              >
-                <option value="">Seleccionar servicio…</option>
-                {SERVICIOS.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </Field>
+          <Step number={2} title="Tipo de servicio y zona" complete={!!servicio && !!zona && (!servicioRequiereTurno || !!turno)} disabled={!vehicle} last>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <Field label="Tipo de servicio">
+                <select
+                  ref={servicioRef}
+                  className="select"
+                  value={servicio}
+                  onChange={(e) => pickService(e.target.value)}
+                  disabled={!vehicle}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && servicio) {
+                      e.preventDefault();
+                      brutoRef.current?.focus();
+                    }
+                  }}
+                >
+                  <option value="">Seleccionar servicio…</option>
+                  {SERVICIOS.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </Field>
+              {servicio && (
+                <Field label="Zona">
+                  <select
+                    className="select"
+                    value={zona}
+                    onChange={(e) => setZona(e.target.value)}
+                  >
+                    <option value="">Seleccionar zona…</option>
+                    {zonasDelServicio.map((z) => <option key={z.id} value={z.nombre}>{z.nombre}</option>)}
+                  </select>
+                </Field>
+              )}
+              {servicio && servicioRequiereTurno && (
+                <Field label="Turno" hint="Requerido para este servicio.">
+                  <select
+                    className="select"
+                    value={turno}
+                    onChange={(e) => setTurno(e.target.value)}
+                  >
+                    <option value="">Seleccionar turno…</option>
+                    {turnosDelServicio.map((t) => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </Field>
+              )}
+            </div>
             {servicio && (
               <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap", alignItems: "center" }}>
-                <Badge kind="green" label="Zona" value={zona} />
                 <Badge kind="blue" label="Tipo habitual" value={tipoSugerido} />
               </div>
             )}
@@ -243,6 +274,7 @@ function Balanza({ pesajes, onSave, onDirtyChange }) {
             <SummaryCell label="Vehículo"  value={vehicle ? vehicle.patente : "—"} />
             <SummaryCell label="Servicio"  value={servicio || "—"} />
             <SummaryCell label="Zona"      value={zona || "—"} />
+            <SummaryCell label="Turno"     value={turno || "—"} />
             <SummaryCell label="Tipo"      value={tipoActivo || "—"} />
             <SummaryCell label="Peso bruto" value={brutoN ? fmtKg(brutoN) : "—"} num />
             <SummaryCell label="Tara"       value={vehicle ? fmtKg(vehicle.tara) : "—"} num />
@@ -257,7 +289,12 @@ function Balanza({ pesajes, onSave, onDirtyChange }) {
         <Button kind="secondary" icon="rotate-ccw" onClick={reset}>Limpiar <span className="kbd" style={{ marginLeft: 6, opacity: 0.7 }}><kbd>Esc</kbd></span></Button>
         <div className="spacer" />
         <span className="muted body-sm">
-          {canSave ? "Listo para guardar" : vehicle && servicio ? "Ingresá el peso bruto" : vehicle ? "Elegí el servicio" : "Buscá el vehículo"}
+          {canSave ? "Listo para guardar"
+          : vehicle && servicio && zona && servicioRequiereTurno && !turno ? "Elegí el turno"
+          : vehicle && servicio && zona ? "Ingresá el peso bruto"
+          : vehicle && servicio ? "Elegí la zona"
+          : vehicle ? "Elegí el servicio"
+          : "Buscá el vehículo"}
         </span>
         <Button kind="save" onClick={save} disabled={!canSave} icon="save">
           Guardar pesaje

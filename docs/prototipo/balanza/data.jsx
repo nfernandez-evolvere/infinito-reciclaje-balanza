@@ -18,30 +18,32 @@ const VEHICLES = [
 ];
 
 const SERVICIOS_DATA = [
-  { id: 1, nombre: "Domiciliario",             zonaPredeterminada: "Centro", tipoSugerido: "Compactador", estado: "Activo" },
-  { id: 2, nombre: "Voluminoso",               zonaPredeterminada: "Oeste",  tipoSugerido: "Volquete",    estado: "Activo" },
-  { id: 3, nombre: "Barrido",                  zonaPredeterminada: "Norte",  tipoSugerido: "Volcador",    estado: "Activo" },
-  { id: 4, nombre: "Servicios Especiales",     zonaPredeterminada: "Sur",    tipoSugerido: "Compactador", estado: "Activo" },
-  { id: 5, nombre: "Centros de Transferencia", zonaPredeterminada: "Centro", tipoSugerido: "Compactador", estado: "Activo" },
+  { id: 1, nombre: "Domiciliario",             turnos: ["Diurna", "Nocturna"], tipoSugerido: "Compactador", estado: "Activo" },
+  { id: 2, nombre: "Voluminoso",               turnos: [],                     tipoSugerido: "Volquete",    estado: "Activo" },
+  { id: 3, nombre: "Barrido",                  turnos: [],                     tipoSugerido: "Volcador",    estado: "Activo" },
+  { id: 4, nombre: "Servicios Especiales",     turnos: [],                     tipoSugerido: "Compactador", estado: "Activo" },
+  { id: 5, nombre: "Centros de Transferencia", turnos: [],                     tipoSugerido: "Compactador", estado: "Activo" },
 ];
 const SERVICIOS = SERVICIOS_DATA.map((s) => s.nombre);
 const SERVICIO_CASCADE = Object.fromEntries(
-  SERVICIOS_DATA.map((s) => [s.nombre, { zona: s.zonaPredeterminada, tipoSugerido: s.tipoSugerido }])
+  SERVICIOS_DATA.map((s) => [s.nombre, { tipoSugerido: s.tipoSugerido, turnos: s.turnos }])
 );
 
 const ZONAS_DATA = [
-  { id: 1, nombre: "Centro", hectareas: 50, barrios: 12, estado: "Activo" },
-  { id: 2, nombre: "Norte",  hectareas: 42, barrios: 9,  estado: "Activo" },
-  { id: 3, nombre: "Sur",    hectareas: 55, barrios: 14, estado: "Activo" },
-  { id: 4, nombre: "Oeste",  hectareas: 38, barrios: 8,  estado: "Activo" },
+  { id: 1, nombre: "Centro",  tipoServicio: "Domiciliario",             hectareas: 50, barrios: 12, estado: "Activo" },
+  { id: 2, nombre: "Norte",   tipoServicio: "Barrido",                  hectareas: 42, barrios: 9,  estado: "Activo" },
+  { id: 3, nombre: "Sur",     tipoServicio: "Domiciliario",             hectareas: 55, barrios: 14, estado: "Activo" },
+  { id: 4, nombre: "Oeste",   tipoServicio: "Voluminoso",               hectareas: 38, barrios: 8,  estado: "Activo" },
+  { id: 5, nombre: "Este",    tipoServicio: "Servicios Especiales",     hectareas: 31, barrios: 7,  estado: "Activo" },
+  { id: 6, nombre: "Puerto",  tipoServicio: "Centros de Transferencia", hectareas: 18, barrios: 2,  estado: "Activo" },
 ];
 const ZONAS = ZONAS_DATA.map((z) => z.nombre);
 
 const USUARIOS = [
-  { id: 1, usuario: "roberto",  nombre: "Roberto Acosta",   rol: "Operador", turno: "Tarde",  estado: "Activo" },
-  { id: 2, usuario: "marta",    nombre: "Marta Giménez",    rol: "Operador", turno: "Mañana", estado: "Activo" },
-  { id: 3, usuario: "nacho",    nombre: "Nacho Ríos",       rol: "Admin",    turno: "—",      estado: "Activo" },
-  { id: 4, usuario: "carlos",   nombre: "Carlos Vera",      rol: "Operador", turno: "Noche",  estado: "Inactivo" },
+  { id: 1, usuario: "roberto",  nombre: "Roberto Acosta",   rol: "Operador", estado: "Activo" },
+  { id: 2, usuario: "marta",    nombre: "Marta Giménez",    rol: "Operador", estado: "Activo" },
+  { id: 3, usuario: "nacho",    nombre: "Nacho Ríos",       rol: "Admin",    estado: "Activo" },
+  { id: 4, usuario: "carlos",   nombre: "Carlos Vera",      rol: "Operador", estado: "Inactivo" },
 ];
 
 const PESAJES = [

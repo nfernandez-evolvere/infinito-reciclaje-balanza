@@ -1,22 +1,23 @@
 /* global React, Button, Card, Pill, Modal, Field, Icon,
-   ZONAS_DATA, fmtN */
+   ZONAS_DATA, SERVICIOS, fmtN */
 const { useState } = React;
 
 function AbmZonas() {
   const [rows, setRows] = useState(ZONAS_DATA);
   const [modalOpen, setModalOpen] = useState(false);
-  const [draft, setDraft] = useState({ nombre: "", hectareas: "", barrios: "", estado: "Activo" });
+  const [draft, setDraft] = useState({ nombre: "", tipoServicio: "", hectareas: "", barrios: "", estado: "Activo" });
 
   const submit = () => {
     if (!draft.nombre.trim()) return;
     setRows((rs) => [{
       id: Date.now(),
       nombre: draft.nombre,
+      tipoServicio: draft.tipoServicio || null,
       hectareas: parseFloat(draft.hectareas) || 0,
       barrios: parseInt(draft.barrios, 10) || 0,
       estado: draft.estado,
     }, ...rs]);
-    setDraft({ nombre: "", hectareas: "", barrios: "", estado: "Activo" });
+    setDraft({ nombre: "", tipoServicio: "", hectareas: "", barrios: "", estado: "Activo" });
     setModalOpen(false);
   };
 
@@ -38,6 +39,7 @@ function AbmZonas() {
           <thead>
             <tr>
               <th>Zona</th>
+              <th>Tipo de servicio</th>
               <th className="num">Superficie</th>
               <th className="num">Barrios</th>
               <th>Estado</th>
@@ -48,6 +50,7 @@ function AbmZonas() {
             {rows.map((z) => (
               <tr key={z.id}>
                 <td><b>{z.nombre}</b></td>
+                <td>{z.tipoServicio ? <Pill kind="blue">{z.tipoServicio}</Pill> : <span style={{ color: "var(--ink-400)" }}>—</span>}</td>
                 <td className="num">{z.hectareas.toLocaleString("es-AR")} ha</td>
                 <td className="num">{z.barrios}</td>
                 <td>{z.estado === "Activo" ? <Pill kind="green" dot>Activo</Pill> : <Pill kind="gray" dot>Inactivo</Pill>}</td>
@@ -73,6 +76,12 @@ function AbmZonas() {
           <div className="grid grid-2">
             <Field label="Nombre" style={{ gridColumn: "1 / -1" }}>
               <input className="input" value={draft.nombre} onChange={(e) => setDraft({ ...draft, nombre: e.target.value })} placeholder="Ej. Costa Sur" />
+            </Field>
+            <Field label="Tipo de servicio" style={{ gridColumn: "1 / -1" }} hint="Determina en qué servicio aparece esta zona al registrar un pesaje.">
+              <select className="select" value={draft.tipoServicio} onChange={(e) => setDraft({ ...draft, tipoServicio: e.target.value })}>
+                <option value="">Sin asignar</option>
+                {SERVICIOS.map((s) => <option key={s}>{s}</option>)}
+              </select>
             </Field>
             <Field label="Superficie (hectáreas)"><input className="input num" value={draft.hectareas} onChange={(e) => setDraft({ ...draft, hectareas: e.target.value })} placeholder="0" /></Field>
             <Field label="Cantidad de barrios"><input className="input num" value={draft.barrios} onChange={(e) => setDraft({ ...draft, barrios: e.target.value })} placeholder="0" /></Field>

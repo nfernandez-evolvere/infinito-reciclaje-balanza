@@ -1,0 +1,208 @@
+/* =============================================================
+   Infinito Reciclaje — Sistema de Gestión de Balanza
+   Design tokens + base semantic styles
+   ============================================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+:root {
+  /* ---- Color: brand & semantic (Material-700 / -50 pairs) ---- */
+  --green-700: #2E7D32;
+  --green-800: #256528; /* hover-pressed of primary */
+  --green-50:  #E8F5E9;
+
+  --orange-700: #F57C00;
+  --orange-50:  #FFF4E5;
+
+  --red-700: #C62828;
+  --red-50:  #FDECEA;
+
+  --blue-700: #1565C0;
+  --blue-50:  #E3F2FD;
+
+  /* ---- Color: neutrals ---- */
+  --ink-900: #212121;
+  --ink-700: #424242;
+  --ink-500: #757575;
+  --ink-300: #BDBDBD;
+  --line:    #E0E0E0;
+  --bg:      #F5F5F5;
+  --surface: #FFFFFF;
+  --scrim:   rgba(33, 33, 33, 0.48);
+
+  /* ---- Aliases for intent ---- */
+  --fg-1: var(--ink-900);   /* primary text */
+  --fg-2: var(--ink-700);   /* secondary text */
+  --fg-3: var(--ink-500);   /* labels, placeholders */
+  --fg-disabled: var(--ink-300);
+
+  --primary: var(--green-700);
+  --primary-pressed: var(--green-800);
+  --primary-soft: var(--green-50);
+
+  --warning: var(--orange-700);
+  --warning-soft: var(--orange-50);
+  --danger: var(--red-700);
+  --danger-soft: var(--red-50);
+  --info: var(--blue-700);
+  --info-soft: var(--blue-50);
+
+  /* ---- Type ---- */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-num: "Inter", system-ui, sans-serif; /* tnum applied via .num */
+
+  --fs-12: 12px;
+  --fs-14: 14px;
+  --fs-16: 16px;
+  --fs-18: 18px;
+  --fs-20: 20px;
+  --fs-24: 24px;
+  --fs-32: 32px;
+  --fs-48: 48px;
+
+  --lh-tight: 1.2;
+  --lh-snug:  1.35;
+  --lh-body:  1.5;
+
+  --fw-regular: 400;
+  --fw-medium:  500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  /* ---- Spacing (4px base) ---- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-7: 32px;
+  --sp-8: 40px;
+  --sp-9: 48px;
+  --sp-10: 64px;
+
+  /* ---- Radius ---- */
+  --r-input: 6px;
+  --r-button: 6px;
+  --r-card: 8px;
+  --r-pill: 999px;
+
+  /* ---- Shadows ---- */
+  --shadow-card:  0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-pop:   0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.18);
+
+  /* ---- Motion ---- */
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --dur-fast: 120ms;
+  --dur: 180ms;
+  --dur-slow: 320ms;
+
+  /* ---- Layout ---- */
+  --header-h: 56px;
+  --footer-h: 48px;
+  --sidebar-w: 240px;
+  --page-max: 1440px;
+  --page-target: 1280px;
+}
+
+/* =============================================================
+   Base + Semantic
+   ============================================================= */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg-1);
+  font-family: var(--font-sans);
+  font-size: var(--fs-14);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Headings — sentence-case in copy; semantic only here */
+h1, .h1 {
+  font-size: var(--fs-32);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: var(--fg-1);
+}
+h2, .h2 {
+  font-size: var(--fs-24);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.005em;
+  margin: 0;
+  color: var(--fg-1);
+}
+h3, .h3 {
+  font-size: var(--fs-20);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-snug);
+  margin: 0;
+  color: var(--fg-1);
+}
+h4, .h4 {
+  font-size: var(--fs-16);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-snug);
+  margin: 0;
+  color: var(--fg-1);
+}
+
+p { margin: 0; }
+.body-lg  { font-size: var(--fs-16); line-height: var(--lh-body); }
+.body     { font-size: var(--fs-14); line-height: var(--lh-body); }
+.body-sm  { font-size: var(--fs-12); line-height: var(--lh-body); color: var(--fg-2); }
+.label    { font-size: var(--fs-12); font-weight: var(--fw-medium); color: var(--fg-3); letter-spacing: 0.02em; text-transform: uppercase; }
+.caption  { font-size: var(--fs-12); color: var(--fg-3); }
+
+/* Tabular numerics — required on every numeric column */
+.num,
+.kpi-value,
+.weight-readout,
+table td.num,
+table th.num { font-feature-settings: "tnum" 1, "lnum" 1; font-variant-numeric: tabular-nums; }
+
+.weight-readout {
+  font-size: var(--fs-48);
+  font-weight: var(--fw-bold);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--fg-1);
+}
+
+.kpi-value {
+  font-size: var(--fs-32);
+  font-weight: var(--fw-bold);
+  line-height: 1.1;
+  color: var(--fg-1);
+}
+
+a {
+  color: var(--info);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease);
+}
+a:hover { text-decoration: underline; }
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: var(--sp-6) 0;
+}
+
+button { font-family: inherit; }
+
+::selection { background: var(--green-50); color: var(--ink-900); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0ms !important; animation-duration: 0ms !important; }
+}

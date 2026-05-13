@@ -9,6 +9,8 @@
 | [`docs/Brief_Producto_Etapa1.md`](docs/Brief_Producto_Etapa1.md) | Requerimientos funcionales y no funcionales de Etapa 1 |
 | [`docs/design-system.md`](docs/design-system.md) | Documentación del design system Blade (`x-ui.*`) |
 | [`docs/knowledge/README.md`](docs/knowledge/README.md) | Base de conocimiento de usuario: onboarding, configuración inicial y referencia de cada módulo (preparada para RAG) |
+| [`docs/data-model.md`](docs/data-model.md) | Modelo de datos completo: tipos, constraints, índices, cardinalidades, patrones de consulta y decisiones de diseño |
+| [`docs/sprints/`](docs/sprints/) | Plan detallado por sprint: sub-sprints, tareas granulares, tests unitarios, de integración y manuales |
 
 > **Al escribir cualquier texto en vistas Blade, consultar `docs/ux-writing.md`.**
 > Las reglas de escritura para el operador y el admin son distintas — aplicarlas según el perfil de la pantalla.

@@ -53,7 +53,7 @@ Footer sidebar:   avatar · nombre · rol · logout
 | Zonas | `/admin/zonas` | ABM zonas |
 | Tipos de servicio | `/admin/servicios` | ABM servicios con cascada |
 | Tipos de vehículo | `/admin/tipos-vehiculo` | ABM tipos con rangos de peso |
-| Usuarios | `/admin/usuarios` | ABM usuarios con rol y turno |
+| Usuarios | `/admin/usuarios` | ABM usuarios con rol |
 | Reportes | `/admin/reportes` | Filtros + preview + exportación PDF/Excel |
 
 ---
@@ -86,71 +86,35 @@ Helpers en `User`: `isAdmin()`, `isOperador()`
 
 ## Esquema de base de datos
 
-```
-users
-    id, name, email, password,
-    role    (operador | admin),
-    turno   (Mañana | Tarde | Noche | null)   ← null para admins
+> **Documento completo:** [`docs/data-model.md`](data-model.md)
+> Incluye tipos de dato, constraints, índices, cardinalidades, patrones de consulta, decisiones de diseño y orden de migraciones.
 
-tipos_vehiculo
-    id, nombre, peso_min_kg, peso_max_kg, activo
+**Tablas y orden de migración:**
 
-tipos_servicio
-    id, nombre, tipo_vehiculo_sugerido_id (FK → tipos_vehiculo), activo
+| # | Tabla | Descripción |
+|---|-------|-------------|
+| 1 | `users` | Operadores y administradores |
+| 2 | `tipos_vehiculo` | Catálogo de tipos con rangos de peso |
+| 3 | `tipos_servicio` | Tipos de recolección; vehículo sugerido |
+| 4 | `tipos_servicio_turnos` | Turnos disponibles por servicio (PK compuesta; 0, 1 o 2 filas por servicio) |
+| 5 | `zonas` | Áreas geográficas clasificadas por servicio (N:1 → `tipos_servicio`) |
+| 5 | `vehiculos` | Padrón completo con tara |
+| 6 | `pesajes` | Tabla operacional central |
+| 7 | `pesajes_log` | Audit trail inmutable por campo editado |
+| 8 | `config_alarmas` | Umbrales de detección configurables |
+| 9 | `alarmas` | Alertas generadas automáticamente |
 
-zonas
-    id, nombre, tipo_servicio_id (FK → tipos_servicio),
-    hectareas, habitantes, barrios, activo
-
-vehiculos
-    id, patente, numero_interno, tara_kg,
-    tipo_vehiculo_id (FK → tipos_vehiculo),
-    titular, capacidad_kg, observaciones, activo
-
-pesajes
-    id,
-    vehiculo_id (FK → vehiculos),
-    operador_id (FK → users),
-    tipo_servicio_id (FK → tipos_servicio),
-    zona_id (FK → zonas),
-    peso_bruto_kg,
-    peso_tara_kg,        ← copiado del padrón al registrar (preserva historial)
-    peso_neto_kg,        ← calculado al ingreso: peso_bruto - peso_tara
-    alerta_peso (bool),
-    observaciones,       ← autocompleta del padrón, editable por el operador
-    estado               (En predio | Cerrado),
-    hora_salida          (nullable datetime),   ← timestamp de egreso
-    bruto_salida_kg      (nullable int),        ← peso de salida opcional, solo audit
-    editado (bool),      ← true si fue editado post-registro
-    created_at
-
-pesajes_log
-    id, pesaje_id (FK → pesajes),
-    campo, valor_anterior, valor_nuevo,
-    motivo,              ← obligatorio en toda edición
-    usuario,             ← nombre del operador o admin que editó
-    created_at
-
-alarmas
-    id, tipo, descripcion,
-    zona_id (FK → zonas, nullable),
-    vehiculo_id (FK → vehiculos, nullable),
-    resuelta (bool), created_at
-
-config_alarmas
-    id, tipo, umbral_min, umbral_max, activo
-```
-
-### Decisiones de diseño confirmadas
+**Decisiones de diseño clave:**
 
 | Decisión | Definición |
 |----------|-----------|
-| Integración balanza física | **Fuera de Etapa 1.** Ingreso de peso manual con validación de rango. A evaluar para Etapa 2. |
-| `observaciones` en pesajes | Dos niveles: padrón (estático, autocompleta) + por viaje (editable por el operador). |
-| Egreso | Solo trazabilidad: `hora_salida` + `bruto_salida_kg` opcional (guardado, no usado en cálculo del neto). Estado `En predio` → `Cerrado`. |
-| `peso_tara_kg` en pesajes | Se copia del padrón al momento del ingreso para preservar historial si el padrón cambia. |
-| Edición de pesajes | Ambos roles pueden editar con `motivo` obligatorio. Cada campo editado genera una entrada en `pesajes_log`. |
-| Edición por operador | El operador puede editar sus propios pesajes del turno activo desde Historial. Misma lógica auditable que el admin. |
+| Integración balanza física | **Fuera de Etapa 1.** Ingreso manual con validación de rango. A evaluar para Etapa 2. |
+| `peso_tara_kg` en pesajes | Desnormalización intencional: se copia del padrón al ingreso para preservar historial si la tara cambia. |
+| `peso_neto_kg` calculado en Service | No es computed column SQL Server — permite log granular del campo en `pesajes_log` al editarlo. |
+| `activo` en lugar de `SoftDeletes` | El ABM admin necesita mostrar registros inactivos. `activo bit` es explícito, sin scopes globales. |
+| Relación `tipos_servicio` → `zonas` es 1:N | Un servicio tiene varias zonas (`zonas.tipo_servicio_id`). FK unidireccional, sin ciclos. El formulario de pesaje filtra zonas por el servicio elegido. |
+| `tipos_servicio_turnos` + `pesajes.turno` | Un servicio puede tener 0, 1 o 2 turnos (Domiciliario: Diurna y Nocturna; el resto sin turno). El operador selecciona el turno al registrar el pesaje solo cuando el servicio lo requiere. `pesajes.turno` es NULL cuando el servicio no tiene turnos configurados. |
+| Edición auditada | Ambos roles editan con `motivo` obligatorio. Cada campo modificado genera una fila en `pesajes_log`. |
 
 ---
 
@@ -325,6 +289,7 @@ Deben estar listos desde el Sprint 2 para que el módulo Balanza funcione.
 
 ## Sprint 1 — Cimientos
 **Semana 1 · 12–16 mayo**
+**Plan detallado:** [`docs/sprints/sprint-1.md`](sprints/sprint-1.md)
 
 ### Objetivo
 Base técnica funcional: conexión a SQL Server, autenticación real con 2 roles, layouts diferenciados por perfil.
@@ -339,7 +304,7 @@ Base técnica funcional: conexión a SQL Server, autenticación real con 2 roles
 **Autenticación con Breeze**
 - [ ] `composer require laravel/breeze --dev`
 - [ ] `php artisan breeze:install blade`
-- [ ] Migración `users`: campos `role` (enum), `turno` (nullable), `onboarding_visto` (boolean, default `false`)
+- [ ] Migración `users`: campos `role` (enum), `onboarding_visto` (boolean, default `false`)
 - [ ] Reescribir vista `login` con componentes `x-ui.*` y UX Writing del sistema
 - [ ] Eliminar vista `register` de Breeze — usuarios solo se crean desde ABM Usuarios
 
@@ -355,7 +320,7 @@ Base técnica funcional: conexión a SQL Server, autenticación real con 2 roles
 - [ ] Grupos de rutas con middleware por rol
 
 **Seeders base**
-- [ ] `UserSeeder`: 1 operador (roberto, turno Tarde) + 1 admin (nacho) de prueba
+- [ ] `UserSeeder`: 1 operador (roberto) + 1 admin (nacho) de prueba
 - [ ] `DatabaseSeeder` orquestando el orden correcto
 
 **Base de conocimiento — Sprint 1**
@@ -371,6 +336,7 @@ Login funcional → redirección al layout correcto según rol. Rutas protegidas
 
 ## Sprint 2 — ABMs completos
 **Semanas 2–3 · 19–30 mayo**
+**Plan detallado:** [`docs/sprints/sprint-2.md`](sprints/sprint-2.md)
 
 ### Objetivo
 Los 5 ABMs 100% funcionales. Condición crítica de go-live: sin padrón completo las automatizaciones del módulo Balanza no funcionan.
@@ -418,8 +384,8 @@ Los 5 ABMs 100% funcionales. Condición crítica de go-live: sin padrón complet
 - [ ] `UsuarioRepository`, `UsuarioService`
 - [ ] `UsuarioController` (resource)
 - [ ] Form Requests: `StoreUsuarioRequest`, `UpdateUsuarioRequest`
-- [ ] Vista index: tabla con avatar+nombre, pill de rol, turno, estado
-- [ ] Modal crear: usuario, nombre completo, rol, turno, contraseña inicial
+- [ ] Vista index: tabla con avatar+nombre, pill de rol, estado
+- [ ] Modal crear: usuario, nombre completo, rol, contraseña inicial
 - [ ] Acciones por fila: editar, resetear contraseña, activar/desactivar
 - [ ] Baja lógica — nunca eliminar un usuario que tiene pesajes registrados
 
@@ -439,6 +405,7 @@ Admin puede cargar el padrón completo. 5 ABMs funcionales. Usuarios gestionable
 
 ## Sprint 3 — Módulo Balanza
 **Semanas 4–5 · 2–13 junio**
+**Plan detallado:** [`docs/sprints/sprint-3.md`](sprints/sprint-3.md)
 
 ### Objetivo
 Pantalla principal del operador: flujo completo de pesaje en menos de 10 segundos, y Historial del turno con egreso y edición auditada.
@@ -493,6 +460,7 @@ Operador registra pesaje completo en < 10 seg. Historial con egreso, edición au
 
 ## Sprint 4 — Pesajes admin + Dashboard
 **Semanas 6–7 · 16–27 junio**
+**Plan detallado:** [`docs/sprints/sprint-4.md`](sprints/sprint-4.md)
 
 ### Objetivo
 Visibilidad completa de la operación para el admin: log filtrable de todos los pesajes y panel de análisis en tiempo real.
@@ -528,6 +496,7 @@ Admin ve log completo de pesajes editable y panel de análisis con KPIs, gráfic
 
 ## Sprint 5 — Reportes automáticos
 **Semana 7–8 · 30 junio – 4 julio**
+**Plan detallado:** [`docs/sprints/sprint-5.md`](sprints/sprint-5.md)
 
 ### Objetivo
 Reemplazar 2–3 horas de Excel manual por generación en menos de 5 minutos.
@@ -571,6 +540,7 @@ Admin genera y descarga reporte en PDF y Excel en menos de 5 minutos, con previe
 
 ## Sprint 6 — Alarmas + QA
 **Semanas 8–9 · 7–14 julio**
+**Plan detallado:** [`docs/sprints/sprint-6.md`](sprints/sprint-6.md)
 
 ### Objetivo
 Detección proactiva de anomalías. QA end-to-end con datos reales. Buffer para correcciones previas al go-live.
@@ -652,7 +622,9 @@ Sistema completo y operativo. Base de conocimiento completa y revisada. Listo pa
 
 ---
 
-*Documento generado: 12/05/2026 | Versión: 1.5 — Actualizado 12/05/2026*
+*Documento generado: 12/05/2026 | Versión: 1.7 — Actualizado 13/05/2026*
+*Cambios v1.7: Schema reemplazado por referencia a `docs/data-model.md` — modelo completo con tipos SQL Server, constraints, índices, cardinalidades, patrones de consulta y decisiones de diseño.*
+*Cambios v1.6: Plan detallado de sprints — cada sprint referencia su archivo en `docs/sprints/` con sub-sprints, tareas granulares y definición de tests unitarios, de integración y manuales.*
 *Cambios v1.5: Onboarding guiado en el sistema — nueva subsección con diseño de las dos experiencias in-app (checklist admin + modal operador), campo `onboarding_visto` en users, tareas en Sprint 1/2/3, criterios de go-live actualizados.*
 *Cambios v1.4: Onboarding por perfil documentado — nueva subsección con tabla de documentos por perfil (operador / admin), columna Perfil agregada a la tabla de sprints, propósito generalizado a roles (no a personas).*
 *Cambios v1.3: Base de conocimiento y onboarding agregados — nueva sección, estructura docs/knowledge/, tareas de documentación en cada sprint, criterios de go-live actualizados.*

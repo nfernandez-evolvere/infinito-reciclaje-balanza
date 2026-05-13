@@ -5,12 +5,12 @@ const { useState } = React;
 function AbmUsuarios() {
   const [rows, setRows] = useState(USUARIOS);
   const [modalOpen, setModalOpen] = useState(false);
-  const [draft, setDraft] = useState({ usuario: "", nombre: "", rol: "Operador", turno: "Mañana", estado: "Activo" });
+  const [draft, setDraft] = useState({ usuario: "", nombre: "", rol: "Operador", estado: "Activo" });
 
   const submit = () => {
     if (!draft.usuario.trim() || !draft.nombre.trim()) return;
     setRows((rs) => [{ id: Date.now(), ...draft }, ...rs]);
-    setDraft({ usuario: "", nombre: "", rol: "Operador", turno: "Mañana", estado: "Activo" });
+    setDraft({ usuario: "", nombre: "", rol: "Operador", estado: "Activo" });
     setModalOpen(false);
   };
 
@@ -34,7 +34,6 @@ function AbmUsuarios() {
               <th>Usuario</th>
               <th>Nombre</th>
               <th>Rol</th>
-              <th>Turno</th>
               <th>Estado</th>
               <th style={{ textAlign: "right" }}>Acciones</th>
             </tr>
@@ -50,7 +49,6 @@ function AbmUsuarios() {
                   </div>
                 </td>
                 <td>{u.rol === "Admin" ? <Pill kind="blue">Admin</Pill> : <Pill kind="gray">Operador</Pill>}</td>
-                <td>{u.turno}</td>
                 <td>{u.estado === "Activo" ? <Pill kind="green" dot>Activo</Pill> : <Pill kind="gray" dot>Inactivo</Pill>}</td>
                 <td style={{ textAlign: "right" }}>
                   <div className="actions">
@@ -75,14 +73,9 @@ function AbmUsuarios() {
           <div className="grid grid-2">
             <Field label="Usuario"><input className="input" value={draft.usuario} onChange={(e) => setDraft({ ...draft, usuario: e.target.value })} placeholder="apellido" /></Field>
             <Field label="Nombre completo"><input className="input" value={draft.nombre} onChange={(e) => setDraft({ ...draft, nombre: e.target.value })} placeholder="Nombre y apellido" /></Field>
-            <Field label="Rol">
+            <Field label="Rol" style={{ gridColumn: "1 / -1" }}>
               <select className="select" value={draft.rol} onChange={(e) => setDraft({ ...draft, rol: e.target.value })}>
                 <option>Operador</option><option>Admin</option>
-              </select>
-            </Field>
-            <Field label="Turno">
-              <select className="select" value={draft.turno} onChange={(e) => setDraft({ ...draft, turno: e.target.value })}>
-                <option>Mañana</option><option>Tarde</option><option>Noche</option><option>—</option>
               </select>
             </Field>
             <Field label="Contraseña inicial" style={{ gridColumn: "1 / -1" }} hint="Se le pedirá cambiarla en el primer ingreso.">

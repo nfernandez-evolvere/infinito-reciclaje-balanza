@@ -88,29 +88,31 @@ Los campos hectáreas, barrios y habitantes son opcionales al momento de la carg
 
 **Ruta:** Padrones → Tipos de servicio
 
-Los tipos de servicio definen qué sugerencias aparecen automáticamente cuando el operador elige un servicio en el formulario de pesaje.
+Los tipos de servicio definen el nombre del servicio, el tipo de vehículo habitual y, para los servicios con horario fijo, el turno de operación. Las zonas que pertenecen a cada servicio se cargan en el padrón de Zonas.
 
 ### Campos del formulario
 
 | Campo | Descripción | Obligatorio |
 |-------|-------------|-------------|
 | Nombre | Nombre del tipo de servicio | Sí |
-| Zona predeterminada | Zona que se sugiere automáticamente al elegir este servicio | No |
+| Turnos disponibles | Checkboxes: Diurna y/o Nocturna. Marcar los turnos en los que opera este servicio. Si ninguno está marcado, el operador no verá el campo turno al registrar un pesaje. | No |
 | Tipo de vehículo sugerido | Tipo de vehículo que suele prestar este servicio | No |
 
 ### Tipos de servicio del sistema
 
-| Servicio | Descripción |
-|----------|-------------|
-| Domiciliario | Recolección puerta a puerta en barrios residenciales |
-| Voluminoso | Residuos de gran tamaño: muebles, electrodomésticos |
-| Barrido | Residuos de limpieza de calles y espacios públicos |
-| Servicios Especiales | Operativos puntuales, eventos, situaciones de emergencia |
-| Centros de Transferencia | Traslados de residuos desde centros intermedios de transferencia |
+| Servicio | Turnos disponibles | Descripción |
+|----------|--------------------|-------------|
+| Domiciliario | Diurna, Nocturna | Recolección puerta a puerta en barrios residenciales |
+| Voluminoso | — | Residuos de gran tamaño: muebles, electrodomésticos |
+| Barrido | — | Residuos de limpieza de calles y espacios públicos |
+| Servicios Especiales | — | Operativos puntuales, eventos, situaciones de emergencia |
+| Centros de Transferencia | — | Traslados de residuos desde centros intermedios de transferencia |
 
-### Nota importante sobre las sugerencias
+### Cómo funciona la zona en el pesaje
 
-La zona predeterminada y el tipo de vehículo sugerido son solo eso: sugerencias. El operador puede cambiarlas en cada pesaje individual. Configurar bien estas sugerencias reduce el tiempo de registro y los errores.
+El sistema no tiene una "zona predeterminada" por servicio. Al registrar un pesaje, el operador elige el servicio y el sistema le muestra únicamente las zonas que pertenecen a ese servicio. El operador selecciona la zona de esa lista.
+
+Para que esto funcione correctamente, cada zona debe tener asignado su tipo de servicio en el padrón de Zonas.
 
 ---
 
@@ -156,7 +158,6 @@ Los usuarios son las personas que acceden al sistema. Hay dos roles:
 | Nombre de usuario | Identificador para el login (sin espacios) | Sí |
 | Nombre completo | Nombre real del usuario | Sí |
 | Rol | Operador o Admin | Sí |
-| Turno | Mañana, Tarde, Noche (solo para operadores) | Solo si es operador |
 | Contraseña inicial | Se entrega al usuario para que la cambie | Sí |
 
 ### Acciones disponibles por usuario
@@ -168,7 +169,6 @@ Los usuarios son las personas que acceden al sistema. Hay dos roles:
 ### Reglas clave
 
 - Un usuario por persona. Nunca compartir credenciales: si dos operadores usan el mismo usuario, no se puede saber quién registró cada pesaje.
-- El campo Turno es solo informativo — el sistema no bloquea el acceso fuera del turno asignado.
 - Para crear un admin nuevo, elegir rol **Admin** en el formulario.
 
 ---
