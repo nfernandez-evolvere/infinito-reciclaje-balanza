@@ -18,7 +18,7 @@ Pantalla principal del operador: flujo completo de pesaje en menos de 10 segundo
 - [ ] `PesajeController`, `EgresoPesajeController`
 - [ ] Form Requests: `StorePesajeRequest`, `UpdatePesajeRequest`, `EgresoPesajeRequest`
 - [ ] `GET /api/vehiculos/buscar?q={texto}` → retorna vehículos activos con patente, número interno, tara, tipo, titular (máx. 6 resultados)
-- [ ] `GET /api/servicios/{id}/zonas` → retorna lista de zonas activas del servicio y `tipo_vehiculo_sugerido`; incluye `turnos` (array de strings) para que el frontend sepa si debe mostrar el select de turno
+- [ ] `GET /api/servicios/{id}/zonas` → retorna zonas activas que tienen ese servicio asignado en `zona_servicios`; cada item incluye `{ id, nombre, turnos: [] }` para que el frontend sepa si debe mostrar el select de turno al elegir esa zona
 
 ### Tests unitarios
 - `PesajeServiceTest::test_crear_copies_tara_from_vehiculo` — `peso_tara_kg` del pesaje = `tara_kg` del vehículo al momento de crear
@@ -41,7 +41,8 @@ Pantalla principal del operador: flujo completo de pesaje en menos de 10 segundo
 - `ServicioZonasApiTest::test_returns_empty_array_when_no_zonas` — servicio sin zonas asociadas → array vacío
 - `ServicioZonasApiTest::test_inactive_zonas_not_returned` — zona inactiva del servicio no aparece en la respuesta
 - `ServicioZonasApiTest::test_includes_tipo_vehiculo_sugerido` — respuesta incluye `tipo_vehiculo_sugerido` del servicio
-- `ServicioZonasApiTest::test_includes_turnos_array` — Domiciliario → `turnos: ['Diurna','Nocturna']`; Barrido → `turnos: []`
+- `ServicioZonasApiTest::test_each_zona_includes_turnos_array` — zona con Domiciliario configurado → item incluye `turnos: ['Diurna','Nocturna']`; zona con Barrido (sin turnos) → `turnos: []`
+- `ServicioZonasApiTest::test_zona_not_assigned_to_service_not_returned` — zona que no tiene ese servicio en `zona_servicios` no aparece en la respuesta
 
 ### Tests manuales
 - [ ] `GET /api/vehiculos/buscar?q=ABC` en Postman/browser → respuesta JSON con datos correctos
@@ -55,7 +56,7 @@ Pantalla principal del operador: flujo completo de pesaje en menos de 10 segundo
 ### Tareas
 - [ ] Vista `operador/pesaje`: 3 pasos secuenciales con Alpine.js
 - [ ] **Paso 1 — Vehículo:** input libre, popper de autocompletado (hasta 6 resultados), Enter selecciona el primero, badges de solo lectura (Tara · Tipo · Titular · Interno) aparecen al seleccionar
-- [ ] **Paso 2 — Tipo de servicio:** select nativo → al elegir servicio, carga vía API las zonas activas + turnos disponibles; popula select de zona y, si el servicio tiene turnos, muestra select de turno obligatorio; badge de tipo de vehículo habitual; warning naranja si tipo del vehículo ≠ sugerido (no bloquea)
+- [ ] **Paso 2 — Tipo de servicio:** select nativo → al elegir servicio, carga vía API las zonas activas con sus turnos; popula select de zona; al elegir zona, si esa zona+servicio tiene turnos configurados, aparece el select de turno obligatorio; badge de tipo de vehículo habitual; warning naranja si tipo del vehículo ≠ sugerido (no bloquea)
 - [ ] **Paso 3 — Peso bruto:** input numérico estilo display, Tara y Neto estimado actualizados en tiempo real; borde verde si en rango / naranja si fuera de rango; hint con rango siempre visible
 - [ ] Campo `observaciones` editable (autocompleta desde padrón del vehículo)
 - [ ] Summary card (verde cuando el form está completo): vehículo, servicio, zona, tipo, bruto, tara, neto, operador
@@ -84,8 +85,8 @@ Cubiertos por `PesajeServiceTest` del sub-sprint anterior.
 - [ ] Flujo completo: buscar vehículo → Enter → elegir servicio → ingresar peso → Ctrl+S → overlay de éxito → formulario limpio. Tiempo total < 10 segundos
 - [ ] Seleccionar vehículo → badges de Tara, Tipo, Titular y N° interno se completan automáticamente
 - [ ] Cambiar tipo de servicio → select de zona se repopula con las zonas activas de ese servicio
-- [ ] Elegir Domiciliario → aparece select de turno obligatorio (Diurna / Nocturna); el botón Guardar queda deshabilitado hasta que se elija
-- [ ] Elegir Barrido → no aparece select de turno; el formulario avanza directo al peso
+- [ ] Elegir Domiciliario → zonas con turnos configurados; al elegir una zona → aparece select de turno (Diurna / Nocturna); el botón Guardar queda deshabilitado hasta elegir turno
+- [ ] Elegir Barrido → zonas sin turnos configurados; al elegir zona → no aparece select de turno; avanza directo al peso
 - [ ] Peso dentro del rango → borde verde, sin aviso
 - [ ] Peso fuera del rango → borde naranja, aviso naranja con rango esperado
 - [ ] Aviso naranja no impide guardar (el botón sigue habilitado)

@@ -93,14 +93,16 @@ Helpers en `User`: `isAdmin()`, `isOperador()`
 
 | # | Tabla | Descripción |
 |---|-------|-------------|
-| 1 | `users` | Operadores y administradores |
-| 2 | `tipos_vehiculo` | Catálogo de tipos con rangos de peso |
-| 3 | `tipos_servicio` | Tipos de recolección; vehículo sugerido |
-| 4 | `tipos_servicio_turnos` | Turnos disponibles por servicio (PK compuesta; 0, 1 o 2 filas por servicio) |
-| 5 | `zonas` | Áreas geográficas clasificadas por servicio (N:1 → `tipos_servicio`) |
-| 5 | `vehiculos` | Padrón completo con tara |
-| 6 | `pesajes` | Tabla operacional central |
-| 7 | `pesajes_log` | Audit trail inmutable por campo editado |
+| 1  | `users` | Operadores y administradores |
+| 2  | `tipos_vehiculo` | Catálogo de tipos con rangos de peso |
+| 3  | `tipos_servicio` | Tipos de recolección; vehículo sugerido |
+| 4  | `zonas` | Entidades geográficas puras; sin FK a servicios |
+| 5  | `zona_servicios` | Junction N:M zonas ↔ servicios |
+| 6  | `zona_servicio_turnos` | Turnos disponibles por combinación zona+servicio (PK triple) |
+| 7  | `zona_servicio_horarios` | Franjas horarias por día para cada combo zona+servicio (PK cuádruple) |
+| 8  | `vehiculos` | Padrón completo con tara |
+| 9  | `pesajes` | Tabla operacional central |
+| 10 | `pesajes_log` | Audit trail inmutable por campo editado |
 | 8 | `config_alarmas` | Umbrales de detección configurables |
 | 9 | `alarmas` | Alertas generadas automáticamente |
 
@@ -112,8 +114,8 @@ Helpers en `User`: `isAdmin()`, `isOperador()`
 | `peso_tara_kg` en pesajes | Desnormalización intencional: se copia del padrón al ingreso para preservar historial si la tara cambia. |
 | `peso_neto_kg` calculado en Service | No es computed column SQL Server — permite log granular del campo en `pesajes_log` al editarlo. |
 | `activo` en lugar de `SoftDeletes` | El ABM admin necesita mostrar registros inactivos. `activo bit` es explícito, sin scopes globales. |
-| Relación `tipos_servicio` → `zonas` es 1:N | Un servicio tiene varias zonas (`zonas.tipo_servicio_id`). FK unidireccional, sin ciclos. El formulario de pesaje filtra zonas por el servicio elegido. |
-| `tipos_servicio_turnos` + `pesajes.turno` | Un servicio puede tener 0, 1 o 2 turnos (Domiciliario: Diurna y Nocturna; el resto sin turno). El operador selecciona el turno al registrar el pesaje solo cuando el servicio lo requiere. `pesajes.turno` es NULL cuando el servicio no tiene turnos configurados. |
+| Relación `tipos_servicio` ↔ `zonas` es N:M (vía `zona_servicios`) | Una zona puede operar bajo varios servicios. Los turnos se configuran por combinación zona+servicio en `zona_servicio_turnos`. El formulario de pesaje filtra zonas por el servicio elegido. |
+| `zona_servicios` + `zona_servicio_turnos` (relación N:M zonas ↔ servicios) | Una zona se crea una sola vez. Los turnos se configuran por combinación zona+servicio. Evita duplicar zonas (ej: "Zona Sur Diurna" y "Zona Sur Nocturna"). `pesajes.turno` persiste el turno elegido; obligatorio cuando la combinación tiene turnos configurados. |
 | Edición auditada | Ambos roles editan con `motivo` obligatorio. Cada campo modificado genera una fila en `pesajes_log`. |
 
 ---

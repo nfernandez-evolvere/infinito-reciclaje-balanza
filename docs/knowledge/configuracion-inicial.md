@@ -47,17 +47,15 @@ Los tipos de servicio definen el tipo de vehículo habitual y, para los servicio
 
 Ir a **Padrones → Tipos de servicio** y verificar que estén cargados:
 
-| Servicio | Turnos disponibles | Tipo de vehículo sugerido |
-|----------|--------------------|--------------------------|
-| Domiciliario | Diurna, Nocturna | Compactador |
-| Voluminoso | — | Volquete |
-| Barrido | — | Volcador |
-| Servicios Especiales | — | Compactador |
-| Centros de Transferencia | — | Compactador |
+| Servicio | Tipo de vehículo sugerido |
+|----------|--------------------------|
+| Domiciliario | Compactador |
+| Voluminoso | Volquete |
+| Barrido | Volcador |
+| Servicios Especiales | Compactador |
+| Centros de Transferencia | Compactador |
 
-> Los turnos determinan si el operador debe elegir Diurna o Nocturna al registrar un pesaje de ese servicio. Domiciliario opera en ambos turnos, por eso el operador siempre debe indicar cuál es.
->
-> Las zonas no se asignan acá. Cada zona se asocia a su tipo de servicio en el Paso 4 (carga de zonas). Al registrar un pesaje, el operador elige el servicio y el sistema muestra solo las zonas de ese servicio.
+> Los turnos no se configuran acá. Se configuran en el Paso 4 cuando asignás cada servicio a sus zonas.
 
 ---
 
@@ -65,12 +63,24 @@ Ir a **Padrones → Tipos de servicio** y verificar que estén cargados:
 
 Las zonas son las áreas geográficas de recolección. Los datos de hectáreas y habitantes se usan para calcular indicadores en los reportes.
 
-Ir a **Padrones → Zonas** y cargar cada zona con:
+Ir a **Padrones → Zonas** y para cada zona:
+
+**1. Crear la zona** con sus datos geográficos:
 - Nombre de la zona
-- **Servicio al que pertenece** — este campo es clave: determina qué zonas le aparecen al operador cuando elige un tipo de servicio en el formulario de pesaje
-- Hectáreas de la zona
-- Cantidad de barrios
-- Cantidad de habitantes
+- Hectáreas, barrios, habitantes (opcionales, completar después si no están disponibles)
+
+**2. Asignar los servicios que operan en esa zona.** Para cada asignación, definir:
+- Tipo de servicio
+- Turnos que aplican (Diurna, Nocturna, ambos, o ninguno)
+- Horario de recorrido (opcional, informativo)
+
+Esta configuración determina qué zonas y turnos le aparecen al operador al registrar un pesaje.
+
+**Ejemplo — Zona Norte:**
+| Servicio | Turnos | Horario |
+|----------|--------|---------|
+| Domiciliario | Diurna, Nocturna | 07:00 – 13:00 / 20:00 – 02:00 |
+| Barrido | — | — |
 
 > Si no tenés los datos de hectáreas o habitantes al momento de la carga, podés dejarlos en cero y actualizarlos después. Los reportes de densidad y per cápita quedarán en cero hasta que estén cargados.
 

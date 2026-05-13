@@ -18,26 +18,59 @@ const VEHICLES = [
 ];
 
 const SERVICIOS_DATA = [
-  { id: 1, nombre: "Domiciliario",             turnos: ["Diurna", "Nocturna"], tipoSugerido: "Compactador", estado: "Activo" },
-  { id: 2, nombre: "Voluminoso",               turnos: [],                     tipoSugerido: "Volquete",    estado: "Activo" },
-  { id: 3, nombre: "Barrido",                  turnos: [],                     tipoSugerido: "Volcador",    estado: "Activo" },
-  { id: 4, nombre: "Servicios Especiales",     turnos: [],                     tipoSugerido: "Compactador", estado: "Activo" },
-  { id: 5, nombre: "Centros de Transferencia", turnos: [],                     tipoSugerido: "Compactador", estado: "Activo" },
+  { id: 1, nombre: "Domiciliario",             tipoSugerido: "Compactador", estado: "Activo" },
+  { id: 2, nombre: "Voluminoso",               tipoSugerido: "Volquete",    estado: "Activo" },
+  { id: 3, nombre: "Barrido",                  tipoSugerido: "Volcador",    estado: "Activo" },
+  { id: 4, nombre: "Servicios Especiales",     tipoSugerido: "Compactador", estado: "Activo" },
+  { id: 5, nombre: "Centros de Transferencia", tipoSugerido: "Compactador", estado: "Activo" },
 ];
 const SERVICIOS = SERVICIOS_DATA.map((s) => s.nombre);
 const SERVICIO_CASCADE = Object.fromEntries(
-  SERVICIOS_DATA.map((s) => [s.nombre, { tipoSugerido: s.tipoSugerido, turnos: s.turnos }])
+  SERVICIOS_DATA.map((s) => [s.nombre, { tipoSugerido: s.tipoSugerido }])
 );
 
 const ZONAS_DATA = [
-  { id: 1, nombre: "Centro",  tipoServicio: "Domiciliario",             hectareas: 50, barrios: 12, estado: "Activo" },
-  { id: 2, nombre: "Norte",   tipoServicio: "Barrido",                  hectareas: 42, barrios: 9,  estado: "Activo" },
-  { id: 3, nombre: "Sur",     tipoServicio: "Domiciliario",             hectareas: 55, barrios: 14, estado: "Activo" },
-  { id: 4, nombre: "Oeste",   tipoServicio: "Voluminoso",               hectareas: 38, barrios: 8,  estado: "Activo" },
-  { id: 5, nombre: "Este",    tipoServicio: "Servicios Especiales",     hectareas: 31, barrios: 7,  estado: "Activo" },
-  { id: 6, nombre: "Puerto",  tipoServicio: "Centros de Transferencia", hectareas: 18, barrios: 2,  estado: "Activo" },
+  { id: 1, nombre: "Norte",  hectareas: 42, barrios: 9,  estado: "Activo" },
+  { id: 2, nombre: "Sur",    hectareas: 55, barrios: 14, estado: "Activo" },
+  { id: 3, nombre: "Centro", hectareas: 50, barrios: 12, estado: "Activo" },
+  { id: 4, nombre: "Oeste",  hectareas: 38, barrios: 8,  estado: "Activo" },
 ];
 const ZONAS = ZONAS_DATA.map((z) => z.nombre);
+
+// Junction: qué servicios operan en cada zona, con qué turnos y franjas horarias por día
+// horarios: [{ dia: 1..7, diaNombre, franjas: [{ inicio, fin }] }]  (1=Lunes … 7=Domingo)
+const ZONA_SERVICIOS = [
+  { zonaId: 1, servicioNombre: "Domiciliario",             turnos: ["Diurna", "Nocturna"],
+    horarios: [
+      { dia: 1, diaNombre: "Lunes",     franjas: [{ inicio: "08:00", fin: "12:00" }, { inicio: "14:00", fin: "18:00" }, { inicio: "20:00", fin: "02:00" }] },
+      { dia: 2, diaNombre: "Martes",    franjas: [{ inicio: "08:00", fin: "12:00" }, { inicio: "14:00", fin: "18:00" }] },
+      { dia: 3, diaNombre: "Miércoles", franjas: [{ inicio: "08:00", fin: "12:00" }, { inicio: "14:00", fin: "18:00" }] },
+      { dia: 4, diaNombre: "Jueves",    franjas: [{ inicio: "08:00", fin: "12:00" }, { inicio: "14:00", fin: "18:00" }] },
+      { dia: 5, diaNombre: "Viernes",   franjas: [{ inicio: "08:00", fin: "12:00" }, { inicio: "14:00", fin: "18:00" }] },
+      { dia: 6, diaNombre: "Sábado",    franjas: [{ inicio: "08:00", fin: "13:00" }] },
+    ] },
+  { zonaId: 1, servicioNombre: "Barrido",                  turnos: [], horarios: [] },
+  { zonaId: 2, servicioNombre: "Domiciliario",             turnos: ["Diurna", "Nocturna"],
+    horarios: [
+      { dia: 1, diaNombre: "Lunes",     franjas: [{ inicio: "07:00", fin: "13:00" }, { inicio: "20:00", fin: "02:00" }] },
+      { dia: 2, diaNombre: "Martes",    franjas: [{ inicio: "07:00", fin: "13:00" }, { inicio: "20:00", fin: "02:00" }] },
+      { dia: 3, diaNombre: "Miércoles", franjas: [{ inicio: "07:00", fin: "13:00" }, { inicio: "20:00", fin: "02:00" }] },
+      { dia: 4, diaNombre: "Jueves",    franjas: [{ inicio: "07:00", fin: "13:00" }, { inicio: "20:00", fin: "02:00" }] },
+      { dia: 5, diaNombre: "Viernes",   franjas: [{ inicio: "07:00", fin: "13:00" }, { inicio: "20:00", fin: "02:00" }] },
+    ] },
+  { zonaId: 2, servicioNombre: "Servicios Especiales",     turnos: [], horarios: [] },
+  { zonaId: 3, servicioNombre: "Domiciliario",             turnos: ["Diurna"],
+    horarios: [
+      { dia: 1, diaNombre: "Lunes",     franjas: [{ inicio: "07:00", fin: "13:00" }] },
+      { dia: 2, diaNombre: "Martes",    franjas: [{ inicio: "07:00", fin: "13:00" }] },
+      { dia: 3, diaNombre: "Miércoles", franjas: [{ inicio: "07:00", fin: "13:00" }] },
+      { dia: 4, diaNombre: "Jueves",    franjas: [{ inicio: "07:00", fin: "13:00" }] },
+      { dia: 5, diaNombre: "Viernes",   franjas: [{ inicio: "07:00", fin: "13:00" }] },
+    ] },
+  { zonaId: 3, servicioNombre: "Centros de Transferencia", turnos: [], horarios: [] },
+  { zonaId: 4, servicioNombre: "Voluminoso",               turnos: [], horarios: [] },
+  { zonaId: 4, servicioNombre: "Barrido",                  turnos: [], horarios: [] },
+];
 
 const USUARIOS = [
   { id: 1, usuario: "roberto",  nombre: "Roberto Acosta",   rol: "Operador", estado: "Activo" },
@@ -102,7 +135,7 @@ const fmtPct = (n) => n.toLocaleString("es-AR", { minimumFractionDigits: 1, maxi
 Object.assign(window, {
   VEHICLE_TYPES, VEHICLES,
   SERVICIOS, SERVICIOS_DATA, SERVICIO_CASCADE,
-  ZONAS, ZONAS_DATA, USUARIOS,
+  ZONAS, ZONAS_DATA, ZONA_SERVICIOS, USUARIOS,
   PESAJES, PESAJES_LOG, ALERTS, DAILY_EVOLUTION, ZONE_BREAKDOWN, TYPE_BREAKDOWN,
   fmtKg, fmtN, fmtT, fmtPct,
 });

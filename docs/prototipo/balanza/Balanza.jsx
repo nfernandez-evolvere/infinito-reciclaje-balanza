@@ -1,5 +1,5 @@
 /* global React, Icon, Button, Field, Card, Pill, Badge, Banner, SuccessOverlay,
-   VEHICLES, SERVICIOS, SERVICIOS_DATA, SERVICIO_CASCADE, ZONAS_DATA, VEHICLE_TYPES, fmtKg, fmtN */
+   VEHICLES, SERVICIOS, SERVICIO_CASCADE, ZONAS_DATA, ZONA_SERVICIOS, VEHICLE_TYPES, fmtKg, fmtN */
 const { useState, useMemo, useRef, useEffect } = React;
 
 function Balanza({ pesajes, onSave, onDirtyChange }) {
@@ -26,11 +26,21 @@ function Balanza({ pesajes, onSave, onDirtyChange }) {
 
   const cascade = servicio ? SERVICIO_CASCADE[servicio] : null;
   const tipoSugerido = cascade?.tipoSugerido;
-  const turnosDelServicio = cascade?.turnos ?? [];
-  const servicioRequiereTurno = turnosDelServicio.length > 0;
+
+  // Zonas activas que tienen este servicio asignado en ZONA_SERVICIOS
   const zonasDelServicio = servicio
-    ? ZONAS_DATA.filter((z) => z.tipoServicio === servicio && z.estado === "Activo")
+    ? ZONA_SERVICIOS
+        .filter((a) => a.servicioNombre === servicio)
+        .map((a) => ZONAS_DATA.find((z) => z.id === a.zonaId))
+        .filter((z) => z && z.estado === "Activo")
     : [];
+
+  // Turnos disponibles para la combinación zona+servicio seleccionada
+  const asignacionActual = zona && servicio
+    ? ZONA_SERVICIOS.find((a) => a.servicioNombre === servicio && ZONAS_DATA.find((z) => z.id === a.zonaId)?.nombre === zona)
+    : null;
+  const turnosDelServicio = asignacionActual?.turnos ?? [];
+  const servicioRequiereTurno = turnosDelServicio.length > 0;
   const tipoActivo = vehicle?.tipo;
   const tipoMismatch = vehicle && tipoSugerido && tipoSugerido !== tipoActivo;
   const range = tipoActivo ? VEHICLE_TYPES[tipoActivo] : null;
@@ -187,7 +197,7 @@ function Balanza({ pesajes, onSave, onDirtyChange }) {
                   <select
                     className="select"
                     value={zona}
-                    onChange={(e) => setZona(e.target.value)}
+                    onChange={(e) => { setZona(e.target.value); setTurno(""); }}
                   >
                     <option value="">Seleccionar zona…</option>
                     {zonasDelServicio.map((z) => <option key={z.id} value={z.nombre}>{z.nombre}</option>)}

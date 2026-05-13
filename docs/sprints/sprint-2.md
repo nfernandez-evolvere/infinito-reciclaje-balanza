@@ -48,33 +48,23 @@ Los 5 ABMs 100% funcionales con baja lógica. Checklist de configuración inicia
 
 ### Tareas
 - [ ] Migración `create_tipos_servicio_table`: `id`, `nombre`, `tipo_vehiculo_sugerido_id` (FK nullable → `tipos_vehiculo`), `activo`, timestamps
-- [ ] Migración `create_tipos_servicio_turnos_table`: PK compuesta `(tipo_servicio_id, turno)`, FK → `tipos_servicio` ON DELETE CASCADE
-- [ ] `TipoServicioRepository`, `TipoServicioService`: incluye `getTurnos(id)`, `syncTurnos(id, array)`
+- [ ] `TipoServicioRepository`, `TipoServicioService`
 - [ ] `TipoServicioController` (resource)
 - [ ] Form Requests: `StoreTipoServicioRequest`, `UpdateTipoServicioRequest`
-- [ ] Vista index: tabla con tipo sugerido y pills de turno (Diurna / Nocturna), modal con checkboxes de turno
-- [ ] Seeder tipos_servicio: Domiciliario, Voluminoso, Barrido, Servicios Especiales, Centros de Transferencia
-- [ ] Seeder tipos_servicio_turnos: Domiciliario → Diurna, Domiciliario → Nocturna
+- [ ] Vista index: tabla con tipo sugerido, modal crear/editar (solo nombre + tipo de vehículo)
+- [ ] Seeder: Domiciliario, Voluminoso, Barrido, Servicios Especiales, Centros de Transferencia
 
 ### Tests unitarios
-- `TipoServicioServiceTest::test_create_without_turnos` — servicio sin filas en `tipos_servicio_turnos` → `getTurnos()` retorna array vacío
-- `TipoServicioServiceTest::test_sync_turnos_creates_records` — `syncTurnos(id, ['Diurna','Nocturna'])` → 2 filas en DB
-- `TipoServicioServiceTest::test_sync_turnos_removes_unchecked` — sync con `['Diurna']` sobre servicio con 2 turnos → queda solo 1 fila
+- `TipoServicioServiceTest::test_create_stores_record`
 - `TipoServicioServiceTest::test_deactivate_sets_activo_false`
 
 ### Tests de integración
-- `TipoServicioTest::test_admin_can_create_without_turnos` — `POST /admin/tipos-servicio` sin turnos → HTTP 302, sin filas en `tipos_servicio_turnos`
-- `TipoServicioTest::test_admin_can_create_with_turnos` — `POST` con `turnos[] = ['Diurna','Nocturna']` → 2 filas en `tipos_servicio_turnos`
-- `TipoServicioTest::test_turno_rejects_invalid_value` — `turnos[] = ['Mañana']` → HTTP 422
-- `TipoServicioTest::test_delete_servicio_cascades_turnos` — eliminar servicio → filas de `tipos_servicio_turnos` eliminadas (CASCADE)
+- `TipoServicioTest::test_admin_can_create`
 - `TipoServicioTest::test_admin_can_deactivate`
 - `TipoServicioTest::test_operador_cannot_access`
 
 ### Tests manuales
-- [ ] Crear tipo de servicio sin turnos → guarda correctamente, columna turno vacía en tabla
-- [ ] Crear Domiciliario con Diurna y Nocturna → dos pills en la tabla
-- [ ] Editar servicio: desmarcar Nocturna → solo queda el pill Diurna
-- [ ] Modal de creación/edición: checkboxes Diurna / Nocturna independientes
+- [ ] Crear tipo de servicio → aparece en tabla
 - [ ] Modal de edición: select de tipo de vehículo muestra solo activos
 
 ---
@@ -82,27 +72,51 @@ Los 5 ABMs 100% funcionales con baja lógica. Checklist de configuración inicia
 ## Sub-sprint 2.3 — Zonas
 
 ### Tareas
-- [ ] Migración `create_zonas_table`: `id`, `nombre`, `tipo_servicio_id` (FK nullable → `tipos_servicio`), `hectareas` (decimal, nullable), `barrios` (int, nullable), `habitantes` (int, nullable), `activo`, timestamps
-- [ ] `ZonaRepository`, `ZonaService`
+- [ ] Migración `create_zonas_table`: `id`, `nombre`, `hectareas` (decimal, nullable), `barrios` (int, nullable), `habitantes` (int, nullable), `activo`, timestamps — sin `tipo_servicio_id`
+- [ ] Migración `create_zona_servicios_table`: PK compuesta `(zona_id, tipo_servicio_id)`, FKs con CASCADE, timestamps — sin campos de horario
+- [ ] Migración `create_zona_servicio_turnos_table`: PK triple `(zona_id, tipo_servicio_id, turno)`, FK compuesta → `zona_servicios`, CHECK IN ('Diurna','Nocturna')
+- [ ] Migración `create_zona_servicio_horarios_table`: PK cuádruple `(zona_id, tipo_servicio_id, dia_semana, franja)`, FK compuesta → `zona_servicios`, `dia_semana tinyint` CHECK IN (1–7), `franja tinyint` CHECK > 0, `hora_inicio time`, `hora_fin time`
+- [ ] `ZonaRepository`, `ZonaService`: incluye `getServicios(zonaId)`, `syncServicio(zonaId, servicioId, turnos[], horariosPorDia[])`
 - [ ] `ZonaController` (resource)
 - [ ] Form Requests: `StoreZonaRequest`, `UpdateZonaRequest`
-- [ ] Vista index: tabla con nombre, servicio, hectáreas, habitantes, estado; modal crear/editar con select de tipo de servicio
+- [ ] Vista index: tabla con nombre, lista de servicios asignados (pills), hectáreas, estado
+- [ ] Modal crear zona: solo nombre + datos demográficos
+- [ ] Sub-sección "Servicios asignados" en la vista de detalle/edición de zona: tabla con servicio, horario, turnos; botón agregar asignación; acción quitar asignación
+- [ ] Seeder zonas: Zona Norte, Zona Sur, Zona Centro, Zona Oeste
+- [ ] Seeder zona_servicios + zona_servicio_turnos: asignaciones iniciales según configuración real
 
 ### Tests unitarios
 - `ZonaServiceTest::test_create_zona_with_all_fields`
 - `ZonaServiceTest::test_create_zona_with_only_required_fields` — campos demográficos nullable
 - `ZonaServiceTest::test_deactivate_sets_activo_false`
+- `ZonaServiceTest::test_sync_servicio_creates_zona_servicio_and_turnos`
+- `ZonaServiceTest::test_sync_servicio_without_turnos_leaves_turnos_empty`
+- `ZonaServiceTest::test_remove_servicio_cascades_turnos`
+- `ZonaServiceTest::test_sync_servicio_creates_horarios_por_dia` — `syncServicio` con 2 franjas el lunes y 1 el martes → 3 filas en `zona_servicio_horarios`
+- `ZonaServiceTest::test_franja_that_crosses_midnight_is_valid` — `hora_fin` < `hora_inicio` es aceptado (ej: 20:00–02:00)
+- `ZonaServiceTest::test_sync_servicio_without_horarios_leaves_horarios_empty`
 
 ### Tests de integración
 - `ZonaTest::test_admin_can_create_zona`
-- `ZonaTest::test_zona_with_zero_hectareas_is_valid` — admite cero (no nullable obligatorio)
+- `ZonaTest::test_zona_with_zero_hectareas_is_valid`
+- `ZonaTest::test_admin_can_assign_servicio_with_turnos` — `POST /admin/zonas/{id}/servicios` con servicio + turnos → filas en `zona_servicios` y `zona_servicio_turnos`
+- `ZonaTest::test_admin_can_assign_servicio_without_turnos` — sin turnos → fila en `zona_servicios`, sin filas en `zona_servicio_turnos`
+- `ZonaTest::test_turno_rejects_invalid_value` — turno = 'Mañana' → HTTP 422
+- `ZonaTest::test_admin_can_assign_horarios_multiple_franjas` — payload con 3 franjas el lunes → 3 filas en `zona_servicio_horarios`
+- `ZonaTest::test_horario_dia_semana_rejects_invalid_value` — `dia_semana = 8` → HTTP 422
+- `ZonaTest::test_horario_franja_must_be_positive` — `franja = 0` → HTTP 422
+- `ZonaTest::test_admin_can_remove_servicio_assignment`
 - `ZonaTest::test_admin_can_deactivate_zona`
 - `ZonaTest::test_operador_cannot_access`
 
 ### Tests manuales
 - [ ] Crear zona sin hectáreas ni habitantes → se guarda, celdas vacías en tabla
-- [ ] Editar zona para agregar hectáreas → valor visible en tabla
-- [ ] Desactivar zona → no aparece en el select de tipos de servicio al editar
+- [ ] Asignar servicio "Domiciliario" a una zona con turnos Diurna + Nocturna → aparecen dos pills de turno en la sub-tabla
+- [ ] Asignar servicio con 2 franjas el lunes y 1 el martes → se visualizan correctamente en la sub-tabla de horarios
+- [ ] Franja con hora_fin < hora_inicio (cruza medianoche) se guarda sin error
+- [ ] Asignar servicio "Barrido" a una zona sin turnos ni horarios → fila sin pills de turno, horario "—"
+- [ ] Quitar asignación de servicio → desaparece de la sub-tabla; en el formulario de pesaje esa zona ya no aparece para ese servicio
+- [ ] Desactivar zona → no aparece en el formulario de pesaje
 
 ---
 

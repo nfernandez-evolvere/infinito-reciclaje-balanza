@@ -92,7 +92,7 @@ IX   activo     -- autocomplete y selects del ABM
 
 ### `tipos_servicio`
 
-Tipos de recolección disponibles. Cada servicio tiene un tipo de vehículo sugerido. Los turnos disponibles por servicio se modelan en la tabla `tipos_servicio_turnos`. Las zonas asociadas se modelan en `zonas` (relación 1:N).
+Tipos de recolección disponibles. Cada servicio tiene un tipo de vehículo sugerido. La relación con zonas y turnos se modela en `zona_servicios` y `zona_servicio_turnos` (relación N:M).
 
 | Columna | Tipo | Nullable | Default | Constraints | Descripción |
 |---------|------|----------|---------|-------------|-------------|
@@ -114,47 +114,19 @@ IX   activo
 IX   tipo_vehiculo_sugerido_id   -- JOIN al recuperar la sugerencia en el formulario
 ```
 
-**Decisión — sin `zona_predeterminada_id`:**
-Un servicio tiene varias zonas asociadas (1:N). La asociación se modela en `zonas.tipo_servicio_id`. Al registrar un pesaje, el formulario filtra las zonas disponibles según el servicio elegido — el operador selecciona la zona de la lista filtrada. No hay una única "zona predeterminada" por servicio.
-
----
-
-### `tipos_servicio_turnos`
-
-Turnos disponibles por tipo de servicio. Si un servicio no tiene filas en esta tabla, el formulario de pesaje no muestra el campo turno. Si tiene filas, el operador debe seleccionar un turno obligatoriamente.
-
-| Columna | Tipo | Nullable | Default | Constraints | Descripción |
-|---------|------|----------|---------|-------------|-------------|
-| `tipo_servicio_id` | `bigint` | NO | — | PK compuesta, FK → `tipos_servicio.id` | — |
-| `turno` | `nvarchar(10)` | NO | — | PK compuesta, CHECK IN (`'Diurna'`, `'Nocturna'`) | — |
-
-**PK compuesta:** `(tipo_servicio_id, turno)` — impide duplicados, no se necesita columna `id`.
-
-**FK behavior:**
-- `tipo_servicio_id`: `ON DELETE CASCADE` — al eliminar un tipo de servicio se eliminan sus turnos.
-
-**Índices:**
-```sql
-PK   (tipo_servicio_id, turno)   -- lookup directo: ¿qué turnos tiene este servicio?
-```
-
-**Datos iniciales (seeder):**
-| tipo_servicio | turno |
-|---------------|-------|
-| Domiciliario | Diurna |
-| Domiciliario | Nocturna |
+**Decisión — relación N:M vía `zona_servicios`:**
+Una zona puede operar bajo varios servicios y un servicio puede operar en varias zonas. La asociación se modela en `zona_servicios`. Al registrar un pesaje, el formulario filtra las zonas disponibles según el servicio elegido — el operador selecciona la zona de la lista filtrada. Los turnos aplicables se determinan por la combinación zona+servicio en `zona_servicio_turnos`.
 
 ---
 
 ### `zonas`
 
-Áreas geográficas de recolección. Cada zona pertenece a un tipo de servicio (relación N:1). Al registrar un pesaje, el formulario filtra las zonas según el servicio elegido.
+Entidad geográfica pura. No tiene relación directa con tipos de servicio — la asociación se modela en `zona_servicios`. Una zona puede estar asociada a varios servicios con distintas configuraciones de turno.
 
 | Columna | Tipo | Nullable | Default | Constraints | Descripción |
 |---------|------|----------|---------|-------------|-------------|
 | `id` | `bigint` | NO | IDENTITY | PK | — |
 | `nombre` | `nvarchar(150)` | NO | — | UNIQUE | Ej: `'Zona Norte'` |
-| `tipo_servicio_id` | `bigint` | SÍ | NULL | FK → `tipos_servicio.id` | Clasificación para reportes y filtrado en el formulario de pesaje. Nullable: zona puede existir sin servicio asignado. |
 | `hectareas` | `decimal(10,2)` | SÍ | NULL | CHECK >= 0 | NULL = dato no disponible. 0 = verificado como cero. |
 | `barrios` | `int` | SÍ | NULL | CHECK >= 0 | — |
 | `habitantes` | `int` | SÍ | NULL | CHECK >= 0 | NULL = dato no disponible. 0 = verificado como cero. Afecta cálculo per cápita en reportes. |
@@ -162,21 +134,100 @@ PK   (tipo_servicio_id, turno)   -- lookup directo: ¿qué turnos tiene este ser
 | `created_at` | `datetime2(0)` | SÍ | NULL | — | — |
 | `updated_at` | `datetime2(0)` | SÍ | NULL | — | — |
 
-**FK behavior:**
-- `tipo_servicio_id`: `ON DELETE SET NULL` — si se desactiva un servicio, las zonas quedan sin clasificación pero no se pierden.
-
 **Índices:**
 ```sql
 PK   id
 UQ   nombre
-IX   tipo_servicio_id            -- filtrado en formulario de pesaje + agrupación en reportes
-     WHERE activo = 1            -- filtered index: solo zonas activas en el formulario
+IX   activo    -- selects del formulario de pesaje
 ```
 
 **Semántica NULL vs 0:**
 `hectareas = NULL` → dato no cargado, indicadores de densidad no se calculan.
 `hectareas = 0` → zona verificada sin área (improbable en la operación real, pero válido).
 El servicio de reportes debe distinguir ambos casos: NULL produce `null` en el resultado, 0 producería división por cero (manejar con `NULLIF`).
+
+---
+
+### `zona_servicios`
+
+Tabla junction entre zonas y tipos de servicio. Define qué servicios operan en cada zona. Si no existe fila para una combinación zona+servicio, esa zona no aparece como opción cuando el operador elige ese servicio. Los horarios detallados por día y franja se modelan en `zona_servicio_horarios`.
+
+| Columna | Tipo | Nullable | Default | Constraints | Descripción |
+|---------|------|----------|---------|-------------|-------------|
+| `zona_id` | `bigint` | NO | — | PK compuesta, FK → `zonas.id` | — |
+| `tipo_servicio_id` | `bigint` | NO | — | PK compuesta, FK → `tipos_servicio.id` | — |
+| `created_at` | `datetime2(0)` | SÍ | NULL | — | — |
+| `updated_at` | `datetime2(0)` | SÍ | NULL | — | — |
+
+**PK compuesta:** `(zona_id, tipo_servicio_id)` — una zona puede tener el mismo servicio una sola vez.
+
+**FK behavior:**
+- `zona_id`: `ON DELETE CASCADE` — al desactivar/eliminar una zona, se eliminan sus asignaciones de servicio.
+- `tipo_servicio_id`: `ON DELETE CASCADE` — al eliminar un tipo de servicio, se eliminan sus asignaciones de zona.
+
+**Índices:**
+```sql
+PK   (zona_id, tipo_servicio_id)
+IX   tipo_servicio_id    -- filtrado en Balanza: dado un servicio, ¿qué zonas lo tienen?
+     WHERE zona activo = 1   -- (join con zonas; filtered index en la tabla zonas)
+```
+
+---
+
+### `zona_servicio_turnos`
+
+Turnos disponibles para una combinación específica zona+servicio. Si no hay filas, el formulario de pesaje no muestra el campo turno para esa combinación. Si hay filas, el operador debe seleccionar uno obligatoriamente.
+
+| Columna | Tipo | Nullable | Default | Constraints | Descripción |
+|---------|------|----------|---------|-------------|-------------|
+| `zona_id` | `bigint` | NO | — | PK compuesta, FK → `zona_servicios` | — |
+| `tipo_servicio_id` | `bigint` | NO | — | PK compuesta, FK → `zona_servicios` | — |
+| `turno` | `nvarchar(10)` | NO | — | PK compuesta, CHECK IN (`'Diurna'`, `'Nocturna'`) | — |
+
+**PK compuesta:** `(zona_id, tipo_servicio_id, turno)`.
+
+**FK behavior:**
+- `(zona_id, tipo_servicio_id)`: FK compuesta → `zona_servicios(zona_id, tipo_servicio_id)` `ON DELETE CASCADE`.
+
+**Índices:**
+```sql
+PK   (zona_id, tipo_servicio_id, turno)   -- lookup directo: ¿qué turnos tiene esta zona+servicio?
+```
+
+**Datos iniciales (seeder):**
+| zona | tipo_servicio | turno |
+|------|---------------|-------|
+| Zona Norte | Domiciliario | Diurna |
+| Zona Norte | Domiciliario | Nocturna |
+| Zona Sur | Domiciliario | Diurna |
+| Zona Sur | Domiciliario | Nocturna |
+| *(etc. según configuración real)* | | |
+
+---
+
+### `zona_servicio_horarios`
+
+Franjas horarias de recorrido por día de la semana para cada combinación zona+servicio. Una combinación puede tener múltiples franjas por día (ej: Lunes 08:00–12:00, 14:00–18:00 y 20:00–02:00). Las franjas son informativas — no bloquean el registro de pesajes fuera de horario.
+
+| Columna | Tipo | Nullable | Default | Constraints | Descripción |
+|---------|------|----------|---------|-------------|-------------|
+| `zona_id` | `bigint` | NO | — | PK cuádruple, FK → `zona_servicios` | — |
+| `tipo_servicio_id` | `bigint` | NO | — | PK cuádruple, FK → `zona_servicios` | — |
+| `dia_semana` | `tinyint` | NO | — | PK cuádruple, CHECK IN (1,2,3,4,5,6,7) | 1=Lunes … 7=Domingo |
+| `franja` | `tinyint` | NO | — | PK cuádruple, CHECK > 0 | Orden de la franja dentro del día (1, 2, 3…) |
+| `hora_inicio` | `time(0)` | NO | — | — | — |
+| `hora_fin` | `time(0)` | NO | — | — | Puede ser menor que `hora_inicio` cuando la franja cruza medianoche (ej: 20:00–02:00). |
+
+**PK cuádruple:** `(zona_id, tipo_servicio_id, dia_semana, franja)`.
+
+**FK behavior:**
+- `(zona_id, tipo_servicio_id)`: FK compuesta → `zona_servicios(zona_id, tipo_servicio_id)` `ON DELETE CASCADE`.
+
+**Índices:**
+```sql
+PK   (zona_id, tipo_servicio_id, dia_semana, franja)
+IX   (zona_id, tipo_servicio_id, dia_semana)   -- listado rápido de franjas del día
+```
 
 ---
 
@@ -226,7 +277,7 @@ Tabla operacional central. Cada fila es un camión que entró al predio. Se escr
 | `operador_id` | `bigint` | NO | — | FK → `users.id` | Usuario que registró el pesaje |
 | `tipo_servicio_id` | `bigint` | NO | — | FK → `tipos_servicio.id` | — |
 | `zona_id` | `bigint` | NO | — | FK → `zonas.id` | — |
-| `turno` | `nvarchar(10)` | SÍ | NULL | CHECK IN (`'Diurna'`, `'Nocturna'`) | NULL cuando el servicio no tiene turnos. Obligatorio (validado en app) cuando `tipos_servicio_turnos` tiene filas para el servicio. |
+| `turno` | `nvarchar(10)` | SÍ | NULL | CHECK IN (`'Diurna'`, `'Nocturna'`) | NULL cuando la combinación zona+servicio no tiene turnos. Obligatorio (validado en app) cuando `zona_servicio_turnos` tiene filas para esa combinación. |
 | `peso_bruto_kg` | `int` | NO | — | CHECK > 0 | Peso que muestra la balanza al ingreso |
 | `peso_tara_kg` | `int` | NO | — | CHECK > 0 | Copiado de `vehiculos.tara_kg` al crear. **No se recalcula si el padrón cambia.** |
 | `peso_neto_kg` | `int` | NO | — | — | Calculado en la capa de servicio: `peso_bruto_kg - peso_tara_kg`. Se actualiza si se edita `peso_bruto_kg`. |
@@ -405,9 +456,9 @@ users
   │                                                   │                         │
   ├──(usuario_id)──────────────────── pesajes_log     ├──(tipo_servicio_id)─ tipos_servicio ──(tipo_vehiculo_sugerido_id)── tipos_vehiculo
   │                                                   │                         │                                               │
-  └──(resuelta_por)──────────────────── alarmas ──────├──(zona_id)────────── zonas ──(tipo_servicio_id)──────────────────────────┤
+  └──(resuelta_por)──────────────────── alarmas ──────├──(zona_id)────────── zonas                                              │
                                              │         │                         │                                               │
-                                             ├─(zona_id)                         └── tipos_servicio_turnos                       │
+                                             ├─(zona_id)                    zona_servicios ──── zona_servicio_turnos             │
                                              ├─(vehiculo_id)               tipos_vehiculo ◄──(tipo_vehiculo_id)─── vehiculos ───┘
                                              └─(pesaje_id)
 ```
@@ -421,8 +472,8 @@ users
 | `vehiculos` → `pesajes` | 1:N — un vehículo tiene muchos pesajes históricos |
 | `tipos_vehiculo` → `vehiculos` | 1:N — un tipo tiene muchos vehículos |
 | `tipos_servicio` → `pesajes` | 1:N — un servicio aparece en muchos pesajes |
-| `tipos_servicio` → `tipos_servicio_turnos` | 1:N — un servicio tiene 0, 1 o 2 turnos disponibles |
-| `tipos_servicio` → `zonas` | 1:N — un servicio tiene varias zonas |
+| `zonas` ↔ `tipos_servicio` (vía `zona_servicios`) | N:M — una zona puede tener varios servicios; un servicio opera en varias zonas |
+| `zona_servicios` → `zona_servicio_turnos` | 1:N — una combinación zona+servicio tiene 0, 1 o 2 turnos disponibles |
 | `zonas` → `pesajes` | 1:N — una zona aparece en muchos pesajes |
 | `pesajes` → `pesajes_log` | 1:N — un pesaje puede tener muchas entradas de auditoría |
 | `pesajes` → `alarmas` | 1:0..1 — un pesaje puede tener a lo sumo una alarma `peso_inusual` |
@@ -528,8 +579,8 @@ HAVING DATEDIFF(MINUTE, MAX(created_at), GETDATE()) > (
 |----------|----------------------|-------|
 | `peso_neto_kg` como columna regular | PERSISTED computed column en SQL Server | El computed column impide log granular de cambio: si se edita `peso_bruto_kg`, necesitamos registrar también el cambio derivado en `peso_neto_kg` en `pesajes_log`. Mejor calcularlo en el Service. |
 | `activo bit` en lugar de `SoftDeletes` | `deleted_at datetime` (Laravel SoftDeletes) | El ABM admin necesita mostrar registros inactivos en la tabla. SoftDeletes oculta los registros por defecto y requiere `withTrashed()` en cada query. `activo` es explícito y no requiere scopes globales. |
-| `tipos_servicio_turnos` tabla separada + `pesajes.turno` | `tipos_servicio.turno` campo único | Un servicio puede tener varios turnos disponibles (Domiciliario: Diurna y Nocturna). La tabla separada modela la cardinalidad correcta. `pesajes.turno` persiste qué turno eligió el operador al registrar. Validación en app: si el servicio tiene turnos, el campo es obligatorio; si no, queda NULL. |
-| Sin `zona_predeterminada_id` en `tipos_servicio`; filtrado por `zonas.tipo_servicio_id` | FK circular `tipos_servicio ↔ zonas` con zona predeterminada única | Un servicio tiene varias zonas (1:N). No existe "una zona predeterminada" — el operador elige de la lista filtrada por servicio. Esto simplifica el modelo: FK unidireccional `zonas → tipos_servicio`, sin ciclos, sin migración en 3 pasos. |
+| `zona_servicios` + `zona_servicio_turnos` en lugar de `tipo_servicio_id` en zonas | FK directa `zonas.tipo_servicio_id` | Una zona puede operar bajo distintos servicios, cada uno con su propia configuración de turnos y horarios. Modelar la relación como N:M evita duplicar zonas (ej: "Zona Sur Diurna" y "Zona Sur Nocturna" serían la misma zona con dos configuraciones). `pesajes.turno` persiste el turno elegido por el operador; es obligatorio si `zona_servicio_turnos` tiene filas para esa combinación. |
+| Sin `zona_predeterminada_id` en `tipos_servicio` | FK circular `tipos_servicio ↔ zonas` con zona predeterminada única | La relación es N:M vía `zona_servicios`. No existe "zona predeterminada" — el operador elige de la lista filtrada por servicio. Sin ciclos de FK, sin migración en 3 pasos. |
 | `numero_interno nvarchar(20)` | `int` | Algunos municipios usan códigos alfanuméricos. Más seguro como string. La búsqueda por LIKE funciona igual. |
 | Pesos en `int` (kg enteros) | `decimal(8,2)` (kg con decimales) | La balanza opera en kg enteros. Usar int simplifica comparaciones, suma y validaciones sin pérdida de precisión. |
 | Un único índice de cobertura `IX_pesajes_kpis` | Múltiples índices específicos | Para las queries de agregación del dashboard y reportes, un índice ancho con INCLUDEs evita lookups al clustered y reduce I/O. El trade-off es mayor tamaño del índice, aceptable dado el volumen esperado. |
@@ -564,19 +615,21 @@ En Etapa 1, máximo 2–3 usuarios simultáneos (1 operador activo + 1 admin con
 Orden de ejecución requerido (respetar dependencias de FK):
 
 ```
-1.  users                      (sin FK externas)
-2.  tipos_vehiculo              (sin FK externas)
-3.  tipos_servicio              (FK → tipos_vehiculo)
-4.  tipos_servicio_turnos       (FK → tipos_servicio)
-5.  zonas                       (FK → tipos_servicio)
-6.  vehiculos                   (FK → tipos_vehiculo)
-7.  pesajes                     (FK → vehiculos, users, tipos_servicio, zonas)
-8.  pesajes_log                 (FK → pesajes, users)
-9.  config_alarmas              (sin FK externas)
-10. alarmas                     (FK → zonas, vehiculos, pesajes, users)
+1.  users                        (sin FK externas)
+2.  tipos_vehiculo                (sin FK externas)
+3.  tipos_servicio                (FK → tipos_vehiculo)
+4.  zonas                         (sin FK externas)
+5.  zona_servicios                (FK → zonas, tipos_servicio)
+6.  zona_servicio_turnos          (FK compuesta → zona_servicios)
+7.  zona_servicio_horarios        (FK compuesta → zona_servicios)
+8.  vehiculos                     (FK → tipos_vehiculo)
+9.  pesajes                       (FK → vehiculos, users, tipos_servicio, zonas)
+10. pesajes_log                   (FK → pesajes, users)
+11. config_alarmas                (sin FK externas)
+12. alarmas                       (FK → zonas, vehiculos, pesajes, users)
 ```
 
-**Rollback:** el orden inverso (9 → 1).
+**Rollback:** el orden inverso (12 → 1).
 
 ---
 

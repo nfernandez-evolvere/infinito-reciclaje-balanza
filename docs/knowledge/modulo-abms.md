@@ -73,10 +73,21 @@ Las zonas son las áreas geográficas de recolección. Se usan para agrupar pesa
 | Campo | Descripción | Obligatorio |
 |-------|-------------|-------------|
 | Nombre | Nombre de la zona (ej: Zona Norte, Barrio Belgrano) | Sí |
-| Tipo de servicio | Servicio principal al que pertenece la zona | Sí |
 | Hectáreas | Superficie de la zona en hectáreas | No |
 | Cantidad de barrios | Barrios que componen la zona | No |
 | Habitantes | Población estimada de la zona | No |
+
+### Servicios asignados
+
+Después de crear la zona, podés asignarle uno o más tipos de servicio. Para cada asignación se define:
+
+| Campo | Descripción |
+|-------|-------------|
+| Tipo de servicio | Cuál servicio opera en esta zona |
+| Turno | Si aplica: Diurna, Nocturna, ambos, o ninguno |
+| Horario de recorrido | Informativo: hora de inicio y fin del recorrido |
+
+Esto determina qué le aparece al operador en el formulario de pesaje: elige el servicio → ve las zonas que tienen ese servicio asignado → si la zona tiene turno configurado para ese servicio, debe elegir turno.
 
 ### Sobre los datos demográficos
 
@@ -95,24 +106,25 @@ Los tipos de servicio definen el nombre del servicio, el tipo de vehículo habit
 | Campo | Descripción | Obligatorio |
 |-------|-------------|-------------|
 | Nombre | Nombre del tipo de servicio | Sí |
-| Turnos disponibles | Checkboxes: Diurna y/o Nocturna. Marcar los turnos en los que opera este servicio. Si ninguno está marcado, el operador no verá el campo turno al registrar un pesaje. | No |
 | Tipo de vehículo sugerido | Tipo de vehículo que suele prestar este servicio | No |
 
 ### Tipos de servicio del sistema
 
-| Servicio | Turnos disponibles | Descripción |
-|----------|--------------------|-------------|
-| Domiciliario | Diurna, Nocturna | Recolección puerta a puerta en barrios residenciales |
-| Voluminoso | — | Residuos de gran tamaño: muebles, electrodomésticos |
-| Barrido | — | Residuos de limpieza de calles y espacios públicos |
-| Servicios Especiales | — | Operativos puntuales, eventos, situaciones de emergencia |
-| Centros de Transferencia | — | Traslados de residuos desde centros intermedios de transferencia |
+| Servicio | Descripción |
+|----------|-------------|
+| Domiciliario | Recolección puerta a puerta en barrios residenciales |
+| Voluminoso | Residuos de gran tamaño: muebles, electrodomésticos |
+| Barrido | Residuos de limpieza de calles y espacios públicos |
+| Servicios Especiales | Operativos puntuales, eventos, situaciones de emergencia |
+| Centros de Transferencia | Traslados de residuos desde centros intermedios de transferencia |
 
-### Cómo funciona la zona en el pesaje
+### Cómo funciona la zona y el turno en el pesaje
 
-El sistema no tiene una "zona predeterminada" por servicio. Al registrar un pesaje, el operador elige el servicio y el sistema le muestra únicamente las zonas que pertenecen a ese servicio. El operador selecciona la zona de esa lista.
+Los turnos no se configuran a nivel de tipo de servicio, sino a nivel de **zona + servicio**. Esto significa que Domiciliario puede tener turno Diurna y Nocturna en la Zona Norte, pero ningún turno en la Zona Industrial.
 
-Para que esto funcione correctamente, cada zona debe tener asignado su tipo de servicio en el padrón de Zonas.
+La configuración se hace desde el padrón de Zonas: para cada zona, se define qué servicios operan en ella y, para cada uno, si aplican turnos.
+
+Al registrar un pesaje: el operador elige el servicio → el sistema muestra las zonas que tienen ese servicio asignado → al elegir una zona, si esa combinación tiene turnos configurados, aparece el selector de turno (obligatorio).
 
 ---
 
