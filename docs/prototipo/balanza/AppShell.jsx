@@ -76,10 +76,12 @@ function AdminShell({ user, screen, onNav, onLogout, children }) {
   const toggleGroup = (id) => setGroupOpen((o) => ({ ...o, [id]: !o[id] }));
 
   const nav = [
+    { type: "label", text: "Operación" },
     { type: "item",  id: "dashboard",  label: "Dashboard",         icon: "layout-dashboard" },
     { type: "item",  id: "pesajes",    label: "Pesajes",            icon: "scale" },
     { type: "item",  id: "reportes",   label: "Reportes",           icon: "bar-chart-3" },
     { type: "sep" },
+    { type: "label", text: "Padrón" },
     { type: "item",  id: "zonas",      label: "Zonas",              icon: "map-pin" },
     { type: "item",  id: "servicios",  label: "Tipos de servicio",  icon: "boxes" },
     { type: "sep" },
@@ -108,6 +110,9 @@ function AdminShell({ user, screen, onNav, onLogout, children }) {
           {nav.map((entry, i) => {
             if (entry.type === "sep") {
               return <div key={i} style={{ height: 1, background: "var(--line)", margin: "4px 8px" }} />;
+            }
+            if (entry.type === "label") {
+              return <div key={i} style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--ink-400)", padding: "10px 12px 2px" }}>{entry.text}</div>;
             }
             if (entry.type === "group") {
               const open = groupOpen[entry.id];

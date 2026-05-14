@@ -1,8 +1,13 @@
-/* global React, Icon, Button, Field, Card, Pill, Badge, Banner, SuccessOverlay,
-   VEHICLES, SERVICIOS, SERVICIO_CASCADE, ORIGENES_DATA, ORIGEN_SERVICIOS, VEHICLE_TYPES, fmtKg, fmtN */
+/* global React, Icon, Button, Field, Card, Pill, Badge, Banner, SuccessOverlay, fmtKg, fmtN */
 const { useState, useMemo, useRef, useEffect } = React;
 
-function Balanza({ pesajes, onSave, onDirtyChange }) {
+function Balanza({ pesajes, onSave, onDirtyChange, vehiculos, zonas, zonaServicios, servicioNames, vehicleTypeMap, servicioCascade }) {
+  const VEHICLES         = vehiculos;
+  const SERVICIOS        = servicioNames;
+  const SERVICIO_CASCADE = servicioCascade;
+  const ORIGENES_DATA    = zonas;
+  const ORIGEN_SERVICIOS = zonaServicios.map((a) => ({ ...a, origenId: a.zonaId }));
+  const VEHICLE_TYPES    = vehicleTypeMap;
   const [query, setQuery] = useState("");
   const [vehicle, setVehicle] = useState(null);
   const [showSugg, setShowSugg] = useState(false);

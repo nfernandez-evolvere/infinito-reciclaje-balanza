@@ -1,0 +1,32 @@
+[
+  { "zonaId": 1, "servicioNombre": "Domiciliario", "turnos": ["Diurna", "Nocturna"],
+    "horarios": [
+      { "dia": 1, "diaNombre": "Lunes",     "franjas": [{ "inicio": "08:00", "fin": "12:00" }, { "inicio": "14:00", "fin": "18:00" }, { "inicio": "20:00", "fin": "02:00" }] },
+      { "dia": 2, "diaNombre": "Martes",    "franjas": [{ "inicio": "08:00", "fin": "12:00" }, { "inicio": "14:00", "fin": "18:00" }] },
+      { "dia": 3, "diaNombre": "Miércoles", "franjas": [{ "inicio": "08:00", "fin": "12:00" }, { "inicio": "14:00", "fin": "18:00" }] },
+      { "dia": 4, "diaNombre": "Jueves",    "franjas": [{ "inicio": "08:00", "fin": "12:00" }, { "inicio": "14:00", "fin": "18:00" }] },
+      { "dia": 5, "diaNombre": "Viernes",   "franjas": [{ "inicio": "08:00", "fin": "12:00" }, { "inicio": "14:00", "fin": "18:00" }] },
+      { "dia": 6, "diaNombre": "Sábado",    "franjas": [{ "inicio": "08:00", "fin": "13:00" }] }
+    ] },
+  { "zonaId": 1, "servicioNombre": "Barrido", "turnos": [], "horarios": [] },
+  { "zonaId": 2, "servicioNombre": "Domiciliario", "turnos": ["Diurna", "Nocturna"],
+    "horarios": [
+      { "dia": 1, "diaNombre": "Lunes",     "franjas": [{ "inicio": "07:00", "fin": "13:00" }, { "inicio": "20:00", "fin": "02:00" }] },
+      { "dia": 2, "diaNombre": "Martes",    "franjas": [{ "inicio": "07:00", "fin": "13:00" }, { "inicio": "20:00", "fin": "02:00" }] },
+      { "dia": 3, "diaNombre": "Miércoles", "franjas": [{ "inicio": "07:00", "fin": "13:00" }, { "inicio": "20:00", "fin": "02:00" }] },
+      { "dia": 4, "diaNombre": "Jueves",    "franjas": [{ "inicio": "07:00", "fin": "13:00" }, { "inicio": "20:00", "fin": "02:00" }] },
+      { "dia": 5, "diaNombre": "Viernes",   "franjas": [{ "inicio": "07:00", "fin": "13:00" }, { "inicio": "20:00", "fin": "02:00" }] }
+    ] },
+  { "zonaId": 2, "servicioNombre": "Servicios Especiales", "turnos": [], "horarios": [] },
+  { "zonaId": 3, "servicioNombre": "Domiciliario", "turnos": ["Diurna"],
+    "horarios": [
+      { "dia": 1, "diaNombre": "Lunes",     "franjas": [{ "inicio": "07:00", "fin": "13:00" }] },
+      { "dia": 2, "diaNombre": "Martes",    "franjas": [{ "inicio": "07:00", "fin": "13:00" }] },
+      { "dia": 3, "diaNombre": "Miércoles", "franjas": [{ "inicio": "07:00", "fin": "13:00" }] },
+      { "dia": 4, "diaNombre": "Jueves",    "franjas": [{ "inicio": "07:00", "fin": "13:00" }] },
+      { "dia": 5, "diaNombre": "Viernes",   "franjas": [{ "inicio": "07:00", "fin": "13:00" }] }
+    ] },
+  { "zonaId": 3, "servicioNombre": "Centros de Transferencia", "turnos": [], "horarios": [] },
+  { "zonaId": 4, "servicioNombre": "Voluminoso", "turnos": [], "horarios": [] },
+  { "zonaId": 4, "servicioNombre": "Barrido",    "turnos": [], "horarios": [] }
+]

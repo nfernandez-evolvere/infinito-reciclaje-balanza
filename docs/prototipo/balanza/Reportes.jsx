@@ -1,9 +1,9 @@
 /* global React, Chart, Button, Card, Field, Icon, Pill,
-   SERVICIOS, ORIGENES, VEHICLE_TYPES,
-   ZONE_BREAKDOWN, TYPE_BREAKDOWN, DAILY_EVOLUTION, fmtT, fmtPct */
+   ZONE_BREAKDOWN, TYPE_BREAKDOWN, DAILY_EVOLUTION, fmtT, fmtPct, useAppContext */
 const { useState, useEffect, useRef } = React;
 
 function Reportes() {
+  const { servicioNames: SERVICIOS, zonaNames: ORIGENES, vehicleTypeMap: VEHICLE_TYPES } = useAppContext();
   const [from, setFrom] = useState("2026-03-01");
   const [to, setTo] = useState("2026-03-12");
   const [origen, setOrigen] = useState("Todas");

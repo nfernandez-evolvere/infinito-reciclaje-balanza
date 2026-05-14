@@ -1,0 +1,8 @@
+[
+  { "id": 1, "patente": "ABC-123", "interno": "45", "tipo": "Compactador", "tara": 8500,  "titular": "Municipal",  "estado": "Activo" },
+  { "id": 2, "patente": "DEF-456", "interno": "12", "tipo": "Volcador",    "tara": 12000, "titular": "Municipal",  "estado": "Activo" },
+  { "id": 3, "patente": "GHI-789", "interno": "23", "tipo": "Compactador", "tara": 9000,  "titular": "Particular", "estado": "Activo" },
+  { "id": 4, "patente": "JKL-012", "interno": "67", "tipo": "Volquete",    "tara": 6500,  "titular": "Municipal",  "estado": "Activo" },
+  { "id": 5, "patente": "MNO-345", "interno": "89", "tipo": "Volcador",    "tara": 11500, "titular": "Municipal",  "estado": "Inactivo" },
+  { "id": 6, "patente": "PQR-678", "interno": "34", "tipo": "Compactador", "tara": 8800,  "titular": "Municipal",  "estado": "Activo" }
+]

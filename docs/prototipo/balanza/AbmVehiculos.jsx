@@ -1,12 +1,17 @@
-/* global React, Button, Card, Pill, Modal, Field, Icon,
-   VEHICLES, VEHICLE_TYPES, fmtKg */
+/* global React, Button, Card, Pill, Modal, Field, Icon, fmtKg, useAppContext */
 const { useState } = React;
 
+const BLANK = { patente: "", interno: "", tipo: "Compactador", tara: "", titular: "Municipal", capacidad: "", observaciones: "", estado: "Activo" };
+
 function AbmVehiculos() {
-  const [rows, setRows] = useState(VEHICLES);
+  const { vehiculos: rows, setVehiculos: setRows, tiposVehiculo } = useAppContext();
+  const VEHICLE_TYPES = Object.fromEntries(tiposVehiculo.map((t) => [t.nombre, t]));
   const [query, setQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
-  const [draft, setDraft] = useState({ patente: "", interno: "", tipo: "Compactador", tara: "", titular: "Municipal", capacidad: "", observaciones: "", estado: "Activo" });
+  const [editVehiculo, setEditVehiculo] = useState(null);
+  const [editDraft, setEditDraft] = useState(null);
+  const [confirmToggle, setConfirmToggle] = useState(null);
+  const [draft, setDraft] = useState(BLANK);
 
   const filtered = rows.filter((v) => {
     const q = query.trim().toLowerCase();
@@ -25,9 +30,51 @@ function AbmVehiculos() {
       titular: draft.titular,
       estado: draft.estado,
     }, ...rs]);
-    setDraft({ patente: "", interno: "", tipo: "Compactador", tara: "", titular: "Municipal", capacidad: "", observaciones: "", estado: "Activo" });
+    setDraft(BLANK);
     setModalOpen(false);
   };
+
+  const openEdit = (v) => {
+    setEditVehiculo(v);
+    setEditDraft({ patente: v.patente, interno: v.interno === "—" ? "" : v.interno, tipo: v.tipo, tara: String(v.tara), titular: v.titular });
+  };
+
+  const submitEdit = () => {
+    if (!editDraft.patente.trim() || !editDraft.tara) return;
+    setRows((rs) => rs.map((r) => r.id === editVehiculo.id ? {
+      ...r,
+      patente: editDraft.patente.toUpperCase(),
+      interno: editDraft.interno || "—",
+      tipo: editDraft.tipo,
+      tara: parseInt(editDraft.tara, 10),
+      titular: editDraft.titular,
+    } : r));
+    setEditVehiculo(null);
+    setEditDraft(null);
+  };
+
+  const toggleEstado = (id) => {
+    setRows((rs) => rs.map((r) => r.id === id ? { ...r, estado: r.estado === "Activo" ? "Inactivo" : "Activo" } : r));
+    setConfirmToggle(null);
+  };
+
+  const FormFields = ({ d, set }) => (
+    <div className="grid grid-2">
+      <Field label="Patente"><input className="input" value={d.patente} onChange={(e) => set({ ...d, patente: e.target.value })} placeholder="ABC-123" /></Field>
+      <Field label="N° interno"><input className="input" value={d.interno} onChange={(e) => set({ ...d, interno: e.target.value })} placeholder="00" /></Field>
+      <Field label="Tipo">
+        <select className="select" value={d.tipo} onChange={(e) => set({ ...d, tipo: e.target.value })}>
+          {Object.keys(VEHICLE_TYPES).map((t) => <option key={t}>{t}</option>)}
+        </select>
+      </Field>
+      <Field label="Tara (kg)"><input className="input num" value={d.tara} onChange={(e) => set({ ...d, tara: e.target.value })} placeholder="8500" /></Field>
+      <Field label="Titular">
+        <select className="select" value={d.titular} onChange={(e) => set({ ...d, titular: e.target.value })}>
+          <option>Municipal</option><option>Particular</option>
+        </select>
+      </Field>
+    </div>
+  );
 
   return (
     <div className="page">
@@ -69,59 +116,66 @@ function AbmVehiculos() {
                 <td>{v.tipo}</td>
                 <td className="num">{fmtKg(v.tara)}</td>
                 <td>{v.titular === "Municipal" ? "Municipalidad" : v.titular}</td>
-                <td>
-                  {v.estado === "Activo"
-                    ? <Pill kind="green" dot>Activo</Pill>
-                    : <Pill kind="gray" dot>Inactivo</Pill>}
-                </td>
+                <td>{v.estado === "Activo" ? <Pill kind="green" dot>Activo</Pill> : <Pill kind="gray" dot>Inactivo</Pill>}</td>
                 <td style={{ textAlign: "right" }}>
                   <div className="actions">
-                    <button className="btn btn-ghost btn-sm" title="Editar"><Icon name="pencil" size={14} /></button>
-                    <button className="btn btn-ghost btn-sm" title={v.estado === "Activo" ? "Desactivar" : "Activar"}><Icon name={v.estado === "Activo" ? "power-off" : "power"} size={14} /></button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => openEdit(v)}>
+                      <Icon name="pencil" size={14} /> Editar
+                    </button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => setConfirmToggle(v)}>
+                      <Icon name="power" size={14} /> {v.estado === "Activo" ? "Desactivar" : "Activar"}
+                    </button>
                   </div>
                 </td>
               </tr>
             ))}
+            {filtered.length === 0 && (
+              <tr><td colSpan={7} style={{ textAlign: "center", color: "var(--ink-500)", padding: 40 }}>Sin resultados para "{query}".</td></tr>
+            )}
           </tbody>
         </table>
         </div>
       </Card>
 
+      {/* Modal nuevo vehículo */}
       {modalOpen && (
-        <Modal title="Nuevo vehículo" onClose={() => setModalOpen(false)}
+        <Modal title="Nuevo vehículo" onClose={() => { setModalOpen(false); setDraft(BLANK); }}
           footer={<>
-            <Button kind="secondary" onClick={() => setModalOpen(false)}>Cancelar</Button>
-            <Button kind="primary" onClick={submit} icon="save">Guardar</Button>
+            <Button kind="secondary" onClick={() => { setModalOpen(false); setDraft(BLANK); }}>Cancelar</Button>
+            <Button kind="primary" onClick={submit} icon="save" disabled={!draft.patente.trim() || !draft.tara}>Guardar</Button>
           </>}>
-          <div className="grid grid-2">
-            <Field label="Patente"><input className="input" value={draft.patente} onChange={(e) => setDraft({ ...draft, patente: e.target.value })} placeholder="ABC-123" /></Field>
-            <Field label="N° interno"><input className="input" value={draft.interno} onChange={(e) => setDraft({ ...draft, interno: e.target.value })} placeholder="00" /></Field>
-            <Field label="Tipo">
-              <select className="select" value={draft.tipo} onChange={(e) => setDraft({ ...draft, tipo: e.target.value })}>
-                {Object.keys(VEHICLE_TYPES).map((t) => <option key={t}>{t}</option>)}
-              </select>
-            </Field>
-            <Field label="Tara (kg)"><input className="input num" value={draft.tara} onChange={(e) => setDraft({ ...draft, tara: e.target.value })} placeholder="8500" /></Field>
-            <Field label="Titular">
-              <select className="select" value={draft.titular} onChange={(e) => setDraft({ ...draft, titular: e.target.value })}>
-                <option>Municipal</option><option>Particular</option>
-              </select>
-            </Field>
-            <Field label="Capacidad (m³)"><input className="input num" value={draft.capacidad} onChange={(e) => setDraft({ ...draft, capacidad: e.target.value })} placeholder="opcional" /></Field>
-            <Field label="Observaciones" style={{ gridColumn: "1 / -1" }}>
-              <input className="input" value={draft.observaciones} onChange={(e) => setDraft({ ...draft, observaciones: e.target.value })} placeholder="opcional" />
-            </Field>
-            <Field label="Estado" style={{ gridColumn: "1 / -1" }}>
-              <div style={{ display: "inline-flex", gap: 8 }}>
-                <button type="button"
-                  className={"btn btn-sm " + (draft.estado === "Activo" ? "btn-primary" : "btn-secondary")}
-                  onClick={() => setDraft({ ...draft, estado: "Activo" })}>Activo</button>
-                <button type="button"
-                  className={"btn btn-sm " + (draft.estado === "Inactivo" ? "btn-primary" : "btn-secondary")}
-                  onClick={() => setDraft({ ...draft, estado: "Inactivo" })}>Inactivo</button>
-              </div>
-            </Field>
-          </div>
+          <FormFields d={draft} set={setDraft} />
+        </Modal>
+      )}
+
+      {/* Modal editar vehículo */}
+      {editVehiculo && editDraft && (
+        <Modal title={`Editar — ${editVehiculo.patente}`} onClose={() => { setEditVehiculo(null); setEditDraft(null); }}
+          footer={<>
+            <Button kind="secondary" onClick={() => { setEditVehiculo(null); setEditDraft(null); }}>Cancelar</Button>
+            <Button kind="primary" onClick={submitEdit} icon="save" disabled={!editDraft.patente.trim() || !editDraft.tara}>Guardar cambios</Button>
+          </>}>
+          <FormFields d={editDraft} set={setEditDraft} />
+        </Modal>
+      )}
+
+      {/* Modal confirmar activar/desactivar */}
+      {confirmToggle && (
+        <Modal title={confirmToggle.estado === "Activo" ? "Desactivar vehículo" : "Activar vehículo"}
+          onClose={() => setConfirmToggle(null)} maxWidth={440}
+          footer={<>
+            <Button kind="secondary" onClick={() => setConfirmToggle(null)}>Cancelar</Button>
+            <Button kind={confirmToggle.estado === "Activo" ? "danger" : "primary"}
+              icon="power" onClick={() => toggleEstado(confirmToggle.id)}>
+              {confirmToggle.estado === "Activo" ? "Desactivar" : "Activar"}
+            </Button>
+          </>}>
+          {confirmToggle.estado === "Activo"
+            ? <><p>¿Desactivar el vehículo <b>{confirmToggle.patente}</b>?</p>
+                <p style={{ fontSize: 13, color: "var(--ink-500)", marginTop: 6 }}>El vehículo deja de aparecer en el autocompletado del operador. Los pesajes históricos no se ven afectados.</p></>
+            : <><p>¿Activar el vehículo <b>{confirmToggle.patente}</b>?</p>
+                <p style={{ fontSize: 13, color: "var(--ink-500)", marginTop: 6 }}>El vehículo vuelve a estar disponible en el formulario de pesaje.</p></>
+          }
         </Modal>
       )}
     </div>

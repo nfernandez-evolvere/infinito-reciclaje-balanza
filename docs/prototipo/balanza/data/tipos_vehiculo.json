@@ -1,0 +1,6 @@
+[
+  { "id": 1, "nombre": "Compactador", "rangeMin": 10000, "rangeMax": 26500, "estado": "Activo" },
+  { "id": 2, "nombre": "Volcador",    "rangeMin": 13000, "rangeMax": 30000, "estado": "Activo" },
+  { "id": 3, "nombre": "Volquete",    "rangeMin": 7000,  "rangeMax": 20000, "estado": "Activo" },
+  { "id": 4, "nombre": "Particular",  "rangeMin": 1000,  "rangeMax": 5000,  "estado": "Activo" }
+]

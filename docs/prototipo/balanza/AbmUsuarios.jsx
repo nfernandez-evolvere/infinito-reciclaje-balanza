@@ -1,9 +1,8 @@
-/* global React, Button, Card, Pill, Modal, Field, Icon,
-   USUARIOS */
+/* global React, Button, Card, Pill, Modal, Field, Icon, useAppContext */
 const { useState } = React;
 
 function AbmUsuarios() {
-  const [rows, setRows] = useState(USUARIOS);
+  const { usuarios: rows, setUsuarios: setRows } = useAppContext();
   const [modalOpen, setModalOpen] = useState(false);
   const [draft, setDraft] = useState({ usuario: "", nombre: "", rol: "Operador", estado: "Activo" });
 

@@ -1,0 +1,6 @@
+[
+  { "id": 1, "usuario": "roberto", "nombre": "Roberto Acosta",  "rol": "Operador", "estado": "Activo" },
+  { "id": 2, "usuario": "marta",   "nombre": "Marta Giménez",   "rol": "Operador", "estado": "Activo" },
+  { "id": 3, "usuario": "nacho",   "nombre": "Nacho Ríos",      "rol": "Admin",    "estado": "Activo" },
+  { "id": 4, "usuario": "carlos",  "nombre": "Carlos Vera",     "rol": "Operador", "estado": "Inactivo" }
+]

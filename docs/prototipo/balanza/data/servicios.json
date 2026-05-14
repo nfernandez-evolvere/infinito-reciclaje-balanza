@@ -1,0 +1,7 @@
+[
+  { "id": 1, "nombre": "Domiciliario",             "tipoSugerido": "Compactador", "estado": "Activo" },
+  { "id": 2, "nombre": "Voluminoso",               "tipoSugerido": "Volquete",    "estado": "Activo" },
+  { "id": 3, "nombre": "Barrido",                  "tipoSugerido": "Volcador",    "estado": "Activo" },
+  { "id": 4, "nombre": "Servicios Especiales",     "tipoSugerido": "Compactador", "estado": "Activo" },
+  { "id": 5, "nombre": "Centros de Transferencia", "tipoSugerido": "Compactador", "estado": "Activo" }
+]

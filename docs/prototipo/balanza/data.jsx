@@ -1,108 +1,5 @@
 /* global React */
-// Hardcoded master data for the prototype.
-
-const VEHICLE_TYPES = {
-  Compactador: { rangeMin: 10000, rangeMax: 26500 },
-  Volcador:    { rangeMin: 13000, rangeMax: 30000 },
-  Volquete:    { rangeMin: 7000,  rangeMax: 20000 },
-  Particular:  { rangeMin: 1000,  rangeMax: 5000  },
-};
-
-const VEHICLES = [
-  { id: 1, patente: "ABC-123", interno: "45", tipo: "Compactador", tara: 8500,  titular: "Municipal",  estado: "Activo" },
-  { id: 2, patente: "DEF-456", interno: "12", tipo: "Volcador",    tara: 12000, titular: "Municipal",  estado: "Activo" },
-  { id: 3, patente: "GHI-789", interno: "23", tipo: "Compactador", tara: 9000,  titular: "Particular", estado: "Activo" },
-  { id: 4, patente: "JKL-012", interno: "67", tipo: "Volquete",    tara: 6500,  titular: "Municipal",  estado: "Activo" },
-  { id: 5, patente: "MNO-345", interno: "89", tipo: "Volcador",    tara: 11500, titular: "Municipal",  estado: "Inactivo" },
-  { id: 6, patente: "PQR-678", interno: "34", tipo: "Compactador", tara: 8800,  titular: "Municipal",  estado: "Activo" },
-];
-
-const SERVICIOS_DATA = [
-  { id: 1, nombre: "Domiciliario",             tipoSugerido: "Compactador", estado: "Activo" },
-  { id: 2, nombre: "Voluminoso",               tipoSugerido: "Volquete",    estado: "Activo" },
-  { id: 3, nombre: "Barrido",                  tipoSugerido: "Volcador",    estado: "Activo" },
-  { id: 4, nombre: "Servicios Especiales",     tipoSugerido: "Compactador", estado: "Activo" },
-  { id: 5, nombre: "Centros de Transferencia", tipoSugerido: "Compactador", estado: "Activo" },
-];
-const SERVICIOS = SERVICIOS_DATA.map((s) => s.nombre);
-const SERVICIO_CASCADE = Object.fromEntries(
-  SERVICIOS_DATA.map((s) => [s.nombre, { tipoSugerido: s.tipoSugerido }])
-);
-
-const ZONAS_DATA = [
-  { id: 1, nombre: "Norte",  hectareas: 42, barrios: 9,  estado: "Activo" },
-  { id: 2, nombre: "Sur",    hectareas: 55, barrios: 14, estado: "Activo" },
-  { id: 3, nombre: "Centro", hectareas: 50, barrios: 12, estado: "Activo" },
-  { id: 4, nombre: "Oeste",  hectareas: 38, barrios: 8,  estado: "Activo" },
-];
-const ZONAS = ZONAS_DATA.map((z) => z.nombre);
-
-// Junction: qué servicios operan en cada zona, con qué turnos y franjas horarias por día
-// horarios: [{ dia: 1..7, diaNombre, franjas: [{ inicio, fin }] }]  (1=Lunes … 7=Domingo)
-const ZONA_SERVICIOS = [
-  { zonaId: 1, servicioNombre: "Domiciliario",             turnos: ["Diurna", "Nocturna"],
-    horarios: [
-      { dia: 1, diaNombre: "Lunes",     franjas: [{ inicio: "08:00", fin: "12:00" }, { inicio: "14:00", fin: "18:00" }, { inicio: "20:00", fin: "02:00" }] },
-      { dia: 2, diaNombre: "Martes",    franjas: [{ inicio: "08:00", fin: "12:00" }, { inicio: "14:00", fin: "18:00" }] },
-      { dia: 3, diaNombre: "Miércoles", franjas: [{ inicio: "08:00", fin: "12:00" }, { inicio: "14:00", fin: "18:00" }] },
-      { dia: 4, diaNombre: "Jueves",    franjas: [{ inicio: "08:00", fin: "12:00" }, { inicio: "14:00", fin: "18:00" }] },
-      { dia: 5, diaNombre: "Viernes",   franjas: [{ inicio: "08:00", fin: "12:00" }, { inicio: "14:00", fin: "18:00" }] },
-      { dia: 6, diaNombre: "Sábado",    franjas: [{ inicio: "08:00", fin: "13:00" }] },
-    ] },
-  { zonaId: 1, servicioNombre: "Barrido",                  turnos: [], horarios: [] },
-  { zonaId: 2, servicioNombre: "Domiciliario",             turnos: ["Diurna", "Nocturna"],
-    horarios: [
-      { dia: 1, diaNombre: "Lunes",     franjas: [{ inicio: "07:00", fin: "13:00" }, { inicio: "20:00", fin: "02:00" }] },
-      { dia: 2, diaNombre: "Martes",    franjas: [{ inicio: "07:00", fin: "13:00" }, { inicio: "20:00", fin: "02:00" }] },
-      { dia: 3, diaNombre: "Miércoles", franjas: [{ inicio: "07:00", fin: "13:00" }, { inicio: "20:00", fin: "02:00" }] },
-      { dia: 4, diaNombre: "Jueves",    franjas: [{ inicio: "07:00", fin: "13:00" }, { inicio: "20:00", fin: "02:00" }] },
-      { dia: 5, diaNombre: "Viernes",   franjas: [{ inicio: "07:00", fin: "13:00" }, { inicio: "20:00", fin: "02:00" }] },
-    ] },
-  { zonaId: 2, servicioNombre: "Servicios Especiales",     turnos: [], horarios: [] },
-  { zonaId: 3, servicioNombre: "Domiciliario",             turnos: ["Diurna"],
-    horarios: [
-      { dia: 1, diaNombre: "Lunes",     franjas: [{ inicio: "07:00", fin: "13:00" }] },
-      { dia: 2, diaNombre: "Martes",    franjas: [{ inicio: "07:00", fin: "13:00" }] },
-      { dia: 3, diaNombre: "Miércoles", franjas: [{ inicio: "07:00", fin: "13:00" }] },
-      { dia: 4, diaNombre: "Jueves",    franjas: [{ inicio: "07:00", fin: "13:00" }] },
-      { dia: 5, diaNombre: "Viernes",   franjas: [{ inicio: "07:00", fin: "13:00" }] },
-    ] },
-  { zonaId: 3, servicioNombre: "Centros de Transferencia", turnos: [], horarios: [] },
-  { zonaId: 4, servicioNombre: "Voluminoso",               turnos: [], horarios: [] },
-  { zonaId: 4, servicioNombre: "Barrido",                  turnos: [], horarios: [] },
-];
-
-const USUARIOS = [
-  { id: 1, usuario: "roberto",  nombre: "Roberto Acosta",   rol: "Operador", estado: "Activo" },
-  { id: 2, usuario: "marta",    nombre: "Marta Giménez",    rol: "Operador", estado: "Activo" },
-  { id: 3, usuario: "nacho",    nombre: "Nacho Ríos",       rol: "Admin",    estado: "Activo" },
-  { id: 4, usuario: "carlos",   nombre: "Carlos Vera",      rol: "Operador", estado: "Inactivo" },
-];
-
-const PESAJES = [
-  { id: 101, horaEntrada: "14:32", horaSalida: null,    patente: "ABC-123", tipo: "Compactador", servicio: "Domiciliario",              origen: "Centro", bruto: 24350, tara: 8500,  brutoSalida: null,  neto: 15850, operador: "roberto", estado: "En predio" },
-  { id: 102, horaEntrada: "14:18", horaSalida: null,    patente: "DEF-456", tipo: "Volcador",    servicio: "Barrido",                   origen: "Norte",  bruto: 27800, tara: 12000, brutoSalida: null,  neto: 15800, operador: "roberto", estado: "En predio" },
-  { id: 103, horaEntrada: "14:02", horaSalida: "14:24", patente: "GHI-789", tipo: "Compactador", servicio: "Domiciliario",              origen: "Sur",    bruto: 22100, tara: 9000,  brutoSalida: 9120, neto: 13100, operador: "roberto", estado: "Cerrado" },
-  { id: 104, horaEntrada: "13:47", horaSalida: "14:11", patente: "JKL-012", tipo: "Volquete",    servicio: "Voluminoso",                origen: "Oeste",  bruto: 18500, tara: 6500,  brutoSalida: 6580, neto: 12000, operador: "roberto", estado: "Cerrado" },
-  { id: 105, horaEntrada: "13:31", horaSalida: "13:52", patente: "ABC-123", tipo: "Compactador", servicio: "Domiciliario",              origen: "Centro", bruto: 23900, tara: 8500,  brutoSalida: 8540, neto: 15400, operador: "roberto", estado: "Cerrado" },
-  { id: 106, horaEntrada: "13:14", horaSalida: "13:36", patente: "PQR-678", tipo: "Compactador", servicio: "Domiciliario",              origen: "Centro", bruto: 25100, tara: 8800,  brutoSalida: 8830, neto: 16300, operador: "roberto", estado: "Cerrado" },
-  { id: 107, horaEntrada: "12:58", horaSalida: "13:18", patente: "DEF-456", tipo: "Volcador",    servicio: "Barrido",                   origen: "Norte",  bruto: 26400, tara: 12000, brutoSalida: 12040, neto: 14400, operador: "roberto", estado: "Cerrado" },
-  { id: 108, horaEntrada: "12:47", horaSalida: "13:09", patente: "GHI-789", tipo: "Compactador", servicio: "Domiciliario",              origen: "Sur",    bruto: 21800, tara: 9000,  brutoSalida: 9050, neto: 12800, operador: "roberto", estado: "Cerrado" },
-  { id: 109, horaEntrada: "12:15", horaSalida: "12:38", patente: "JKL-012", tipo: "Volquete",    servicio: "Voluminoso",                origen: "Oeste",  bruto: 19200, tara: 6500,  brutoSalida: 6520, neto: 12700, operador: "roberto", estado: "Cerrado" },
-  { id: 110, horaEntrada: "11:58", horaSalida: "12:22", patente: "ABC-123", tipo: "Compactador", servicio: "Domiciliario",              origen: "Centro", bruto: 24800, tara: 8500,  brutoSalida: 8550, neto: 16300, operador: "roberto", estado: "Cerrado" },
-  { id: 111, horaEntrada: "11:41", horaSalida: "12:04", patente: "PQR-678", tipo: "Compactador", servicio: "Domiciliario",              origen: "Centro", bruto: 23700, tara: 8800,  brutoSalida: 8810, neto: 14900, operador: "roberto", estado: "Cerrado" },
-  { id: 112, horaEntrada: "11:22", horaSalida: "11:48", patente: "DEF-456", tipo: "Volcador",    servicio: "Barrido",                   origen: "Norte",  bruto: 28100, tara: 12000, brutoSalida: 12080, neto: 16100, operador: "marta",   estado: "Cerrado", editado: true },
-  { id: 113, horaEntrada: "11:04", horaSalida: "11:28", patente: "GHI-789", tipo: "Compactador", servicio: "Domiciliario",              origen: "Sur",    bruto: 22600, tara: 9000,  brutoSalida: 9080, neto: 13600, operador: "marta",   estado: "Cerrado" },
-  { id: 114, horaEntrada: "10:48", horaSalida: "11:14", patente: "JKL-012", tipo: "Volquete",    servicio: "Voluminoso",                origen: "Oeste",  bruto: 18900, tara: 6500,  brutoSalida: 6510, neto: 12400, operador: "marta",   estado: "Cerrado" },
-  { id: 115, horaEntrada: "10:33", horaSalida: "10:57", patente: "ABC-123", tipo: "Compactador", servicio: "Domiciliario",              origen: "Centro", bruto: 24200, tara: 8500,  brutoSalida: 8540, neto: 15700, operador: "marta",   estado: "Cerrado" },
-  { id: 116, horaEntrada: "10:11", horaSalida: "10:35", patente: "DEF-456", tipo: "Volcador",    servicio: "Servicios Especiales",      origen: "Sur",    bruto: 24500, tara: 12000, brutoSalida: 12050, neto: 12500, operador: "marta",   estado: "Cerrado" },
-  { id: 117, horaEntrada: "09:54", horaSalida: "10:21", patente: "PQR-678", tipo: "Compactador", servicio: "Domiciliario",              origen: "Centro", bruto: 25600, tara: 8800,  brutoSalida: 8820, neto: 16800, operador: "marta",   estado: "Cerrado" },
-  { id: 118, horaEntrada: "09:31", horaSalida: "09:58", patente: "GHI-789", tipo: "Compactador", servicio: "Centros de Transferencia",  origen: "Centro", bruto: 23200, tara: 9000,  brutoSalida: 9100, neto: 14200, operador: "marta",   estado: "Cerrado" },
-];
-
-const PESAJES_LOG = [
-  { id: 1, pesajeId: 112, fecha: "2026-03-12 11:22", usuario: "nacho", campo: "bruto", anterior: 8100, nuevo: 28100, motivo: "Tipeo: faltaba el 2 inicial." },
-];
+// Datos estáticos y helpers compartidos. Las entidades mutables viven en AppContext (cargadas desde data/*.json).
 
 const ALERTS = [
   { kind: "warn", title: "Gap en registros 12:30 — 12:45", body: "15 minutos sin pesajes durante turno activo." },
@@ -132,10 +29,20 @@ const fmtN   = (n) => Math.round(n).toLocaleString("es-AR");
 const fmtT   = (n, d = 1) => n.toLocaleString("es-AR", { minimumFractionDigits: d, maximumFractionDigits: d }) + " t";
 const fmtPct = (n) => n.toLocaleString("es-AR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "%";
 
+// Genera entradas de log por cada campo modificado en un pesaje
+function buildLogEntries({ pesajeId, patch, original, actor, motivo }) {
+  const fecha = new Date().toLocaleString("es-AR", { hour12: false }).replace(",", "");
+  const campos = ["bruto", "tara", "servicio", "origen"];
+  return campos
+    .filter((c) => patch[c] !== undefined && patch[c] !== original[c])
+    .map((c, i) => ({
+      id: `${Date.now()}-${i}`,
+      pesajeId, fecha, usuario: actor,
+      campo: c, anterior: original[c], nuevo: patch[c], motivo,
+    }));
+}
+
 Object.assign(window, {
-  VEHICLE_TYPES, VEHICLES,
-  SERVICIOS, SERVICIOS_DATA, SERVICIO_CASCADE,
-  ZONAS, ZONAS_DATA, ZONA_SERVICIOS, USUARIOS,
-  PESAJES, PESAJES_LOG, ALERTS, DAILY_EVOLUTION, ZONE_BREAKDOWN, TYPE_BREAKDOWN,
-  fmtKg, fmtN, fmtT, fmtPct,
+  ALERTS, DAILY_EVOLUTION, ZONE_BREAKDOWN, TYPE_BREAKDOWN,
+  fmtKg, fmtN, fmtT, fmtPct, buildLogEntries,
 });

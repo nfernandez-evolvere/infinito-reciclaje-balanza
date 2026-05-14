@@ -1,0 +1,6 @@
+[
+  { "id": 1, "nombre": "Norte",  "hectareas": 42, "barrios": 9,  "estado": "Activo" },
+  { "id": 2, "nombre": "Sur",    "hectareas": 55, "barrios": 14, "estado": "Activo" },
+  { "id": 3, "nombre": "Centro", "hectareas": 50, "barrios": 12, "estado": "Activo" },
+  { "id": 4, "nombre": "Oeste",  "hectareas": 38, "barrios": 8,  "estado": "Activo" }
+]

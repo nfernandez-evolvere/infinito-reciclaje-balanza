@@ -1,5 +1,4 @@
-/* global React, Button, Card, Pill, Modal, Field, Icon,
-   ZONAS_DATA, ZONA_SERVICIOS, SERVICIOS */
+/* global React, Button, Card, Pill, Modal, Field, Icon, useAppContext */
 const { useState } = React;
 
 const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
@@ -88,13 +87,32 @@ function HorarioResumen({ horarios }) {
 }
 
 function AbmZonas() {
-  const [rows, setRows] = useState(ZONAS_DATA);
-  const [asignaciones, setAsignaciones] = useState(ZONA_SERVICIOS);
+  const { zonas: rows, setZonas: setRows, zonaServicios: asignaciones, setZonaServicios: setAsignaciones, servicioNames: SERVICIOS } = useAppContext();
   const [modalOpen, setModalOpen] = useState(false);
+  const [editZona, setEditZona] = useState(null);             // zona object being edited
+  const [editDraft, setEditDraft] = useState(null);
   const [asignModalOpen, setAsignModalOpen] = useState(false);
+  const [horariosFor, setHorariosFor] = useState(null);       // { zonaNombre, servicioNombre, horarios }
+  const [confirmQuitar, setConfirmQuitar] = useState(null);   // { zonaId, zonaNombre, servicioNombre }
+  const [confirmToggle, setConfirmToggle] = useState(null);   // zona object
   const [selectedZona, setSelectedZona] = useState(null);
   const [draft, setDraft] = useState({ nombre: "", hectareas: "", barrios: "", estado: "Activo" });
   const [asignDraft, setAsignDraft] = useState({ servicioNombre: "", turnos: [], horariosPorDia: initHorarios() });
+
+  const openEdit = (z) => {
+    setEditZona(z);
+    setEditDraft({ nombre: z.nombre, hectareas: String(z.hectareas), barrios: String(z.barrios) });
+  };
+
+  const submitEdit = () => {
+    if (!editDraft.nombre.trim()) return;
+    setRows((rs) => rs.map((r) => r.id === editZona.id
+      ? { ...r, nombre: editDraft.nombre, hectareas: parseFloat(editDraft.hectareas) || 0, barrios: parseInt(editDraft.barrios, 10) || 0 }
+      : r
+    ));
+    setEditZona(null);
+    setEditDraft(null);
+  };
 
   const submit = () => {
     if (!draft.nombre.trim()) return;
@@ -125,6 +143,12 @@ function AbmZonas() {
 
   const removeAsign = (zonaId, servicioNombre) => {
     setAsignaciones((as) => as.filter((a) => !(a.zonaId === zonaId && a.servicioNombre === servicioNombre)));
+    setConfirmQuitar(null);
+  };
+
+  const toggleEstado = (zonaId) => {
+    setRows((rs) => rs.map((r) => r.id === zonaId ? { ...r, estado: r.estado === "Activo" ? "Inactivo" : "Activo" } : r));
+    setConfirmToggle(null);
   };
 
   const totalHa = rows.reduce((a, r) => a + r.hectareas, 0);
@@ -155,8 +179,12 @@ function AbmZonas() {
                   </div>
                 </div>
                 <div className="actions">
-                  <button className="btn btn-ghost btn-sm" title="Editar zona"><Icon name="pencil" size={14} /></button>
-                  <button className="btn btn-ghost btn-sm" title="Cambiar estado"><Icon name="power" size={14} /></button>
+                  <button className="btn btn-ghost btn-sm" title="Editar zona" onClick={() => openEdit(z)}><Icon name="pencil" size={14} /> Editar</button>
+                  <button className="btn btn-ghost btn-sm" title={z.estado === "Activo" ? "Desactivar" : "Activar"}
+                    onClick={() => setConfirmToggle(z)}>
+                    <Icon name="power" size={14} />
+                    {z.estado === "Activo" ? "Desactivar" : "Activar"}
+                  </button>
                 </div>
               </div>
 
@@ -176,7 +204,6 @@ function AbmZonas() {
                         <tr>
                           <th>Servicio</th>
                           <th>Turnos</th>
-                          <th>Horarios de recorrido</th>
                           <th style={{ textAlign: "right" }}></th>
                         </tr>
                       </thead>
@@ -189,11 +216,19 @@ function AbmZonas() {
                                 ? <div style={{ display: "flex", gap: 4 }}>{a.turnos.map((t) => <Pill key={t} kind="blue">{t}</Pill>)}</div>
                                 : <span style={{ color: "var(--ink-400)" }}>Sin turno</span>}
                             </td>
-                            <td><HorarioResumen horarios={a.horarios} /></td>
                             <td style={{ textAlign: "right" }}>
-                              <button className="btn btn-ghost btn-sm" title="Quitar" onClick={() => removeAsign(z.id, a.servicioNombre)}>
-                                <Icon name="x" size={13} />
-                              </button>
+                              <div className="actions">
+                                <button className="btn btn-ghost btn-sm"
+                                  title="Ver horarios de recorrido"
+                                  onClick={() => setHorariosFor({ zonaNombre: z.nombre, servicioNombre: a.servicioNombre, horarios: a.horarios })}
+                                  style={{ opacity: a.horarios && a.horarios.length > 0 ? 1 : 0.35 }}>
+                                  <Icon name="clock" size={13} /> Horarios
+                                </button>
+                                <button className="btn btn-ghost btn-sm" title="Quitar servicio"
+                                  onClick={() => setConfirmQuitar({ zonaId: z.id, zonaNombre: z.nombre, servicioNombre: a.servicioNombre })}>
+                                  <Icon name="x" size={13} /> Quitar
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -219,6 +254,23 @@ function AbmZonas() {
             </Field>
             <Field label="Superficie (hectáreas)"><input className="input num" value={draft.hectareas} onChange={(e) => setDraft({ ...draft, hectareas: e.target.value })} placeholder="0" /></Field>
             <Field label="Cantidad de barrios"><input className="input num" value={draft.barrios} onChange={(e) => setDraft({ ...draft, barrios: e.target.value })} placeholder="0" /></Field>
+          </div>
+        </Modal>
+      )}
+
+      {/* Modal editar zona */}
+      {editZona && editDraft && (
+        <Modal title={`Editar zona — ${editZona.nombre}`} onClose={() => { setEditZona(null); setEditDraft(null); }}
+          footer={<>
+            <Button kind="secondary" onClick={() => { setEditZona(null); setEditDraft(null); }}>Cancelar</Button>
+            <Button kind="primary" onClick={submitEdit} icon="save">Guardar cambios</Button>
+          </>}>
+          <div className="grid grid-2">
+            <Field label="Nombre" style={{ gridColumn: "1 / -1" }}>
+              <input className="input" value={editDraft.nombre} onChange={(e) => setEditDraft({ ...editDraft, nombre: e.target.value })} />
+            </Field>
+            <Field label="Superficie (hectáreas)"><input className="input num" value={editDraft.hectareas} onChange={(e) => setEditDraft({ ...editDraft, hectareas: e.target.value })} placeholder="0" /></Field>
+            <Field label="Cantidad de barrios"><input className="input num" value={editDraft.barrios} onChange={(e) => setEditDraft({ ...editDraft, barrios: e.target.value })} placeholder="0" /></Field>
           </div>
         </Modal>
       )}
@@ -259,6 +311,65 @@ function AbmZonas() {
               />
             </Field>
           </div>
+        </Modal>
+      )}
+
+      {/* Modal confirmar quitar servicio */}
+      {confirmQuitar && (
+        <Modal title="Quitar servicio asignado" onClose={() => setConfirmQuitar(null)} maxWidth={440}
+          footer={<>
+            <Button kind="secondary" onClick={() => setConfirmQuitar(null)}>Cancelar</Button>
+            <Button kind="danger" icon="x" onClick={() => removeAsign(confirmQuitar.zonaId, confirmQuitar.servicioNombre)}>Quitar</Button>
+          </>}>
+          <p>¿Querés quitar <b>{confirmQuitar.servicioNombre}</b> de la zona <b>{confirmQuitar.zonaNombre}</b>?</p>
+          <p style={{ fontSize: 13, color: "var(--ink-500)", marginTop: 6 }}>El servicio deja de aparecer como opción en nuevos pesajes para esta zona.</p>
+        </Modal>
+      )}
+
+      {/* Modal confirmar activar/desactivar zona */}
+      {confirmToggle && (
+        <Modal title={confirmToggle.estado === "Activo" ? "Desactivar zona" : "Activar zona"} onClose={() => setConfirmToggle(null)} maxWidth={440}
+          footer={<>
+            <Button kind="secondary" onClick={() => setConfirmToggle(null)}>Cancelar</Button>
+            <Button kind={confirmToggle.estado === "Activo" ? "danger" : "primary"}
+              icon={confirmToggle.estado === "Activo" ? "power" : "power"}
+              onClick={() => toggleEstado(confirmToggle.id)}>
+              {confirmToggle.estado === "Activo" ? "Desactivar" : "Activar"}
+            </Button>
+          </>}>
+          {confirmToggle.estado === "Activo"
+            ? <><p>¿Desactivar la zona <b>{confirmToggle.nombre}</b>?</p>
+                <p style={{ fontSize: 13, color: "var(--ink-500)", marginTop: 6 }}>La zona deja de aparecer en el formulario de pesaje. Los pesajes históricos no se ven afectados.</p></>
+            : <><p>¿Activar la zona <b>{confirmToggle.nombre}</b>?</p>
+                <p style={{ fontSize: 13, color: "var(--ink-500)", marginTop: 6 }}>La zona vuelve a estar disponible en el formulario de pesaje.</p></>
+          }
+        </Modal>
+      )}
+
+      {/* Modal horarios de recorrido */}
+      {horariosFor && (
+        <Modal
+          title={`Horarios — ${horariosFor.servicioNombre}`}
+          onClose={() => setHorariosFor(null)}
+          footer={<Button kind="secondary" onClick={() => setHorariosFor(null)}>Cerrar</Button>}>
+          <p style={{ fontSize: 13, color: "var(--ink-500)", marginBottom: 12 }}>
+            Zona <b>{horariosFor.zonaNombre}</b>
+          </p>
+          {horariosFor.horarios && horariosFor.horarios.length > 0
+            ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {horariosFor.horarios.map((h) => (
+                  <div key={h.dia} style={{ display: "flex", alignItems: "baseline", gap: 10, fontSize: 13 }}>
+                    <span style={{ width: 80, fontWeight: 600, color: "var(--ink-700)", flexShrink: 0 }}>{h.diaNombre}</span>
+                    <span style={{ color: "var(--ink-500)" }}>
+                      {h.franjas.map((f) => `${f.inicio}–${f.fin}`).join(" · ")}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )
+            : <p style={{ fontSize: 13, color: "var(--ink-400)" }}>Sin horarios configurados para este servicio.</p>
+          }
         </Modal>
       )}
     </div>

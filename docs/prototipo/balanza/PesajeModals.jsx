@@ -1,10 +1,10 @@
-/* global React, Button, Field, Icon, Banner, Modal,
-   SERVICIOS, ORIGENES, fmtKg, fmtN */
+/* global React, Button, Field, Icon, Banner, Modal, fmtKg, fmtN, useAppContext */
 const { useState } = React;
 
 // Shared modal used by Historial (operator) and PesajesAdmin.
 // Mandatory motivo. Emits one log entry per changed field via onSave(patch, motivo).
 function EditPesajeModal({ pesaje, onClose, onSave, actorRole }) {
+  const { servicioNames: SERVICIOS, zonaNames: ORIGENES } = useAppContext();
   const [bruto, setBruto]       = useState(pesaje.bruto);
   const [tara,  setTara]        = useState(pesaje.tara);
   const [servicio, setServicio] = useState(pesaje.servicio);

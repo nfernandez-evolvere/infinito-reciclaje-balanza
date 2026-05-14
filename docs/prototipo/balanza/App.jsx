@@ -3,7 +3,7 @@
    Balanza, Historial, Dashboard,
    PesajesAdmin, AbmVehiculos, AbmZonas, AbmServicios, AbmTipos, AbmUsuarios,
    Reportes, buildLogEntries, Modal, Button, Toast, Icon,
-   PESAJES, PESAJES_LOG, fmtN */
+   AppProvider, useAppContext */
 const { useState, useCallback, useEffect } = React;
 
 function OpFooter({ pesajes }) {
@@ -46,11 +46,15 @@ function LogoutConfirmModal({ hasUnsaved, onCancel, onConfirm }) {
   );
 }
 
-function App() {
+function AppInner() {
+  const {
+    pesajes, setPesajes, pesajesLog, setPesajesLog,
+    vehiculos, zonas, zonaServicios, servicioNames, zonaNames, vehicleTypeMap, servicioCascade,
+    loading,
+  } = useAppContext();
+
   const [user, setUser] = useState(null);
   const [screen, setScreen] = useState("balanza");
-  const [pesajes, setPesajes] = useState(PESAJES);
-  const [log, setLog] = useState(PESAJES_LOG);
   const [online, setOnline] = useState(true);
   const [formDirty, setFormDirty] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
@@ -70,7 +74,7 @@ function App() {
     const original = pesajes.find((p) => p.id === id);
     if (original) {
       const entries = buildLogEntries({ pesajeId: id, patch, original, actor, motivo });
-      if (entries.length) setLog((l) => [...entries, ...l]);
+      if (entries.length) setPesajesLog((l) => [...entries, ...l]);
     }
   }, [pesajes]);
 
@@ -81,7 +85,7 @@ function App() {
         : p
     ));
     const fecha = new Date().toLocaleString("es-AR", { hour12: false }).replace(",", "");
-    setLog((l) => [{
+    setPesajesLog((l) => [{
       id: `egreso-${id}-${Date.now()}`,
       pesajeId: id, fecha, usuario: actor,
       campo: "egreso", anterior: "—", nuevo: payload.horaSalida,
@@ -98,6 +102,15 @@ function App() {
     });
   }, []);
 
+  if (loading) {
+    return (
+      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 16, color: "var(--ink-500)" }}>
+        <Icon name="loader" size={32} style={{ animation: "spin 1s linear infinite" }} />
+        <span>Cargando datos…</span>
+      </div>
+    );
+  }
+
   if (!user) {
     return <Login onLogin={(u) => {
       setUser(u);
@@ -106,11 +119,8 @@ function App() {
   }
 
   const requestLogout = () => {
-    if (user.role === "operator" && formDirty) {
-      setConfirmLogout(true);
-    } else {
-      doLogout();
-    }
+    if (user.role === "operator" && formDirty) setConfirmLogout(true);
+    else doLogout();
   };
   const doLogout = () => {
     setUser(null); setScreen("balanza"); setFormDirty(false); setConfirmLogout(false);
@@ -124,30 +134,40 @@ function App() {
           footer={<OpFooter pesajes={pesajes} />}>
           {screen === "balanza"   && <Balanza
               pesajes={pesajes}
+              vehiculos={vehiculos.filter((v) => v.estado === "Activo")}
+              zonas={zonas}
+              zonaServicios={zonaServicios}
+              servicioNames={servicioNames}
+              vehicleTypeMap={vehicleTypeMap}
+              servicioCascade={servicioCascade}
               onSave={addPesaje}
               onDirtyChange={setFormDirty} />}
           {screen === "historial" && <Historial
               pesajes={pesajes}
-              log={log}
+              log={pesajesLog}
               actor={user.user}
+              servicioNames={servicioNames}
+              zonaNames={zonaNames}
               onEdit={(id, patch, motivo) => editPesaje(id, patch, motivo, user.user)}
               onEgreso={(id, payload) => markEgreso(id, payload, user.user)} />}
         </OperatorShell>
       ) : (
         <AdminShell user={user} screen={screen} onNav={setScreen} onLogout={requestLogout}>
-          {screen === "dashboard" && <Dashboard pesajes={pesajes} />}
-          {screen === "pesajes"   && <PesajesAdmin
+          {screen === "dashboard"  && <Dashboard pesajes={pesajes} />}
+          {screen === "pesajes"    && <PesajesAdmin
               pesajes={pesajes}
-              log={log}
+              log={pesajesLog}
               actor={user.user}
+              servicioNames={servicioNames}
+              zonaNames={zonaNames}
               onEdit={(id, patch, motivo) => editPesaje(id, patch, motivo, user.user)}
               onEgreso={(id, payload) => markEgreso(id, payload, user.user)} />}
-          {screen === "vehiculos"    && <AbmVehiculos />}
-          {screen === "zonas"        && <AbmZonas />}
-          {screen === "servicios"    && <AbmServicios />}
-          {screen === "tipos"     && <AbmTipos />}
-          {screen === "usuarios"  && <AbmUsuarios />}
-          {screen === "reportes"  && <Reportes />}
+          {screen === "vehiculos"  && <AbmVehiculos />}
+          {screen === "zonas"      && <AbmZonas />}
+          {screen === "servicios"  && <AbmServicios />}
+          {screen === "tipos"      && <AbmTipos />}
+          {screen === "usuarios"   && <AbmUsuarios />}
+          {screen === "reportes"   && <Reportes />}
         </AdminShell>
       )}
 
@@ -159,6 +179,14 @@ function App() {
       )}
       {toast && <Toast {...toast} onDismiss={() => setToast(null)} />}
     </>
+  );
+}
+
+function App() {
+  return (
+    <AppProvider>
+      <AppInner />
+    </AppProvider>
   );
 }
 

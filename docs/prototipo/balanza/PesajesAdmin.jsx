@@ -1,9 +1,10 @@
 /* global React, Button, Card, Pill, Field, Icon,
    EditPesajeModal, EgresoModal, LogModal,
-   SERVICIOS, ORIGENES, USUARIOS, fmtN */
+   fmtN, useAppContext */
 const { useState, useMemo } = React;
 
 function PesajesAdmin({ pesajes, log, actor, onEdit, onEgreso }) {
+  const { servicioNames: SERVICIOS, zonaNames: ORIGENES, usuarios: USUARIOS } = useAppContext();
   const [query, setQuery] = useState("");
   const [fOrigen, setFOrigen] = useState("Todas");
   const [fServicio, setFServicio] = useState("Todos");
