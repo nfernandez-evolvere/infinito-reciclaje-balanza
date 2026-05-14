@@ -40,7 +40,7 @@ Podés acotar el reporte por cualquier combinación de:
 
 | Filtro | Opciones |
 |--------|----------|
-| Zona | Una zona específica o todas |
+| Origen | Un origen específico o todos |
 | Tipo de servicio | Un servicio específico o todos |
 | Tipo de vehículo | Un tipo específico o todos |
 
@@ -55,7 +55,7 @@ Hacé clic en **Generar reporte**. El sistema procesa los datos y muestra una vi
 Antes de exportar, revisá:
 - Que el período sea correcto
 - Que los totales tengan sentido
-- Que no haya zonas o servicios faltantes
+- Que no haya orígenes o servicios faltantes
 
 ### Paso 5 — Exportar
 
@@ -79,8 +79,8 @@ El reporte mensual incluye las siguientes secciones:
 - Promedio diario de toneladas
 - Días operativos del período
 
-### Detalle por zona
-Para cada zona:
+### Detalle por origen
+Para cada origen:
 - Cantidad de pesajes
 - Toneladas netas totales
 - Promedio por pesaje
@@ -119,14 +119,14 @@ El reporte mensual se genera **después del último día del mes**, cuando ya es
 
 ## Indicadores per cápita y de densidad
 
-Si las zonas tienen cargados los datos de habitantes y hectáreas, el reporte incluye:
+Si los orígenes tienen cargados los datos de habitantes y hectáreas, el reporte incluye:
 
 | Indicador | Cálculo | Descripción |
 |-----------|---------|-------------|
 | kg per cápita | Toneladas netas × 1000 ÷ Habitantes | Kg recolectados por habitante en el período |
 | kg por hectárea | Toneladas netas × 1000 ÷ Hectáreas | Kg recolectados por hectárea en el período |
 
-Si una zona tiene habitantes o hectáreas en cero, estos indicadores no se calculan para esa zona.
+Si un origen tiene habitantes o hectáreas en cero, estos indicadores no se calculan para ese origen.
 
 ---
 
@@ -156,8 +156,8 @@ Se incluyen con los valores corregidos. El reporte siempre muestra el estado act
 **¿El reporte incluye los pesajes con estado EN PREDIO (sin egreso registrado)?**
 Sí. El peso neto se calcula al momento del ingreso y se incluye en el reporte independientemente de si el egreso fue registrado o no.
 
-**¿Puedo generar un reporte de una zona específica?**
-Sí. Aplicá el filtro de zona antes de generar el reporte. El PDF generado refleja solo los datos de esa zona.
+**¿Puedo generar un reporte de un origen específico?**
+Sí. Aplicá el filtro de origen antes de generar el reporte. El PDF generado refleja solo los datos de ese origen.
 
 **¿Hay un límite de períodos que puedo exportar?**
 No. Podés generar reportes de cualquier período desde el inicio de la operación.

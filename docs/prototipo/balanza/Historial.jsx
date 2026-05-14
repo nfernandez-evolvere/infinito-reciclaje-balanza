@@ -37,7 +37,7 @@ function Historial({ pesajes, log, actor, onEdit, onEgreso }) {
               <th>Estado</th>
               <th>Patente</th>
               <th>Servicio</th>
-              <th>Zona</th>
+              <th>Origen</th>
               <th className="num">Bruto</th>
               <th className="num">Tara</th>
               <th className="num">Neto</th>
@@ -59,7 +59,7 @@ function Historial({ pesajes, log, actor, onEdit, onEgreso }) {
                   </td>
                   <td><b>{p.patente}</b></td>
                   <td>{p.servicio}</td>
-                  <td><Pill kind="gray">{p.zona}</Pill></td>
+                  <td><Pill kind="gray">{p.origen}</Pill></td>
                   <td className="num">{fmtN(p.bruto)}</td>
                   <td className="num">{fmtN(p.tara)}</td>
                   <td className="num"><b>{fmtN(p.neto)}</b></td>

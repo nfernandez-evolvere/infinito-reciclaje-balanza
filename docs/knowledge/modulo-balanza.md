@@ -63,7 +63,7 @@ Hacé clic en el campo de servicio y elegí uno de los tipos disponibles:
 | Servicios Especiales | Operativos puntuales o eventos |
 | Centros de Transferencia | Traslados desde centros intermedios |
 
-**Zona automática:** Cuando elegís el servicio, el sistema completa la zona sugerida. Si esa zona no es la correcta para ese viaje, podés cambiarla tocando el campo de zona.
+**Origen automático:** Cuando elegís el servicio, el sistema completa el origen sugerido. Si ese origen no es el correcto para ese viaje, podés cambiarlo tocando el campo de origen.
 
 ---
 
@@ -98,7 +98,7 @@ Titular:          Municipalidad de Corrientes
 Número interno:   45
 Tara:             8.500 kg
 Servicio:         Domiciliario
-Zona:             Zona Norte
+Origen:           Origen Norte
 Peso bruto:       22.300 kg
 ─────────────────────────────
 Peso neto:        13.800 kg
@@ -199,8 +199,8 @@ Sí. La hora de entrada se registra en el momento en que guardás el pesaje. No 
 **¿Qué pasa si un camión entra dos veces en el mismo turno?**
 Registrás dos pesajes por separado. El sistema permite múltiples registros del mismo vehículo en el mismo día.
 
-**¿Puedo cambiar la zona sugerida?**
-Sí. La zona que aparece es la predeterminada para ese servicio, pero podés cambiarla para cada pesaje individual si ese viaje corresponde a otra zona.
+**¿Puedo cambiar el origen sugerido?**
+Sí. El origen que aparece es el predeterminado para ese servicio, pero podés cambiarlo para cada pesaje individual si ese viaje corresponde a otro origen.
 
 ---
 

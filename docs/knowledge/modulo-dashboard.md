@@ -39,7 +39,7 @@ Muestra los camiones que **entraron pero todavía no salieron** (pesajes con est
 
 Para cada camión muestra:
 - Patente y número interno
-- Tipo de servicio y zona
+- Tipo de servicio y origen
 - Hora de entrada
 - Tiempo transcurrido desde la entrada
 
@@ -83,22 +83,22 @@ Te permite ver de un vistazo si hay días con actividad inusualmente alta o baja
 
 ---
 
-## Sección 6 — Por zona
+## Sección 6 — Por origen
 
-Tabla con el desglose de la operación del día por zona:
+Tabla con el desglose de la operación del día por origen:
 
 | Columna | Descripción |
 |---------|-------------|
-| Zona | Nombre de la zona |
-| Pesajes | Cantidad de pesajes registrados para esa zona hoy |
-| Toneladas netas | Suma de kg netos de la zona, en toneladas |
+| Origen | Nombre del origen |
+| Pesajes | Cantidad de pesajes registrados para ese origen hoy |
+| Toneladas netas | Suma de kg netos del origen, en toneladas |
 | % del total | Proporción respecto al total del día |
 
 ---
 
 ## Sección 7 — Por tipo de vehículo
 
-Tabla similar a la de zonas, pero desglosada por tipo de vehículo (Compactador, Volcador, Volquete, Particular).
+Tabla similar a la de orígenes, pero desglosada por tipo de vehículo (Compactador, Volcador, Volquete, Particular).
 
 Útil para verificar que la distribución de la flota está dentro de los parámetros esperados.
 
@@ -123,7 +123,7 @@ Una revisión rápida de 30 segundos alcanza para detectar:
 | Camiones en predio | Hablar con el operador para que registre el egreso, o hacerlo vos desde Pesajes |
 | KPIs del día muy bajos | Verificar con el operador si hay algún problema operativo o de sistema |
 | Gráfico con día en cero | Investigar si fue feriado, paro o problema técnico |
-| Zona con actividad inusual | Cruzar con el log de Pesajes para ver qué pesajes corresponden |
+| Origen con actividad inusual | Cruzar con el log de Pesajes para ver qué pesajes corresponden |
 
 ---
 
@@ -144,7 +144,7 @@ Sí, incluyen todos los datos desde el día 1 del mes hasta el momento en que es
 **¿Las toneladas son netas o brutas?**
 Todos los indicadores del Dashboard trabajan con **toneladas netas** (peso bruto menos tara).
 
-**¿Puedo filtrar el Dashboard por zona o por tipo de servicio?**
+**¿Puedo filtrar el Dashboard por origen o por tipo de servicio?**
 No en esta versión. El Dashboard muestra la operación total. Para análisis filtrados, usar el módulo de Reportes.
 
 ---

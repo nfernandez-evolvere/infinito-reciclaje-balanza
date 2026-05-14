@@ -80,24 +80,24 @@ const USUARIOS = [
 ];
 
 const PESAJES = [
-  { id: 101, horaEntrada: "14:32", horaSalida: null,    patente: "ABC-123", tipo: "Compactador", servicio: "Domiciliario",              zona: "Centro", bruto: 24350, tara: 8500,  brutoSalida: null,  neto: 15850, operador: "roberto", estado: "En predio" },
-  { id: 102, horaEntrada: "14:18", horaSalida: null,    patente: "DEF-456", tipo: "Volcador",    servicio: "Barrido",                   zona: "Norte",  bruto: 27800, tara: 12000, brutoSalida: null,  neto: 15800, operador: "roberto", estado: "En predio" },
-  { id: 103, horaEntrada: "14:02", horaSalida: "14:24", patente: "GHI-789", tipo: "Compactador", servicio: "Domiciliario",              zona: "Sur",    bruto: 22100, tara: 9000,  brutoSalida: 9120, neto: 13100, operador: "roberto", estado: "Cerrado" },
-  { id: 104, horaEntrada: "13:47", horaSalida: "14:11", patente: "JKL-012", tipo: "Volquete",    servicio: "Voluminoso",                zona: "Oeste",  bruto: 18500, tara: 6500,  brutoSalida: 6580, neto: 12000, operador: "roberto", estado: "Cerrado" },
-  { id: 105, horaEntrada: "13:31", horaSalida: "13:52", patente: "ABC-123", tipo: "Compactador", servicio: "Domiciliario",              zona: "Centro", bruto: 23900, tara: 8500,  brutoSalida: 8540, neto: 15400, operador: "roberto", estado: "Cerrado" },
-  { id: 106, horaEntrada: "13:14", horaSalida: "13:36", patente: "PQR-678", tipo: "Compactador", servicio: "Domiciliario",              zona: "Centro", bruto: 25100, tara: 8800,  brutoSalida: 8830, neto: 16300, operador: "roberto", estado: "Cerrado" },
-  { id: 107, horaEntrada: "12:58", horaSalida: "13:18", patente: "DEF-456", tipo: "Volcador",    servicio: "Barrido",                   zona: "Norte",  bruto: 26400, tara: 12000, brutoSalida: 12040, neto: 14400, operador: "roberto", estado: "Cerrado" },
-  { id: 108, horaEntrada: "12:47", horaSalida: "13:09", patente: "GHI-789", tipo: "Compactador", servicio: "Domiciliario",              zona: "Sur",    bruto: 21800, tara: 9000,  brutoSalida: 9050, neto: 12800, operador: "roberto", estado: "Cerrado" },
-  { id: 109, horaEntrada: "12:15", horaSalida: "12:38", patente: "JKL-012", tipo: "Volquete",    servicio: "Voluminoso",                zona: "Oeste",  bruto: 19200, tara: 6500,  brutoSalida: 6520, neto: 12700, operador: "roberto", estado: "Cerrado" },
-  { id: 110, horaEntrada: "11:58", horaSalida: "12:22", patente: "ABC-123", tipo: "Compactador", servicio: "Domiciliario",              zona: "Centro", bruto: 24800, tara: 8500,  brutoSalida: 8550, neto: 16300, operador: "roberto", estado: "Cerrado" },
-  { id: 111, horaEntrada: "11:41", horaSalida: "12:04", patente: "PQR-678", tipo: "Compactador", servicio: "Domiciliario",              zona: "Centro", bruto: 23700, tara: 8800,  brutoSalida: 8810, neto: 14900, operador: "roberto", estado: "Cerrado" },
-  { id: 112, horaEntrada: "11:22", horaSalida: "11:48", patente: "DEF-456", tipo: "Volcador",    servicio: "Barrido",                   zona: "Norte",  bruto: 28100, tara: 12000, brutoSalida: 12080, neto: 16100, operador: "marta",   estado: "Cerrado", editado: true },
-  { id: 113, horaEntrada: "11:04", horaSalida: "11:28", patente: "GHI-789", tipo: "Compactador", servicio: "Domiciliario",              zona: "Sur",    bruto: 22600, tara: 9000,  brutoSalida: 9080, neto: 13600, operador: "marta",   estado: "Cerrado" },
-  { id: 114, horaEntrada: "10:48", horaSalida: "11:14", patente: "JKL-012", tipo: "Volquete",    servicio: "Voluminoso",                zona: "Oeste",  bruto: 18900, tara: 6500,  brutoSalida: 6510, neto: 12400, operador: "marta",   estado: "Cerrado" },
-  { id: 115, horaEntrada: "10:33", horaSalida: "10:57", patente: "ABC-123", tipo: "Compactador", servicio: "Domiciliario",              zona: "Centro", bruto: 24200, tara: 8500,  brutoSalida: 8540, neto: 15700, operador: "marta",   estado: "Cerrado" },
-  { id: 116, horaEntrada: "10:11", horaSalida: "10:35", patente: "DEF-456", tipo: "Volcador",    servicio: "Servicios Especiales",      zona: "Sur",    bruto: 24500, tara: 12000, brutoSalida: 12050, neto: 12500, operador: "marta",   estado: "Cerrado" },
-  { id: 117, horaEntrada: "09:54", horaSalida: "10:21", patente: "PQR-678", tipo: "Compactador", servicio: "Domiciliario",              zona: "Centro", bruto: 25600, tara: 8800,  brutoSalida: 8820, neto: 16800, operador: "marta",   estado: "Cerrado" },
-  { id: 118, horaEntrada: "09:31", horaSalida: "09:58", patente: "GHI-789", tipo: "Compactador", servicio: "Centros de Transferencia",  zona: "Centro", bruto: 23200, tara: 9000,  brutoSalida: 9100, neto: 14200, operador: "marta",   estado: "Cerrado" },
+  { id: 101, horaEntrada: "14:32", horaSalida: null,    patente: "ABC-123", tipo: "Compactador", servicio: "Domiciliario",              origen: "Centro", bruto: 24350, tara: 8500,  brutoSalida: null,  neto: 15850, operador: "roberto", estado: "En predio" },
+  { id: 102, horaEntrada: "14:18", horaSalida: null,    patente: "DEF-456", tipo: "Volcador",    servicio: "Barrido",                   origen: "Norte",  bruto: 27800, tara: 12000, brutoSalida: null,  neto: 15800, operador: "roberto", estado: "En predio" },
+  { id: 103, horaEntrada: "14:02", horaSalida: "14:24", patente: "GHI-789", tipo: "Compactador", servicio: "Domiciliario",              origen: "Sur",    bruto: 22100, tara: 9000,  brutoSalida: 9120, neto: 13100, operador: "roberto", estado: "Cerrado" },
+  { id: 104, horaEntrada: "13:47", horaSalida: "14:11", patente: "JKL-012", tipo: "Volquete",    servicio: "Voluminoso",                origen: "Oeste",  bruto: 18500, tara: 6500,  brutoSalida: 6580, neto: 12000, operador: "roberto", estado: "Cerrado" },
+  { id: 105, horaEntrada: "13:31", horaSalida: "13:52", patente: "ABC-123", tipo: "Compactador", servicio: "Domiciliario",              origen: "Centro", bruto: 23900, tara: 8500,  brutoSalida: 8540, neto: 15400, operador: "roberto", estado: "Cerrado" },
+  { id: 106, horaEntrada: "13:14", horaSalida: "13:36", patente: "PQR-678", tipo: "Compactador", servicio: "Domiciliario",              origen: "Centro", bruto: 25100, tara: 8800,  brutoSalida: 8830, neto: 16300, operador: "roberto", estado: "Cerrado" },
+  { id: 107, horaEntrada: "12:58", horaSalida: "13:18", patente: "DEF-456", tipo: "Volcador",    servicio: "Barrido",                   origen: "Norte",  bruto: 26400, tara: 12000, brutoSalida: 12040, neto: 14400, operador: "roberto", estado: "Cerrado" },
+  { id: 108, horaEntrada: "12:47", horaSalida: "13:09", patente: "GHI-789", tipo: "Compactador", servicio: "Domiciliario",              origen: "Sur",    bruto: 21800, tara: 9000,  brutoSalida: 9050, neto: 12800, operador: "roberto", estado: "Cerrado" },
+  { id: 109, horaEntrada: "12:15", horaSalida: "12:38", patente: "JKL-012", tipo: "Volquete",    servicio: "Voluminoso",                origen: "Oeste",  bruto: 19200, tara: 6500,  brutoSalida: 6520, neto: 12700, operador: "roberto", estado: "Cerrado" },
+  { id: 110, horaEntrada: "11:58", horaSalida: "12:22", patente: "ABC-123", tipo: "Compactador", servicio: "Domiciliario",              origen: "Centro", bruto: 24800, tara: 8500,  brutoSalida: 8550, neto: 16300, operador: "roberto", estado: "Cerrado" },
+  { id: 111, horaEntrada: "11:41", horaSalida: "12:04", patente: "PQR-678", tipo: "Compactador", servicio: "Domiciliario",              origen: "Centro", bruto: 23700, tara: 8800,  brutoSalida: 8810, neto: 14900, operador: "roberto", estado: "Cerrado" },
+  { id: 112, horaEntrada: "11:22", horaSalida: "11:48", patente: "DEF-456", tipo: "Volcador",    servicio: "Barrido",                   origen: "Norte",  bruto: 28100, tara: 12000, brutoSalida: 12080, neto: 16100, operador: "marta",   estado: "Cerrado", editado: true },
+  { id: 113, horaEntrada: "11:04", horaSalida: "11:28", patente: "GHI-789", tipo: "Compactador", servicio: "Domiciliario",              origen: "Sur",    bruto: 22600, tara: 9000,  brutoSalida: 9080, neto: 13600, operador: "marta",   estado: "Cerrado" },
+  { id: 114, horaEntrada: "10:48", horaSalida: "11:14", patente: "JKL-012", tipo: "Volquete",    servicio: "Voluminoso",                origen: "Oeste",  bruto: 18900, tara: 6500,  brutoSalida: 6510, neto: 12400, operador: "marta",   estado: "Cerrado" },
+  { id: 115, horaEntrada: "10:33", horaSalida: "10:57", patente: "ABC-123", tipo: "Compactador", servicio: "Domiciliario",              origen: "Centro", bruto: 24200, tara: 8500,  brutoSalida: 8540, neto: 15700, operador: "marta",   estado: "Cerrado" },
+  { id: 116, horaEntrada: "10:11", horaSalida: "10:35", patente: "DEF-456", tipo: "Volcador",    servicio: "Servicios Especiales",      origen: "Sur",    bruto: 24500, tara: 12000, brutoSalida: 12050, neto: 12500, operador: "marta",   estado: "Cerrado" },
+  { id: 117, horaEntrada: "09:54", horaSalida: "10:21", patente: "PQR-678", tipo: "Compactador", servicio: "Domiciliario",              origen: "Centro", bruto: 25600, tara: 8800,  brutoSalida: 8820, neto: 16800, operador: "marta",   estado: "Cerrado" },
+  { id: 118, horaEntrada: "09:31", horaSalida: "09:58", patente: "GHI-789", tipo: "Compactador", servicio: "Centros de Transferencia",  origen: "Centro", bruto: 23200, tara: 9000,  brutoSalida: 9100, neto: 14200, operador: "marta",   estado: "Cerrado" },
 ];
 
 const PESAJES_LOG = [
@@ -116,9 +116,9 @@ const DAILY_EVOLUTION = [
 ];
 
 const ZONE_BREAKDOWN = [
-  { zona: "Centro", pesajes: 18, t: 65.0, kgHa: 1.3 },
-  { zona: "Sur",    pesajes: 14, t: 48.2, kgHa: 0.9 },
-  { zona: "Norte",  pesajes: 10, t: 29.3, kgHa: 0.7 },
+  { origen: "Centro", pesajes: 18, t: 65.0, kgHa: 1.3 },
+  { origen: "Sur",    pesajes: 14, t: 48.2, kgHa: 0.9 },
+  { origen: "Norte",  pesajes: 10, t: 29.3, kgHa: 0.7 },
 ];
 
 const TYPE_BREAKDOWN = [

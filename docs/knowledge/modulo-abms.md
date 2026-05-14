@@ -2,13 +2,13 @@
 ## Sistema de Gestión de Balanza — Infinito Reciclaje
 
 **Dirigido a:** Administrador (Nacho)
-**Cuándo usarlo:** Referencia de cómo gestionar vehículos, zonas, servicios, tipos de vehículo y usuarios
+**Cuándo usarlo:** Referencia de cómo gestionar vehículos, orígenes, servicios, tipos de vehículo y usuarios
 
 ---
 
 ## Para qué sirve este módulo
 
-Los padrones son los datos maestros del sistema: la lista de camiones, las zonas de recolección, los tipos de servicio, los tipos de vehículo y los usuarios. Sin estos datos cargados, los operadores no pueden registrar pesajes.
+Los padrones son los datos maestros del sistema: la lista de camiones, los orígenes de recolección, los tipos de servicio, los tipos de vehículo y los usuarios. Sin estos datos cargados, los operadores no pueden registrar pesajes.
 
 Este módulo te permite agregar, editar y desactivar registros en cada uno de esos padrones.
 
@@ -29,7 +29,7 @@ La baja es siempre **lógica**: los registros nunca se borran. Si un camión dej
 
 ## Padrón de vehículos
 
-**Ruta:** Padrones → Vehículos
+**Ruta:** Transporte → Vehículos
 
 Los vehículos son el centro del sistema. Cada camión que ingresa al predio debe estar cargado acá con su tara correcta — ese valor se usa para calcular los kg netos en cada pesaje.
 
@@ -62,32 +62,32 @@ Para reactivarlo si el camión vuelve a operar, usá la acción **Activar** en l
 
 ---
 
-## Padrón de zonas
+## Padrón de orígenes
 
-**Ruta:** Padrones → Zonas
+**Ruta:** Orígenes → Orígenes
 
-Las zonas son las áreas geográficas de recolección. Se usan para agrupar pesajes en los reportes y para calcular indicadores de densidad y per cápita.
+Los orígenes son las áreas geográficas de recolección. Se usan para agrupar pesajes en los reportes y para calcular indicadores de densidad y per cápita.
 
 ### Campos del formulario
 
 | Campo | Descripción | Obligatorio |
 |-------|-------------|-------------|
-| Nombre | Nombre de la zona (ej: Zona Norte, Barrio Belgrano) | Sí |
-| Hectáreas | Superficie de la zona en hectáreas | No |
-| Cantidad de barrios | Barrios que componen la zona | No |
-| Habitantes | Población estimada de la zona | No |
+| Nombre | Nombre del origen (ej: Origen Norte, Barrio Belgrano) | Sí |
+| Hectáreas | Superficie del origen en hectáreas | No |
+| Cantidad de barrios | Barrios que componen el origen | No |
+| Habitantes | Población estimada del origen | No |
 
 ### Servicios asignados
 
-Después de crear la zona, podés asignarle uno o más tipos de servicio. Para cada asignación se define:
+Después de crear el origen, podés asignarle uno o más tipos de servicio. Para cada asignación se define:
 
 | Campo | Descripción |
 |-------|-------------|
-| Tipo de servicio | Cuál servicio opera en esta zona |
+| Tipo de servicio | Cuál servicio opera en este origen |
 | Turno | Si aplica: Diurna, Nocturna, ambos, o ninguno |
 | Horario de recorrido | Informativo: hora de inicio y fin del recorrido |
 
-Esto determina qué le aparece al operador en el formulario de pesaje: elige el servicio → ve las zonas que tienen ese servicio asignado → si la zona tiene turno configurado para ese servicio, debe elegir turno.
+Esto determina qué le aparece al operador en el formulario de pesaje: elige el servicio → ve los orígenes que tienen ese servicio asignado → si el origen tiene turno configurado para ese servicio, debe elegir turno.
 
 ### Sobre los datos demográficos
 
@@ -97,9 +97,9 @@ Los campos hectáreas, barrios y habitantes son opcionales al momento de la carg
 
 ## Padrón de tipos de servicio
 
-**Ruta:** Padrones → Tipos de servicio
+**Ruta:** Servicios → Tipos de servicio
 
-Los tipos de servicio definen el nombre del servicio, el tipo de vehículo habitual y, para los servicios con horario fijo, el turno de operación. Las zonas que pertenecen a cada servicio se cargan en el padrón de Zonas.
+Los tipos de servicio definen el nombre del servicio, el tipo de vehículo habitual y, para los servicios con horario fijo, el turno de operación. Los orígenes que pertenecen a cada servicio se cargan en el padrón de Orígenes.
 
 ### Campos del formulario
 
@@ -118,19 +118,19 @@ Los tipos de servicio definen el nombre del servicio, el tipo de vehículo habit
 | Servicios Especiales | Operativos puntuales, eventos, situaciones de emergencia |
 | Centros de Transferencia | Traslados de residuos desde centros intermedios de transferencia |
 
-### Cómo funciona la zona y el turno en el pesaje
+### Cómo funciona el origen y el turno en el pesaje
 
-Los turnos no se configuran a nivel de tipo de servicio, sino a nivel de **zona + servicio**. Esto significa que Domiciliario puede tener turno Diurna y Nocturna en la Zona Norte, pero ningún turno en la Zona Industrial.
+Los turnos no se configuran a nivel de tipo de servicio, sino a nivel de **origen + servicio**. Esto significa que Domiciliario puede tener turno Diurna y Nocturna en Origen Norte, pero ningún turno en Origen Industrial.
 
-La configuración se hace desde el padrón de Zonas: para cada zona, se define qué servicios operan en ella y, para cada uno, si aplican turnos.
+La configuración se hace desde el padrón de Orígenes: para cada origen, se define qué servicios operan en él y, para cada uno, si aplican turnos.
 
-Al registrar un pesaje: el operador elige el servicio → el sistema muestra las zonas que tienen ese servicio asignado → al elegir una zona, si esa combinación tiene turnos configurados, aparece el selector de turno (obligatorio).
+Al registrar un pesaje: el operador elige el servicio → el sistema muestra los orígenes que tienen ese servicio asignado → al elegir un origen, si esa combinación tiene turnos configurados, aparece el selector de turno (obligatorio).
 
 ---
 
 ## Padrón de tipos de vehículo
 
-**Ruta:** Padrones → Tipos de vehículo
+**Ruta:** Transporte → Tipos de vehículo
 
 Los tipos de vehículo definen los rangos de peso válidos. El sistema usa estos rangos para alertar al operador cuando el peso ingresado parece inusual para ese tipo de camión.
 
@@ -157,7 +157,7 @@ Los rangos se pueden ajustar si la flota cambia o si los valores actuales genera
 
 ## Padrón de usuarios
 
-**Ruta:** Padrones → Usuarios
+**Ruta:** Sistema → Usuarios
 
 Los usuarios son las personas que acceden al sistema. Hay dos roles:
 - **Operador** — accede solo a las pantallas de pesaje e historial del turno
@@ -208,7 +208,7 @@ El registro queda marcado como inactivo y deja de aparecer en los autocompletado
 
 ## Filtros y búsqueda en las tablas
 
-Cada tabla tiene una barra de búsqueda que filtra en tiempo real. Podés buscar por cualquier campo visible: patente, número interno, nombre de zona, nombre de usuario, etc.
+Cada tabla tiene una barra de búsqueda que filtra en tiempo real. Podés buscar por cualquier campo visible: patente, número interno, nombre de origen, nombre de usuario, etc.
 
 En la tabla de vehículos también podés filtrar por:
 - Estado (Activos / Inactivos / Todos)
@@ -228,8 +228,8 @@ Los pesajes futuros usan la nueva tara. Los pesajes ya registrados conservan la 
 **¿Puedo agregar un tipo de servicio nuevo?**
 Sí. Ir a Padrones → Tipos de servicio y usar el botón Agregar. El tipo de servicio nuevo aparece disponible para los operadores inmediatamente después de guardarlo.
 
-**¿Qué pasa si desactivo una zona que tiene pesajes activos?**
-Los pesajes "en predio" (con estado EN PREDIO) que pertenecen a esa zona no se ven afectados. La desactivación solo impide que la zona aparezca como sugerencia en nuevos pesajes.
+**¿Qué pasa si desactivo un origen que tiene pesajes activos?**
+Los pesajes "en predio" (con estado EN PREDIO) que pertenecen a ese origen no se ven afectados. La desactivación solo impide que el origen aparezca como sugerencia en nuevos pesajes.
 
 **¿Puedo cambiar el rol de un usuario (de operador a admin)?**
 Sí, editando el usuario. El cambio de rol toma efecto en el próximo inicio de sesión del usuario.

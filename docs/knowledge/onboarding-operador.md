@@ -67,7 +67,7 @@ Hacé clic en el campo de servicio y elegí el tipo que corresponde a ese camió
 - Servicios Especiales
 - Centros de Transferencia
 
-El sistema completa la zona automáticamente. Si la zona que aparece no es la correcta, podés cambiarla.
+El sistema completa el origen automáticamente. Si el origen que aparece no es el correcto, podés cambiarlo.
 
 ### Paso 3 — Ingresá el peso bruto
 
@@ -124,7 +124,7 @@ Arriba ves un resumen del turno:
 - Promedio por viaje
 - Cuántos camiones están en el predio en este momento
 
-En la tabla podés ver cada registro con la hora de entrada, salida, estado, patente, servicio, zona y pesos.
+En la tabla podés ver cada registro con la hora de entrada, salida, estado, patente, servicio, origen y pesos.
 
 ---
 

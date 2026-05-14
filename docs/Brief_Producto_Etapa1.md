@@ -36,7 +36,7 @@ Sistema web para el registro, control y análisis del ingreso y egreso de camion
 - Necesita velocidad, autocompletado y confirmación visual clara
 
 ### Administrador — Nacho
-- Mantiene datos maestros (padrón de vehículos, zonas, servicios)
+- Mantiene datos maestros (padrón de vehículos, orígenes, servicios)
 - Genera reportes mensuales para la Municipalidad
 - Necesita dashboard en tiempo real, reportes automáticos y alertas proactivas
 
@@ -51,7 +51,7 @@ Registrar ingreso y egreso de camiones con mínima intervención manual.
 ### Requerimientos funcionales
 - Identificación de vehículo por patente O número interno (single input)
 - Autocompletado de tara, tipo, titular, capacidad y observaciones desde el padrón
-- Selección de tipo de servicio con autocompletado de zona asociada
+- Selección de tipo de servicio con autocompletado de origen asociado
 - Sugerencia automática de tipo de vehículo según servicio (editable manualmente)
 - Input de peso bruto con validación por rango en tiempo real según tipo de vehículo
 - Alerta soft si el peso está fuera de rango (sin bloqueo — el operador puede confirmar)
@@ -93,7 +93,7 @@ Mantener actualizados los datos que alimentan todas las automatizaciones del sis
 
 **Tipos de servicio**: Domiciliario, Voluminoso, Barrido, Servicios Especiales, Centros de Transferencia
 
-**Zonas**
+**Orígenes**
 | Campo | Uso |
 |-------|-----|
 | Nombre | Identificación |
@@ -104,7 +104,7 @@ Mantener actualizados los datos que alimentan todas las automatizaciones del sis
 
 ### Requerimientos funcionales
 - CRUD completo para cada entidad (alta, baja lógica, modificación)
-- Relaciones configurables: servicio → zona, servicio → tipo de vehículo sugerido
+- Relaciones configurables: servicio → origen, servicio → tipo de vehículo sugerido
 - Validaciones de campos obligatorios
 - Búsqueda y filtrado en listados
 - Baja lógica (no física) para mantener historial de pesajes
@@ -135,8 +135,8 @@ Visibilidad en tiempo real de la operación diaria. Reemplaza la necesidad de es
 **Gráficos:**
 - Evolución diaria de toneladas (barras) con línea de promedio, máximo y mínimo
 - Distribución por tipo de vehículo: viajes, kg netos, % del total, kg/viaje
-- KG netos por zona: tabla cruzada por tipo de vehículo (viajes + kg + %)
-- Densidad de generación: kg/hectárea por zona
+- KG netos por origen: tabla cruzada por tipo de vehículo (viajes + kg + %)
+- Densidad de generación: kg/hectárea por origen
 
 **Panel de alertas activas:**
 - Visible en la parte superior si hay anomalías activas
@@ -162,12 +162,12 @@ Reemplazar el proceso manual de Excel (2–3 horas/mes) por generación automát
 - Resumen general del período (total pesajes, toneladas, promedios)
 - Evolución diaria de toneladas
 - Desglose por tipo de vehículo (viajes, kg, %)
-- Desglose por zona (viajes, kg, densidad kg/hectárea)
-- Reporte per cápita por zona: kg generados ÷ habitantes
+- Desglose por origen (viajes, kg, densidad kg/hectárea)
+- Reporte per cápita por origen: kg generados ÷ habitantes
 
 **Filtros disponibles:**
 - Por período (mes, trimestre, rango personalizado)
-- Por zona
+- Por origen
 - Por tipo de servicio
 - Por tipo de vehículo
 
@@ -193,12 +193,12 @@ Detección proactiva de anomalías sin esperar al fin de mes.
 **Detecciones automáticas:**
 - Volumen diario fuera de rango (por encima o por debajo del histórico)
 - Kg por viaje inusual para el tipo de vehículo
-- Frecuencia por zona atípica
+- Frecuencia por origen atípica
 - Gaps en el registro (cortes del sistema o períodos sin pesajes en horario operativo)
 
 **Notificaciones:**
 - Alerta visible en el dashboard (panel superior)
-- Descripción clara: qué pasó, cuándo, en qué zona o vehículo
+- Descripción clara: qué pasó, cuándo, en qué origen o vehículo
 
 **Configuración:**
 - El admin puede definir o ajustar los umbrales de detección
@@ -226,7 +226,7 @@ Detección proactiva de anomalías sin esperar al fin de mes.
 | Automatización | Disparador | Resultado |
 |----------------|-----------|-----------|
 | Autocompletado por vehículo | Ingresar patente o número interno | Completa tara, tipo, titular, capacidad |
-| Autocompletado por servicio | Seleccionar tipo de servicio | Completa zona asociada |
+| Autocompletado por servicio | Seleccionar tipo de servicio | Completa origen asociado |
 | Sugerencia de vehículo | Seleccionar servicio | Sugiere tipo de vehículo (editable) |
 | Validación de peso | Ingresar peso bruto | Valida contra rango del tipo de vehículo |
 | Cálculo de kg netos | Guardar pesaje | Calcula: peso bruto − tara |
@@ -254,10 +254,10 @@ Deben estar cargados antes del go-live. Sin esto el sistema no puede operar.
 
 ```
 Vehículo → tara, tipo, titular (padrón maestro)
-Tipo de servicio → zona asociada
+Tipo de servicio → origen asociado
 Tipo de servicio → tipo de vehículo sugerido
-Zona → hectáreas → densidad de generación (kg/ha)
-Zona → habitantes → reporte per cápita (kg/habitante)
+Origen → hectáreas → densidad de generación (kg/ha)
+Origen → habitantes → reporte per cápita (kg/habitante)
 Registro de pesaje → Dashboard → Reportes → Alarmas
 ```
 

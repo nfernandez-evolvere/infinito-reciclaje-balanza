@@ -142,9 +142,9 @@ function App() {
               actor={user.user}
               onEdit={(id, patch, motivo) => editPesaje(id, patch, motivo, user.user)}
               onEgreso={(id, payload) => markEgreso(id, payload, user.user)} />}
-          {screen === "vehiculos" && <AbmVehiculos />}
-          {screen === "zonas"     && <AbmZonas />}
-          {screen === "servicios" && <AbmServicios />}
+          {screen === "vehiculos"    && <AbmVehiculos />}
+          {screen === "zonas"        && <AbmZonas />}
+          {screen === "servicios"    && <AbmServicios />}
           {screen === "tipos"     && <AbmTipos />}
           {screen === "usuarios"  && <AbmUsuarios />}
           {screen === "reportes"  && <Reportes />}

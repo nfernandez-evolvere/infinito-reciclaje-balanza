@@ -34,7 +34,7 @@ La tabla muestra todos los pesajes ordenados del más reciente al más antiguo. 
 | Patente | Patente del vehículo |
 | N° interno | Número interno del vehículo |
 | Servicio | Tipo de servicio registrado |
-| Zona | Zona de recolección |
+| Origen | Origen de recolección |
 | Peso neto | Kilogramos netos del pesaje |
 | Operador | Usuario que registró el pesaje |
 | Estado | EN PREDIO o CERRADO |
@@ -51,7 +51,7 @@ Encima de la tabla hay un panel de filtros. Podés combinar cualquiera de estos 
 | Rango de fechas | Fecha desde / Fecha hasta |
 | Patente o número interno | Texto libre |
 | Tipo de servicio | Lista de todos los servicios activos |
-| Zona | Lista de todas las zonas activas |
+| Origen | Lista de todos los orígenes activos |
 | Operador | Lista de todos los usuarios operadores |
 | Estado | EN PREDIO / CERRADO / Todos |
 | Con alerta de peso | Solo los pesajes que generaron aviso naranja |
@@ -65,7 +65,7 @@ Los filtros se aplican en tiempo real. Para limpiar todos los filtros, usá el b
 
 Hacé clic en cualquier fila para abrir el panel de detalle. Muestra:
 
-- Todos los campos del pesaje (vehículo, servicio, zona, pesos, operador, fechas)
+- Todos los campos del pesaje (vehículo, servicio, origen, pesos, operador, fechas)
 - Observaciones (si tiene)
 - Indicador de alerta de peso (si la tuvo)
 - Historial de cambios (si fue editado)
@@ -85,7 +85,7 @@ Podés editar un pesaje cuando el operador cometió un error o cuando los datos 
 ### Qué campos se pueden editar
 
 - Tipo de servicio
-- Zona
+- Origen
 - Peso bruto
 - Observaciones
 

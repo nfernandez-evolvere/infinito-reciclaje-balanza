@@ -1,11 +1,11 @@
 /* global React, Button, Card, Pill, Field, Icon,
    EditPesajeModal, EgresoModal, LogModal,
-   SERVICIOS, ZONAS, USUARIOS, fmtN */
+   SERVICIOS, ORIGENES, USUARIOS, fmtN */
 const { useState, useMemo } = React;
 
 function PesajesAdmin({ pesajes, log, actor, onEdit, onEgreso }) {
   const [query, setQuery] = useState("");
-  const [fZona, setFZona] = useState("Todas");
+  const [fOrigen, setFOrigen] = useState("Todas");
   const [fServicio, setFServicio] = useState("Todos");
   const [fOperador, setFOperador] = useState("Todos");
   const [fEstado, setFEstado] = useState("Todos");
@@ -16,12 +16,12 @@ function PesajesAdmin({ pesajes, log, actor, onEdit, onEgreso }) {
   const filtered = useMemo(() => pesajes.filter((p) => {
     const q = query.trim().toLowerCase();
     if (q && !(p.patente.toLowerCase().includes(q) || String(p.id).includes(q))) return false;
-    if (fZona     !== "Todas" && p.zona !== fZona)         return false;
+    if (fOrigen   !== "Todas" && p.origen !== fOrigen)     return false;
     if (fServicio !== "Todos" && p.servicio !== fServicio) return false;
     if (fOperador !== "Todos" && p.operador !== fOperador) return false;
     if (fEstado   !== "Todos" && p.estado   !== fEstado)   return false;
     return true;
-  }), [pesajes, query, fZona, fServicio, fOperador, fEstado]);
+  }), [pesajes, query, fOrigen, fServicio, fOperador, fEstado]);
 
   const totalT = filtered.reduce((a, p) => a + p.neto / 1000, 0);
 
@@ -48,9 +48,9 @@ function PesajesAdmin({ pesajes, log, actor, onEdit, onEgreso }) {
               <option>Todos</option><option>En predio</option><option>Cerrado</option>
             </select>
           </Field>
-          <Field label="Zona">
-            <select className="select" value={fZona} onChange={(e) => setFZona(e.target.value)}>
-              <option>Todas</option>{ZONAS.map((z) => <option key={z}>{z}</option>)}
+          <Field label="Origen">
+            <select className="select" value={fOrigen} onChange={(e) => setFOrigen(e.target.value)}>
+              <option>Todas</option>{ORIGENES.map((z) => <option key={z}>{z}</option>)}
             </select>
           </Field>
           <Field label="Servicio">
@@ -77,7 +77,7 @@ function PesajesAdmin({ pesajes, log, actor, onEdit, onEgreso }) {
               <th>Estado</th>
               <th>Patente</th>
               <th>Servicio</th>
-              <th>Zona</th>
+              <th>Origen</th>
               <th className="num">Bruto</th>
               <th className="num">Tara</th>
               <th className="num">Neto</th>
@@ -102,7 +102,7 @@ function PesajesAdmin({ pesajes, log, actor, onEdit, onEgreso }) {
                   </td>
                   <td><b>{p.patente}</b></td>
                   <td>{p.servicio}</td>
-                  <td><Pill kind="gray">{p.zona}</Pill></td>
+                  <td><Pill kind="gray">{p.origen}</Pill></td>
                   <td className="num">{fmtN(p.bruto)}</td>
                   <td className="num">{fmtN(p.tara)}</td>
                   <td className="num"><b>{fmtN(p.neto)}</b></td>

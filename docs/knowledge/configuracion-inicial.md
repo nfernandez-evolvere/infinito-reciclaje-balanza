@@ -55,28 +55,28 @@ Ir a **Padrones → Tipos de servicio** y verificar que estén cargados:
 | Servicios Especiales | Compactador |
 | Centros de Transferencia | Compactador |
 
-> Los turnos no se configuran acá. Se configuran en el Paso 4 cuando asignás cada servicio a sus zonas.
+> Los turnos no se configuran acá. Se configuran en el Paso 4 cuando asignás cada servicio a sus orígenes.
 
 ---
 
-## Paso 4 — Cargar las zonas
+## Paso 4 — Cargar los orígenes
 
-Las zonas son las áreas geográficas de recolección. Los datos de hectáreas y habitantes se usan para calcular indicadores en los reportes.
+Los orígenes son las áreas geográficas de recolección. Los datos de hectáreas y habitantes se usan para calcular indicadores en los reportes.
 
-Ir a **Padrones → Zonas** y para cada zona:
+Ir a **Orígenes → Orígenes** y para cada origen:
 
-**1. Crear la zona** con sus datos geográficos:
-- Nombre de la zona
+**1. Crear el origen** con sus datos geográficos:
+- Nombre del origen
 - Hectáreas, barrios, habitantes (opcionales, completar después si no están disponibles)
 
-**2. Asignar los servicios que operan en esa zona.** Para cada asignación, definir:
+**2. Asignar los servicios que operan en ese origen.** Para cada asignación, definir:
 - Tipo de servicio
 - Turnos que aplican (Diurna, Nocturna, ambos, o ninguno)
 - Horario de recorrido (opcional, informativo)
 
-Esta configuración determina qué zonas y turnos le aparecen al operador al registrar un pesaje.
+Esta configuración determina qué orígenes y turnos le aparecen al operador al registrar un pesaje.
 
-**Ejemplo — Zona Norte:**
+**Ejemplo — Origen Norte:**
 | Servicio | Turnos | Horario |
 |----------|--------|---------|
 | Domiciliario | Diurna, Nocturna | 07:00 – 13:00 / 20:00 – 02:00 |
@@ -131,7 +131,7 @@ Antes de habilitar el sistema para operación real:
 
 - [ ] Tipos de vehículo cargados con rangos correctos
 - [ ] Tipos de servicio cargados con turno (si corresponde) y tipo de vehículo sugerido
-- [ ] Zonas cargadas con su tipo de servicio asignado (al menos nombre y servicio; hectáreas y habitantes si están disponibles)
+- [ ] Orígenes cargados con su tipo de servicio asignado (al menos nombre y servicio; hectáreas y habitantes si están disponibles)
 - [ ] Padrón de vehículos completo y con taras verificadas
 - [ ] Usuarios operadores creados y con contraseñas entregadas
 - [ ] Hacer un pesaje de prueba con un vehículo real para verificar el autocompletado
@@ -146,7 +146,7 @@ Antes de habilitar el sistema para operación real:
 | No aparece el autocompletado de un vehículo | Verificar que la patente o número interno estén cargados exactamente como el operador los ingresa |
 | El peso neto parece incorrecto | Verificar la tara del vehículo en el padrón |
 | Un operador no puede ingresar | Verificar que su usuario esté activo en Padrones → Usuarios |
-| Un servicio no muestra zonas en el select | Verificar que la zona tenga asignado el tipo de servicio correcto en Padrones → Zonas |
+| Un servicio no muestra orígenes en el select | Verificar que el origen tenga asignado el tipo de servicio correcto en Orígenes → Orígenes |
 
 ---
 

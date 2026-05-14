@@ -1,12 +1,12 @@
 /* global React, Chart, Button, Card, Field, Icon, Pill,
-   SERVICIOS, ZONAS, VEHICLE_TYPES,
+   SERVICIOS, ORIGENES, VEHICLE_TYPES,
    ZONE_BREAKDOWN, TYPE_BREAKDOWN, DAILY_EVOLUTION, fmtT, fmtPct */
 const { useState, useEffect, useRef } = React;
 
 function Reportes() {
   const [from, setFrom] = useState("2026-03-01");
   const [to, setTo] = useState("2026-03-12");
-  const [zona, setZona] = useState("Todas");
+  const [origen, setOrigen] = useState("Todas");
   const [servicio, setServicio] = useState("Todos");
   const [tipo, setTipo] = useState("Todos");
   const [generated, setGenerated] = useState(false);
@@ -20,9 +20,9 @@ function Reportes() {
         <div className="grid grid-4" style={{ gap: 12 }}>
           <Field label="Desde"><input type="date" className="input" value={from} onChange={(e) => setFrom(e.target.value)} /></Field>
           <Field label="Hasta"><input type="date" className="input" value={to}   onChange={(e) => setTo(e.target.value)} /></Field>
-          <Field label="Zona">
-            <select className="select" value={zona} onChange={(e) => setZona(e.target.value)}>
-              <option>Todas</option>{ZONAS.map((z) => <option key={z}>{z}</option>)}
+          <Field label="Origen">
+            <select className="select" value={origen} onChange={(e) => setOrigen(e.target.value)}>
+              <option>Todas</option>{ORIGENES.map((z) => <option key={z}>{z}</option>)}
             </select>
           </Field>
           <Field label="Tipo de servicio">
@@ -41,7 +41,7 @@ function Reportes() {
         </div>
         <div style={{ display: "flex", gap: 6, marginTop: 12, flexWrap: "wrap" }}>
           <Pill kind="gray">{from} → {to}</Pill>
-          {zona !== "Todas" && <Pill kind="gray">Zona: {zona}</Pill>}
+          {origen !== "Todas" && <Pill kind="gray">Origen: {origen}</Pill>}
           {servicio !== "Todos" && <Pill kind="gray">Servicio: {servicio}</Pill>}
           {tipo !== "Todos" && <Pill kind="gray">Tipo: {tipo}</Pill>}
         </div>
@@ -119,12 +119,12 @@ function ReportPreview() {
       </Card>
 
       <div className="grid grid-2" style={{ marginTop: 16 }}>
-        <Card title="Por zona">
+        <Card title="Por origen">
           <table className="table">
-            <thead><tr><th>Zona</th><th className="num">Pesajes</th><th className="num">Toneladas</th><th className="num">Generación (kg/ha)</th></tr></thead>
+            <thead><tr><th>Origen</th><th className="num">Pesajes</th><th className="num">Toneladas</th><th className="num">Generación (kg/ha)</th></tr></thead>
             <tbody>
               {ZONE_BREAKDOWN.map((z) => (
-                <tr key={z.zona}><td><Pill kind="gray">{z.zona}</Pill></td><td className="num">{z.pesajes}</td><td className="num">{fmtT(z.t)}</td><td className="num">{z.kgHa}</td></tr>
+                <tr key={z.origen}><td><Pill kind="gray">{z.origen}</Pill></td><td className="num">{z.pesajes}</td><td className="num">{fmtT(z.t)}</td><td className="num">{z.kgHa}</td></tr>
               ))}
             </tbody>
           </table>
@@ -141,13 +141,13 @@ function ReportPreview() {
         </Card>
       </div>
 
-      <Card title="Densidad de generación" subtitle="Toneladas netas por hectárea servida, según zona" style={{ marginTop: 16 }}>
+      <Card title="Densidad de generación" subtitle="Toneladas netas por hectárea servida, según origen" style={{ marginTop: 16 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {ZONE_BREAKDOWN.map((z) => {
             const max = Math.max(...ZONE_BREAKDOWN.map((x) => x.kgHa));
             return (
-              <div key={z.zona} style={{ display: "grid", gridTemplateColumns: "100px 1fr 60px", alignItems: "center", gap: 12, fontSize: 13 }}>
-                <span style={{ color: "var(--ink-700)" }}>{z.zona}</span>
+              <div key={z.origen} style={{ display: "grid", gridTemplateColumns: "100px 1fr 60px", alignItems: "center", gap: 12, fontSize: 13 }}>
+                <span style={{ color: "var(--ink-700)" }}>{z.origen}</span>
                 <div style={{ height: 12, background: "var(--bg)", borderRadius: 999, overflow: "hidden" }}>
                   <div style={{ width: `${(z.kgHa / max) * 100}%`, height: "100%", background: "var(--green-700)" }} />
                 </div>

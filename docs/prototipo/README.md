@@ -22,7 +22,7 @@ Design system for the **Sistema de Gestión de Balanza** built for **Infinito Re
 | Role | Persona | Context |
 | --- | --- | --- |
 | Operator | **Roberto** | Sits in a small booth at the scale. Under pressure with 8+ trucks/hour. Must not type anything the system already knows. |
-| Administrator | **Nacho** | Manages master data (vehicles, services, zones). Reads dashboards and exports reports. |
+| Administrator | **Nacho** | Manages master data (vehicles, orígenes, services). Reads dashboards and exports reports. |
 
 **Design philosophy:** *Máxima automatización, mínima intervención manual.* Every typed field is a chance to make a mistake; the operator's job is to confirm, not to write.
 
@@ -57,13 +57,13 @@ This is the most-used screen in the system. Roberto opens it on shift start and 
   - Once selected, four read-only badges appear: `Tara`, `Tipo`, `Titular`, `Interno`.
 - **Step 2 · Tipo de servicio**
   - Native `<select>` of the five services.
-  - **Cascade as warning, never override** — picking a service auto-fills the *zona* and shows the *tipo habitual* as a blue informational badge. If the selected vehicle's actual type differs from the service's habitual type, a soft orange warning block appears (*"No es el tipo habitual para este servicio…"*) but the vehicle's type is preserved.
+  - **Cascade as warning, never override** — picking a service auto-fills the *origen* and shows the *tipo habitual* as a blue informational badge. If the selected vehicle's actual type differs from the service's habitual type, a soft orange warning block appears (*"No es el tipo habitual para este servicio…"*) but the vehicle's type is preserved.
 - **Step 3 · Peso bruto**
   - **72 px digital-style readout** with the input on the left, live `Tara` and `Neto estimado` on the right of the same shell.
   - Border + value colour change with validation state: green when in habitual range, orange when out of range.
   - Range hint always visible underneath (`Rango habitual Compactador: 10.000 – 26.500 kg.`).
   - Out-of-range never blocks; it only flags.
-- **Summary card** — appears highlighted in `--green-50` when the form is complete. Four columns × two rows: vehicle, service, zone, type / bruto, tara, neto, operator.
+- **Summary card** — appears highlighted in `--green-50` when the form is complete. Four columns × two rows: vehicle, service, origen, type / bruto, tara, neto, operator.
 - **Sticky action bar** at the bottom of the page with `Limpiar` (Esc), a contextual hint of the next thing to do, and the primary `Guardar pesaje` CTA (Ctrl+S).
 - **Keyboard shortcuts**
   - `↵` advances to the next field (or selects the first autocomplete match).
@@ -75,7 +75,7 @@ This is the most-used screen in the system. Roberto opens it on shift start and 
 ### 4 · Historial (operator)
 
 - Four small KPIs at the top: pesajes count, total net tonnes, average per trip, **camiones en predio** (count of records still open).
-- Table of the shift with: entrada · salida · estado (pill: `En predio` / `Cerrado`, with a blue `Editado` pill when applicable) · patente · servicio · zona · bruto · tara · neto.
+- Table of the shift with: entrada · salida · estado (pill: `En predio` / `Cerrado`, with a blue `Editado` pill when applicable) · patente · servicio · origen · bruto · tara · neto.
 - **Per-row actions** for the operator:
   - **Marcar egreso** *(visible only when the record is `En predio`)* — opens a modal that captures the current time and an optional outgoing weight. Confirming flips the record to `Cerrado` and writes an `egreso` entry to the change log.
   - **Editar** — opens the same edit modal as the admin uses, with a mandatory `motivo`. Every changed field produces an immutable log entry signed with the operator's username. The admin sees these entries in the Pesajes screen alongside their own edits.
@@ -85,9 +85,12 @@ This is the most-used screen in the system. Roberto opens it on shift start and 
 
 ### 5 · Admin shell
 
-- **Accordion sidebar** grouped in three sections:
+- **Accordion sidebar** grouped in six sections:
   - **Operación** — Dashboard · Pesajes
-  - **Padrones** — Vehículos · Zonas · Tipos de servicio · Tipos de vehículo · Usuarios
+  - **Transporte** — Vehículos · Tipos de vehículo
+  - **Orígenes** — Orígenes
+  - **Servicios** — Tipos de servicio
+  - **Sistema** — Usuarios
   - **Análisis** — Reportes
 - Section headers are clickable to expand/collapse with a rotating chevron. The section containing the active screen is auto-expanded on navigation.
 - Footer of the sidebar shows the admin's avatar, name, role and a logout icon button.
@@ -95,38 +98,38 @@ This is the most-used screen in the system. Roberto opens it on shift start and 
 ### 6 · Dashboard (admin)
 
 - **Alert banners** at the top: gap-in-records and unusual-weight alerts, each with a `Revisar` ghost button.
-- **Camiones en el predio** — small section that only appears when records are open. Shows the count + a table with patente, tipo, servicio, zona, hora de entrada, neto registrado, operador. This is Nacho's at-a-glance "who is still inside" view.
+- **Camiones en el predio** — small section that only appears when records are open. Shows the count + a table with patente, tipo, servicio, origen, hora de entrada, neto registrado, operador. This is Nacho's at-a-glance "who is still inside" view.
 - **KPIs del día** (4 cards): pesajes, toneladas, promedio por viaje, horas operativas — each with a "vs. promedio" delta.
 - **KPIs del mes** (3 smaller cards): pesajes acumulados, toneladas acumuladas, días operativos.
 - **Evolución diaria** (Chart.js bar chart, 7 days): today highlighted in `--green-700`, prior days in a light green; dashed average line; native Inter-styled tooltip.
-- **Por zona** table: pesajes, toneladas, kg/ha per zone.
+- **Por origen** table: pesajes, toneladas, kg/ha per origen.
 - **Por tipo de vehículo** table: viajes, toneladas, and a horizontal `pct` bar.
 
 ### 7 · Pesajes (admin) — full filterable log
 
-- Five filters: search (patente/ID), **estado** (`Todos` / `En predio` / `Cerrado`), zone, service, operator.
+- Five filters: search (patente/ID), **estado** (`Todos` / `En predio` / `Cerrado`), origen, service, operator.
 - Header summary shows filtered count + total net tonnes in the current view.
-- Table columns: ID, entrada, salida, estado, patente, servicio, zona, bruto, tara, neto, operador. Edited rows carry a blue `Editado` pill next to the state pill.
+- Table columns: ID, entrada, salida, estado, patente, servicio, origen, bruto, tara, neto, operador. Edited rows carry a blue `Editado` pill next to the state pill.
 - Per-row actions:
   - **Marcar egreso** (only when `En predio`) — same modal as the operator.
   - **Editar** — opens the edit modal with mandatory motivo; saving writes one log entry per modified field, signed with the admin's username.
   - **Ver historial** — read-only modal listing every prior change as `campo · anterior → nuevo · motivo · usuario · fecha`. Strikethrough on old values, green on new ones. Dimmed when no log exists.
 - Export Excel button in the page header (visual; non-functional in the prototype).
 
-### 8 · Padrones — five ABMs
+### 8 · ABMs — five screens
 
 - **Vehículos** — table with search, status pills, and an "Agregar vehículo" modal (patente, número interno, tipo, tara, titular, capacidad, observaciones, active/inactive toggle).
-- **Zonas** — table with hectáreas and barrios columns plus total in the header lede; modal for new zone.
-- **Tipos de servicio** — table with the cascade rules (`zonaPredeterminada`, `tipoSugerido`) visible and editable; modal for new service.
+- **Orígenes** — table with hectáreas and barrios columns plus total in the header lede; modal for new origen; per-origen service assignment with turnos and schedules.
+- **Tipos de servicio** — table with the cascade rule (`tipoSugerido`) visible and editable; modal for new service.
 - **Tipos de vehículo** — table with rangeMin/rangeMax in kg per type; an info banner reminds that these ranges are advisory, never blocking.
 - **Usuarios** — table with avatar+name composite cell, role pill (Admin / Operador), turn, status; modal with usuario, nombre completo, rol, turno, contraseña inicial; per-row actions for edit, password reset, deactivate.
 - Every ABM follows the same pattern: search/filter row at the top, table with right-aligned ghost icon actions, "Agregar" primary CTA in the header.
 
 ### 9 · Reportes (admin)
 
-- Filter card: período (desde/hasta), zona, tipo de servicio, tipo de vehículo.
+- Filter card: período (desde/hasta), origen, tipo de servicio, tipo de vehículo.
 - Active filters echo as gray pills under the filters.
-- `Generar reporte` reveals the preview: 4 summary KPIs, bar chart, by-zone table, by-vehicle-type table, and a "Densidad de generación" horizontal bar viz (kg/ha per zone).
+- `Generar reporte` reveals the preview: 4 summary KPIs, bar chart, by-origen table, by-vehicle-type table, and a "Densidad de generación" horizontal bar viz (kg/ha per origen).
 - Export buttons for PDF and Excel (visual).
 - Empty-state card before generation with a chart icon and copy: *"Aplicá los filtros y generá el reporte para ver la vista previa."*
 
@@ -315,10 +318,10 @@ Choices taken during the iteration rounds. Each entry has the **decision**, the 
 | IA-2 | Layout of the Balanza screen | **Single vertical column, form on top, summary below, sticky action bar** | 2-column (form + summary side-by-side); summary as sticky overlay; no summary at all | Reduces left-right eye movement under time pressure. Summary as the *final* card reinforces the sequence rather than competing with it. |
 | IA-3 | Size of the weight input | **72 px, scale-style readout, dominant on the page** | 28 px input; 48 px input; dual display (small input + huge readout above) | Roberto must read this from across the booth and confirm at a glance. The readout is the climax of the form — it deserves the most visual weight. |
 | IA-4 | Cascade *servicio → tipo de vehículo* | **Warning when mismatch, never override** | Silent override (replace vehicle's actual type with the service's habitual type); no cascade at all | The padrón's `tipo` is ground truth. The cascade is advisory. Overriding silently can cause data quality issues in reports; warning preserves both signal and operator agency. |
-| IA-5 | Admin maestros (ABMs) | **Five ABMs: Vehículos, Zonas, Tipos de servicio, Tipos de vehículo, Usuarios** | Only Vehículos (the spec's explicit ask); add Zonas only | Spec uses "ABMs" in plural and the dashboard needs hectáreas, services with their cascade rules, and weight ranges as configurable data — leaving them hardcoded blocks day-2 changes. Usuarios is required for production once the demo creds are removed. |
+| IA-5 | Admin maestros (ABMs) | **Five ABMs: Vehículos, Orígenes, Tipos de servicio, Tipos de vehículo, Usuarios** | Only Vehículos (the spec's explicit ask); add Orígenes only | Spec uses "ABMs" in plural and the dashboard needs hectáreas, services with their cascade rules, and weight ranges as configurable data — leaving them hardcoded blocks day-2 changes. Usuarios is required for production once the demo creds are removed. |
 | IA-6 | Audit/edit of individual pesajes by admin | **Full editable list with mandatory motivo + immutable change log per record** | Read-only list with export only; no admin pesaje view (corrections via SQL) | Corrections are inevitable (typos, wrong service). Editing in-product with a forced motivo plus a permanent audit trail keeps data integrity while removing the SQL-Server-direct workaround. |
 | IA-7 | Live monitor of the balanza for admin | **Not yet** | Live widget on dashboard; dedicated big-screen "Monitor" page; both | Dashboard refresh on demand is enough for v1. Live monitoring is a fast-follow once the basics are validated; don't bloat the surface area before users ask for it. |
-| IA-8 | Admin sidebar organisation | **Accordion with three groups: Operación · Padrones · Análisis** | Flat list ordered by usage; sticky always-expanded groups | With five ABMs and growing, a flat list becomes a wall. Accordion keeps the active group expanded and the rest tucked away. The group containing the current screen auto-expands on nav. |
+| IA-8 | Admin sidebar organisation | **Accordion with six groups: Operación · Transporte · Orígenes · Servicios · Sistema · Análisis** | Flat list ordered by usage; single "Padrones" group for all ABMs | Matches the client's existing taxonomy: transport items under Transporte, geographic areas as Orígenes, service types as Servicios. Accordion keeps the active group expanded and the rest tucked away. The group containing the current screen auto-expands on nav. |
 | IA-9 | Keyboard shortcuts for the operator | **Yes, with visible hints — Enter advances, Ctrl+S saves, Esc clears** | None (mouse only); shortcuts but no visible hints | At 8+ trucks/hour, every mouse trip is dead time. Visible hints serve as in-context training for Roberto and a memory aid forever after. |
 | IA-10 | Operator correction of own pesajes *(out-of-scope in spec; closed in ronda 1)* | **F.2 — Same edit modal as the admin, with mandatory `motivo` and immutable per-field log shared with admin.** Visible on every row of the operator's `Historial`. | F.1 free edit within shift; F.3 "anular último" within N minutes; F.4 no operator correction. | Roberto's typos can't wait for Nacho. Going through the same audited path preserves traceability across roles; a single log model means admin sees operator edits and vice versa. |
 | IA-11 | Egreso flow *(out-of-scope in spec; closed in ronda 1)* | **G.2 — Egreso as a timestamp mark, with an *optional* outgoing weight captured for audit only.** Each pesaje now has a state machine `En predio` → `Cerrado`. `Marcar egreso` button on operator `Historial` and admin `Pesajes`. The optional `brutoSalida` is stored but **not** used in the neto calculation; neto remains `bruto_entrada − tara`. | G.1 no egreso; G.3 full double weighing where neto = `bruto_entrada − bruto_salida`. | Operationally the predio uses single-weighing with stored tara, so neto stays correct. Capturing time-of-exit (and optionally the outgoing weight) unlocks dwell-time KPIs, the "Camiones en el predio" widget, and an evidence trail without rewriting the data model. Whether neto eventually moves to G.3 is parked as an open question. |
@@ -378,7 +381,7 @@ Until those four answers exist, we leave G.2 in place and treat any `brutoSalida
 
 ### UI kits
 
-- **`ui_kits/balanza/`** — the only product surface, with eleven screens: Login, Balanza, Historial, Dashboard, Pesajes (admin), Vehículos, Zonas, Tipos de servicio, Tipos de vehículo, Usuarios, Reportes. Demo credentials: `roberto / 1234` (operator) · `nacho / 1234` (admin). See its own `README.md` for the component vocabulary and per-file responsibilities.
+- **`ui_kits/balanza/`** — the only product surface, with eleven screens: Login, Balanza, Historial, Dashboard, Pesajes (admin), Vehículos, Orígenes, Tipos de servicio, Tipos de vehículo, Usuarios, Reportes. Demo credentials: `roberto / 1234` (operator) · `nacho / 1234` (admin). See its own `README.md` for the component vocabulary and per-file responsibilities.
 
 ---
 

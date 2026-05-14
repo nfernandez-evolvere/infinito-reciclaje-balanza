@@ -101,7 +101,7 @@ function Dashboard({ pesajes = [] }) {
                     <th>Patente</th>
                     <th>Tipo</th>
                     <th>Servicio</th>
-                    <th>Zona</th>
+                    <th>Origen</th>
                     <th className="num">Entrada</th>
                     <th className="num">Neto registrado</th>
                     <th>Operador</th>
@@ -113,7 +113,7 @@ function Dashboard({ pesajes = [] }) {
                       <td><b>{p.patente}</b></td>
                       <td>{p.tipo}</td>
                       <td>{p.servicio}</td>
-                      <td><Pill kind="gray">{p.zona}</Pill></td>
+                      <td><Pill kind="gray">{p.origen}</Pill></td>
                       <td className="num">{p.horaEntrada}</td>
                       <td className="num">{fmtKg(p.neto)}</td>
                       <td className="muted">{p.operador}</td>
@@ -159,20 +159,20 @@ function Dashboard({ pesajes = [] }) {
 
       {/* Breakdowns */}
       <div className="grid grid-2">
-        <Card title="Por zona" subtitle="Toneladas netas y generación por hectárea servida">
+        <Card title="Por origen" subtitle="Toneladas netas y generación por hectárea servida">
           <table className="table">
             <thead>
               <tr>
-                <th>Zona</th>
+                <th>Origen</th>
                 <th className="num">Pesajes</th>
                 <th className="num">Toneladas</th>
-                <th className="num" title="Toneladas netas dispuestas por hectárea de superficie servida por la zona.">Generación (kg/ha)</th>
+                <th className="num" title="Toneladas netas dispuestas por hectárea de superficie servida por el origen.">Generación (kg/ha)</th>
               </tr>
             </thead>
             <tbody>
               {ZONE_BREAKDOWN.map((z) => (
-                <tr key={z.zona}>
-                  <td><Pill kind="gray">{z.zona}</Pill></td>
+                <tr key={z.origen}>
+                  <td><Pill kind="gray">{z.origen}</Pill></td>
                   <td className="num">{z.pesajes}</td>
                   <td className="num">{fmtT(z.t)}</td>
                   <td className="num">{z.kgHa.toLocaleString("es-AR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>

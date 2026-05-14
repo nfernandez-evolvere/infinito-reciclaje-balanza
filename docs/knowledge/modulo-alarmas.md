@@ -65,21 +65,21 @@ Las alarmas aparecen en dos lugares:
 
 ---
 
-### Tipo 3 — Frecuencia atípica por zona
+### Tipo 3 — Frecuencia atípica por origen
 
-**Qué es:** Una zona registró muchos más o muchos menos pesajes de lo habitual en el período.
+**Qué es:** Un origen registró muchos más o muchos menos pesajes de lo habitual en el período.
 
-**Ejemplo:** La Zona Norte tuvo 0 pesajes en todo el día cuando habitualmente tiene entre 8 y 12.
+**Ejemplo:** El Origen Norte tuvo 0 pesajes en todo el día cuando habitualmente tiene entre 8 y 12.
 
 **Causas posibles:**
 - Cambio en la planificación de rutas que no fue comunicado
-- Feriado o evento que afectó esa zona
-- El operador asignó los pesajes a una zona diferente por error
-- Problema real de recolección en esa zona
+- Feriado o evento que afectó ese origen
+- El operador asignó los pesajes a un origen diferente por error
+- Problema real de recolección en ese origen
 
 **Qué hacer:**
 1. Verificar con quien coordina la operación si hubo cambios en las rutas
-2. Revisar si hay pesajes de esa zona asignados incorrectamente a otra zona
+2. Revisar si hay pesajes de ese origen asignados incorrectamente a otro origen
 3. Si es un cambio legítimo, marcar la alarma como resuelta
 
 ---
@@ -104,7 +104,7 @@ El módulo muestra todas las alarmas: activas e históricas. Las alarmas resuelt
 - Cuándo se resolvió
 - El comentario de resolución
 
-Este historial permite identificar patrones: si el mismo tipo de alarma se repite seguido en la misma zona, puede haber un problema estructural que vale la pena investigar.
+Este historial permite identificar patrones: si el mismo tipo de alarma se repite seguido en el mismo origen, puede haber un problema estructural que vale la pena investigar.
 
 ---
 

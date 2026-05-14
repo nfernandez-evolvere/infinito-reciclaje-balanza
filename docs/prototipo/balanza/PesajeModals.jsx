@@ -1,5 +1,5 @@
 /* global React, Button, Field, Icon, Banner, Modal,
-   SERVICIOS, ZONAS, fmtKg, fmtN */
+   SERVICIOS, ORIGENES, fmtKg, fmtN */
 const { useState } = React;
 
 // Shared modal used by Historial (operator) and PesajesAdmin.
@@ -8,7 +8,7 @@ function EditPesajeModal({ pesaje, onClose, onSave, actorRole }) {
   const [bruto, setBruto]       = useState(pesaje.bruto);
   const [tara,  setTara]        = useState(pesaje.tara);
   const [servicio, setServicio] = useState(pesaje.servicio);
-  const [zona, setZona]         = useState(pesaje.zona);
+  const [origen, setOrigen]     = useState(pesaje.origen);
   const [motivo, setMotivo]     = useState("");
 
   const neto = Math.max(0, (parseInt(bruto, 10) || 0) - (parseInt(tara, 10) || 0));
@@ -22,7 +22,7 @@ function EditPesajeModal({ pesaje, onClose, onSave, actorRole }) {
         <Button kind="secondary" onClick={onClose}>Cancelar</Button>
         <Button kind="primary" icon="save" disabled={!motivo.trim()}
           onClick={() => onSave({
-            bruto: parseInt(bruto, 10), tara: parseInt(tara, 10), servicio, zona,
+            bruto: parseInt(bruto, 10), tara: parseInt(tara, 10), servicio, origen,
           }, motivo)}>Guardar cambios</Button>
       </>}>
       <Banner kind="info" title="Toda edición se registra en el historial" body={trustBanner} />
@@ -32,9 +32,9 @@ function EditPesajeModal({ pesaje, onClose, onSave, actorRole }) {
             {SERVICIOS.map((s) => <option key={s}>{s}</option>)}
           </select>
         </Field>
-        <Field label="Zona">
-          <select className="select" value={zona} onChange={(e) => setZona(e.target.value)}>
-            {ZONAS.map((z) => <option key={z}>{z}</option>)}
+        <Field label="Origen">
+          <select className="select" value={origen} onChange={(e) => setOrigen(e.target.value)}>
+            {ORIGENES.map((z) => <option key={z}>{z}</option>)}
           </select>
         </Field>
         <Field label="Peso bruto (kg)">

@@ -62,30 +62,37 @@ function OperatorShell({ user, screen, onNav, onLogout, online = true, onToggleO
 }
 
 function AdminShell({ user, screen, onNav, onLogout, children }) {
-  const groups = [
-    { id: "operacion", label: "Operación", items: [
-      { id: "dashboard", label: "Dashboard", icon: "layout-dashboard" },
-      { id: "pesajes",   label: "Pesajes",   icon: "scale" },
-    ]},
-    { id: "padrones", label: "Padrones", items: [
-      { id: "vehiculos", label: "Vehículos",         icon: "truck" },
-      { id: "zonas",     label: "Zonas",             icon: "map" },
-      { id: "servicios", label: "Tipos de servicio", icon: "boxes" },
-      { id: "tipos",     label: "Tipos de vehículo", icon: "settings" },
-      { id: "usuarios",  label: "Usuarios",          icon: "users" },
-    ]},
-    { id: "analisis", label: "Análisis", items: [
-      { id: "reportes",  label: "Reportes", icon: "bar-chart-3" },
-    ]},
-  ];
-
-  // Auto-expand the group that contains the active screen
-  const activeGroup = groups.find((g) => g.items.some((it) => it.id === screen))?.id;
-  const [open, setOpen] = useState(() => Object.fromEntries(groups.map((g) => [g.id, g.id === activeGroup])));
+  const inTransporte = screen === "vehiculos" || screen === "tipos";
+  const inSistema    = screen === "usuarios";
+  const [groupOpen, setGroupOpen] = useState({ transporte: inTransporte, sistema: inSistema });
 
   useEffect(() => {
-    if (activeGroup) setOpen((o) => ({ ...o, [activeGroup]: true }));
-  }, [activeGroup]);
+    if (inTransporte) setGroupOpen((o) => ({ ...o, transporte: true }));
+  }, [inTransporte]);
+  useEffect(() => {
+    if (inSistema) setGroupOpen((o) => ({ ...o, sistema: true }));
+  }, [inSistema]);
+
+  const toggleGroup = (id) => setGroupOpen((o) => ({ ...o, [id]: !o[id] }));
+
+  const nav = [
+    { type: "item",  id: "dashboard",  label: "Dashboard",         icon: "layout-dashboard" },
+    { type: "item",  id: "pesajes",    label: "Pesajes",            icon: "scale" },
+    { type: "item",  id: "reportes",   label: "Reportes",           icon: "bar-chart-3" },
+    { type: "sep" },
+    { type: "item",  id: "zonas",      label: "Zonas",              icon: "map-pin" },
+    { type: "item",  id: "servicios",  label: "Tipos de servicio",  icon: "boxes" },
+    { type: "sep" },
+    { type: "group", id: "transporte", label: "Transporte",
+      items: [
+        { id: "vehiculos", label: "Vehículos",         icon: "truck" },
+        { id: "tipos",     label: "Tipos de vehículo", icon: "settings" },
+      ]},
+    { type: "group", id: "sistema",    label: "Sistema",
+      items: [
+        { id: "usuarios",  label: "Usuarios",           icon: "users" },
+      ]},
+  ];
 
   return (
     <div className="app has-sidebar">
@@ -98,28 +105,44 @@ function AdminShell({ user, screen, onNav, onLogout, children }) {
           </div>
         </div>
         <nav>
-          {groups.map((g) => (
-            <div key={g.id} className="nav-group">
-              <div
-                className={"nav-group-header" + (open[g.id] ? " open" : "")}
-                onClick={() => setOpen((o) => ({ ...o, [g.id]: !o[g.id] }))}>
-                {g.label}
-                <span className="chev"><Icon name="chevron-right" size={14} /></span>
-              </div>
-              {open[g.id] && (
-                <div className="nav-group-items">
-                  {g.items.map((it) => (
-                    <div key={it.id}
-                         className={"nav-item" + (screen === it.id ? " active" : "")}
-                         onClick={() => onNav(it.id)}>
-                      <span className="ic"><Icon name={it.icon} size={18} /></span>
-                      {it.label}
+          {nav.map((entry, i) => {
+            if (entry.type === "sep") {
+              return <div key={i} style={{ height: 1, background: "var(--line)", margin: "4px 8px" }} />;
+            }
+            if (entry.type === "group") {
+              const open = groupOpen[entry.id];
+              return (
+                <div key={entry.id} className="nav-group">
+                  <div
+                    className={"nav-group-header" + (open ? " open" : "")}
+                    onClick={() => toggleGroup(entry.id)}>
+                    {entry.label}
+                    <span className="chev"><Icon name="chevron-right" size={14} /></span>
+                  </div>
+                  {open && (
+                    <div className="nav-group-items">
+                      {entry.items.map((it) => (
+                        <div key={it.id}
+                             className={"nav-item" + (screen === it.id ? " active" : "")}
+                             onClick={() => onNav(it.id)}>
+                          <span className="ic"><Icon name={it.icon} size={18} /></span>
+                          {it.label}
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
-            </div>
-          ))}
+              );
+            }
+            return (
+              <div key={entry.id}
+                   className={"nav-item" + (screen === entry.id ? " active" : "")}
+                   onClick={() => onNav(entry.id)}>
+                <span className="ic"><Icon name={entry.icon} size={18} /></span>
+                {entry.label}
+              </div>
+            );
+          })}
         </nav>
         <div className="footer">
           <div className="av">N</div>

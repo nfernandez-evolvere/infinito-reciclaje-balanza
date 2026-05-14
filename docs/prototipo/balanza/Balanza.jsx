@@ -1,5 +1,5 @@
 /* global React, Icon, Button, Field, Card, Pill, Badge, Banner, SuccessOverlay,
-   VEHICLES, SERVICIOS, SERVICIO_CASCADE, ZONAS_DATA, ZONA_SERVICIOS, VEHICLE_TYPES, fmtKg, fmtN */
+   VEHICLES, SERVICIOS, SERVICIO_CASCADE, ORIGENES_DATA, ORIGEN_SERVICIOS, VEHICLE_TYPES, fmtKg, fmtN */
 const { useState, useMemo, useRef, useEffect } = React;
 
 function Balanza({ pesajes, onSave, onDirtyChange }) {
@@ -7,7 +7,7 @@ function Balanza({ pesajes, onSave, onDirtyChange }) {
   const [vehicle, setVehicle] = useState(null);
   const [showSugg, setShowSugg] = useState(false);
   const [servicio, setServicio] = useState("");
-  const [zona, setZona] = useState("");
+  const [origen, setOrigen] = useState("");
   const [turno, setTurno] = useState("");
   const [bruto, setBruto] = useState("");
   const [success, setSuccess] = useState(null);
@@ -27,17 +27,17 @@ function Balanza({ pesajes, onSave, onDirtyChange }) {
   const cascade = servicio ? SERVICIO_CASCADE[servicio] : null;
   const tipoSugerido = cascade?.tipoSugerido;
 
-  // Zonas activas que tienen este servicio asignado en ZONA_SERVICIOS
-  const zonasDelServicio = servicio
-    ? ZONA_SERVICIOS
+  // Orígenes activos que tienen este servicio asignado en ORIGEN_SERVICIOS
+  const origenesDelServicio = servicio
+    ? ORIGEN_SERVICIOS
         .filter((a) => a.servicioNombre === servicio)
-        .map((a) => ZONAS_DATA.find((z) => z.id === a.zonaId))
+        .map((a) => ORIGENES_DATA.find((z) => z.id === a.origenId))
         .filter((z) => z && z.estado === "Activo")
     : [];
 
-  // Turnos disponibles para la combinación zona+servicio seleccionada
-  const asignacionActual = zona && servicio
-    ? ZONA_SERVICIOS.find((a) => a.servicioNombre === servicio && ZONAS_DATA.find((z) => z.id === a.zonaId)?.nombre === zona)
+  // Turnos disponibles para la combinación origen+servicio seleccionada
+  const asignacionActual = origen && servicio
+    ? ORIGEN_SERVICIOS.find((a) => a.servicioNombre === servicio && ORIGENES_DATA.find((z) => z.id === a.origenId)?.nombre === origen)
     : null;
   const turnosDelServicio = asignacionActual?.turnos ?? [];
   const servicioRequiereTurno = turnosDelServicio.length > 0;
@@ -58,18 +58,18 @@ function Balanza({ pesajes, onSave, onDirtyChange }) {
 
   const pickService = (s) => {
     setServicio(s);
-    setZona("");
+    setOrigen("");
     setTurno("");
     if (s) setTimeout(() => brutoRef.current?.focus(), 50);
   };
 
   const reset = () => {
     setQuery(""); setVehicle(null); setServicio("");
-    setZona(""); setTurno(""); setBruto("");
+    setOrigen(""); setTurno(""); setBruto("");
     setTimeout(() => vehicleRef.current?.focus(), 50);
   };
 
-  const canSave = vehicle && servicio && zona && (!servicioRequiereTurno || turno) && brutoN > 0;
+  const canSave = vehicle && servicio && origen && (!servicioRequiereTurno || turno) && brutoN > 0;
 
   const save = () => {
     if (!canSave) return;
@@ -79,7 +79,7 @@ function Balanza({ pesajes, onSave, onDirtyChange }) {
       id: Date.now(),
       horaEntrada: hora, horaSalida: null, brutoSalida: null,
       patente: vehicle.patente, tipo: tipoActivo,
-      servicio, zona, turno: turno || null, bruto: brutoN, tara: vehicle.tara, neto,
+      servicio, origen, turno: turno || null, bruto: brutoN, tara: vehicle.tara, neto,
       operador: "roberto",
       estado: "En predio",
     });
@@ -100,15 +100,15 @@ function Balanza({ pesajes, onSave, onDirtyChange }) {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [canSave, vehicle, servicio, zona, brutoN]);
+  }, [canSave, vehicle, servicio, origen, brutoN]);
 
   useEffect(() => { vehicleRef.current?.focus(); }, []);
 
   // Inform parent whenever the form has any user-entered data
   useEffect(() => {
-    const dirty = !!(vehicle || servicio || bruto || query);
+    const dirty = !!(vehicle || servicio || bruto || query || origen);
     onDirtyChange && onDirtyChange(dirty);
-  }, [vehicle, servicio, bruto, query, onDirtyChange]);
+  }, [vehicle, servicio, bruto, query, origen, onDirtyChange]);
 
   return (
     <div className="page" style={{ maxWidth: 880 }}>
@@ -172,7 +172,7 @@ function Balanza({ pesajes, onSave, onDirtyChange }) {
 
         {/* Step 2: Service + Zone + Turno */}
         <Card>
-          <Step number={2} title="Tipo de servicio y zona" complete={!!servicio && !!zona && (!servicioRequiereTurno || !!turno)} disabled={!vehicle} last>
+          <Step number={2} title="Tipo de servicio y origen" complete={!!servicio && !!origen && (!servicioRequiereTurno || !!turno)} disabled={!vehicle} last>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <Field label="Tipo de servicio">
                 <select
@@ -193,14 +193,14 @@ function Balanza({ pesajes, onSave, onDirtyChange }) {
                 </select>
               </Field>
               {servicio && (
-                <Field label="Zona">
+                <Field label="Origen">
                   <select
                     className="select"
-                    value={zona}
-                    onChange={(e) => { setZona(e.target.value); setTurno(""); }}
+                    value={origen}
+                    onChange={(e) => { setOrigen(e.target.value); setTurno(""); }}
                   >
-                    <option value="">Seleccionar zona…</option>
-                    {zonasDelServicio.map((z) => <option key={z.id} value={z.nombre}>{z.nombre}</option>)}
+                    <option value="">Seleccionar origen…</option>
+                    {origenesDelServicio.map((z) => <option key={z.id} value={z.nombre}>{z.nombre}</option>)}
                   </select>
                 </Field>
               )}
@@ -283,7 +283,7 @@ function Balanza({ pesajes, onSave, onDirtyChange }) {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
             <SummaryCell label="Vehículo"  value={vehicle ? vehicle.patente : "—"} />
             <SummaryCell label="Servicio"  value={servicio || "—"} />
-            <SummaryCell label="Zona"      value={zona || "—"} />
+            <SummaryCell label="Origen"    value={origen || "—"} />
             <SummaryCell label="Turno"     value={turno || "—"} />
             <SummaryCell label="Tipo"      value={tipoActivo || "—"} />
             <SummaryCell label="Peso bruto" value={brutoN ? fmtKg(brutoN) : "—"} num />
@@ -300,9 +300,9 @@ function Balanza({ pesajes, onSave, onDirtyChange }) {
         <div className="spacer" />
         <span className="muted body-sm">
           {canSave ? "Listo para guardar"
-          : vehicle && servicio && zona && servicioRequiereTurno && !turno ? "Elegí el turno"
-          : vehicle && servicio && zona ? "Ingresá el peso bruto"
-          : vehicle && servicio ? "Elegí la zona"
+          : vehicle && servicio && origen && servicioRequiereTurno && !turno ? "Elegí el turno"
+          : vehicle && servicio && origen ? "Ingresá el peso bruto"
+          : vehicle && servicio ? "Elegí el origen"
           : vehicle ? "Elegí el servicio"
           : "Buscá el vehículo"}
         </span>

@@ -19,7 +19,7 @@ function AbmServicios() {
       <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 4 }}>
         <div>
           <h1>Tipos de servicio</h1>
-          <p className="lede">Categorías de pesaje y vehículo habitual. Los turnos se configuran por zona.</p>
+          <p className="lede">Categorías de pesaje y vehículo habitual. Los turnos se configuran por origen.</p>
         </div>
         <Button icon="plus" onClick={() => setModalOpen(true)}>Agregar tipo</Button>
       </div>

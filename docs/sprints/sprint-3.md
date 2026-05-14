@@ -11,21 +11,21 @@ Pantalla principal del operador: flujo completo de pesaje en menos de 10 segundo
 ## Sub-sprint 3.1 — Migraciones, modelos y APIs de autocompletado
 
 ### Tareas
-- [ ] Migración `create_pesajes_table`: `id`, `vehiculo_id` (FK), `operador_id` (FK → `users`), `tipo_servicio_id` (FK), `zona_id` (FK), `turno` (nvarchar(10) nullable, CHECK IN 'Diurna'/'Nocturna' — NULL si el servicio no tiene turnos), `peso_bruto_kg`, `peso_tara_kg` (copia de tara al momento del ingreso), `peso_neto_kg` (calculado), `alerta_peso` (boolean), `observaciones` (nullable), `estado` (enum: `En predio`, `Cerrado`), `hora_salida` (nullable timestamp), `bruto_salida_kg` (nullable), `editado` (boolean, default `false`), timestamps
+- [ ] Migración `create_pesajes_table`: `id`, `vehiculo_id` (FK), `operador_id` (FK → `users`), `tipo_servicio_id` (FK), `origen_id` (FK), `turno` (nvarchar(10) nullable, CHECK IN 'Diurna'/'Nocturna' — NULL si el servicio no tiene turnos), `peso_bruto_kg`, `peso_tara_kg` (copia de tara al momento del ingreso), `peso_neto_kg` (calculado), `alerta_peso` (boolean), `observaciones` (nullable), `estado` (enum: `En predio`, `Cerrado`), `hora_salida` (nullable timestamp), `bruto_salida_kg` (nullable), `editado` (boolean, default `false`), timestamps
 - [ ] Migración `create_pesajes_log_table`: `id`, `pesaje_id` (FK), `campo`, `valor_anterior`, `valor_nuevo`, `motivo`, `usuario_id` (FK), timestamps
 - [ ] `PesajeRepository`, `PesajeLogRepository`
 - [ ] `PesajeService`: `crear()`, `marcarEgreso()`, `editar()`
 - [ ] `PesajeController`, `EgresoPesajeController`
 - [ ] Form Requests: `StorePesajeRequest`, `UpdatePesajeRequest`, `EgresoPesajeRequest`
 - [ ] `GET /api/vehiculos/buscar?q={texto}` → retorna vehículos activos con patente, número interno, tara, tipo, titular (máx. 6 resultados)
-- [ ] `GET /api/servicios/{id}/zonas` → retorna zonas activas que tienen ese servicio asignado en `zona_servicios`; cada item incluye `{ id, nombre, turnos: [] }` para que el frontend sepa si debe mostrar el select de turno al elegir esa zona
+- [ ] `GET /api/servicios/{id}/origenes` → retorna orígenes activos que tienen ese servicio asignado en `origen_servicios`; cada item incluye `{ id, nombre, turnos: [] }` para que el frontend sepa si debe mostrar el select de turno al elegir ese origen
 
 ### Tests unitarios
 - `PesajeServiceTest::test_crear_copies_tara_from_vehiculo` — `peso_tara_kg` del pesaje = `tara_kg` del vehículo al momento de crear
 - `PesajeServiceTest::test_crear_calculates_peso_neto` — `peso_neto_kg` = `peso_bruto_kg` - `peso_tara_kg`
 - `PesajeServiceTest::test_crear_sets_alerta_when_peso_out_of_range` — peso fuera del rango del tipo → `alerta_peso = true`
 - `PesajeServiceTest::test_crear_no_alerta_when_peso_in_range`
-- `PesajeServiceTest::test_editar_creates_log_entry_per_modified_field` — editar `zona_id` → 1 entrada en `pesajes_log`
+- `PesajeServiceTest::test_editar_creates_log_entry_per_modified_field` — editar `origen_id` → 1 entrada en `pesajes_log`
 - `PesajeServiceTest::test_editar_creates_multiple_log_entries_for_multiple_fields`
 - `PesajeServiceTest::test_editar_sets_editado_true`
 - `PesajeServiceTest::test_marcar_egreso_sets_estado_cerrado`
@@ -37,17 +37,17 @@ Pantalla principal del operador: flujo completo de pesaje en menos de 10 segundo
 - `VehiculoBuscarApiTest::test_returns_at_most_6_results`
 - `VehiculoBuscarApiTest::test_inactive_vehicles_not_returned`
 - `VehiculoBuscarApiTest::test_empty_query_returns_empty_array`
-- `ServicioZonasApiTest::test_returns_active_zonas_for_servicio` — `GET /api/servicios/{id}/zonas` → array de zonas activas del servicio
-- `ServicioZonasApiTest::test_returns_empty_array_when_no_zonas` — servicio sin zonas asociadas → array vacío
-- `ServicioZonasApiTest::test_inactive_zonas_not_returned` — zona inactiva del servicio no aparece en la respuesta
-- `ServicioZonasApiTest::test_includes_tipo_vehiculo_sugerido` — respuesta incluye `tipo_vehiculo_sugerido` del servicio
-- `ServicioZonasApiTest::test_each_zona_includes_turnos_array` — zona con Domiciliario configurado → item incluye `turnos: ['Diurna','Nocturna']`; zona con Barrido (sin turnos) → `turnos: []`
-- `ServicioZonasApiTest::test_zona_not_assigned_to_service_not_returned` — zona que no tiene ese servicio en `zona_servicios` no aparece en la respuesta
+- `ServicioOrigenesApiTest::test_returns_active_origenes_for_servicio` — `GET /api/servicios/{id}/origenes` → array de orígenes activos del servicio
+- `ServicioOrigenesApiTest::test_returns_empty_array_when_no_origenes` — servicio sin orígenes asociados → array vacío
+- `ServicioOrigenesApiTest::test_inactive_origenes_not_returned` — origen inactivo del servicio no aparece en la respuesta
+- `ServicioOrigenesApiTest::test_includes_tipo_vehiculo_sugerido` — respuesta incluye `tipo_vehiculo_sugerido` del servicio
+- `ServicioOrigenesApiTest::test_each_origen_includes_turnos_array` — origen con Domiciliario configurado → item incluye `turnos: ['Diurna','Nocturna']`; origen con Barrido (sin turnos) → `turnos: []`
+- `ServicioOrigenesApiTest::test_origen_not_assigned_to_service_not_returned` — origen que no tiene ese servicio en `origen_servicios` no aparece en la respuesta
 
 ### Tests manuales
 - [ ] `GET /api/vehiculos/buscar?q=ABC` en Postman/browser → respuesta JSON con datos correctos
 - [ ] Buscar vehículo inactivo por patente → no aparece en la respuesta
-- [ ] `GET /api/servicios/1/zonas` → respuesta JSON con array de zonas activas del servicio y tipo de vehículo sugerido
+- [ ] `GET /api/servicios/1/origenes` → respuesta JSON con array de orígenes activos del servicio y tipo de vehículo sugerido
 
 ---
 
@@ -56,10 +56,10 @@ Pantalla principal del operador: flujo completo de pesaje en menos de 10 segundo
 ### Tareas
 - [ ] Vista `operador/pesaje`: 3 pasos secuenciales con Alpine.js
 - [ ] **Paso 1 — Vehículo:** input libre, popper de autocompletado (hasta 6 resultados), Enter selecciona el primero, badges de solo lectura (Tara · Tipo · Titular · Interno) aparecen al seleccionar
-- [ ] **Paso 2 — Tipo de servicio:** select nativo → al elegir servicio, carga vía API las zonas activas con sus turnos; popula select de zona; al elegir zona, si esa zona+servicio tiene turnos configurados, aparece el select de turno obligatorio; badge de tipo de vehículo habitual; warning naranja si tipo del vehículo ≠ sugerido (no bloquea)
+- [ ] **Paso 2 — Tipo de servicio:** select nativo → al elegir servicio, carga vía API los orígenes activos con sus turnos; popula select de origen; al elegir origen, si ese origen+servicio tiene turnos configurados, aparece el select de turno obligatorio; badge de tipo de vehículo habitual; warning naranja si tipo del vehículo ≠ sugerido (no bloquea)
 - [ ] **Paso 3 — Peso bruto:** input numérico estilo display, Tara y Neto estimado actualizados en tiempo real; borde verde si en rango / naranja si fuera de rango; hint con rango siempre visible
 - [ ] Campo `observaciones` editable (autocompleta desde padrón del vehículo)
-- [ ] Summary card (verde cuando el form está completo): vehículo, servicio, zona, tipo, bruto, tara, neto, operador
+- [ ] Summary card (verde cuando el form está completo): vehículo, servicio, origen, tipo, bruto, tara, neto, operador
 - [ ] Barra sticky inferior: `Limpiar (Esc)` · hint contextual · `GUARDAR PESAJE (Ctrl+S)`
 - [ ] Chips de atajos visibles en pantalla: `↵` · `Ctrl+S` · `Esc`
 - [ ] Overlay de éxito (1,1 s): check animado, "Pesaje guardado", auto-dismiss → foco regresa al input de vehículo
@@ -84,9 +84,9 @@ Cubiertos por `PesajeServiceTest` del sub-sprint anterior.
 ### Tests manuales
 - [ ] Flujo completo: buscar vehículo → Enter → elegir servicio → ingresar peso → Ctrl+S → overlay de éxito → formulario limpio. Tiempo total < 10 segundos
 - [ ] Seleccionar vehículo → badges de Tara, Tipo, Titular y N° interno se completan automáticamente
-- [ ] Cambiar tipo de servicio → select de zona se repopula con las zonas activas de ese servicio
-- [ ] Elegir Domiciliario → zonas con turnos configurados; al elegir una zona → aparece select de turno (Diurna / Nocturna); el botón Guardar queda deshabilitado hasta elegir turno
-- [ ] Elegir Barrido → zonas sin turnos configurados; al elegir zona → no aparece select de turno; avanza directo al peso
+- [ ] Cambiar tipo de servicio → select de origen se repopula con los orígenes activos de ese servicio
+- [ ] Elegir Domiciliario → orígenes con turnos configurados; al elegir un origen → aparece select de turno (Diurna / Nocturna); el botón Guardar queda deshabilitado hasta elegir turno
+- [ ] Elegir Barrido → orígenes sin turnos configurados; al elegir origen → no aparece select de turno; avanza directo al peso
 - [ ] Peso dentro del rango → borde verde, sin aviso
 - [ ] Peso fuera del rango → borde naranja, aviso naranja con rango esperado
 - [ ] Aviso naranja no impide guardar (el botón sigue habilitado)
@@ -101,7 +101,7 @@ Cubiertos por `PesajeServiceTest` del sub-sprint anterior.
 
 ### Tareas
 - [ ] Vista `operador/historial`: KPIs del turno en el header (pesajes, toneladas netas, promedio, camiones en predio)
-- [ ] Tabla del turno: entrada · salida · estado (pill) · patente · servicio · zona · bruto · tara · neto; pill "Editado" en filas modificadas
+- [ ] Tabla del turno: entrada · salida · estado (pill) · patente · servicio · origen · bruto · tara · neto; pill "Editado" en filas modificadas
 - [ ] Empty state: "Sin pesajes en este turno todavía."
 - [ ] Acción **Marcar egreso** (solo en filas `En predio`): modal con hora actual + `bruto_salida_kg` opcional → estado `Cerrado`
 - [ ] Acción **Editar** (propios del turno, solo `En predio` o `Cerrado` del día): modal con campos editables + `motivo` obligatorio → crea entradas en `pesajes_log`

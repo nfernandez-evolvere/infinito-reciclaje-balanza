@@ -69,54 +69,54 @@ Los 5 ABMs 100% funcionales con baja lógica. Checklist de configuración inicia
 
 ---
 
-## Sub-sprint 2.3 — Zonas
+## Sub-sprint 2.3 — Orígenes
 
 ### Tareas
-- [ ] Migración `create_zonas_table`: `id`, `nombre`, `hectareas` (decimal, nullable), `barrios` (int, nullable), `habitantes` (int, nullable), `activo`, timestamps — sin `tipo_servicio_id`
-- [ ] Migración `create_zona_servicios_table`: PK compuesta `(zona_id, tipo_servicio_id)`, FKs con CASCADE, timestamps — sin campos de horario
-- [ ] Migración `create_zona_servicio_turnos_table`: PK triple `(zona_id, tipo_servicio_id, turno)`, FK compuesta → `zona_servicios`, CHECK IN ('Diurna','Nocturna')
-- [ ] Migración `create_zona_servicio_horarios_table`: PK cuádruple `(zona_id, tipo_servicio_id, dia_semana, franja)`, FK compuesta → `zona_servicios`, `dia_semana tinyint` CHECK IN (1–7), `franja tinyint` CHECK > 0, `hora_inicio time`, `hora_fin time`
-- [ ] `ZonaRepository`, `ZonaService`: incluye `getServicios(zonaId)`, `syncServicio(zonaId, servicioId, turnos[], horariosPorDia[])`
-- [ ] `ZonaController` (resource)
-- [ ] Form Requests: `StoreZonaRequest`, `UpdateZonaRequest`
+- [ ] Migración `create_origenes_table`: `id`, `nombre`, `hectareas` (decimal, nullable), `barrios` (int, nullable), `habitantes` (int, nullable), `activo`, timestamps — sin `tipo_servicio_id`
+- [ ] Migración `create_origen_servicios_table`: PK compuesta `(origen_id, tipo_servicio_id)`, FKs con CASCADE, timestamps — sin campos de horario
+- [ ] Migración `create_origen_servicio_turnos_table`: PK triple `(origen_id, tipo_servicio_id, turno)`, FK compuesta → `origen_servicios`, CHECK IN ('Diurna','Nocturna')
+- [ ] Migración `create_origen_servicio_horarios_table`: PK cuádruple `(origen_id, tipo_servicio_id, dia_semana, franja)`, FK compuesta → `origen_servicios`, `dia_semana tinyint` CHECK IN (1–7), `franja tinyint` CHECK > 0, `hora_inicio time`, `hora_fin time`
+- [ ] `OrigenRepository`, `OrigenService`: incluye `getServicios(origenId)`, `syncServicio(origenId, servicioId, turnos[], horariosPorDia[])`
+- [ ] `OrigenController` (resource)
+- [ ] Form Requests: `StoreOrigenRequest`, `UpdateOrigenRequest`
 - [ ] Vista index: tabla con nombre, lista de servicios asignados (pills), hectáreas, estado
-- [ ] Modal crear zona: solo nombre + datos demográficos
-- [ ] Sub-sección "Servicios asignados" en la vista de detalle/edición de zona: tabla con servicio, horario, turnos; botón agregar asignación; acción quitar asignación
-- [ ] Seeder zonas: Zona Norte, Zona Sur, Zona Centro, Zona Oeste
-- [ ] Seeder zona_servicios + zona_servicio_turnos: asignaciones iniciales según configuración real
+- [ ] Modal crear origen: solo nombre + datos demográficos
+- [ ] Sub-sección "Servicios asignados" en la vista de detalle/edición de origen: tabla con servicio, horario, turnos; botón agregar asignación; acción quitar asignación
+- [ ] Seeder orígenes: Origen Norte, Origen Sur, Origen Centro, Origen Oeste
+- [ ] Seeder origen_servicios + origen_servicio_turnos: asignaciones iniciales según configuración real
 
 ### Tests unitarios
-- `ZonaServiceTest::test_create_zona_with_all_fields`
-- `ZonaServiceTest::test_create_zona_with_only_required_fields` — campos demográficos nullable
-- `ZonaServiceTest::test_deactivate_sets_activo_false`
-- `ZonaServiceTest::test_sync_servicio_creates_zona_servicio_and_turnos`
-- `ZonaServiceTest::test_sync_servicio_without_turnos_leaves_turnos_empty`
-- `ZonaServiceTest::test_remove_servicio_cascades_turnos`
-- `ZonaServiceTest::test_sync_servicio_creates_horarios_por_dia` — `syncServicio` con 2 franjas el lunes y 1 el martes → 3 filas en `zona_servicio_horarios`
-- `ZonaServiceTest::test_franja_that_crosses_midnight_is_valid` — `hora_fin` < `hora_inicio` es aceptado (ej: 20:00–02:00)
-- `ZonaServiceTest::test_sync_servicio_without_horarios_leaves_horarios_empty`
+- `OrigenServiceTest::test_create_origen_with_all_fields`
+- `OrigenServiceTest::test_create_origen_with_only_required_fields` — campos demográficos nullable
+- `OrigenServiceTest::test_deactivate_sets_activo_false`
+- `OrigenServiceTest::test_sync_servicio_creates_origen_servicio_and_turnos`
+- `OrigenServiceTest::test_sync_servicio_without_turnos_leaves_turnos_empty`
+- `OrigenServiceTest::test_remove_servicio_cascades_turnos`
+- `OrigenServiceTest::test_sync_servicio_creates_horarios_por_dia` — `syncServicio` con 2 franjas el lunes y 1 el martes → 3 filas en `origen_servicio_horarios`
+- `OrigenServiceTest::test_franja_that_crosses_midnight_is_valid` — `hora_fin` < `hora_inicio` es aceptado (ej: 20:00–02:00)
+- `OrigenServiceTest::test_sync_servicio_without_horarios_leaves_horarios_empty`
 
 ### Tests de integración
-- `ZonaTest::test_admin_can_create_zona`
-- `ZonaTest::test_zona_with_zero_hectareas_is_valid`
-- `ZonaTest::test_admin_can_assign_servicio_with_turnos` — `POST /admin/zonas/{id}/servicios` con servicio + turnos → filas en `zona_servicios` y `zona_servicio_turnos`
-- `ZonaTest::test_admin_can_assign_servicio_without_turnos` — sin turnos → fila en `zona_servicios`, sin filas en `zona_servicio_turnos`
-- `ZonaTest::test_turno_rejects_invalid_value` — turno = 'Mañana' → HTTP 422
-- `ZonaTest::test_admin_can_assign_horarios_multiple_franjas` — payload con 3 franjas el lunes → 3 filas en `zona_servicio_horarios`
-- `ZonaTest::test_horario_dia_semana_rejects_invalid_value` — `dia_semana = 8` → HTTP 422
-- `ZonaTest::test_horario_franja_must_be_positive` — `franja = 0` → HTTP 422
-- `ZonaTest::test_admin_can_remove_servicio_assignment`
-- `ZonaTest::test_admin_can_deactivate_zona`
-- `ZonaTest::test_operador_cannot_access`
+- `OrigenTest::test_admin_can_create_origen`
+- `OrigenTest::test_origen_with_zero_hectareas_is_valid`
+- `OrigenTest::test_admin_can_assign_servicio_with_turnos` — `POST /admin/origenes/{id}/servicios` con servicio + turnos → filas en `origen_servicios` y `origen_servicio_turnos`
+- `OrigenTest::test_admin_can_assign_servicio_without_turnos` — sin turnos → fila en `origen_servicios`, sin filas en `origen_servicio_turnos`
+- `OrigenTest::test_turno_rejects_invalid_value` — turno = 'Mañana' → HTTP 422
+- `OrigenTest::test_admin_can_assign_horarios_multiple_franjas` — payload con 3 franjas el lunes → 3 filas en `origen_servicio_horarios`
+- `OrigenTest::test_horario_dia_semana_rejects_invalid_value` — `dia_semana = 8` → HTTP 422
+- `OrigenTest::test_horario_franja_must_be_positive` — `franja = 0` → HTTP 422
+- `OrigenTest::test_admin_can_remove_servicio_assignment`
+- `OrigenTest::test_admin_can_deactivate_origen`
+- `OrigenTest::test_operador_cannot_access`
 
 ### Tests manuales
-- [ ] Crear zona sin hectáreas ni habitantes → se guarda, celdas vacías en tabla
-- [ ] Asignar servicio "Domiciliario" a una zona con turnos Diurna + Nocturna → aparecen dos pills de turno en la sub-tabla
+- [ ] Crear origen sin hectáreas ni habitantes → se guarda, celdas vacías en tabla
+- [ ] Asignar servicio "Domiciliario" a un origen con turnos Diurna + Nocturna → aparecen dos pills de turno en la sub-tabla
 - [ ] Asignar servicio con 2 franjas el lunes y 1 el martes → se visualizan correctamente en la sub-tabla de horarios
 - [ ] Franja con hora_fin < hora_inicio (cruza medianoche) se guarda sin error
-- [ ] Asignar servicio "Barrido" a una zona sin turnos ni horarios → fila sin pills de turno, horario "—"
-- [ ] Quitar asignación de servicio → desaparece de la sub-tabla; en el formulario de pesaje esa zona ya no aparece para ese servicio
-- [ ] Desactivar zona → no aparece en el formulario de pesaje
+- [ ] Asignar servicio "Barrido" a un origen sin turnos ni horarios → fila sin pills de turno, horario "—"
+- [ ] Quitar asignación de servicio → desaparece de la sub-tabla; en el formulario de pesaje ese origen ya no aparece para ese servicio
+- [ ] Desactivar origen → no aparece en el formulario de pesaje
 
 ---
 
