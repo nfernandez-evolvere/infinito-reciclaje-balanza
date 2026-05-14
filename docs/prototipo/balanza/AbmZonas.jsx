@@ -2,17 +2,15 @@
 const { useState } = React;
 
 const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
-const TURNOS_OPCIONES = ["Diurna", "Nocturna"];
+const DIAS_CORTO = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
 const initHorarios = () => DIAS.map(() => []);
 
-function HorarioEditor({ horariosPorDia, onChange }) {
-  const addFranja = (diaIdx) => {
-    const next = horariosPorDia.map((f, i) => i === diaIdx ? [...f, { inicio: "", fin: "" }] : f);
-    onChange(next);
-  };
-  const removeFranja = (diaIdx, franjaIdx) => {
-    const next = horariosPorDia.map((f, i) => i === diaIdx ? f.filter((_, j) => j !== franjaIdx) : f);
+function HorarioEditorCompact({ horariosPorDia, onChange }) {
+  const toggleDia = (i) => {
+    const next = horariosPorDia.map((f, idx) =>
+      idx === i ? (f.length === 0 ? [{ inicio: "", fin: "" }] : []) : f
+    );
     onChange(next);
   };
   const updateFranja = (diaIdx, franjaIdx, field, value) => {
@@ -21,53 +19,75 @@ function HorarioEditor({ horariosPorDia, onChange }) {
     );
     onChange(next);
   };
+  const addFranja = (diaIdx) => {
+    const next = horariosPorDia.map((f, i) => i === diaIdx ? [...f, { inicio: "", fin: "" }] : f);
+    onChange(next);
+  };
+  const removeFranja = (diaIdx, franjaIdx) => {
+    const next = horariosPorDia.map((f, i) =>
+      i === diaIdx ? f.filter((_, j) => j !== franjaIdx) : f
+    );
+    onChange(next);
+  };
+
+  const activeDias = horariosPorDia.filter((f) => f.length > 0);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      {DIAS.map((diaNombre, diaIdx) => (
-        <div key={diaIdx} style={{
-          border: "1px solid var(--border)",
-          borderRadius: 8,
-          padding: "8px 12px",
-          background: "var(--surface-50, var(--card))",
-        }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: horariosPorDia[diaIdx].length > 0 ? 8 : 0 }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-700)" }}>{diaNombre}</span>
-            <button
-              className="btn btn-sm"
-              style={{ fontSize: 11, padding: "2px 8px", height: 22, display: "flex", alignItems: "center", gap: 3, background: "transparent", border: "1px dashed var(--primary)", color: "var(--primary)", borderRadius: 5, cursor: "pointer", fontWeight: 500 }}
-              onClick={() => addFranja(diaIdx)}
-            >
-              <Icon name="plus" size={11} /> Agregar otra franja
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {/* Selector de días */}
+      <div style={{ display: "flex", gap: 5 }}>
+        {DIAS_CORTO.map((d, i) => {
+          const active = horariosPorDia[i].length > 0;
+          return (
+            <button key={i} type="button" onClick={() => toggleDia(i)}
+              style={{
+                padding: "4px 9px", fontSize: 12, fontWeight: 600, borderRadius: 6, cursor: "pointer",
+                border: "1px solid " + (active ? "var(--primary)" : "var(--border)"),
+                background: active ? "var(--primary)" : "transparent",
+                color: active ? "white" : "var(--ink-500)",
+                transition: "all 120ms",
+              }}>
+              {d}
             </button>
+          );
+        })}
+      </div>
+
+      {/* Filas de horario para días activos */}
+      {activeDias.length === 0 && (
+        <p style={{ fontSize: 13, color: "var(--ink-400)", margin: 0 }}>Seleccioná los días de operación.</p>
+      )}
+      {DIAS.map((diaNombre, diaIdx) => {
+        const franjas = horariosPorDia[diaIdx];
+        if (franjas.length === 0) return null;
+        return (
+          <div key={diaIdx} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink-600)" }}>{diaNombre}</span>
+            {franjas.map((fr, franjaIdx) => (
+              <div key={franjaIdx} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <input className="input" type="time" value={fr.inicio}
+                  onChange={(e) => updateFranja(diaIdx, franjaIdx, "inicio", e.target.value)}
+                  style={{ width: 88, fontSize: 13 }} />
+                <span style={{ color: "var(--ink-400)", fontSize: 13 }}>–</span>
+                <input className="input" type="time" value={fr.fin}
+                  onChange={(e) => updateFranja(diaIdx, franjaIdx, "fin", e.target.value)}
+                  style={{ width: 88, fontSize: 13 }} />
+                {franjaIdx === 0
+                  ? <button type="button" className="btn btn-ghost btn-sm"
+                      style={{ fontSize: 12, color: "var(--primary)" }}
+                      onClick={() => addFranja(diaIdx)}>
+                      <Icon name="plus" size={12} /> franja
+                    </button>
+                  : <button type="button" className="btn btn-ghost btn-sm"
+                      onClick={() => removeFranja(diaIdx, franjaIdx)} title="Quitar">
+                      <Icon name="x" size={12} />
+                    </button>
+                }
+              </div>
+            ))}
           </div>
-          {horariosPorDia[diaIdx].length > 0 && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              {horariosPorDia[diaIdx].map((fr, franjaIdx) => (
-                <div key={franjaIdx} style={{ display: "flex", alignItems: "center", gap: 4, width: "fit-content", background: "var(--background)", border: "1px solid var(--border)", borderRadius: 6, padding: "3px 8px" }}>
-                  <input
-                    className="input" type="time"
-                    style={{ width: 84, padding: "1px 4px", fontSize: 12, height: 24 }}
-                    value={fr.inicio}
-                    onChange={(e) => updateFranja(diaIdx, franjaIdx, "inicio", e.target.value)}
-                  />
-                  <span style={{ fontSize: 12, color: "var(--ink-400)" }}>–</span>
-                  <input
-                    className="input" type="time"
-                    style={{ width: 84, padding: "1px 4px", fontSize: 12, height: 24 }}
-                    value={fr.fin}
-                    onChange={(e) => updateFranja(diaIdx, franjaIdx, "fin", e.target.value)}
-                  />
-                  <button className="btn btn-ghost btn-sm" style={{ padding: "0 3px", height: 22, marginLeft: 2 }}
-                    onClick={() => removeFranja(diaIdx, franjaIdx)} title="Quitar franja">
-                    <Icon name="x" size={11} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -92,12 +112,38 @@ function AbmZonas() {
   const [editZona, setEditZona] = useState(null);             // zona object being edited
   const [editDraft, setEditDraft] = useState(null);
   const [asignModalOpen, setAsignModalOpen] = useState(false);
-  const [horariosFor, setHorariosFor] = useState(null);       // { zonaNombre, servicioNombre, horarios }
-  const [confirmQuitar, setConfirmQuitar] = useState(null);   // { zonaId, zonaNombre, servicioNombre }
-  const [confirmToggle, setConfirmToggle] = useState(null);   // zona object
+  const [editAsign, setEditAsign] = useState(null);            // asignacion existente en edición
+  const [horariosFor, setHorariosFor] = useState(null);
+  const [confirmQuitar, setConfirmQuitar] = useState(null);
+  const [confirmToggle, setConfirmToggle] = useState(null);
   const [selectedZona, setSelectedZona] = useState(null);
   const [draft, setDraft] = useState({ nombre: "", hectareas: "", barrios: "", estado: "Activo" });
-  const [asignDraft, setAsignDraft] = useState({ servicioNombre: "", turnos: [], horariosPorDia: initHorarios() });
+  const [asignDraft, setAsignDraft] = useState({ servicioNombre: "", turnosEnabled: false, turnos: [], horariosPorDia: initHorarios() });
+
+  const reconstructHorarios = (horarios) => {
+    const h = initHorarios();
+    (horarios || []).forEach(({ dia, franjas }) => { h[dia - 1] = franjas; });
+    return h;
+  };
+
+  const openNuevaAsign = (zona) => {
+    setEditAsign(null);
+    setSelectedZona(zona);
+    setAsignDraft({ servicioNombre: "", turnosEnabled: false, turnos: [], horariosPorDia: initHorarios() });
+    setAsignModalOpen(true);
+  };
+
+  const openEditAsign = (zona, asign) => {
+    setEditAsign(asign);
+    setSelectedZona(zona);
+    setAsignDraft({
+      servicioNombre: asign.servicioNombre,
+      turnosEnabled: asign.turnos.length > 0,
+      turnos: asign.turnos,
+      horariosPorDia: reconstructHorarios(asign.horarios),
+    });
+    setAsignModalOpen(true);
+  };
 
   const openEdit = (z) => {
     setEditZona(z);
@@ -131,13 +177,22 @@ function AbmZonas() {
 
   const submitAsign = () => {
     if (!asignDraft.servicioNombre || !selectedZona) return;
-    const exists = asignaciones.find((a) => a.zonaId === selectedZona.id && a.servicioNombre === asignDraft.servicioNombre);
-    if (exists) return;
     const horarios = asignDraft.horariosPorDia
       .map((franjas, i) => ({ dia: i + 1, diaNombre: DIAS[i], franjas: franjas.filter((f) => f.inicio && f.fin) }))
       .filter((h) => h.franjas.length > 0);
-    setAsignaciones((as) => [...as, { zonaId: selectedZona.id, servicioNombre: asignDraft.servicioNombre, turnos: asignDraft.turnos, horarios }]);
-    setAsignDraft({ servicioNombre: "", turnos: [], horariosPorDia: initHorarios() });
+    const turnos = asignDraft.turnosEnabled ? asignDraft.turnos : [];
+    const updated = { zonaId: selectedZona.id, servicioNombre: asignDraft.servicioNombre, turnos, horarios };
+    if (editAsign) {
+      setAsignaciones((as) => as.map((a) =>
+        a.zonaId === selectedZona.id && a.servicioNombre === editAsign.servicioNombre ? updated : a
+      ));
+    } else {
+      const exists = asignaciones.find((a) => a.zonaId === selectedZona.id && a.servicioNombre === asignDraft.servicioNombre);
+      if (exists) return;
+      setAsignaciones((as) => [...as, updated]);
+    }
+    setEditAsign(null);
+    setAsignDraft({ servicioNombre: "", turnosEnabled: false, turnos: [], horariosPorDia: initHorarios() });
     setAsignModalOpen(false);
   };
 
@@ -192,7 +247,7 @@ function AbmZonas() {
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
                   <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink-500)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Servicios asignados</span>
                   <button className="btn btn-ghost btn-sm" style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}
-                    onClick={() => { setSelectedZona(z); setAsignModalOpen(true); }}>
+                    onClick={() => openNuevaAsign(z)}>
                     <Icon name="plus" size={12} /> Agregar
                   </button>
                 </div>
@@ -223,6 +278,10 @@ function AbmZonas() {
                                   onClick={() => setHorariosFor({ zonaNombre: z.nombre, servicioNombre: a.servicioNombre, horarios: a.horarios })}
                                   style={{ opacity: a.horarios && a.horarios.length > 0 ? 1 : 0.35 }}>
                                   <Icon name="clock" size={13} /> Horarios
+                                </button>
+                                <button className="btn btn-ghost btn-sm" title="Editar asignación"
+                                  onClick={() => openEditAsign(z, a)}>
+                                  <Icon name="pencil" size={13} /> Editar
                                 </button>
                                 <button className="btn btn-ghost btn-sm" title="Quitar servicio"
                                   onClick={() => setConfirmQuitar({ zonaId: z.id, zonaNombre: z.nombre, servicioNombre: a.servicioNombre })}>
@@ -277,39 +336,75 @@ function AbmZonas() {
 
       {/* Modal asignar servicio */}
       {asignModalOpen && selectedZona && (
-        <Modal title={`Asignar servicio — ${selectedZona.nombre}`} onClose={() => setAsignModalOpen(false)}
+        <Modal
+          title={editAsign ? `Editar servicio — ${editAsign.servicioNombre}` : `Asignar servicio — ${selectedZona.nombre}`}
+          onClose={() => { setAsignModalOpen(false); setEditAsign(null); }}
           footer={<>
-            <Button kind="secondary" onClick={() => setAsignModalOpen(false)}>Cancelar</Button>
-            <Button kind="primary" onClick={submitAsign} icon="save">Guardar</Button>
+            <Button kind="secondary" onClick={() => { setAsignModalOpen(false); setEditAsign(null); }}>Cancelar</Button>
+            <Button kind="primary" onClick={submitAsign} icon="save" disabled={!asignDraft.servicioNombre}>Guardar</Button>
           </>}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             <Field label="Tipo de servicio">
-              <select className="select" value={asignDraft.servicioNombre} onChange={(e) => setAsignDraft({ ...asignDraft, servicioNombre: e.target.value })}>
-                <option value="">Seleccionar…</option>
-                {SERVICIOS.filter((s) => !asignaciones.find((a) => a.zonaId === selectedZona.id && a.servicioNombre === s))
-                  .map((s) => <option key={s}>{s}</option>)}
-              </select>
+              {editAsign
+                ? <div style={{ padding: "8px 12px", background: "var(--bg)", borderRadius: 6, fontSize: 14, fontWeight: 600, color: "var(--ink-700)", border: "1px solid var(--border)" }}>{editAsign.servicioNombre}</div>
+                : <select className="select" value={asignDraft.servicioNombre} onChange={(e) => setAsignDraft({ ...asignDraft, servicioNombre: e.target.value })}>
+                    <option value="">Seleccionar…</option>
+                    {SERVICIOS.filter((s) => !asignaciones.find((a) => a.zonaId === selectedZona.id && a.servicioNombre === s))
+                      .map((s) => <option key={s}>{s}</option>)}
+                  </select>
+              }
             </Field>
 
-            <Field label="Turnos disponibles"
-              hint="Dejá en blanco si este servicio en esta zona no requiere turno.">
-              <div style={{ display: "flex", gap: 12 }}>
-                {TURNOS_OPCIONES.map((t) => (
-                  <label key={t} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 14, cursor: "pointer" }}>
-                    <input type="checkbox" checked={asignDraft.turnos.includes(t)} onChange={() => toggleTurno(t)} />
-                    {t}
-                  </label>
-                ))}
-              </div>
-            </Field>
+            <div>
+              <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", userSelect: "none" }}>
+                <span style={{ position: "relative", display: "inline-block", width: 36, height: 20, flexShrink: 0 }}>
+                  <input type="checkbox" checked={asignDraft.turnosEnabled}
+                    onChange={(e) => setAsignDraft((d) => ({ ...d, turnosEnabled: e.target.checked, turnos: [] }))}
+                    style={{ opacity: 0, width: 0, height: 0, position: "absolute" }} />
+                  <span style={{
+                    position: "absolute", inset: 0, borderRadius: 999, transition: "background 200ms",
+                    background: asignDraft.turnosEnabled ? "var(--primary)" : "var(--ink-300)",
+                  }} />
+                  <span style={{
+                    position: "absolute", top: 3, left: asignDraft.turnosEnabled ? 19 : 3,
+                    width: 14, height: 14, borderRadius: 999, background: "white",
+                    boxShadow: "0 1px 3px rgba(0,0,0,.2)", transition: "left 200ms",
+                  }} />
+                </span>
+                <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-700)" }}>Opera con turnos</span>
+              </label>
 
-            <Field label="Horarios de recorrido"
-              hint="Optativo. Podés agregar varias franjas por día. Las franjas pueden cruzar medianoche (ej: 20:00–02:00).">
-              <HorarioEditor
+              {asignDraft.turnosEnabled && (
+                <div style={{ display: "flex", gap: 8, marginTop: 12, marginLeft: 46 }}>
+                  {["Diurna", "Nocturna"].map((t) => {
+                    const active = asignDraft.turnos.includes(t);
+                    return (
+                      <button key={t} type="button"
+                        onClick={() => toggleTurno(t)}
+                        style={{
+                          padding: "5px 16px", fontSize: 13, borderRadius: 6, cursor: "pointer",
+                          border: "1px solid " + (active ? "var(--primary)" : "var(--border)"),
+                          background: active ? "var(--primary)" : "transparent",
+                          color: active ? "white" : "var(--ink-600)",
+                          fontWeight: active ? 600 : 400,
+                          transition: "all 120ms",
+                        }}>
+                        {t}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-700)", marginBottom: 2 }}>Horarios de recorrido</div>
+              <div style={{ fontSize: 12, color: "var(--ink-400)", marginBottom: 10 }}>Optativo. Seleccioná los días y cargá las franjas horarias.</div>
+              <HorarioEditorCompact
                 horariosPorDia={asignDraft.horariosPorDia}
                 onChange={(next) => setAsignDraft((d) => ({ ...d, horariosPorDia: next }))}
               />
-            </Field>
+            </div>
           </div>
         </Modal>
       )}
