@@ -92,7 +92,7 @@ IX   activo     -- autocomplete y selects del ABM
 
 ### `tipos_servicio`
 
-Tipos de recolección disponibles. Cada servicio tiene un tipo de vehículo sugerido. La relación con orígenes y turnos se modela en `origen_servicios` y `origen_servicio_turnos` (relación N:M).
+Tipos de recolección disponibles. Cada servicio tiene un tipo de vehículo sugerido. La relación con orígenes y turnos se modela en `zona_servicios` y `zona_servicio_turnos` (relación N:M).
 
 | Columna | Tipo | Nullable | Default | Constraints | Descripción |
 |---------|------|----------|---------|-------------|-------------|
@@ -114,14 +114,14 @@ IX   activo
 IX   tipo_vehiculo_sugerido_id   -- JOIN al recuperar la sugerencia en el formulario
 ```
 
-**Decisión — relación N:M vía `origen_servicios`:**
-Un origen puede operar bajo varios servicios y un servicio puede operar en varios orígenes. La asociación se modela en `origen_servicios`. Al registrar un pesaje, el formulario filtra los orígenes disponibles según el servicio elegido — el operador selecciona el origen de la lista filtrada. Los turnos aplicables se determinan por la combinación origen+servicio en `origen_servicio_turnos`.
+**Decisión — relación N:M vía `zona_servicios`:**
+Un origen puede operar bajo varios servicios y un servicio puede operar en varios orígenes. La asociación se modela en `zona_servicios`. Al registrar un pesaje, el formulario filtra los orígenes disponibles según el servicio elegido — el operador selecciona el origen de la lista filtrada. Los turnos aplicables se determinan por la combinación origen+servicio en `zona_servicio_turnos`.
 
 ---
 
-### `origenes`
+### `zonas`
 
-Entidad geográfica pura. No tiene relación directa con tipos de servicio — la asociación se modela en `origen_servicios`. Un origen puede estar asociado a varios servicios con distintas configuraciones de turno.
+Entidad geográfica pura. No tiene relación directa con tipos de servicio — la asociación se modela en `zona_servicios`. Un origen puede estar asociado a varios servicios con distintas configuraciones de turno.
 
 | Columna | Tipo | Nullable | Default | Constraints | Descripción |
 |---------|------|----------|---------|-------------|-------------|
@@ -148,50 +148,50 @@ El servicio de reportes debe distinguir ambos casos: NULL produce `null` en el r
 
 ---
 
-### `origen_servicios`
+### `zona_servicios`
 
-Tabla junction entre orígenes y tipos de servicio. Define qué servicios operan en cada origen. Si no existe fila para una combinación origen+servicio, ese origen no aparece como opción cuando el operador elige ese servicio. Los horarios detallados por día y franja se modelan en `origen_servicio_horarios`.
+Tabla junction entre orígenes y tipos de servicio. Define qué servicios operan en cada origen. Si no existe fila para una combinación origen+servicio, ese origen no aparece como opción cuando el operador elige ese servicio. Los horarios detallados por día y franja se modelan en `zona_servicio_horarios`.
 
 | Columna | Tipo | Nullable | Default | Constraints | Descripción |
 |---------|------|----------|---------|-------------|-------------|
-| `origen_id` | `bigint` | NO | — | PK compuesta, FK → `origenes.id` | — |
+| `zona_id` | `bigint` | NO | — | PK compuesta, FK → `zonas.id` | — |
 | `tipo_servicio_id` | `bigint` | NO | — | PK compuesta, FK → `tipos_servicio.id` | — |
 | `created_at` | `datetime2(0)` | SÍ | NULL | — | — |
 | `updated_at` | `datetime2(0)` | SÍ | NULL | — | — |
 
-**PK compuesta:** `(origen_id, tipo_servicio_id)` — un origen puede tener el mismo servicio una sola vez.
+**PK compuesta:** `(zona_id, tipo_servicio_id)` — un origen puede tener el mismo servicio una sola vez.
 
 **FK behavior:**
-- `origen_id`: `ON DELETE CASCADE` — al desactivar/eliminar un origen, se eliminan sus asignaciones de servicio.
+- `zona_id`: `ON DELETE CASCADE` — al desactivar/eliminar un origen, se eliminan sus asignaciones de servicio.
 - `tipo_servicio_id`: `ON DELETE CASCADE` — al eliminar un tipo de servicio, se eliminan sus asignaciones de origen.
 
 **Índices:**
 ```sql
-PK   (origen_id, tipo_servicio_id)
+PK   (zona_id, tipo_servicio_id)
 IX   tipo_servicio_id    -- filtrado en Balanza: dado un servicio, ¿qué orígenes lo tienen?
      WHERE origen activo = 1   -- (join con origenes; filtered index en la tabla origenes)
 ```
 
 ---
 
-### `origen_servicio_turnos`
+### `zona_servicio_turnos`
 
 Turnos disponibles para una combinación específica origen+servicio. Si no hay filas, el formulario de pesaje no muestra el campo turno para esa combinación. Si hay filas, el operador debe seleccionar uno obligatoriamente.
 
 | Columna | Tipo | Nullable | Default | Constraints | Descripción |
 |---------|------|----------|---------|-------------|-------------|
-| `origen_id` | `bigint` | NO | — | PK compuesta, FK → `origen_servicios` | — |
-| `tipo_servicio_id` | `bigint` | NO | — | PK compuesta, FK → `origen_servicios` | — |
+| `zona_id` | `bigint` | NO | — | PK compuesta, FK → `zona_servicios` | — |
+| `tipo_servicio_id` | `bigint` | NO | — | PK compuesta, FK → `zona_servicios` | — |
 | `turno` | `nvarchar(10)` | NO | — | PK compuesta, CHECK IN (`'Diurna'`, `'Nocturna'`) | — |
 
-**PK compuesta:** `(origen_id, tipo_servicio_id, turno)`.
+**PK compuesta:** `(zona_id, tipo_servicio_id, turno)`.
 
 **FK behavior:**
-- `(origen_id, tipo_servicio_id)`: FK compuesta → `origen_servicios(origen_id, tipo_servicio_id)` `ON DELETE CASCADE`.
+- `(zona_id, tipo_servicio_id)`: FK compuesta → `zona_servicios(zona_id, tipo_servicio_id)` `ON DELETE CASCADE`.
 
 **Índices:**
 ```sql
-PK   (origen_id, tipo_servicio_id, turno)   -- lookup directo: ¿qué turnos tiene este origen+servicio?
+PK   (zona_id, tipo_servicio_id, turno)   -- lookup directo: ¿qué turnos tiene este origen+servicio?
 ```
 
 **Datos iniciales (seeder):**
@@ -205,28 +205,28 @@ PK   (origen_id, tipo_servicio_id, turno)   -- lookup directo: ¿qué turnos tie
 
 ---
 
-### `origen_servicio_horarios`
+### `zona_servicio_horarios`
 
 Franjas horarias de recorrido por día de la semana para cada combinación origen+servicio. Una combinación puede tener múltiples franjas por día (ej: Lunes 08:00–12:00, 14:00–18:00 y 20:00–02:00). Las franjas son informativas — no bloquean el registro de pesajes fuera de horario.
 
 | Columna | Tipo | Nullable | Default | Constraints | Descripción |
 |---------|------|----------|---------|-------------|-------------|
-| `origen_id` | `bigint` | NO | — | PK cuádruple, FK → `origen_servicios` | — |
-| `tipo_servicio_id` | `bigint` | NO | — | PK cuádruple, FK → `origen_servicios` | — |
+| `zona_id` | `bigint` | NO | — | PK cuádruple, FK → `zona_servicios` | — |
+| `tipo_servicio_id` | `bigint` | NO | — | PK cuádruple, FK → `zona_servicios` | — |
 | `dia_semana` | `tinyint` | NO | — | PK cuádruple, CHECK IN (1,2,3,4,5,6,7) | 1=Lunes … 7=Domingo |
 | `franja` | `tinyint` | NO | — | PK cuádruple, CHECK > 0 | Orden de la franja dentro del día (1, 2, 3…) |
 | `hora_inicio` | `time(0)` | NO | — | — | — |
 | `hora_fin` | `time(0)` | NO | — | — | Puede ser menor que `hora_inicio` cuando la franja cruza medianoche (ej: 20:00–02:00). |
 
-**PK cuádruple:** `(origen_id, tipo_servicio_id, dia_semana, franja)`.
+**PK cuádruple:** `(zona_id, tipo_servicio_id, dia_semana, franja)`.
 
 **FK behavior:**
-- `(origen_id, tipo_servicio_id)`: FK compuesta → `origen_servicios(origen_id, tipo_servicio_id)` `ON DELETE CASCADE`.
+- `(zona_id, tipo_servicio_id)`: FK compuesta → `zona_servicios(zona_id, tipo_servicio_id)` `ON DELETE CASCADE`.
 
 **Índices:**
 ```sql
-PK   (origen_id, tipo_servicio_id, dia_semana, franja)
-IX   (origen_id, tipo_servicio_id, dia_semana)   -- listado rápido de franjas del día
+PK   (zona_id, tipo_servicio_id, dia_semana, franja)
+IX   (zona_id, tipo_servicio_id, dia_semana)   -- listado rápido de franjas del día
 ```
 
 ---
@@ -276,8 +276,8 @@ Tabla operacional central. Cada fila es un camión que entró al predio. Se escr
 | `vehiculo_id` | `bigint` | NO | — | FK → `vehiculos.id` | — |
 | `operador_id` | `bigint` | NO | — | FK → `users.id` | Usuario que registró el pesaje |
 | `tipo_servicio_id` | `bigint` | NO | — | FK → `tipos_servicio.id` | — |
-| `origen_id` | `bigint` | NO | — | FK → `origenes.id` | — |
-| `turno` | `nvarchar(10)` | SÍ | NULL | CHECK IN (`'Diurna'`, `'Nocturna'`) | NULL cuando la combinación origen+servicio no tiene turnos. Obligatorio (validado en app) cuando `origen_servicio_turnos` tiene filas para esa combinación. |
+| `zona_id` | `bigint` | NO | — | FK → `zonas.id` | — |
+| `turno` | `nvarchar(10)` | SÍ | NULL | CHECK IN (`'Diurna'`, `'Nocturna'`) | NULL cuando la combinación origen+servicio no tiene turnos. Obligatorio (validado en app) cuando `zona_servicio_turnos` tiene filas para esa combinación. |
 | `peso_bruto_kg` | `int` | NO | — | CHECK > 0 | Peso que muestra la balanza al ingreso |
 | `peso_tara_kg` | `int` | NO | — | CHECK > 0 | Copiado de `vehiculos.tara_kg` al crear. **No se recalcula si el padrón cambia.** |
 | `peso_neto_kg` | `int` | NO | — | — | Calculado en la capa de servicio: `peso_bruto_kg - peso_tara_kg`. Se actualiza si se edita `peso_bruto_kg`. |
@@ -312,16 +312,16 @@ IX_pesajes_operador_fecha
 -- Dashboard KPIs del día / camiones en predio
 IX_pesajes_fecha_estado
     (created_at DESC, estado)
-    INCLUDE (peso_neto_kg, origen_id, tipo_servicio_id, operador_id)
+    INCLUDE (peso_neto_kg, zona_id, tipo_servicio_id, operador_id)
 
 -- Reportes: agrupación por origen y por servicio en un rango de fechas
 IX_pesajes_origen_fecha
-    (origen_id, created_at DESC)
+    (zona_id, created_at DESC)
     INCLUDE (peso_neto_kg, tipo_servicio_id)
 
 IX_pesajes_servicio_fecha
     (tipo_servicio_id, created_at DESC)
-    INCLUDE (peso_neto_kg, origen_id)
+    INCLUDE (peso_neto_kg, zona_id)
 
 -- Historial de un vehículo
 IX_pesajes_vehiculo
@@ -338,7 +338,7 @@ IX_pesajes_alerta
 CREATE NONCLUSTERED INDEX IX_pesajes_kpis
 ON pesajes (created_at DESC)
 INCLUDE (peso_neto_kg, peso_bruto_kg, peso_tara_kg, estado,
-         origen_id, tipo_servicio_id, vehiculo_id, operador_id, alerta_peso)
+         zona_id, tipo_servicio_id, vehiculo_id, operador_id, alerta_peso)
 ```
 Este índice cubre la mayoría de las consultas de agregación sin necesidad de acceder al clustered index.
 
@@ -383,7 +383,7 @@ Alertas generadas automáticamente por el sistema. Persisten hasta ser marcadas 
 | `id` | `bigint` | NO | IDENTITY | PK | — |
 | `tipo` | `nvarchar(30)` | NO | — | CHECK IN (`'gap_pesajes'`, `'peso_inusual'`, `'frecuencia_atipica'`) | — |
 | `descripcion` | `nvarchar(500)` | NO | — | — | Mensaje legible. Ej: `'Sin pesajes en Origen Norte hace 90 minutos'` |
-| `origen_id` | `bigint` | SÍ | NULL | FK → `origenes.id` | Origen afectado (para `gap_pesajes` y `frecuencia_atipica`) |
+| `zona_id` | `bigint` | SÍ | NULL | FK → `zonas.id` | Origen afectado (para `gap_pesajes` y `frecuencia_atipica`) |
 | `vehiculo_id` | `bigint` | SÍ | NULL | FK → `vehiculos.id` | Vehículo que generó la alerta (para `peso_inusual`) |
 | `pesaje_id` | `bigint` | SÍ | NULL | FK → `pesajes.id` | Link directo al pesaje que disparó la alarma (`peso_inusual`) |
 | `resuelta` | `bit` | NO | `0` | — | — |
@@ -394,13 +394,13 @@ Alertas generadas automáticamente por el sistema. Persisten hasta ser marcadas 
 | `updated_at` | `datetime2(0)` | SÍ | NULL | — | — |
 
 **FK behavior:**
-- `origen_id`, `vehiculo_id`, `pesaje_id`: `ON DELETE SET NULL` — si se desactiva el recurso, la alarma histórica se conserva pero pierde el link.
+- `zona_id`, `vehiculo_id`, `pesaje_id`: `ON DELETE SET NULL` — si se desactiva el recurso, la alarma histórica se conserva pero pierde el link.
 - `resuelta_por`: `ON DELETE RESTRICT` — el admin que resolvió no se puede eliminar si tiene alarmas vinculadas.
 
 **Anti-duplicado:** El servicio de detección verifica antes de crear una alarma:
 ```sql
 SELECT 1 FROM alarmas
-WHERE tipo = ? AND origen_id = ? AND resuelta = 0
+WHERE tipo = ? AND zona_id = ? AND resuelta = 0
 ```
 Si ya existe una alarma activa del mismo tipo para el mismo origen, no crea una nueva.
 
@@ -408,7 +408,7 @@ Si ya existe una alarma activa del mismo tipo para el mismo origen, no crea una 
 ```sql
 PK   id
 IX   resuelta, tipo                             -- dashboard: COUNT alarmas activas por tipo
-IX   tipo, origen_id, resuelta                  -- anti-duplicado en detección
+IX   tipo, zona_id, resuelta                  -- anti-duplicado en detección
 IX   pesaje_id                                  -- link desde log de pesajes
 IX   created_at DESC                            -- historial ordenado
 ```
@@ -449,19 +449,22 @@ UQ   tipo      -- lookup directo por tipo (frecuente en detección)
 
 ## Diagrama de relaciones
 
-```
-users
-  │
-  ├──(operador_id)──────────────────────── pesajes ─┬──(vehiculo_id)────── vehiculos
-  │                                                   │                         │
-  ├──(usuario_id)──────────────────── pesajes_log     ├──(tipo_servicio_id)─ tipos_servicio ──(tipo_vehiculo_sugerido_id)── tipos_vehiculo
-  │                                                   │                         │                                               │
-  └──(resuelta_por)──────────────────── alarmas ──────├──(origen_id)──────── origenes                                          │
-                                             │         │                         │                                               │
-                                             ├─(origen_id)                 origen_servicios ──── origen_servicio_turnos          │
-                                             ├─(vehiculo_id)               tipos_vehiculo ◄──(tipo_vehiculo_id)─── vehiculos ───┘
-                                             └─(pesaje_id)
-```
+El DER completo con Mermaid está en [`der.md`](der.md).
+
+Resumen de relaciones:
+
+| Relación | Cardinalidad |
+|----------|-------------|
+| `users` → `pesajes` | 1:N — un operador registra muchos pesajes |
+| `users` → `pesajes_log` | 1:N — un usuario puede tener muchas entradas de log |
+| `vehiculos` → `pesajes` | 1:N — un vehículo tiene muchos pesajes históricos |
+| `tipos_vehiculo` → `vehiculos` | 1:N — un tipo tiene muchos vehículos |
+| `tipos_servicio` → `pesajes` | 1:N — un servicio aparece en muchos pesajes |
+| `zonas` ↔ `tipos_servicio` (vía `zona_servicios`) | N:M — una zona puede tener varios servicios; un servicio opera en varias zonas |
+| `zona_servicios` → `zona_servicio_turnos` | 1:0..N — una combinación zona+servicio tiene 0, 1 o 2 turnos disponibles |
+| `zonas` → `pesajes` | 1:N — una zona aparece en muchos pesajes |
+| `pesajes` → `pesajes_log` | 1:N — un pesaje puede tener muchas entradas de auditoría |
+| `pesajes` → `alarmas` | 1:0..1 — un pesaje puede tener a lo sumo una alarma `peso_inusual` |
 
 **Cardinalidades:**
 
@@ -472,9 +475,9 @@ users
 | `vehiculos` → `pesajes` | 1:N — un vehículo tiene muchos pesajes históricos |
 | `tipos_vehiculo` → `vehiculos` | 1:N — un tipo tiene muchos vehículos |
 | `tipos_servicio` → `pesajes` | 1:N — un servicio aparece en muchos pesajes |
-| `origenes` ↔ `tipos_servicio` (vía `origen_servicios`) | N:M — un origen puede tener varios servicios; un servicio opera en varios orígenes |
-| `origen_servicios` → `origen_servicio_turnos` | 1:N — una combinación origen+servicio tiene 0, 1 o 2 turnos disponibles |
-| `origenes` → `pesajes` | 1:N — un origen aparece en muchos pesajes |
+| `zonas` ↔ `tipos_servicio` (vía `zona_servicios`) | N:M — un origen puede tener varios servicios; un servicio opera en varios orígenes |
+| `zona_servicios` → `zona_servicio_turnos` | 1:N — una combinación origen+servicio tiene 0, 1 o 2 turnos disponibles |
+| `zonas` → `pesajes` | 1:N — un origen aparece en muchos pesajes |
 | `pesajes` → `pesajes_log` | 1:N — un pesaje puede tener muchas entradas de auditoría |
 | `pesajes` → `alarmas` | 1:0..1 — un pesaje puede tener a lo sumo una alarma `peso_inusual` |
 
@@ -505,7 +508,7 @@ SELECT p.*, v.patente, v.numero_interno, ts.nombre AS servicio, o.nombre AS orig
 FROM pesajes p
 JOIN vehiculos v ON v.id = p.vehiculo_id
 JOIN tipos_servicio ts ON ts.id = p.tipo_servicio_id
-JOIN origenes o ON o.id = p.origen_id
+JOIN zonas z ON z.id = p.zona_id
 WHERE p.estado = 'En predio'
 ORDER BY p.created_at DESC
 ```
@@ -534,7 +537,7 @@ SELECT
     SUM(p.peso_neto_kg) / 1000.0   AS toneladas,
     SUM(p.peso_neto_kg) * 1.0 / NULLIF(o.habitantes, 0) AS per_capita_kg
 FROM pesajes p
-JOIN origenes o ON o.id = p.origen_id
+JOIN zonas z ON z.id = p.zona_id
 WHERE p.created_at BETWEEN ? AND ?
 GROUP BY o.id, o.nombre, o.habitantes
 ```
@@ -561,10 +564,10 @@ ORDER BY v.numero_interno
 ### Detección de alarma — Gap de pesajes por origen
 
 ```sql
-SELECT origen_id, MAX(created_at) AS ultimo_pesaje
+SELECT zona_id, MAX(created_at) AS ultimo_pesaje
 FROM pesajes
 WHERE created_at >= DATEADD(HOUR, -4, GETDATE())
-GROUP BY origen_id
+GROUP BY zona_id
 HAVING DATEDIFF(MINUTE, MAX(created_at), GETDATE()) > (
     SELECT umbral_valor FROM config_alarmas WHERE tipo = 'gap_pesajes'
 )
@@ -579,8 +582,8 @@ HAVING DATEDIFF(MINUTE, MAX(created_at), GETDATE()) > (
 |----------|----------------------|-------|
 | `peso_neto_kg` como columna regular | PERSISTED computed column en SQL Server | El computed column impide log granular de cambio: si se edita `peso_bruto_kg`, necesitamos registrar también el cambio derivado en `peso_neto_kg` en `pesajes_log`. Mejor calcularlo en el Service. |
 | `activo bit` en lugar de `SoftDeletes` | `deleted_at datetime` (Laravel SoftDeletes) | El ABM admin necesita mostrar registros inactivos en la tabla. SoftDeletes oculta los registros por defecto y requiere `withTrashed()` en cada query. `activo` es explícito y no requiere scopes globales. |
-| `origen_servicios` + `origen_servicio_turnos` en lugar de `tipo_servicio_id` en origenes | FK directa `origenes.tipo_servicio_id` | Un origen puede operar bajo distintos servicios, cada uno con su propia configuración de turnos y horarios. Modelar la relación como N:M evita duplicar orígenes (ej: "Origen Sur Diurno" y "Origen Sur Nocturno" serían el mismo origen con dos configuraciones). `pesajes.turno` persiste el turno elegido por el operador; es obligatorio si `origen_servicio_turnos` tiene filas para esa combinación. |
-| Sin `origen_predeterminado_id` en `tipos_servicio` | FK circular `tipos_servicio ↔ origenes` con origen predeterminado único | La relación es N:M vía `origen_servicios`. No existe "origen predeterminado" — el operador elige de la lista filtrada por servicio. Sin ciclos de FK, sin migración en 3 pasos. |
+| `zona_servicios` + `zona_servicio_turnos` en lugar de `tipo_servicio_id` en origenes | FK directa `origenes.tipo_servicio_id` | Un origen puede operar bajo distintos servicios, cada uno con su propia configuración de turnos y horarios. Modelar la relación como N:M evita duplicar orígenes (ej: "Origen Sur Diurno" y "Origen Sur Nocturno" serían el mismo origen con dos configuraciones). `pesajes.turno` persiste el turno elegido por el operador; es obligatorio si `zona_servicio_turnos` tiene filas para esa combinación. |
+| Sin `origen_predeterminado_id` en `tipos_servicio` | FK circular `tipos_servicio ↔ origenes` con origen predeterminado único | La relación es N:M vía `zona_servicios`. No existe "origen predeterminado" — el operador elige de la lista filtrada por servicio. Sin ciclos de FK, sin migración en 3 pasos. |
 | `numero_interno nvarchar(20)` | `int` | Algunos municipios usan códigos alfanuméricos. Más seguro como string. La búsqueda por LIKE funciona igual. |
 | Pesos en `int` (kg enteros) | `decimal(8,2)` (kg con decimales) | La balanza opera en kg enteros. Usar int simplifica comparaciones, suma y validaciones sin pérdida de precisión. |
 | Un único índice de cobertura `IX_pesajes_kpis` | Múltiples índices específicos | Para las queries de agregación del dashboard y reportes, un índice ancho con INCLUDEs evita lookups al clustered y reduce I/O. El trade-off es mayor tamaño del índice, aceptable dado el volumen esperado. |
@@ -618,10 +621,10 @@ Orden de ejecución requerido (respetar dependencias de FK):
 1.  users                         (sin FK externas)
 2.  tipos_vehiculo                (sin FK externas)
 3.  tipos_servicio                (FK → tipos_vehiculo)
-4.  origenes                      (sin FK externas)
-5.  origen_servicios              (FK → origenes, tipos_servicio)
-6.  origen_servicio_turnos        (FK compuesta → origen_servicios)
-7.  origen_servicio_horarios      (FK compuesta → origen_servicios)
+4.  zonas                         (sin FK externas)
+5.  zona_servicios              (FK → origenes, tipos_servicio)
+6.  zona_servicio_turnos        (FK compuesta → zona_servicios)
+7.  zona_servicio_horarios      (FK compuesta → zona_servicios)
 8.  vehiculos                     (FK → tipos_vehiculo)
 9.  pesajes                       (FK → vehiculos, users, tipos_servicio, origenes)
 10. pesajes_log                   (FK → pesajes, users)
@@ -634,4 +637,4 @@ Orden de ejecución requerido (respetar dependencias de FK):
 ---
 
 *Documento generado: 13/05/2026 | Versión: 1.1 — Actualizado 14/05/2026*
-*Cambios v1.1: Renombrado `zonas` → `origenes` y todas las tablas relacionadas (`zona_servicios` → `origen_servicios`, etc.) para alinear con la taxonomía del sistema existente. Actualización de columnas `zona_id` → `origen_id`, rutas de API y queries de ejemplo.*
+*Cambios v1.1: Nomenclatura unificada a `zonas` en todas las tablas relacionadas (`zona_servicios`, `zona_servicio_turnos`, `zona_servicio_horarios`). Columna de FK `zona_id`. Rutas API `/api/servicios/{id}/zonas`.*

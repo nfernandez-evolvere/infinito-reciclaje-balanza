@@ -12,34 +12,30 @@ El sistema digitaliza el registro de pesajes de camiones en el predio. Reemplaza
 
 Como administrador, tu rol tiene dos momentos:
 
-1. **Antes del go-live:** cargar todos los datos maestros (padrón de vehículos, orígenes, servicios, usuarios). Sin esto, el sistema no puede funcionar.
+1. **Antes del go-live:** cargar todos los datos maestros (padrón de vehículos, zonas, servicios, usuarios). Sin esto, el sistema no puede funcionar.
 2. **En el uso diario:** revisar el dashboard, gestionar el log de pesajes, generar reportes y atender alarmas.
 
 ---
 
 ## El panel de administración
 
-Cuando ingresás como admin, ves el panel con una barra lateral izquierda organizada en tres grupos:
+Cuando ingresás como admin, ves el panel con una barra lateral izquierda. Los ítems individuales están arriba, los acordeones colapsables abajo.
 
 **Operación**
 - **Dashboard** — vista en tiempo real de lo que está pasando hoy
 - **Pesajes** — log completo de todos los pesajes registrados
-
-**Transporte**
-- **Vehículos** — padrón de todos los camiones
-- **Tipos de vehículo** — tipos de camión con rangos de peso
-
-**Orígenes**
-- **Orígenes** — áreas geográficas de recolección
-
-**Servicios**
-- **Tipos de servicio** — servicios con sus configuraciones de cascada
-
-**Sistema**
-- **Usuarios** — operadores y administradores del sistema
-
-**Análisis**
 - **Reportes** — generación y exportación de reportes mensuales
+
+**Padrón**
+- **Zonas** — áreas geográficas de recolección, con servicios y turnos asignados
+- **Tipos de servicio** — servicios con vehículo habitual sugerido
+
+**Transporte** *(acordeón)*
+- **Vehículos** — padrón de todos los camiones
+- **Tipos de vehículo** — tipos de camión con rangos de peso bruto
+
+**Sistema** *(acordeón)*
+- **Usuarios** — operadores y administradores del sistema
 
 ---
 
@@ -47,9 +43,9 @@ Cuando ingresás como admin, ves el panel con una barra lateral izquierda organi
 
 Seguí el checklist en [`configuracion-inicial.md`](configuracion-inicial.md). El orden es:
 
-1. Tipos de vehículo (con rangos de peso)
-2. Tipos de servicio (con origen y tipo de vehículo sugerido)
-3. Orígenes (con hectáreas y habitantes si están disponibles)
+1. Tipos de vehículo (con rangos de peso bruto)
+2. Tipos de servicio (con tipo de vehículo sugerido)
+3. Zonas (con servicios, turnos y horarios asignados)
 4. Padrón de vehículos (completo, con taras verificadas)
 5. Usuarios operadores
 
@@ -64,7 +60,7 @@ Cada sección de Padrones sigue el mismo patrón:
 - Un botón **Agregar** para crear un registro nuevo
 - Acciones por fila: editar, desactivar
 
-**Baja lógica:** nunca se borra un registro del sistema. Si un camión deja de operar, se desactiva — sus pesajes históricos se conservan. Lo mismo con usuarios, orígenes y servicios.
+**Baja lógica:** nunca se borra un registro del sistema. Si un camión deja de operar, se desactiva — sus pesajes históricos se conservan. Lo mismo con usuarios, zonas y servicios.
 
 Para más detalle, ver [`modulo-abms.md`](modulo-abms.md).
 
@@ -134,10 +130,10 @@ Sí. El Dashboard muestra los camiones en predio en este momento y los KPIs del 
 El vehículo deja de aparecer en el autocompletado del operador, pero todos sus pesajes anteriores se conservan en el historial. Los reportes siguen incluyendo esos datos.
 
 **¿Puedo crear más de un usuario administrador?**
-Sí. Ir a Padrones → Usuarios y crear el usuario con rol **Admin**.
+Sí. Ir a Sistema → Usuarios y crear el usuario con rol **Admin**.
 
 **¿Qué hago si un operador olvida su contraseña?**
-Ir a Padrones → Usuarios, buscar al operador y usar la acción **Resetear contraseña**.
+Ir a Sistema → Usuarios, buscar al operador y usar la acción **Resetear contraseña**.
 
 **¿Con qué frecuencia debo revisar el dashboard?**
 Durante el horario operativo (8:00–18:00) se recomienda revisarlo al menos una vez por hora. Las alertas aparecen automáticamente, pero el dashboard no envía notificaciones por fuera de la pantalla (en Etapa 1).

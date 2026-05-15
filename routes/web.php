@@ -2,69 +2,24 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return redirect('/showcase');
+require __DIR__.'/auth.php';
+
+// --- Operador ---
+Route::middleware(['auth', 'role:operador'])->group(function () {
+    Route::get('/balanza', fn () => view('modules.operador.balanza'))->name('balanza');
+    Route::get('/historial', fn () => view('modules.operador.historial'))->name('historial');
 });
 
-Route::get('/showcase', function () {
-    return view('showcase.index');
-});
+// --- Admin ---
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', fn () => view('modules.admin.dashboard'))->name('dashboard');
+    Route::get('/pesajes', fn () => view('modules.admin.pesajes.index'))->name('pesajes.index');
+    Route::get('/reportes', fn () => view('modules.admin.reportes.index'))->name('reportes.index');
 
-Route::get('/showcase/docs', function () {
-    return view('showcase.docs');
-});
-
-Route::get('/showcase/themes', function () {
-    return view('showcase.themes');
-});
-
-Route::get('/showcase/components/{component}', function (string $component) {
-    $view = "showcase.components.{$component}";
-    if (view()->exists($view)) {
-        return view($view);
-    }
-    abort(404);
-});
-
-// ── Páginas de ejemplo ─────────────────────────────────────────────────
-Route::prefix('examples')->group(function () {
-
-    // P10 — Flujo de autenticación
-    Route::get('/auth/login',    fn() => view('auth.login'))->name('auth.login');
-    Route::get('/auth/register', fn() => view('auth.register'))->name('auth.register');
-    Route::get('/auth/verify',   fn() => view('auth.verify'))->name('auth.verify');
-
-    // P01 — Dashboard
-    Route::get('/dashboard', fn() => view('dashboard.index'))->name('dashboard');
-
-    // P03 — Miembros
-    Route::get('/members', fn() => view('members.index'))->name('members');
-
-    // P02 — Configuración
-    Route::get('/settings', fn() => view('settings.index'))->name('settings');
-
-    // P07 — Facturación
-    Route::get('/billing', fn() => view('billing.index'))->name('billing');
-
-    // P06 — Perfil de usuario
-    Route::get('/users/show', fn() => view('users.show'))->name('users.show');
-
-    // P05 — Notificaciones
-    Route::get('/notifications', fn() => view('notifications.index'))->name('notifications');
-
-    // P04 — Onboarding
-    Route::get('/onboarding', fn() => view('onboarding.index'))->name('onboarding');
-
-    // P08 — Editor de posts
-    Route::get('/posts/create', fn() => view('posts.create'))->name('posts.create');
-
-    // P09 — Analytics
-    Route::get('/analytics', fn() => view('analytics.index'))->name('analytics');
-
-    // P11 — Búsqueda global
-    Route::get('/search', fn() => view('search.index'))->name('search');
-
-    // P12 — Crear producto
-    Route::get('/products/create', fn() => view('products.create'))->name('products.create');
-
+    // Padrón
+    Route::get('/zonas', fn () => view('modules.admin.zonas.index'))->name('zonas.index');
+    Route::get('/servicios', fn () => view('modules.admin.servicios.index'))->name('servicios.index');
+    Route::get('/vehiculos', fn () => view('modules.admin.vehiculos.index'))->name('vehiculos.index');
+    Route::get('/tipos-vehiculo', fn () => view('modules.admin.tipos-vehiculo.index'))->name('tipos-vehiculo.index');
+    Route::get('/usuarios', fn () => view('modules.admin.usuarios.index'))->name('usuarios.index');
 });

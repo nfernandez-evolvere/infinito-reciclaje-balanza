@@ -13,7 +13,7 @@ Esta carpeta contiene la documentación de usuario del sistema. Está escrita en
 | [onboarding-operador.md](onboarding-operador.md) | Operador (Roberto y otros) | Primera semana de uso — cómo usar el sistema día a día |
 | [onboarding-admin.md](onboarding-admin.md) | Admin (Nacho) | Primera semana de uso — cómo gestionar el sistema |
 | [modulo-balanza.md](modulo-balanza.md) | Operador | Referencia del módulo de registro de pesajes |
-| [modulo-abms.md](modulo-abms.md) | Admin | Cómo gestionar vehículos, orígenes, servicios, tipos y usuarios |
+| [modulo-abms.md](modulo-abms.md) | Admin | Cómo gestionar vehículos, zonas, servicios, tipos y usuarios |
 | [modulo-dashboard.md](modulo-dashboard.md) | Admin | Cómo leer e interpretar el panel de control |
 | [modulo-pesajes-admin.md](modulo-pesajes-admin.md) | Admin | Cómo revisar, editar y auditar pesajes |
 | [modulo-reportes.md](modulo-reportes.md) | Admin | Cómo generar y exportar reportes |

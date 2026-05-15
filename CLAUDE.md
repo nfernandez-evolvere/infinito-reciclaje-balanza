@@ -198,7 +198,7 @@ Archivo: `resources/views/components/layouts/app.blade.php`
         {{ $slot }}
     </main>
 
-    <x-toast />
+    <x-ui.sonner />
 </body>
 </html>
 ```
@@ -323,8 +323,8 @@ El sistema usa la escala de Tailwind (base 4px = `spacing-1`). La clave es usar 
 ```blade
 {{-- Label → Input (dentro de un campo de formulario) --}}
 <div class="space-y-2">
-    <x-label>Email</x-label>
-    <x-input type="email" />
+    <x-ui.label>Email</x-label>
+    <x-ui.input type="email" />
 </div>
 
 {{-- Campos dentro de un formulario --}}
@@ -361,10 +361,10 @@ Todos los controles tienen alturas fijas para alinearse en layouts mixtos:
 
 | Tamaño | Altura | Usado en |
 |--------|--------|----------|
-| `sm` | `h-8` (32px) | `<x-button size="sm">` |
-| `default` | `h-9` (36px) | `<x-button>`, `<x-input>`, `<x-select>` |
-| `lg` | `h-10` (40px) | `<x-button size="lg">` |
-| `icon` | `h-9 w-9` (36×36px) | `<x-button size="icon">` |
+| `sm` | `h-8` (32px) | `<x-ui.button size="sm">` |
+| `default` | `h-9` (36px) | `<x-ui.button>`, `<x-ui.input>`, `<x-ui.select>` |
+| `lg` | `h-10` (40px) | `<x-ui.button size="lg">` |
+| `icon` | `h-9 w-9` (36×36px) | `<x-ui.button size="icon">` |
 
 ### Convenciones de layout
 
@@ -383,16 +383,51 @@ Todos los controles tienen alturas fijas para alinearse en layouts mixtos:
 
 {{-- Grid de cards responsive --}}
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-    <x-card>...</x-card>
+    <x-ui.card>...</x-ui.card>
 </div>
 ```
 
 ---
 
+## Estructura de vistas y componentes
+
+```
+resources/views/
+├── components/
+│   ├── ui/         → primitivos atómicos · prefijo <x-ui.*>
+│   ├── layouts/    → layouts de página  · prefijo <x-layouts.*>
+│   └── domain/     → componentes de dominio · prefijo <x-domain.[módulo].[nombre]>
+├── modules/        → vistas por módulo del sistema
+│   ├── auth/       → resources/views/modules/auth/login.blade.php
+│   ├── admin/      → resources/views/modules/admin/dashboard.blade.php
+│   └── operador/   → resources/views/modules/operador/pesaje.blade.php
+└── welcome.blade.php
+```
+
+### Regla de capas
+
+| Capa | Carpeta | Prefijo Blade | Qué contiene |
+|------|---------|---------------|--------------|
+| Primitivos | `components/ui/` | `<x-ui.*>` | Button, Card, Input, Dialog… |
+| Layouts | `components/layouts/` | `<x-layouts.*>` | app, dashboard, auth |
+| Dominio | `components/domain/[módulo]/` | `<x-domain.[módulo].*>` | Componentes reutilizables con lógica del negocio |
+| Vistas | `modules/[módulo]/` | `view('modules.[módulo].[vista]')` | Páginas completas del sistema |
+
+### Crear un módulo nuevo
+
+Al comenzar un módulo (ej: `pesajes`):
+
+1. Crear carpeta de vistas: `resources/views/modules/pesajes/`
+2. Crear carpeta de dominio si hay componentes reutilizables: `resources/views/components/domain/pesajes/`
+3. Agregar rutas en `routes/web.php` apuntando a `modules.pesajes.*`
+4. Usar solo `<x-ui.*>` y `<x-layouts.*>` dentro de las vistas y componentes de dominio
+
+---
+
 ## Catálogo de componentes
 
-Todos los componentes viven en `resources/views/components/`.
-Los sub-componentes usan carpetas con el mismo nombre: `accordion/item.blade.php` → `<x-accordion.item>`.
+Todos los primitivos viven en `resources/views/components/ui/` y se usan con el prefijo `<x-ui.*>`.
+Los sub-componentes usan carpetas con el mismo nombre: `ui/accordion/item.blade.php` → `<x-ui.accordion.item>`.
 
 ### Convenciones
 
@@ -409,15 +444,15 @@ Los sub-componentes usan carpetas con el mismo nombre: `accordion/item.blade.php
 Props: `variant` (default/secondary/destructive/outline/ghost/link/warning/success), `size` (default/sm/lg/icon), `type`, `disabled`
 
 ```blade
-<x-button>Default</x-button>
-<x-button variant="destructive">Eliminar</x-button>
-<x-button variant="outline" size="sm">Cancelar</x-button>
-<x-button variant="ghost">Volver</x-button>
-<x-button variant="link">Ver más</x-button>
-<x-button variant="outline" size="icon">
+<x-ui.button>Default</x-ui.button>
+<x-ui.button variant="destructive">Eliminar</x-ui.button>
+<x-ui.button variant="outline" size="sm">Cancelar</x-ui.button>
+<x-ui.button variant="ghost">Volver</x-ui.button>
+<x-ui.button variant="link">Ver más</x-ui.button>
+<x-ui.button variant="outline" size="icon">
     <svg .../>
-</x-button>
-<x-button disabled>No disponible</x-button>
+</x-ui.button>
+<x-ui.button disabled>No disponible</x-ui.button>
 ```
 
 ---
@@ -425,20 +460,20 @@ Props: `variant` (default/secondary/destructive/outline/ghost/link/warning/succe
 ### Alert
 
 Props: `variant` (default/destructive)
-Sub-componentes: `<x-alert.title>`, `<x-alert.description>`
+Sub-componentes: `<x-ui.alert.title>`, `<x-ui.alert.description>`
 El SVG se posiciona automáticamente con CSS arbitrario (`[&>svg]:absolute [&>svg]:left-4`).
 
 ```blade
-<x-alert>
-    <x-alert.title>Título</x-alert.title>
-    <x-alert.description>Descripción.</x-alert.description>
-</x-alert>
+<x-ui.alert>
+    <x-ui.alert.title>Título</x-ui.alert.title>
+    <x-ui.alert.description>Descripción.</x-ui.alert.description>
+</x-ui.alert>
 
-<x-alert variant="destructive">
+<x-ui.alert variant="destructive">
     <svg class="size-4" .../>
-    <x-alert.title>Error</x-alert.title>
-    <x-alert.description>Algo salió mal.</x-alert.description>
-</x-alert>
+    <x-ui.alert.title>Error</x-ui.alert.title>
+    <x-ui.alert.description>Algo salió mal.</x-ui.alert.description>
+</x-ui.alert>
 ```
 
 ---
@@ -448,10 +483,10 @@ El SVG se posiciona automáticamente con CSS arbitrario (`[&>svg]:absolute [&>sv
 Props: `variant` (default/secondary/destructive/outline/warning/success)
 
 ```blade
-<x-badge>Default</x-badge>
-<x-badge variant="destructive">Error</x-badge>
-<x-badge variant="success">Activo</x-badge>
-<x-badge variant="warning">Pendiente</x-badge>
+<x-ui.badge>Default</x-ui.badge>
+<x-ui.badge variant="destructive">Error</x-ui.badge>
+<x-ui.badge variant="success">Activo</x-ui.badge>
+<x-ui.badge variant="warning">Pendiente</x-ui.badge>
 ```
 
 ---
@@ -461,16 +496,16 @@ Props: `variant` (default/secondary/destructive/outline/warning/success)
 Sub-componentes: `header`, `title`, `description`, `content`, `footer`
 
 ```blade
-<x-card>
-    <x-card.header>
-        <x-card.title>Título</x-card.title>
-        <x-card.description>Descripción.</x-card.description>
-    </x-card.header>
-    <x-card.content>Contenido</x-card.content>
-    <x-card.footer>
-        <x-button size="sm">Acción</x-button>
-    </x-card.footer>
-</x-card>
+<x-ui.card>
+    <x-ui.card.header>
+        <x-ui.card.title>Título</x-ui.card.title>
+        <x-ui.card.description>Descripción.</x-ui.card.description>
+    </x-ui.card.header>
+    <x-ui.card.content>Contenido</x-ui.card.content>
+    <x-ui.card.footer>
+        <x-ui.button size="sm">Acción</x-ui.button>
+    </x-ui.card.footer>
+</x-ui.card>
 ```
 
 ---
@@ -480,33 +515,33 @@ Sub-componentes: `header`, `title`, `description`, `content`, `footer`
 ```blade
 {{-- Label + Input --}}
 <div class="space-y-2">
-    <x-label for="email">Email</x-label>
-    <x-input id="email" type="email" placeholder="nombre@ejemplo.com" />
-    <x-input :error="true" value="valor incorrecto" />  {{-- estado de error --}}
+    <x-ui.label for="email">Email</x-label>
+    <x-ui.input id="email" type="email" placeholder="nombre@ejemplo.com" />
+    <x-ui.input :error="true" value="valor incorrecto" />  {{-- estado de error --}}
 </div>
 
 {{-- Textarea --}}
-<x-textarea placeholder="Escribí tu mensaje..." rows="4" />
+<x-ui.textarea placeholder="Escribí tu mensaje..." rows="4" />
 
 {{-- Select --}}
-<x-select>
+<x-ui.select>
     <option value="">Seleccionar...</option>
     <option value="a">Opción A</option>
 </x-select>
 
 {{-- Checkbox --}}
 <label class="flex items-center gap-2 text-sm">
-    <x-checkbox name="terms" /> Acepto los términos
+    <x-ui.checkbox name="terms" /> Acepto los términos
 </label>
 
 {{-- Radio --}}
 <label class="flex items-center gap-2 text-sm">
-    <x-radio name="plan" value="pro" :checked="true" /> Pro
+    <x-ui.radio name="plan" value="pro" :checked="true" /> Pro
 </label>
 
 {{-- Switch (Alpine) --}}
 <label class="flex items-center gap-2 text-sm">
-    <x-switch :checked="true" /> Notificaciones
+    <x-ui.switch :checked="true" /> Notificaciones
 </label>
 ```
 
@@ -517,8 +552,8 @@ Sub-componentes: `header`, `title`, `description`, `content`, `footer`
 Props: `orientation` (horizontal/vertical)
 
 ```blade
-<x-separator />
-<x-separator orientation="vertical" class="h-5" />
+<x-ui.separator />
+<x-ui.separator orientation="vertical" class="h-5" />
 ```
 
 ---
@@ -528,9 +563,9 @@ Props: `orientation` (horizontal/vertical)
 Props: `src`, `alt`, `fallback`
 
 ```blade
-<x-avatar src="https://..." alt="Nombre" />
-<x-avatar fallback="JG" />
-<x-avatar fallback="AB" class="h-12 w-12" />
+<x-ui.avatar src="https://..." alt="Nombre" />
+<x-ui.avatar fallback="JG" />
+<x-ui.avatar fallback="AB" class="h-12 w-12" />
 ```
 
 ---
@@ -538,8 +573,8 @@ Props: `src`, `alt`, `fallback`
 ### Skeleton
 
 ```blade
-<x-skeleton class="h-4 w-full" />
-<x-skeleton class="h-10 w-10 rounded-full" />
+<x-ui.skeleton class="h-4 w-full" />
+<x-ui.skeleton class="h-10 w-10 rounded-full" />
 ```
 
 ---
@@ -549,24 +584,24 @@ Props: `src`, `alt`, `fallback`
 Props: `value` (0-100), `max` (default 100)
 
 ```blade
-<x-progress :value="75" class="w-full" />
+<x-ui.progress :value="75" class="w-full" />
 ```
 
 ---
 
 ### Tabs (Alpine)
 
-Props en `<x-tabs>`: `default` (valor inicial)
+Props en `<x-ui.tabs>`: `default` (valor inicial)
 
 ```blade
-<x-tabs default="tab1">
-    <x-tabs.list>
-        <x-tabs.trigger value="tab1">Tab 1</x-tabs.trigger>
-        <x-tabs.trigger value="tab2">Tab 2</x-tabs.trigger>
-    </x-tabs.list>
-    <x-tabs.content value="tab1">Contenido del tab 1</x-tabs.content>
-    <x-tabs.content value="tab2">Contenido del tab 2</x-tabs.content>
-</x-tabs>
+<x-ui.tabs default="tab1">
+    <x-ui.tabs.list>
+        <x-ui.tabs.trigger value="tab1">Tab 1</x-ui.tabs.trigger>
+        <x-ui.tabs.trigger value="tab2">Tab 2</x-ui.tabs.trigger>
+    </x-ui.tabs.list>
+    <x-ui.tabs.content value="tab1">Contenido del tab 1</x-ui.tabs.content>
+    <x-ui.tabs.content value="tab2">Contenido del tab 2</x-ui.tabs.content>
+</x-ui.tabs>
 ```
 
 ---
@@ -574,16 +609,16 @@ Props en `<x-tabs>`: `default` (valor inicial)
 ### Accordion (Alpine + x-collapse)
 
 ```blade
-<x-accordion>
-    <x-accordion.item value="item-1">
-        <x-accordion.trigger>¿Pregunta?</x-accordion.trigger>
-        <x-accordion.content>Respuesta.</x-accordion.content>
-    </x-accordion.item>
-    <x-accordion.item value="item-2">
-        <x-accordion.trigger>Otra pregunta</x-accordion.trigger>
-        <x-accordion.content>Otra respuesta.</x-accordion.content>
-    </x-accordion.item>
-</x-accordion>
+<x-ui.accordion>
+    <x-ui.accordion.item value="item-1">
+        <x-ui.accordion.trigger>¿Pregunta?</x-ui.accordion.trigger>
+        <x-ui.accordion.content>Respuesta.</x-ui.accordion.content>
+    </x-ui.accordion.item>
+    <x-ui.accordion.item value="item-2">
+        <x-ui.accordion.trigger>Otra pregunta</x-ui.accordion.trigger>
+        <x-ui.accordion.content>Otra respuesta.</x-ui.accordion.content>
+    </x-ui.accordion.item>
+</x-ui.accordion>
 ```
 
 ---
@@ -593,14 +628,14 @@ Props en `<x-tabs>`: `default` (valor inicial)
 Props: `open` (boolean, default false)
 
 ```blade
-<x-collapsible>
-    <x-collapsible.trigger>
-        <x-button variant="ghost">Mostrar más</x-button>
-    </x-collapsible.trigger>
-    <x-collapsible.content>
+<x-ui.collapsible>
+    <x-ui.collapsible.trigger>
+        <x-ui.button variant="ghost">Mostrar más</x-ui.button>
+    </x-ui.collapsible.trigger>
+    <x-ui.collapsible.content>
         Contenido colapsable.
-    </x-collapsible.content>
-</x-collapsible>
+    </x-ui.collapsible.content>
+</x-ui.collapsible>
 ```
 
 ---
@@ -610,8 +645,8 @@ Props: `open` (boolean, default false)
 Props: `variant` (default/outline), `size` (default/sm/lg), `pressed` (boolean)
 
 ```blade
-<x-toggle>Negrita</x-toggle>
-<x-toggle variant="outline" :pressed="true">Activo</x-toggle>
+<x-ui.toggle>Negrita</x-ui.toggle>
+<x-ui.toggle variant="outline" :pressed="true">Activo</x-ui.toggle>
 ```
 
 ---
@@ -619,24 +654,24 @@ Props: `variant` (default/outline), `size` (default/sm/lg), `pressed` (boolean)
 ### Dropdown Menu (Alpine)
 
 ```blade
-<x-dropdown-menu>
-    <x-dropdown-menu.trigger>
-        <x-button variant="outline">Opciones</x-button>
-    </x-dropdown-menu.trigger>
-    <x-dropdown-menu.content>
-        <x-dropdown-menu.label>Mi cuenta</x-dropdown-menu.label>
-        <x-dropdown-menu.separator />
-        <x-dropdown-menu.item href="/perfil">Perfil</x-dropdown-menu.item>
-        <x-dropdown-menu.item>Configuración</x-dropdown-menu.item>
-        <x-dropdown-menu.separator />
-        <x-dropdown-menu.item :destructive="true">Cerrar sesión</x-dropdown-menu.item>
-    </x-dropdown-menu.content>
-</x-dropdown-menu>
+<x-ui.dropdown-menu>
+    <x-ui.dropdown-menu.trigger>
+        <x-ui.button variant="outline">Opciones</x-ui.button>
+    </x-ui.dropdown-menu.trigger>
+    <x-ui.dropdown-menu.content>
+        <x-ui.dropdown-menu.label>Mi cuenta</x-ui.dropdown-menu.label>
+        <x-ui.dropdown-menu.separator />
+        <x-ui.dropdown-menu.item href="/perfil">Perfil</x-ui.dropdown-menu.item>
+        <x-ui.dropdown-menu.item>Configuración</x-ui.dropdown-menu.item>
+        <x-ui.dropdown-menu.separator />
+        <x-ui.dropdown-menu.item :destructive="true">Cerrar sesión</x-ui.dropdown-menu.item>
+    </x-ui.dropdown-menu.content>
+</x-ui.dropdown-menu>
 ```
 
 Props de `content`: `align` (start/end/center), `side` (bottom/top — default bottom). Usar `side="top"` cuando el trigger está al fondo de un contenedor fixed (ej: footer del sidebar).
 
-> **Gotcha — triggers:** Todos los triggers (`dropdown-menu`, `popover`, `sheet`, `dialog`) son `<div>` con `@click.stop`, NO `<button>`. Un `<button>` wrapper genera botones anidados (HTML inválido) cuando el slot contiene `<x-button>`. El `.stop` evita que `@click.outside` cierre el menú al instante.
+> **Gotcha — triggers:** Todos los triggers (`dropdown-menu`, `popover`, `sheet`, `dialog`) son `<div>` con `@click.stop`, NO `<button>`. Un `<button>` wrapper genera botones anidados (HTML inválido) cuando el slot contiene `<x-ui.button>`. El `.stop` evita que `@click.outside` cierre el menú al instante.
 
 > **Gotcha — sheet panel:** Las clases de transformación (`translate-x-full`, etc.) NO deben estar en `$sides` como clases estáticas. Alpine las remueve del enter-end al terminar la transición y el panel vuelve a off-screen. Solo deben estar en `x-transition:enter-start` y `x-transition:leave-end`.
 
@@ -647,13 +682,13 @@ Props de `content`: `align` (start/end/center), `side` (bottom/top — default b
 Props: `text`, `side` (top/bottom/left/right)
 
 ```blade
-<x-tooltip text="Texto del tooltip">
-    <x-button variant="outline">Hover aquí</x-button>
-</x-tooltip>
+<x-ui.tooltip text="Texto del tooltip">
+    <x-ui.button variant="outline">Hover aquí</x-ui.button>
+</x-ui.tooltip>
 
-<x-tooltip text="Abajo" side="bottom">
-    <x-button variant="ghost" size="icon"><svg .../></x-button>
-</x-tooltip>
+<x-ui.tooltip text="Abajo" side="bottom">
+    <x-ui.button variant="ghost" size="icon"><svg .../></x-ui.button>
+</x-ui.tooltip>
 ```
 
 ---
@@ -661,14 +696,14 @@ Props: `text`, `side` (top/bottom/left/right)
 ### Popover (Alpine)
 
 ```blade
-<x-popover>
-    <x-popover.trigger>
-        <x-button variant="outline">Abrir</x-button>
-    </x-popover.trigger>
-    <x-popover.content>
+<x-ui.popover>
+    <x-ui.popover.trigger>
+        <x-ui.button variant="outline">Abrir</x-ui.button>
+    </x-ui.popover.trigger>
+    <x-ui.popover.content>
         Contenido del popover.
-    </x-popover.content>
-</x-popover>
+    </x-ui.popover.content>
+</x-ui.popover>
 ```
 
 Props de `content`: `align` (start/end/center)
@@ -678,22 +713,22 @@ Props de `content`: `align` (start/end/center)
 ### Dialog (Alpine + x-teleport)
 
 ```blade
-<x-dialog>
-    <x-dialog.trigger>
-        <x-button>Abrir Dialog</x-button>
-    </x-dialog.trigger>
-    <x-dialog.content>
-        <x-dialog.header>
-            <x-dialog.title>Título</x-dialog.title>
-            <x-dialog.description>Descripción opcional.</x-dialog.description>
-        </x-dialog.header>
+<x-ui.dialog>
+    <x-ui.dialog.trigger>
+        <x-ui.button>Abrir Dialog</x-ui.button>
+    </x-ui.dialog.trigger>
+    <x-ui.dialog.content>
+        <x-ui.dialog.header>
+            <x-ui.dialog.title>Título</x-ui.dialog.title>
+            <x-ui.dialog.description>Descripción opcional.</x-ui.dialog.description>
+        </x-ui.dialog.header>
         {{-- cuerpo --}}
-        <x-dialog.footer>
-            <x-button variant="outline" @click="open = false">Cancelar</x-button>
-            <x-button @click="open = false">Confirmar</x-button>
-        </x-dialog.footer>
-    </x-dialog.content>
-</x-dialog>
+        <x-ui.dialog.footer>
+            <x-ui.button variant="outline" @click="open = false">Cancelar</x-ui.button>
+            <x-ui.button @click="open = false">Confirmar</x-ui.button>
+        </x-ui.dialog.footer>
+    </x-ui.dialog.content>
+</x-ui.dialog>
 ```
 
 Cerrar desde dentro: `@click="open = false"`
@@ -705,14 +740,14 @@ Cerrar desde dentro: `@click="open = false"`
 Props de `content`: `side` (right/left/top/bottom)
 
 ```blade
-<x-sheet>
-    <x-sheet.trigger>
-        <x-button variant="outline">Abrir panel</x-button>
-    </x-sheet.trigger>
-    <x-sheet.content side="right">
+<x-ui.sheet>
+    <x-ui.sheet.trigger>
+        <x-ui.button variant="outline">Abrir panel</x-ui.button>
+    </x-ui.sheet.trigger>
+    <x-ui.sheet.content side="right">
         Contenido del panel lateral.
-    </x-sheet.content>
-</x-sheet>
+    </x-ui.sheet.content>
+</x-ui.sheet>
 ```
 
 ---
@@ -720,19 +755,19 @@ Props de `content`: `side` (right/left/top/bottom)
 ### Breadcrumb
 
 ```blade
-<x-breadcrumb>
-    <x-breadcrumb.item>
-        <x-breadcrumb.link href="/">Inicio</x-breadcrumb.link>
-    </x-breadcrumb.item>
-    <x-breadcrumb.separator />
-    <x-breadcrumb.item>
-        <x-breadcrumb.link href="/seccion">Sección</x-breadcrumb.link>
-    </x-breadcrumb.item>
-    <x-breadcrumb.separator />
-    <x-breadcrumb.item>
-        <x-breadcrumb.page>Página actual</x-breadcrumb.page>
-    </x-breadcrumb.item>
-</x-breadcrumb>
+<x-ui.breadcrumb>
+    <x-ui.breadcrumb.item>
+        <x-ui.breadcrumb.link href="/">Inicio</x-ui.breadcrumb.link>
+    </x-ui.breadcrumb.item>
+    <x-ui.breadcrumb.separator />
+    <x-ui.breadcrumb.item>
+        <x-ui.breadcrumb.link href="/seccion">Sección</x-ui.breadcrumb.link>
+    </x-ui.breadcrumb.item>
+    <x-ui.breadcrumb.separator />
+    <x-ui.breadcrumb.item>
+        <x-ui.breadcrumb.page>Página actual</x-ui.breadcrumb.page>
+    </x-ui.breadcrumb.item>
+</x-ui.breadcrumb>
 ```
 
 ---
@@ -740,56 +775,56 @@ Props de `content`: `side` (right/left/top/bottom)
 ### Pagination
 
 ```blade
-<x-pagination>
-    <x-pagination.content>
-        <x-pagination.item>
-            <x-pagination.link href="?page=1" :disabled="true">« Anterior</x-pagination.link>
-        </x-pagination.item>
-        <x-pagination.item>
-            <x-pagination.link href="?page=1" :active="true">1</x-pagination.link>
-        </x-pagination.item>
-        <x-pagination.item>
-            <x-pagination.link href="?page=2">2</x-pagination.link>
-        </x-pagination.item>
-        <x-pagination.item>
-            <x-pagination.link href="?page=2">Siguiente »</x-pagination.link>
-        </x-pagination.item>
-    </x-pagination.content>
-</x-pagination>
+<x-ui.pagination>
+    <x-ui.pagination.content>
+        <x-ui.pagination.item>
+            <x-ui.pagination.link href="?page=1" :disabled="true">« Anterior</x-ui.pagination.link>
+        </x-ui.pagination.item>
+        <x-ui.pagination.item>
+            <x-ui.pagination.link href="?page=1" :active="true">1</x-ui.pagination.link>
+        </x-ui.pagination.item>
+        <x-ui.pagination.item>
+            <x-ui.pagination.link href="?page=2">2</x-ui.pagination.link>
+        </x-ui.pagination.item>
+        <x-ui.pagination.item>
+            <x-ui.pagination.link href="?page=2">Siguiente »</x-ui.pagination.link>
+        </x-ui.pagination.item>
+    </x-ui.pagination.content>
+</x-ui.pagination>
 ```
 
 Integración con paginación de Laravel:
 ```blade
 @if ($items->hasPages())
-    <x-pagination>
-        <x-pagination.content>
+    <x-ui.pagination>
+        <x-ui.pagination.content>
             @if ($items->onFirstPage())
-                <x-pagination.item>
-                    <x-pagination.link :disabled="true">« Anterior</x-pagination.link>
-                </x-pagination.item>
+                <x-ui.pagination.item>
+                    <x-ui.pagination.link :disabled="true">« Anterior</x-ui.pagination.link>
+                </x-ui.pagination.item>
             @else
-                <x-pagination.item>
-                    <x-pagination.link href="{{ $items->previousPageUrl() }}">« Anterior</x-pagination.link>
-                </x-pagination.item>
+                <x-ui.pagination.item>
+                    <x-ui.pagination.link href="{{ $items->previousPageUrl() }}">« Anterior</x-ui.pagination.link>
+                </x-ui.pagination.item>
             @endif
             @foreach ($items->getUrlRange(1, $items->lastPage()) as $page => $url)
-                <x-pagination.item>
-                    <x-pagination.link href="{{ $url }}" :active="$page === $items->currentPage()">
+                <x-ui.pagination.item>
+                    <x-ui.pagination.link href="{{ $url }}" :active="$page === $items->currentPage()">
                         {{ $page }}
-                    </x-pagination.link>
-                </x-pagination.item>
+                    </x-ui.pagination.link>
+                </x-ui.pagination.item>
             @endforeach
             @if ($items->hasMorePages())
-                <x-pagination.item>
-                    <x-pagination.link href="{{ $items->nextPageUrl() }}">Siguiente »</x-pagination.link>
-                </x-pagination.item>
+                <x-ui.pagination.item>
+                    <x-ui.pagination.link href="{{ $items->nextPageUrl() }}">Siguiente »</x-ui.pagination.link>
+                </x-ui.pagination.item>
             @else
-                <x-pagination.item>
-                    <x-pagination.link :disabled="true">Siguiente »</x-pagination.link>
-                </x-pagination.item>
+                <x-ui.pagination.item>
+                    <x-ui.pagination.link :disabled="true">Siguiente »</x-ui.pagination.link>
+                </x-ui.pagination.item>
             @endif
-        </x-pagination.content>
-    </x-pagination>
+        </x-ui.pagination.content>
+    </x-ui.pagination>
 @endif
 ```
 
@@ -800,40 +835,40 @@ Integración con paginación de Laravel:
 Sub-componentes: `header`, `body`, `footer`, `row`, `head`, `cell`, `caption`
 
 ```blade
-<x-table>
-    <x-table.header>
-        <x-table.row>
-            <x-table.head>Nombre</x-table.head>
-            <x-table.head>Email</x-table.head>
-            <x-table.head class="text-right">Estado</x-table.head>
-        </x-table.row>
-    </x-table.header>
-    <x-table.body>
+<x-ui.table>
+    <x-ui.table.header>
+        <x-ui.table.row>
+            <x-ui.table.head>Nombre</x-ui.table.head>
+            <x-ui.table.head>Email</x-ui.table.head>
+            <x-ui.table.head class="text-right">Estado</x-ui.table.head>
+        </x-ui.table.row>
+    </x-ui.table.header>
+    <x-ui.table.body>
         @foreach ($usuarios as $usuario)
-        <x-table.row>
-            <x-table.cell class="font-medium">{{ $usuario->name }}</x-table.cell>
-            <x-table.cell>{{ $usuario->email }}</x-table.cell>
-            <x-table.cell class="text-right">
-                <x-badge variant="success">Activo</x-badge>
-            </x-table.cell>
-        </x-table.row>
+        <x-ui.table.row>
+            <x-ui.table.cell class="font-medium">{{ $usuario->name }}</x-ui.table.cell>
+            <x-ui.table.cell>{{ $usuario->email }}</x-ui.table.cell>
+            <x-ui.table.cell class="text-right">
+                <x-ui.badge variant="success">Activo</x-ui.badge>
+            </x-ui.table.cell>
+        </x-ui.table.row>
         @endforeach
-    </x-table.body>
-</x-table>
+    </x-ui.table.body>
+</x-ui.table>
 ```
 
 ---
 
 ### Toast
 
-Agregar `<x-toast />` una sola vez en el layout (ya incluido en `layouts/app.blade.php`).
+Agregar `<x-ui.sonner />` una sola vez en el layout (ya incluido en `layouts/app.blade.php`).
 Disparar desde cualquier vista con Alpine `$dispatch`:
 
 ```blade
 {{-- Desde un botón --}}
-<x-button @click="$dispatch('toast', { message: 'Guardado con éxito', variant: 'success' })">
+<x-ui.button @click="$dispatch('toast', { message: 'Guardado con éxito', variant: 'success' })">
     Guardar
-</x-button>
+</x-ui.button>
 
 {{-- Desde JS puro --}}
 <script>
@@ -848,37 +883,28 @@ Props: `message` (string), `variant` (string), `duration` (ms, default 4000)
 
 ---
 
-## Agregar un nuevo componente
+## Agregar un componente de dominio
 
-1. Crear `resources/views/components/nombre.blade.php`
+Los componentes de dominio encapsulan UI con lógica del negocio y se construyen sobre `<x-ui.*>`.
+
+1. Crear `resources/views/components/domain/[módulo]/nombre.blade.php`
 2. Definir props con `@props([])`
-3. Usar `$attributes->merge(['class' => '...'])` para clases externas
-4. Usar solo tokens semánticos (`bg-primary`, `text-muted-foreground`, etc.)
-5. Para sub-componentes: crear carpeta `components/nombre/sub.blade.php` → `<x-nombre.sub>`
+3. Usar solo `<x-ui.*>` internamente — nunca colores hardcoded
+4. Para sub-componentes: `domain/[módulo]/nombre/sub.blade.php` → `<x-domain.[módulo].nombre.sub>`
 
-Ejemplo mínimo:
+Ejemplo — `domain/pesajes/fila.blade.php` → `<x-domain.pesajes.fila>`:
 
 ```blade
-@props(['variant' => 'default'])
+@props(['pesaje', 'destacado' => false])
 
-@php
-    $variants = [
-        'default' => 'bg-background text-foreground border',
-        'filled'  => 'bg-primary text-primary-foreground',
-    ];
-@endphp
-
-<div {{ $attributes->merge(['class' => "rounded-md px-4 py-2 {$variants[$variant]}"]) }}>
-    {{ $slot }}
-</div>
+<x-ui.table.row :class="$destacado ? 'bg-warning/10' : ''">
+    <x-ui.table.cell>{{ $pesaje->ticket }}</x-ui.table.cell>
+    <x-ui.table.cell>{{ $pesaje->material }}</x-ui.table.cell>
+    <x-ui.table.cell class="text-right font-mono">
+        {{ number_format($pesaje->peso_neto, 2) }} kg
+    </x-ui.table.cell>
+</x-ui.table.row>
 ```
-
----
-
-## Showcase
-
-Ruta `/showcase` — muestra todos los componentes disponibles.
-Archivo: `resources/views/showcase.blade.php`
 
 ---
 
@@ -924,10 +950,10 @@ Implementado con clase `.dark` en `<html>` + CSS variables override en `@layer b
 ### Botón toggle en el topbar
 
 ```blade
-<x-button variant="ghost" size="icon" @click="toggleDark()">
+<x-ui.button variant="ghost" size="icon" @click="toggleDark()">
     <svg x-show="dark" x-cloak ...>  {{-- ícono sol --}}</svg>
     <svg x-show="!dark" ...>          {{-- ícono luna --}}</svg>
-</x-button>
+</x-ui.button>
 ```
 
 ---

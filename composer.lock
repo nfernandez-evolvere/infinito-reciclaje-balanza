@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b200e1eb0d525de6347232e1dcc7c3a5",
+    "content-hash": "52ca184d76c6a4f4d476842b33b7e542",
     "packages": [
         {
             "name": "blade-ui-kit/blade-icons",
@@ -6507,6 +6507,67 @@
             "time": "2026-04-29T18:32:34+00:00"
         },
         {
+            "name": "laravel/breeze",
+            "version": "v2.4.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/laravel/breeze.git",
+                "reference": "28cefeaf6af20177ddf5cc7b93e87e4ad79d533f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/laravel/breeze/zipball/28cefeaf6af20177ddf5cc7b93e87e4ad79d533f",
+                "reference": "28cefeaf6af20177ddf5cc7b93e87e4ad79d533f",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/console": "^11.0|^12.0|^13.0",
+                "illuminate/filesystem": "^11.0|^12.0|^13.0",
+                "illuminate/support": "^11.0|^12.0|^13.0",
+                "illuminate/validation": "^11.0|^12.0|^13.0",
+                "php": "^8.2.0",
+                "symfony/console": "^7.0|^8.0"
+            },
+            "require-dev": {
+                "laravel/framework": "^11.0|^12.0|^13.0",
+                "orchestra/testbench-core": "^9.0|^10.0|^11.0",
+                "phpstan/phpstan": "^2.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Laravel\\Breeze\\BreezeServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Laravel\\Breeze\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Taylor Otwell",
+                    "email": "taylor@laravel.com"
+                }
+            ],
+            "description": "Minimal Laravel authentication scaffolding with Blade and Tailwind.",
+            "keywords": [
+                "auth",
+                "laravel"
+            ],
+            "support": {
+                "issues": "https://github.com/laravel/breeze/issues",
+                "source": "https://github.com/laravel/breeze"
+            },
+            "time": "2026-03-10T19:59:01+00:00"
+        },
+        {
             "name": "laravel/pail",
             "version": "v1.2.6",
             "source": {
@@ -8536,8 +8597,8 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": "^8.3"
+        "php": "^8.4"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.6.0"
 }

@@ -28,7 +28,7 @@ Detección proactiva de anomalías operativas. QA end-to-end con datos reales. B
 - `AlarmaServiceTest::test_detectar_frecuencia_creates_alarma_when_deviation_exceeds_threshold`
 
 ### Tests de integración
-- `AlarmaDeteccionTest::test_alarma_peso_created_automatically_on_out_of_range_pesaje` — `POST /operador/pesajes` con peso fuera de rango → alarma en DB
+- `AlarmaDeteccionTest::test_alarma_peso_created_automatically_on_out_of_range_pesaje` — `POST /pesajes` con peso fuera de rango → alarma en DB
 - `AlarmaDeteccionTest::test_no_alarma_on_normal_pesaje` — peso en rango → sin alarma creada
 - `AlarmaDeteccionTest::test_gap_alarma_created_when_threshold_exceeded` — simular tiempo sin pesajes → comando Artisan crea alarma
 

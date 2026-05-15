@@ -51,7 +51,7 @@ Encima de la tabla hay un panel de filtros. Podés combinar cualquiera de estos 
 | Rango de fechas | Fecha desde / Fecha hasta |
 | Patente o número interno | Texto libre |
 | Tipo de servicio | Lista de todos los servicios activos |
-| Origen | Lista de todos los orígenes activos |
+| Zona | Lista de todas las zonas activas |
 | Operador | Lista de todos los usuarios operadores |
 | Estado | EN PREDIO / CERRADO / Todos |
 | Con alerta de peso | Solo los pesajes que generaron aviso naranja |

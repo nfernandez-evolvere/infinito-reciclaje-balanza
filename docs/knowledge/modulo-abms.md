@@ -2,15 +2,15 @@
 ## Sistema de Gestión de Balanza — Infinito Reciclaje
 
 **Dirigido a:** Administrador (Nacho)
-**Cuándo usarlo:** Referencia de cómo gestionar vehículos, orígenes, servicios, tipos de vehículo y usuarios
+**Cuándo usarlo:** Referencia de cómo gestionar vehículos, zonas, servicios, tipos de vehículo y usuarios
 
 ---
 
 ## Para qué sirve este módulo
 
-Los padrones son los datos maestros del sistema: la lista de camiones, los orígenes de recolección, los tipos de servicio, los tipos de vehículo y los usuarios. Sin estos datos cargados, los operadores no pueden registrar pesajes.
+Los padrones son los datos maestros del sistema: la lista de camiones, las zonas de recolección, los tipos de servicio, los tipos de vehículo y los usuarios. Sin estos datos cargados, los operadores no pueden registrar pesajes.
 
-Este módulo te permite agregar, editar y desactivar registros en cada uno de esos padrones.
+Este módulo te permite agregar, editar, activar y desactivar registros en cada uno de esos padrones.
 
 ---
 
@@ -19,9 +19,9 @@ Este módulo te permite agregar, editar y desactivar registros en cada uno de es
 Todos los padrones siguen el mismo patrón de pantalla:
 
 1. **Tabla de registros** — todos los registros existentes, activos e inactivos
-2. **Barra de búsqueda** — filtra los registros mientras escribís
-3. **Botón Agregar** — abre el formulario para crear un registro nuevo
-4. **Acciones por fila** — cada registro tiene dos acciones: **Editar** y **Desactivar**
+2. **Botón Agregar** — abre el formulario para crear un registro nuevo
+3. **Editar** — abre el formulario pre-llenado con los datos actuales del registro
+4. **Desactivar / Activar** — cambia el estado del registro con confirmación previa
 
 La baja es siempre **lógica**: los registros nunca se borran. Si un camión deja de operar, se desactiva — sus pesajes históricos se conservan y siguen apareciendo en los reportes.
 
@@ -42,8 +42,6 @@ Los vehículos son el centro del sistema. Cada camión que ingresa al predio deb
 | Tara | Peso del vehículo vacío en kg | Sí |
 | Tipo de vehículo | Compactador, Volcador, Volquete o Particular | Sí |
 | Titular | Municipalidad de Corrientes u otro titular | Sí |
-| Capacidad | Peso máximo de carga en kg | No |
-| Observaciones | Notas relevantes del vehículo | No |
 
 ### Reglas clave
 
@@ -58,55 +56,58 @@ Cuando un camión deja de operar o sale del padrón de la Municipalidad. Una vez
 - Sus pesajes históricos se conservan
 - Los reportes siguen incluyendo sus datos históricos
 
-Para reactivarlo si el camión vuelve a operar, usá la acción **Activar** en la tabla (visible en los registros inactivos).
+Para reactivarlo, usá la acción **Activar** en la tabla.
 
 ---
 
-## Padrón de orígenes
+## Padrón de zonas
 
-**Ruta:** Orígenes → Orígenes
+**Ruta:** Padrón → Zonas
 
-Los orígenes son las áreas geográficas de recolección. Se usan para agrupar pesajes en los reportes y para calcular indicadores de densidad y per cápita.
+Las zonas son las áreas geográficas de recolección. Se usan para agrupar pesajes en los reportes y para calcular indicadores de densidad y per cápita.
 
 ### Campos del formulario
 
 | Campo | Descripción | Obligatorio |
 |-------|-------------|-------------|
-| Nombre | Nombre del origen (ej: Origen Norte, Barrio Belgrano) | Sí |
-| Hectáreas | Superficie del origen en hectáreas | No |
-| Cantidad de barrios | Barrios que componen el origen | No |
-| Habitantes | Población estimada del origen | No |
+| Nombre | Nombre de la zona (ej: Norte, Costanera) | Sí |
+| Hectáreas | Superficie de la zona en hectáreas | No |
+| Cantidad de barrios | Barrios que componen la zona | No |
 
 ### Servicios asignados
 
-Después de crear el origen, podés asignarle uno o más tipos de servicio. Para cada asignación se define:
+Después de crear la zona, asignale uno o más tipos de servicio. Para cada asignación podés configurar:
 
 | Campo | Descripción |
 |-------|-------------|
-| Tipo de servicio | Cuál servicio opera en este origen |
-| Turno | Si aplica: Diurna, Nocturna, ambos, o ninguno |
-| Horario de recorrido | Informativo: hora de inicio y fin del recorrido |
+| Tipo de servicio | Cuál servicio opera en esta zona |
+| Turnos | Si el servicio opera en turnos: **Diurna**, **Nocturna**, ambos, o ninguno |
+| Horarios de recorrido | Optativo: días y franjas horarias del recorrido |
 
-Esto determina qué le aparece al operador en el formulario de pesaje: elige el servicio → ve los orígenes que tienen ese servicio asignado → si el origen tiene turno configurado para ese servicio, debe elegir turno.
+**Cómo configurar los turnos:** usá el switch "Opera con turnos". Si está apagado, el operador no ve selector de turno para esa combinación. Si está encendido, podés activar Diurna, Nocturna o ambas.
 
-### Sobre los datos demográficos
+**Cómo configurar los horarios:** seleccioná los días activos (chips Lun–Dom) y cargá las franjas horarias para cada día. Podés agregar más de una franja por día.
 
-Los campos hectáreas, barrios y habitantes son opcionales al momento de la carga. Si no los tenés disponibles, podés dejarlos en cero y completarlos después. Los reportes de densidad (kg por hectárea) y per cápita (kg por habitante) quedarán en cero o no calculados hasta que estén cargados.
+Esta configuración determina qué le aparece al operador en el formulario de pesaje: elige el servicio → ve las zonas que tienen ese servicio asignado → si la combinación tiene turnos, debe elegir turno.
+
+### Sobre los datos geográficos
+
+Los campos hectáreas y barrios son opcionales al momento de la carga. Los reportes de densidad (kg por hectárea) quedarán en cero hasta que estén cargados.
 
 ---
 
 ## Padrón de tipos de servicio
 
-**Ruta:** Servicios → Tipos de servicio
+**Ruta:** Padrón → Tipos de servicio
 
-Los tipos de servicio definen el nombre del servicio, el tipo de vehículo habitual y, para los servicios con horario fijo, el turno de operación. Los orígenes que pertenecen a cada servicio se cargan en el padrón de Orígenes.
+Los tipos de servicio definen el nombre del servicio y el tipo de vehículo habitual. Las zonas donde opera cada servicio se configuran en el padrón de Zonas.
 
 ### Campos del formulario
 
 | Campo | Descripción | Obligatorio |
 |-------|-------------|-------------|
 | Nombre | Nombre del tipo de servicio | Sí |
-| Tipo de vehículo sugerido | Tipo de vehículo que suele prestar este servicio | No |
+| Vehículo habitual | Tipo de vehículo que suele prestar este servicio | No |
 
 ### Tipos de servicio del sistema
 
@@ -118,13 +119,11 @@ Los tipos de servicio definen el nombre del servicio, el tipo de vehículo habit
 | Servicios Especiales | Operativos puntuales, eventos, situaciones de emergencia |
 | Centros de Transferencia | Traslados de residuos desde centros intermedios de transferencia |
 
-### Cómo funciona el origen y el turno en el pesaje
+### Cómo funciona la zona y el turno en el pesaje
 
-Los turnos no se configuran a nivel de tipo de servicio, sino a nivel de **origen + servicio**. Esto significa que Domiciliario puede tener turno Diurna y Nocturna en Origen Norte, pero ningún turno en Origen Industrial.
+Los turnos **no** se configuran a nivel de tipo de servicio, sino a nivel de **zona + servicio**. Esto significa que Domiciliario puede tener turno Diurna y Nocturna en Zona Norte, pero ningún turno en Zona Industrial.
 
-La configuración se hace desde el padrón de Orígenes: para cada origen, se define qué servicios operan en él y, para cada uno, si aplican turnos.
-
-Al registrar un pesaje: el operador elige el servicio → el sistema muestra los orígenes que tienen ese servicio asignado → al elegir un origen, si esa combinación tiene turnos configurados, aparece el selector de turno (obligatorio).
+La configuración se hace desde el padrón de Zonas: para cada zona, se define qué servicios operan en ella y, para cada uno, si aplican turnos.
 
 ---
 
@@ -132,26 +131,28 @@ Al registrar un pesaje: el operador elige el servicio → el sistema muestra los
 
 **Ruta:** Transporte → Tipos de vehículo
 
-Los tipos de vehículo definen los rangos de peso válidos. El sistema usa estos rangos para alertar al operador cuando el peso ingresado parece inusual para ese tipo de camión.
+Los tipos de vehículo definen los rangos de **peso bruto** esperados (vehículo + carga completa). El sistema usa estos rangos para detectar pesajes anómalos.
 
 ### Campos del formulario
 
 | Campo | Descripción | Obligatorio |
 |-------|-------------|-------------|
 | Nombre | Nombre del tipo (ej: Compactador) | Sí |
-| Peso mínimo (kg) | Peso bruto mínimo esperado para este tipo | Sí |
-| Peso máximo (kg) | Peso bruto máximo esperado para este tipo | Sí |
+| Peso bruto mínimo (kg) | Lo mínimo que debería marcar la balanza con este tipo cargado | Sí |
+| Peso bruto máximo (kg) | Lo máximo esperado, incluyendo vehículo vacío más la carga | Sí |
+
+> **Importante:** estos rangos son de peso bruto (lo que marca la balanza), no de tara. La tara de cada vehículo se configura por separado en el padrón de Vehículos.
 
 ### Rangos configurados en el sistema
 
-| Tipo | Peso mínimo | Peso máximo |
+| Tipo | Bruto mínimo | Bruto máximo |
 |------|-------------|-------------|
 | Compactador | 10.000 kg | 26.500 kg |
 | Volcador | 13.000 kg | 30.000 kg |
 | Volquete | 7.000 kg | 20.000 kg |
 | Particular | 1.000 kg | 5.000 kg |
 
-Los rangos se pueden ajustar si la flota cambia o si los valores actuales generan alertas falsas con demasiada frecuencia.
+Los rangos son informativos — si el peso registrado queda fuera de rango, el sistema lo avisa como anomalía pero el operador puede guardar el pesaje igual.
 
 ---
 
@@ -172,12 +173,6 @@ Los usuarios son las personas que acceden al sistema. Hay dos roles:
 | Rol | Operador o Admin | Sí |
 | Contraseña inicial | Se entrega al usuario para que la cambie | Sí |
 
-### Acciones disponibles por usuario
-
-- **Editar** — modificar cualquier campo excepto la contraseña
-- **Resetear contraseña** — generar una nueva contraseña temporal para el usuario
-- **Desactivar** — el usuario deja de poder ingresar al sistema; sus registros históricos se conservan
-
 ### Reglas clave
 
 - Un usuario por persona. Nunca compartir credenciales: si dos operadores usan el mismo usuario, no se puede saber quién registró cada pesaje.
@@ -187,7 +182,7 @@ Los usuarios son las personas que acceden al sistema. Hay dos roles:
 
 ## Cómo editar un registro
 
-1. Encontrá el registro en la tabla (usá la barra de búsqueda si hay muchos).
+1. Encontrá el registro en la tabla.
 2. Hacé clic en **Editar** en la fila correspondiente.
 3. Modificá los campos necesarios.
 4. Guardá.
@@ -200,43 +195,32 @@ Los cambios toman efecto inmediatamente.
 
 1. Encontrá el registro en la tabla.
 2. Hacé clic en **Desactivar** en la fila correspondiente.
-3. Confirmá la acción.
+3. Confirmá en el modal de confirmación.
 
-El registro queda marcado como inactivo y deja de aparecer en los autocompletados del operador. Los registros inactivos siguen visibles en la tabla con una indicación visual diferente.
-
----
-
-## Filtros y búsqueda en las tablas
-
-Cada tabla tiene una barra de búsqueda que filtra en tiempo real. Podés buscar por cualquier campo visible: patente, número interno, nombre de origen, nombre de usuario, etc.
-
-En la tabla de vehículos también podés filtrar por:
-- Estado (Activos / Inactivos / Todos)
-- Tipo de vehículo
-- Titular
+El registro queda marcado como inactivo y deja de aparecer en los autocompletados del operador. Los registros inactivos siguen visibles en la tabla.
 
 ---
 
 ## Preguntas frecuentes
 
 **¿Puedo borrar un registro en lugar de desactivarlo?**
-No. El sistema no permite eliminar registros. Esto es intencional: si se pudiera borrar un vehículo, los pesajes históricos de ese vehículo quedarían sin referencia. La baja lógica (desactivar) preserva la integridad de los datos históricos.
+No. El sistema no permite eliminar registros. La baja lógica (desactivar) preserva la integridad de los datos históricos.
 
 **¿Qué pasa si edito la tara de un vehículo?**
-Los pesajes futuros usan la nueva tara. Los pesajes ya registrados conservan la tara que tenían al momento del ingreso — ese valor se copió al registro del pesaje y no cambia con ediciones posteriores al padrón.
+Los pesajes futuros usan la nueva tara. Los pesajes ya registrados conservan la tara original.
 
 **¿Puedo agregar un tipo de servicio nuevo?**
-Sí. Ir a Padrones → Tipos de servicio y usar el botón Agregar. El tipo de servicio nuevo aparece disponible para los operadores inmediatamente después de guardarlo.
+Sí. Ir a Padrón → Tipos de servicio y usar el botón Agregar.
 
-**¿Qué pasa si desactivo un origen que tiene pesajes activos?**
-Los pesajes "en predio" (con estado EN PREDIO) que pertenecen a ese origen no se ven afectados. La desactivación solo impide que el origen aparezca como sugerencia en nuevos pesajes.
+**¿Qué pasa si desactivo una zona que tiene pesajes activos?**
+Los pesajes "en predio" no se ven afectados. La desactivación solo impide que la zona aparezca en nuevos pesajes.
 
 **¿Puedo cambiar el rol de un usuario (de operador a admin)?**
-Sí, editando el usuario. El cambio de rol toma efecto en el próximo inicio de sesión del usuario.
+Sí, editando el usuario. El cambio de rol toma efecto en el próximo inicio de sesión.
 
-**¿Cómo sé si un usuario inició sesión recientemente?**
-La tabla de usuarios no muestra el último acceso en esta versión del sistema.
+**¿Puedo modificar los turnos u horarios de un servicio ya asignado a una zona?**
+Sí. En el padrón de Zonas, en la fila del servicio asignado, usá el botón **Editar** para cambiar turnos y horarios.
 
 ---
 
-*Documento generado: 12/05/2026 | Versión: 1.0*
+*Documento actualizado: 14/05/2026 | Versión: 1.1*

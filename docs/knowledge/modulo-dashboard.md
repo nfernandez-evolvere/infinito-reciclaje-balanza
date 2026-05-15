@@ -98,7 +98,7 @@ Tabla con el desglose de la operación del día por origen:
 
 ## Sección 7 — Por tipo de vehículo
 
-Tabla similar a la de orígenes, pero desglosada por tipo de vehículo (Compactador, Volcador, Volquete, Particular).
+Tabla similar a la de zonas, pero desglosada por tipo de vehículo (Compactador, Volcador, Volquete, Particular).
 
 Útil para verificar que la distribución de la flota está dentro de los parámetros esperados.
 

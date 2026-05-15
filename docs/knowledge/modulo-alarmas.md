@@ -124,9 +124,9 @@ Si el valor es muy bajo (ej: 20 minutos), se van a generar muchas alarmas falsas
 
 ### Umbrales de peso inusual
 
-Los rangos de peso están definidos en **Padrones → Tipos de vehículo** (ver módulo de ABMs). Las alarmas de peso inusual se disparan cuando un pesaje queda fuera de esos rangos.
+Los rangos de peso están definidos en **Transporte → Tipos de vehículo** (ver módulo de ABMs). Las alarmas de peso inusual se disparan cuando un pesaje queda fuera de esos rangos.
 
-Para ajustar los umbrales de peso: ir a Padrones → Tipos de vehículo y editar el tipo correspondiente.
+Para ajustar los umbrales de peso: ir a Transporte → Tipos de vehículo y editar el tipo correspondiente.
 
 ### Umbral de frecuencia atípica
 

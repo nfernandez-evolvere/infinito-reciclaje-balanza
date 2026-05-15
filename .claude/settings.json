@@ -4,7 +4,28 @@
       "Bash(Get-Content \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\package.json\")",
       "Bash(Select-Object -First 20)",
       "Bash(git restore *)",
-      "Bash(del \"docs\\\\prototipo\\\\balanza\\\\AbmOrigenes.jsx\")"
+      "Bash(del \"docs\\\\prototipo\\\\balanza\\\\AbmOrigenes.jsx\")",
+      "Read(//c/Users/34891406/Nicolas/Proyectos/infinito-reciclaje-balanza/resources/views/components/**)",
+      "PowerShell(Get-ChildItem \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\\" -Directory | Where-Object { $_.Name -notin @\\('ui', 'layouts'\\) } | Select-Object Name)",
+      "Bash(cd c:/Users/34891406/Nicolas/Proyectos/infinito-reciclaje-balanza && rm resources/views/components/*.blade.php && rm -rf resources/views/components/accordion resources/views/components/alert resources/views/components/analytics resources/views/components/billing resources/views/components/breadcrumb resources/views/components/card resources/views/components/collapsible resources/views/components/dialog resources/views/components/dropdown-menu resources/views/components/members resources/views/components/notifications resources/views/components/pagination resources/views/components/popover resources/views/components/settings resources/views/components/sheet resources/views/components/table resources/views/components/tabs resources/views/components/users)",
+      "Bash(mkdir c:/Users/34891406/Nicolas/Proyectos/infinito-reciclaje-balanza/resources/views/modules)",
+      "Bash(mv analytics *)",
+      "PowerShell(Test-NetConnection -ComputerName yamanote.proxy.rlwy.net -Port 16979 -InformationLevel Quiet)",
+      "PowerShell(nslookup yamanote.proxy.rlwy.net)",
+      "Bash(grep -E \"\\\\.md$|\\\\.txt$\")",
+      "PowerShell(New-Item -ItemType Directory -Force \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\modules\\\\auth\")",
+      "Bash(Remove-Item storage\\\\framework\\\\views\\\\* -Force -ErrorAction SilentlyContinue)",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/tailwindcss/package.json'\\).version\\)\")",
+      "Bash(npm remove *)",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/@tailwindcss/vite/package.json'\\).version\\)\")",
+      "Bash(npm run *)",
+      "Bash(node -e ' *)",
+      "Bash(gh api *)",
+      "Bash(curl -s \"https://raw.githubusercontent.com/nico0689crc/laravel-shadcn/main/laravel-app/resources/views/components/layouts/app-sidebar.blade.php\")",
+      "Bash(Remove-Item \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\layouts\\\\admin.blade.php\", \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\layouts\\\\operador.blade.php\", \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\layouts\\\\sidebar.blade.php\", \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\layouts\\\\sidebar-operador.blade.php\")"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\34891406\\Nicolas\\Proyectos\\infinito-reciclaje-balanza\\resources\\views\\components"
     ]
   }
 }

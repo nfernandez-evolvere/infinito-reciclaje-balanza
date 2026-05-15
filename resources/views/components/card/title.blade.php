@@ -1,2 +1,0 @@
-@props([])
-<div {{ $attributes->merge(['class' => 'font-semibold leading-none tracking-tight']) }}>{{ $slot }}</div>

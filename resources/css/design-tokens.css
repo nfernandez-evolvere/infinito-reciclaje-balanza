@@ -50,18 +50,18 @@
     --blue-900: oklch(0.349 0.119 250);
     --blue-950: oklch(0.231 0.077 250);
 
-    /* Green */
-    --green-50:  oklch(0.971 0.030 145);
-    --green-100: oklch(0.933 0.063 145);
-    --green-200: oklch(0.873 0.107 145);
-    --green-300: oklch(0.794 0.151 145);
-    --green-400: oklch(0.698 0.185 145);
-    --green-500: oklch(0.604 0.196 145);
-    --green-600: oklch(0.519 0.181 145);
-    --green-700: oklch(0.435 0.153 145);
-    --green-800: oklch(0.370 0.122 145);
-    --green-900: oklch(0.313 0.093 145);
-    --green-950: oklch(0.207 0.060 145);
+    /* Green — escala anclada en #2E7D32 (oklch 0.523 0.135 144) en step 700 */
+    --green-50:  oklch(0.976 0.022 144);
+    --green-100: oklch(0.948 0.048 144);
+    --green-200: oklch(0.905 0.088 144);
+    --green-300: oklch(0.840 0.135 144);
+    --green-400: oklch(0.754 0.165 144);
+    --green-500: oklch(0.665 0.163 144);
+    --green-600: oklch(0.592 0.153 144);
+    --green-700: oklch(0.523 0.135 144); /* #2E7D32 */
+    --green-800: oklch(0.441 0.109 144);
+    --green-900: oklch(0.355 0.079 144);
+    --green-950: oklch(0.247 0.052 144);
 
     /* Yellow / Amber */
     --yellow-50:  oklch(0.980 0.040 95);
@@ -113,7 +113,7 @@
     --popover-foreground:    var(--neutral-950);
 
     /* — Semánticos de rol — */
-    --primary:               var(--neutral-900);
+    --primary:               var(--green-700);
     --primary-foreground:    var(--neutral-50);
     --secondary:             var(--neutral-100);
     --secondary-foreground:  var(--neutral-900);
@@ -163,7 +163,7 @@
     --border:                var(--neutral-200);
     --border-width:          1px;
     --input:                 var(--neutral-200);
-    --ring:                  var(--neutral-950);
+    --ring:                  var(--green-700);
     --ring-width:            2px;
     --ring-offset:           2px;
     --ring-offset-color:     var(--background);
@@ -178,12 +178,12 @@
     /* — Sidebar — */
     --sidebar:                       var(--neutral-50);
     --sidebar-foreground:            var(--neutral-950);
-    --sidebar-primary:               var(--neutral-900);
+    --sidebar-primary:               var(--green-700);
     --sidebar-primary-foreground:    var(--neutral-50);
-    --sidebar-accent:                var(--neutral-100);
-    --sidebar-accent-foreground:     var(--neutral-900);
+    --sidebar-accent:                var(--green-50);
+    --sidebar-accent-foreground:     var(--green-900);
     --sidebar-border:                var(--neutral-200);
-    --sidebar-ring:                  var(--neutral-950);
+    --sidebar-ring:                  var(--green-700);
 
     /* — Radio (border-radius) — */
     --radius:                0.5rem;       /* 8px — base */
@@ -218,8 +218,8 @@
     --popover-foreground:    var(--neutral-50);
 
     /* — Semánticos de rol — */
-    --primary:               var(--neutral-50);
-    --primary-foreground:    var(--neutral-900);
+    --primary:               var(--green-400);
+    --primary-foreground:    var(--neutral-950);
     --secondary:             var(--neutral-800);
     --secondary-foreground:  var(--neutral-50);
     --muted:                 var(--neutral-800);
@@ -273,12 +273,12 @@
     /* — Sidebar (dark) — */
     --sidebar:                       var(--neutral-900);
     --sidebar-foreground:            var(--neutral-50);
-    --sidebar-primary:               var(--blue-500);
+    --sidebar-primary:               var(--green-500);
     --sidebar-primary-foreground:    var(--neutral-50);
-    --sidebar-accent:                var(--neutral-800);
-    --sidebar-accent-foreground:     var(--neutral-50);
+    --sidebar-accent:                var(--green-950);
+    --sidebar-accent-foreground:     var(--green-100);
     --sidebar-border:                oklch(1 0 0 / 10%);
-    --sidebar-ring:                  var(--neutral-300);
+    --sidebar-ring:                  var(--green-400);
 }
 
 

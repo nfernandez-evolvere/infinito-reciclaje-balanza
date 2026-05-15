@@ -55,7 +55,7 @@ Hacé clic en **Generar reporte**. El sistema procesa los datos y muestra una vi
 Antes de exportar, revisá:
 - Que el período sea correcto
 - Que los totales tengan sentido
-- Que no haya orígenes o servicios faltantes
+- Que no haya zonas o servicios faltantes
 
 ### Paso 5 — Exportar
 
@@ -119,7 +119,7 @@ El reporte mensual se genera **después del último día del mes**, cuando ya es
 
 ## Indicadores per cápita y de densidad
 
-Si los orígenes tienen cargados los datos de habitantes y hectáreas, el reporte incluye:
+Si las zonas tienen cargados los datos de hectáreas, el reporte incluye:
 
 | Indicador | Cálculo | Descripción |
 |-----------|---------|-------------|

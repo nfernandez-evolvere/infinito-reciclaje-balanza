@@ -34,10 +34,12 @@ Ninguno — infraestructura sin lógica de negocio testeable en aislamiento.
 
 ### Tareas
 - [ ] `composer require laravel/breeze --dev` + `php artisan breeze:install blade`
+- [ ] Mover vistas generadas por Breeze de `resources/views/auth/` a `resources/views/modules/auth/`
+- [ ] Actualizar rutas de auth para apuntar a `modules.auth.*`
 - [ ] Migración `users`: agregar `role` (enum: `operador`, `admin`, default `operador`), `onboarding_visto` (boolean, default `false`)
-- [ ] Reescribir vista `login` con `x-ui.*` y UX Writing del sistema (voseo, sin tecnicismos)
+- [ ] Reescribir vista `login` con `<x-ui.*>` y UX Writing del sistema (voseo, sin tecnicismos)
 - [ ] Eliminar vistas y rutas de `register`, `email/verify`, `password/*` de Breeze — usuarios solo se crean desde ABM
-- [ ] Redireccionamiento post-login según rol: operador → `/operador/pesaje`, admin → `/admin/dashboard`
+- [ ] Redireccionamiento post-login según rol: operador → `/balanza`, admin → `/admin/dashboard`
 - [ ] Métodos helpers en `User`: `isAdmin()`, `isOperador()`
 - [ ] `UserSeeder`: usuario `roberto` (operador) + `nacho` (admin)
 
@@ -49,7 +51,7 @@ Ninguno — infraestructura sin lógica de negocio testeable en aislamiento.
 
 ### Tests de integración
 - `AuthTest::test_login_page_renders` — `GET /login` → HTTP 200
-- `AuthTest::test_operador_redirected_to_pesaje_after_login` — `POST /login` (roberto) → redirect `/operador/pesaje`
+- `AuthTest::test_operador_redirected_to_balanza_after_login` — `POST /login` (roberto) → redirect `/balanza`
 - `AuthTest::test_admin_redirected_to_dashboard_after_login` — `POST /login` (nacho) → redirect `/admin/dashboard`
 - `AuthTest::test_invalid_credentials_returns_error` — `POST /login` con contraseña incorrecta → HTTP 422, error en campo `email`
 - `AuthTest::test_register_route_does_not_exist` — `GET /register` → HTTP 404
@@ -88,13 +90,13 @@ Ninguno — infraestructura sin lógica de negocio testeable en aislamiento.
 
 ### Tests de integración
 - `RouteProtectionTest::test_operador_cannot_access_admin_routes` — `GET /admin/dashboard` como operador → HTTP 403
-- `RouteProtectionTest::test_admin_cannot_access_operador_routes` — `GET /operador/pesaje` como admin → HTTP 403
+- `RouteProtectionTest::test_admin_cannot_access_balanza` — `GET /balanza` como admin → HTTP 403
 - `RouteProtectionTest::test_unauthenticated_redirects_to_login` — `GET /admin/dashboard` sin sesión → redirect `/login`
-- `RouteProtectionTest::test_operador_can_access_pesaje_route` — `GET /operador/pesaje` como operador → HTTP 200
+- `RouteProtectionTest::test_operador_can_access_balanza` — `GET /balanza` como operador → HTTP 200
 
 ### Tests manuales
 - [ ] Como `roberto`, navegar a `/admin/dashboard` → error 403 o redirect
-- [ ] Como `nacho`, navegar a `/operador/pesaje` → error 403 o redirect
+- [ ] Como `nacho`, navegar a `/balanza` → error 403 o redirect
 - [ ] Sin sesión activa, navegar a cualquier ruta protegida → redirect a `/login`
 - [ ] Cerrar sesión e intentar navegar con el botón Atrás del navegador → redirect a login (no muestra la pantalla cacheada)
 
@@ -104,7 +106,7 @@ Ninguno — infraestructura sin lógica de negocio testeable en aislamiento.
 
 ### Tareas
 - [ ] `layouts/operador.blade.php`: header (logo, reloj en vivo Alpine, chip de usuario, botón logout), nav inline (Pesaje / Historial), footer sticky de turno
-- [ ] `layouts/admin.blade.php`: sidebar de 240px con 3 grupos accordion (Operación, Padrones, Análisis), footer de usuario, toggle collapse con `localStorage`
+- [ ] `layouts/admin.blade.php`: sidebar de 240px; flat items (Operación: Dashboard · Pesajes · Reportes; Padrón: Zonas · Tipos de servicio), separador, accordion groups (Transporte: Vehículos · Tipos de vehículo; Sistema: Usuarios); footer con avatar · nombre · rol · logout; toggle collapse con `localStorage`
 - [ ] Anti-flash de dark mode en `<head>`
 - [ ] Toggle de dark mode en ambos layouts
 - [ ] Dark mode: clase `.dark` en `<html>` + tokens del tema activo
@@ -113,7 +115,7 @@ Ninguno — infraestructura sin lógica de negocio testeable en aislamiento.
 Ninguno — presentación sin lógica de negocio.
 
 ### Tests de integración
-- `LayoutTest::test_operador_layout_renders_for_operador` — `GET /operador/pesaje` como operador → HTML contiene nav con "Pesaje" e "Historial"
+- `LayoutTest::test_operador_layout_renders_for_operador` — `GET /balanza` como operador → HTML contiene nav con "Pesaje" e "Historial"
 - `LayoutTest::test_admin_layout_renders_for_admin` — `GET /admin/dashboard` como admin → HTML contiene sidebar con "Dashboard" y "Pesajes"
 
 ### Tests manuales

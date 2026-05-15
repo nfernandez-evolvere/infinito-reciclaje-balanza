@@ -37,14 +37,13 @@ Footer: último pesaje (patente · neto · hora) · totales del turno · camione
 | Balanza | `/balanza` | Formulario de 3 pasos + barra de acción sticky |
 | Historial | `/historial` | Pesajes del turno con egreso, edición e historial |
 
-**Shell del admin** — sidebar izquierdo en acordeón, 240px:
+**Shell del admin** — sidebar izquierdo, 240px:
 ```
-Grupo Operación:   Dashboard · Pesajes
-Grupo Transporte:  Vehículos · Tipos de vehículo
-Grupo Orígenes:    Orígenes
-Grupo Servicios:   Tipos de servicio
-Grupo Sistema:     Usuarios
-Grupo Análisis:    Reportes
+Grupo Operación (items):   Dashboard · Pesajes · Reportes
+Grupo Padrón (items):      Zonas · Tipos de servicio
+Separador
+Grupo Transporte (acordeón): Vehículos · Tipos de vehículo
+Grupo Sistema (acordeón):    Usuarios
 Footer sidebar:    avatar · nombre · rol · logout
 ```
 
@@ -52,12 +51,12 @@ Footer sidebar:    avatar · nombre · rol · logout
 |----------|------|-------------|
 | Dashboard | `/admin/dashboard` | KPIs, gráficos, alertas, camiones en predio |
 | Pesajes | `/admin/pesajes` | Log completo filtrable con edición y auditoría |
-| Vehículos | `/admin/vehiculos` | ABM padrón (grupo Transporte) |
-| Tipos de vehículo | `/admin/tipos-vehiculo` | ABM tipos con rangos de peso (grupo Transporte) |
-| Orígenes | `/admin/origenes` | ABM orígenes (antes "Zonas") |
-| Tipos de servicio | `/admin/servicios` | ABM servicios con cascada |
-| Usuarios | `/admin/usuarios` | ABM usuarios con rol |
 | Reportes | `/admin/reportes` | Filtros + preview + exportación PDF/Excel |
+| Zonas | `/admin/zonas` | ABM zonas con asignación de servicios, turnos y horarios |
+| Tipos de servicio | `/admin/servicios` | ABM servicios con vehículo habitual sugerido |
+| Vehículos | `/admin/vehiculos` | ABM padrón de vehículos (grupo Transporte) |
+| Tipos de vehículo | `/admin/tipos-vehiculo` | ABM tipos con rangos de peso bruto (grupo Transporte) |
+| Usuarios | `/admin/usuarios` | ABM usuarios con rol (grupo Sistema) |
 
 ---
 
@@ -99,10 +98,10 @@ Helpers en `User`: `isAdmin()`, `isOperador()`
 | 1  | `users` | Operadores y administradores |
 | 2  | `tipos_vehiculo` | Catálogo de tipos con rangos de peso |
 | 3  | `tipos_servicio` | Tipos de recolección; vehículo sugerido |
-| 4  | `origenes` | Entidades geográficas puras; sin FK a servicios |
-| 5  | `origen_servicios` | Junction N:M orígenes ↔ servicios |
-| 6  | `origen_servicio_turnos` | Turnos disponibles por combinación origen+servicio (PK triple) |
-| 7  | `origen_servicio_horarios` | Franjas horarias por día para cada combo origen+servicio (PK cuádruple) |
+| 4  | `zonas` | Entidades geográficas puras; sin FK a servicios |
+| 5  | `zona_servicios` | Junction N:M orígenes ↔ servicios |
+| 6  | `zona_servicio_turnos` | Turnos disponibles por combinación origen+servicio (PK triple) |
+| 7  | `zona_servicio_horarios` | Franjas horarias por día para cada combo origen+servicio (PK cuádruple) |
 | 8  | `vehiculos` | Padrón completo con tara |
 | 9  | `pesajes` | Tabla operacional central |
 | 10 | `pesajes_log` | Audit trail inmutable por campo editado |
@@ -117,8 +116,8 @@ Helpers en `User`: `isAdmin()`, `isOperador()`
 | `peso_tara_kg` en pesajes | Desnormalización intencional: se copia del padrón al ingreso para preservar historial si la tara cambia. |
 | `peso_neto_kg` calculado en Service | No es computed column SQL Server — permite log granular del campo en `pesajes_log` al editarlo. |
 | `activo` en lugar de `SoftDeletes` | El ABM admin necesita mostrar registros inactivos. `activo bit` es explícito, sin scopes globales. |
-| Relación `tipos_servicio` ↔ `origenes` es N:M (vía `origen_servicios`) | Un origen puede operar bajo varios servicios. Los turnos se configuran por combinación origen+servicio en `origen_servicio_turnos`. El formulario de pesaje filtra orígenes por el servicio elegido. |
-| `origen_servicios` + `origen_servicio_turnos` (relación N:M orígenes ↔ servicios) | Un origen se crea una sola vez. Los turnos se configuran por combinación origen+servicio. Evita duplicar orígenes (ej: "Origen Sur Diurno" y "Origen Sur Nocturno"). `pesajes.turno` persiste el turno elegido; obligatorio cuando la combinación tiene turnos configurados. |
+| Relación `tipos_servicio` ↔ `zonas` es N:M (vía `zona_servicios`) | Una zona puede operar bajo varios servicios. Los turnos se configuran por combinación zona+servicio en `zona_servicio_turnos`. El formulario de pesaje filtra zonas por el servicio elegido. |
+| `zona_servicios` + `zona_servicio_turnos` (relación N:M zonas ↔ servicios) | Una zona se crea una sola vez. Los turnos se configuran por combinación zona+servicio. Evita duplicar zonas (ej: "Zona Sur Diurna" y "Zona Sur Nocturna"). `pesajes.turno` persiste el turno elegido; obligatorio cuando la combinación tiene turnos configurados. |
 | Edición auditada | Ambos roles editan con `motivo` obligatorio. Cada campo modificado genera una fila en `pesajes_log`. |
 
 ---
@@ -226,7 +225,7 @@ Un widget persistente que aparece en todas las pantallas del panel de administra
 |------|-------------------------------------|
 | 1. Tipos de vehículo | `tipos_vehiculo.count > 0` |
 | 2. Tipos de servicio | `tipos_servicio.count > 0` |
-| 3. Orígenes | `origenes.count > 0` |
+| 3. Zonas | `zonas.count > 0` |
 | 4. Padrón de vehículos | `vehiculos.count > 0` |
 | 5. Usuarios operadores | `users.count > 0` donde `role = 'operador'` |
 
@@ -351,7 +350,7 @@ Los 5 ABMs 100% funcionales. Condición crítica de go-live: sin padrón complet
 **Migraciones**
 - [ ] `create_tipos_vehiculo_table`
 - [ ] `create_tipos_servicio_table`
-- [ ] `create_origenes_table`
+- [ ] `create_zonas_table`
 - [ ] `create_vehiculos_table`
 
 **ABM Tipos de vehículo**
@@ -370,12 +369,13 @@ Los 5 ABMs 100% funcionales. Condición crítica de go-live: sin padrón complet
 - [ ] Modal crear/editar con select de tipo de vehículo sugerido
 - [ ] Seeder con los 5 tipos de servicio
 
-**ABM Orígenes**
-- [ ] `OrigenRepository`, `OrigenService`
-- [ ] `OrigenController` (resource)
-- [ ] Form Requests correspondientes
-- [ ] Vista index: tabla con hectáreas, barrios y total en el header
-- [ ] Modal crear/editar con campos: nombre, servicio asociado, hectáreas, barrios, habitantes
+**ABM Zonas**
+- [ ] `ZonaRepository`, `ZonaService`
+- [ ] `ZonaController` (resource)
+- [ ] Form Requests: `StoreZonaRequest`, `UpdateZonaRequest`
+- [ ] Vista index: cards por zona con hectáreas, barrios y total en el header; tabla de servicios asignados por zona
+- [ ] Modal crear/editar: nombre, hectáreas, barrios
+- [ ] Modal asignar servicio: tipo de servicio, switch de turnos (Diurna / Nocturna), horarios por día
 
 **ABM Padrón de vehículos**
 - [ ] `VehiculoRepository`, `VehiculoService`
@@ -427,15 +427,15 @@ Pantalla principal del operador: flujo completo de pesaje en menos de 10 segundo
 
 **API de autocompletado**
 - [ ] `GET /api/vehiculos/buscar?q={patente_o_numero}` → devuelve tara, tipo, titular, capacidad, observaciones (solo vehículos activos)
-- [ ] `GET /api/servicios/{id}/origen` → devuelve origen predeterminado y tipo de vehículo sugerido
+- [ ] `GET /api/servicios/{id}/zonas` → devuelve zonas activas con sus turnos configurados y tipo de vehículo sugerido
 
 **Formulario Balanza — 3 pasos secuenciales (Alpine.js)**
 - [ ] Indicadores de paso numerados (1→2→3) con check verde al completar; pasos futuros dimmed
 - [ ] **Paso 1 — Vehículo:** input libre patente/número interno, popper de autocompletado (hasta 6 matches), Enter selecciona primer match, badges de solo lectura: Tara · Tipo · Titular · Interno
-- [ ] **Paso 2 — Tipo de servicio:** select nativo, cascade a origen + badge tipo habitual (azul); warning naranja si el tipo del vehículo no coincide con el sugerido (nunca override)
+- [ ] **Paso 2 — Tipo de servicio:** select nativo, carga zonas activas del servicio vía API + badge tipo habitual (azul); warning naranja si el tipo del vehículo no coincide con el sugerido (nunca override)
 - [ ] **Paso 3 — Peso bruto:** input numérico 72px estilo display, Tara y Neto estimado a la derecha, borde verde si en rango / naranja si fuera de rango, hint de rango siempre visible
 - [ ] Campo `observaciones` autocompleta desde el padrón, editable
-- [ ] Summary card final (verde suave cuando el form está completo): vehículo, servicio, origen, tipo, bruto, tara, neto, operador
+- [ ] Summary card final (verde suave cuando el form está completo): vehículo, servicio, zona, tipo, bruto, tara, neto, operador
 - [ ] Barra de acción sticky: `Limpiar (Esc)` · hint contextual · `GUARDAR PESAJE (Ctrl+S)`
 - [ ] Atajos de teclado: `↵` avanza campo, `Ctrl+S` guarda, `Esc` limpia — chips visibles en la pantalla
 - [ ] Overlay de éxito post-guardado: check animado, `Pesaje guardado`, auto-dismiss 1,1 s, foco vuelve al input de vehículo
@@ -443,7 +443,7 @@ Pantalla principal del operador: flujo completo de pesaje en menos de 10 segundo
 
 **Historial del turno**
 - [ ] KPIs pequeños en el header: pesajes, toneladas netas, promedio por viaje, camiones en predio
-- [ ] Tabla del turno: entrada · salida · estado (pill) · patente · servicio · origen · bruto · tara · neto; pill azul `Editado` en filas modificadas
+- [ ] Tabla del turno: entrada · salida · estado (pill) · patente · servicio · zona · bruto · tara · neto; pill azul `Editado` en filas modificadas
 - [ ] Empty state: `Sin pesajes en este turno todavía.`
 - [ ] **Acción Marcar egreso** (solo en filas `En predio`): modal que captura hora actual y `bruto_salida_kg` opcional; confirmar → estado `Cerrado`
 - [ ] **Acción Editar** (propios del turno): modal con campos editables y `motivo` obligatorio; cada campo modificado genera entrada en `pesajes_log`
@@ -474,20 +474,20 @@ Visibilidad completa de la operación para el admin: log filtrable de todos los 
 
 **Pesajes (admin) — log filtrable**
 - [ ] `PesajesAdminController`
-- [ ] Filtros: búsqueda (patente / ID), estado (Todos / En predio / Cerrado), origen, servicio, operador
+- [ ] Filtros: búsqueda (patente / ID), estado (Todos / En predio / Cerrado), zona, servicio, operador
 - [ ] Header con conteo filtrado + toneladas netas totales de la vista actual
-- [ ] Tabla: ID · entrada · salida · estado · patente · servicio · origen · bruto · tara · neto · operador; pill `Editado` en filas modificadas
+- [ ] Tabla: ID · entrada · salida · estado · patente · servicio · zona · bruto · tara · neto · operador; pill `Editado` en filas modificadas
 - [ ] Mismas acciones que el operador: Marcar egreso · Editar (con motivo) · Ver historial
 - [ ] Exportar Excel de la vista filtrada
 
 **Dashboard**
 - [ ] `DashboardController` con lógica de agregación
 - [ ] Banners de alertas activas en la parte superior (con botón `Revisar`)
-- [ ] Widget `Camiones en el predio`: solo aparece si hay registros `En predio`; tabla con patente, tipo, servicio, origen, hora entrada, neto, operador
+- [ ] Widget `Camiones en el predio`: solo aparece si hay registros `En predio`; tabla con patente, tipo, servicio, zona, hora entrada, neto, operador
 - [ ] KPIs del día (4 cards): pesajes, toneladas, promedio por viaje, horas operativas — cada una con delta vs. promedio histórico
 - [ ] KPIs del mes (3 cards): pesajes acumulados, toneladas acumuladas, días operativos
 - [ ] Gráfico evolución diaria (barras, 7 días): hoy destacado en verde oscuro, días anteriores en verde claro, línea de promedio punteada
-- [ ] Tabla por origen: pesajes, toneladas, kg/ha
+- [ ] Tabla por zona: pesajes, toneladas, kg/ha
 - [ ] Tabla por tipo de vehículo: viajes, toneladas, barra horizontal de % del total
 
 **Base de conocimiento — Sprint 4**
@@ -510,7 +510,7 @@ Reemplazar 2–3 horas de Excel manual por generación en menos de 5 minutos.
 
 **Filtros y generación**
 - [ ] `ReporteController` con formulario de filtros
-- [ ] Filtros: período (desde/hasta), origen, tipo de servicio, tipo de vehículo
+- [ ] Filtros: período (desde/hasta), zona, tipo de servicio, tipo de vehículo
 - [ ] Pills de filtros activos bajo el formulario
 - [ ] `ReporteService` con lógica de agregación y cálculos
 - [ ] Estado vacío antes de generar: `Aplicá los filtros y generá el reporte para ver la vista previa.`
@@ -518,10 +518,10 @@ Reemplazar 2–3 horas de Excel manual por generación en menos de 5 minutos.
 **Preview del reporte**
 - [ ] 4 KPIs de resumen
 - [ ] Gráfico de barras de evolución diaria (Chart.js)
-- [ ] Tabla por origen (pesajes, toneladas, densidad kg/ha)
+- [ ] Tabla por zona (pesajes, toneladas, densidad kg/ha)
 - [ ] Tabla por tipo de vehículo (viajes, toneladas, % — barra visual)
-- [ ] Sección densidad de generación (kg/ha por origen)
-- [ ] Reporte per cápita por origen: kg ÷ habitantes
+- [ ] Sección densidad de generación (kg/ha por zona)
+- [ ] Reporte per cápita por zona: kg ÷ habitantes
 
 **Exportación PDF**
 - [ ] Instalar y configurar `knplabs/snappy`
@@ -560,7 +560,7 @@ Detección proactiva de anomalías. QA end-to-end con datos reales. Buffer para 
 **Lógica de detección**
 - [ ] Volumen diario fuera de rango histórico (por encima o por debajo)
 - [ ] Kg por viaje inusual para el tipo de vehículo
-- [ ] Frecuencia por origen atípica
+- [ ] Frecuencia por zona atípica
 - [ ] Gaps en el registro: períodos sin pesajes en horario operativo (8:00–18:00)
 
 **Scheduler Laravel**
@@ -571,7 +571,7 @@ Detección proactiva de anomalías. QA end-to-end con datos reales. Buffer para 
 **UI de alarmas**
 - [ ] Banners en dashboard: surface naranja/roja con borde izquierdo semántico + botón `Revisar`
 - [ ] `AlarmaController` (index + configuración)
-- [ ] Vista: listado de alarmas con tipo, descripción, fecha, origen/vehículo afectado, estado
+- [ ] Vista: listado de alarmas con tipo, descripción, fecha, zona/vehículo afectado, estado
 - [ ] Vista: configurar umbrales por tipo (editable por admin)
 - [ ] Acción: marcar alarma como resuelta
 
