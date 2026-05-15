@@ -23,6 +23,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/vehiculos', fn () => view('modules.admin.vehiculos.index'))->name('vehiculos.index');
     Route::resource('tipos-vehiculo', TipoVehiculoController::class)
         ->only(['index', 'store', 'update', 'destroy']);
+    Route::patch('tipos-vehiculo/{tiposVehiculo}/toggle', [TipoVehiculoController::class, 'toggle'])
+        ->name('tipos-vehiculo.toggle');
     Route::get('/usuarios', fn () => view('modules.admin.usuarios.index'))->name('usuarios.index');
 });
 

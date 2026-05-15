@@ -46,6 +46,10 @@
                 </x-ui.table.cell>
                 <x-ui.table.cell data-label="Acciones" class="text-right">
                     <form id="toggle-{{ $tipo->id }}" method="POST"
+                        action="{{ route('admin.tipos-vehiculo.toggle', $tipo) }}" class="hidden">
+                        @csrf @method('PATCH')
+                    </form>
+                    <form id="delete-{{ $tipo->id }}" method="POST"
                         action="{{ route('admin.tipos-vehiculo.destroy', $tipo) }}" class="hidden">
                         @csrf @method('DELETE')
                     </form>
@@ -75,6 +79,15 @@
                                     <x-lucide-check-circle class="size-4" />
                                     Activar
                                 @endif
+                            </x-ui.dropdown-menu.item>
+                            <x-ui.dropdown-menu.separator />
+                            <x-ui.dropdown-menu.item
+                                variant="destructive"
+                                :closeOnClick="false"
+                                @click="confirmDelete({{ $tipo->id }}, {{ Js::from($tipo->nombre) }}); open = false"
+                            >
+                                <x-lucide-trash-2 class="size-4" />
+                                Eliminar
                             </x-ui.dropdown-menu.item>
                         </x-ui.dropdown-menu.content>
                     </x-ui.dropdown-menu>

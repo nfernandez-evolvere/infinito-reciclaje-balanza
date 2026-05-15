@@ -41,7 +41,7 @@ class TipoVehiculoController extends Controller
             ->with('toast', ['message' => 'Tipo de vehículo actualizado.', 'variant' => 'success']);
     }
 
-    public function destroy(TipoVehiculo $tiposVehiculo): RedirectResponse
+    public function toggle(TipoVehiculo $tiposVehiculo): RedirectResponse
     {
         if ($tiposVehiculo->activo) {
             $this->service->desactivar($tiposVehiculo);
@@ -53,5 +53,13 @@ class TipoVehiculoController extends Controller
 
         return redirect()->route('admin.tipos-vehiculo.index')
             ->with('toast', ['message' => $message, 'variant' => 'success']);
+    }
+
+    public function destroy(TipoVehiculo $tiposVehiculo): RedirectResponse
+    {
+        $this->service->eliminar($tiposVehiculo);
+
+        return redirect()->route('admin.tipos-vehiculo.index')
+            ->with('toast', ['message' => 'Tipo de vehículo eliminado.', 'variant' => 'success']);
     }
 }

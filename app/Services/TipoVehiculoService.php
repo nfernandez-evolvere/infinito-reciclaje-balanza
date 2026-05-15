@@ -36,4 +36,9 @@ class TipoVehiculoService
     {
         $this->repository->activate($tipoVehiculo);
     }
+
+    public function eliminar(TipoVehiculo $tipoVehiculo): void
+    {
+        $this->repository->delete($tipoVehiculo);
+    }
 }

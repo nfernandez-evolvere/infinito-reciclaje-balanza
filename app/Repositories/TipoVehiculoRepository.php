@@ -56,4 +56,9 @@ class TipoVehiculoRepository
     {
         $tipoVehiculo->update(['activo' => true]);
     }
+
+    public function delete(TipoVehiculo $tipoVehiculo): void
+    {
+        $tipoVehiculo->delete();
+    }
 }

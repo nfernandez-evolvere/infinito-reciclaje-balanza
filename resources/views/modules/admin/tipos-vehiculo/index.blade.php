@@ -22,6 +22,7 @@
     @include('modules.admin.tipos-vehiculo._drawer-filtros')
     @include('modules.admin.tipos-vehiculo._modal')
     @include('modules.admin.tipos-vehiculo._modal-confirm')
+    @include('modules.admin.tipos-vehiculo._modal-delete')
 
 </div>
 </x-layouts.app>

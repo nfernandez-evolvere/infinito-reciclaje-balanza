@@ -7,6 +7,9 @@ export default (initial = {}) => ({
     confirmId:   null,
     confirmNombre: '',
     confirmActivo: false,
+    deleteOpen:  false,
+    deleteId:    null,
+    deleteNombre: '',
 
     ...initial,
 
@@ -31,5 +34,15 @@ export default (initial = {}) => ({
 
     executeToggle() {
         document.getElementById('toggle-' + this.confirmId).submit();
+    },
+
+    confirmDelete(id, nombre) {
+        this.deleteId     = id;
+        this.deleteNombre = nombre;
+        this.deleteOpen   = true;
+    },
+
+    executeDelete() {
+        document.getElementById('delete-' + this.deleteId).submit();
     },
 });
