@@ -14,7 +14,6 @@
                 type="email"
                 name="email"
                 :value="old('email', $request->email)"
-                :error="$errors->has('email')"
                 autocomplete="username"
             />
         </x-ui.form-field>
@@ -25,7 +24,6 @@
                 id="password"
                 type="password"
                 name="password"
-                :error="$errors->has('password')"
                 autocomplete="new-password"
             />
         </x-ui.form-field>
@@ -36,7 +34,6 @@
                 id="password_confirmation"
                 type="password"
                 name="password_confirmation"
-                :error="$errors->has('password_confirmation')"
                 autocomplete="new-password"
             />
         </x-ui.form-field>
@@ -45,4 +42,11 @@
             Guardar contraseña
         </x-ui.button>
     </form>
+
+    <x-slot:footerLink>
+        <x-ui.button variant="link" href="{{ route('login') }}">
+            <x-lucide-arrow-left class="size-4" />
+            Volver al inicio de sesión
+        </x-ui.button>
+    </x-slot:footerLink>
 </x-layouts.auth>

@@ -1,6 +1,7 @@
+@aware(['state' => null])
 @props([
     'size'  => 'md',   // sm | md | lg
-    'state' => null,   // null | destructive | success | warning | info
+    'state' => $state, // null | destructive | success | warning | info — hereda del form-field ancestor
 ])
 
 @php

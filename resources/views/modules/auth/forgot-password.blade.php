@@ -9,6 +9,7 @@
         @if (session('status'))
             <x-ui.alert state="success">
                 <x-lucide-circle-check class="size-4" />
+                <x-ui.alert.title>Enlace enviado</x-ui.alert.title>
                 <x-ui.alert.description>{{ session('status') }}</x-ui.alert.description>
             </x-ui.alert>
         @endif
@@ -20,7 +21,6 @@
                 type="email"
                 name="email"
                 :value="old('email')"
-                :error="$errors->has('email')"
                 placeholder="nombre@ejemplo.com"
                 autofocus
                 autocomplete="username"
@@ -33,8 +33,9 @@
     </form>
 
     <x-slot:footerLink>
-        <a href="{{ route('login') }}" class="text-xs text-muted-foreground hover:text-foreground transition-colors">
+        <x-ui.button variant="link" href="{{ route('login') }}">
+            <x-lucide-arrow-left class="size-4" />
             Volver al inicio de sesión
-        </a>
+        </x-ui.button>
     </x-slot:footerLink>
 </x-layouts.auth>

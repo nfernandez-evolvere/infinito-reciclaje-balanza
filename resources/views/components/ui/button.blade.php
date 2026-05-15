@@ -2,7 +2,7 @@
     'variant' => 'default',   // default | secondary | outline | ghost | link
     'size'    => 'md',        // sm | md | lg | icon
     'state'   => null,        // null | destructive | success | warning | info
-    'as'      => 'button',    // button | a
+    'as'      => null,        // button | a — se infiere automáticamente si hay href
 ])
 
 @php
@@ -53,7 +53,9 @@ $colorClass = $state
     };
 @endphp
 
-@if($as === 'a')
+@php($tag = ($as ?? ($attributes->has('href') ? 'a' : 'button')))
+
+@if($tag === 'a')
     <a {{ $attributes->twMerge($base, $ringClass, $sizeClass, $colorClass) }}>
         {{ $slot }}
     </a>

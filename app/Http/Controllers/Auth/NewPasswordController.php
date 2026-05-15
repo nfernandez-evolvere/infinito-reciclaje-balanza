@@ -25,6 +25,13 @@ class NewPasswordController extends Controller
             'token'    => ['required'],
             'email'    => ['required', 'email'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ], [
+            'email.required'         => 'El correo electrónico es obligatorio.',
+            'email.email'            => 'Ingresá un correo electrónico válido.',
+            'password.required'      => 'La contraseña es obligatoria.',
+            'password.confirmed'     => 'Las contraseñas no coinciden.',
+            'password.min'           => 'La contraseña debe tener al menos :min caracteres.',
+            'password_confirmation.required' => 'Confirmá tu contraseña.',
         ]);
 
         $status = Password::reset(
@@ -39,9 +46,17 @@ class NewPasswordController extends Controller
             }
         );
 
+        $messages = [
+            Password::PASSWORD_RESET  => 'Tu contraseña fue restablecida. Ya podés ingresar.',
+            Password::INVALID_TOKEN   => 'El enlace de recuperación no es válido o ya expiró.',
+            Password::INVALID_USER    => 'No encontramos ninguna cuenta con ese correo electrónico.',
+            Password::RESET_THROTTLED => 'Esperá unos minutos antes de intentar de nuevo.',
+        ];
+
+        $message = $messages[$status] ?? __($status);
+
         return $status === Password::PASSWORD_RESET
-            ? redirect()->route('login')->with('status', __($status))
-            : back()->withInput($request->only('email'))
-                    ->withErrors(['email' => [__($status)]]);
+            ? redirect()->route('login')->with('status', $message)
+            : back()->withInput($request->only('email'))->withErrors(['email' => $message]);
     }
 }

@@ -33,7 +33,6 @@
                     type="email"
                     name="email"
                     :value="old('email')"
-                    :error="$errors->has('email')"
                     placeholder="nombre@ejemplo.com"
                     autofocus
                     autocomplete="username"
@@ -51,7 +50,6 @@
                     id="password"
                     type="password"
                     name="password"
-                    :error="$errors->has('password')"
                     autocomplete="current-password"
                 />
             </x-ui.form-field>
