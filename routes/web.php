@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\TipoVehiculoController;
 use Illuminate\Support\Facades\Route;
 
 require __DIR__.'/auth.php';
@@ -20,7 +21,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/zonas', fn () => view('modules.admin.zonas.index'))->name('zonas.index');
     Route::get('/servicios', fn () => view('modules.admin.servicios.index'))->name('servicios.index');
     Route::get('/vehiculos', fn () => view('modules.admin.vehiculos.index'))->name('vehiculos.index');
-    Route::get('/tipos-vehiculo', fn () => view('modules.admin.tipos-vehiculo.index'))->name('tipos-vehiculo.index');
+    Route::resource('tipos-vehiculo', TipoVehiculoController::class)
+        ->only(['index', 'store', 'update', 'destroy']);
     Route::get('/usuarios', fn () => view('modules.admin.usuarios.index'))->name('usuarios.index');
 });
 

@@ -1,5 +1,6 @@
 import Alpine from 'alpinejs';
 import Collapse from '@alpinejs/collapse';
+import tiposVehiculo from './alpine/admin/tipos-vehiculo.js';
 
 Alpine.plugin(Collapse);
 
@@ -16,6 +17,8 @@ Alpine.store('theme', {
         localStorage.setItem('theme', this.dark ? 'dark' : 'light');
     },
 });
+
+Alpine.data('tiposVehiculo', tiposVehiculo);
 
 window.Alpine = Alpine;
 Alpine.start();

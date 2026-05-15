@@ -259,7 +259,7 @@
     {{-- Main --}}
     <x-ui.sidebar.inset class="min-h-0 overflow-hidden flex flex-col">
 
-        <header class="flex h-14 shrink-0 items-center gap-2 border-b border-border bg-background px-4">
+        <header class="flex h-14 shrink-0 items-center gap-2 border-b border-border bg-sidebar px-4">
             <x-ui.sidebar.trigger class="-ml-1 text-muted-foreground" />
 
             @isset($breadcrumb)
@@ -267,15 +267,15 @@
             @else
                 <x-ui.breadcrumb>
                     <x-ui.breadcrumb.list>
-                        <x-ui.breadcrumb.item>
+                        <x-ui.breadcrumb.item class="hidden sm:inline-flex">
                             <x-ui.breadcrumb.link :href="$homeRoute">Inicio</x-ui.breadcrumb.link>
                         </x-ui.breadcrumb.item>
-                        <x-ui.breadcrumb.separator />
+                        <x-ui.breadcrumb.separator class="hidden sm:block" />
                         @if($section)
-                            <x-ui.breadcrumb.item>
+                            <x-ui.breadcrumb.item class="hidden sm:inline-flex">
                                 <span>{{ $section }}</span>
                             </x-ui.breadcrumb.item>
-                            <x-ui.breadcrumb.separator />
+                            <x-ui.breadcrumb.separator class="hidden sm:block" />
                         @endif
                         <x-ui.breadcrumb.item>
                             <x-ui.breadcrumb.page>{{ $title }}</x-ui.breadcrumb.page>
@@ -326,7 +326,7 @@
         </div>
 
         @if(isset($footerTurno) || isset($footerUltimo))
-            <footer class="shrink-0 border-t border-border bg-background">
+            <footer class="shrink-0 border-t border-border bg-sidebar">
                 <div class="flex items-center justify-between h-11 px-4">
                     <div class="flex items-center gap-4 text-caption text-muted-foreground">
                         {{ $footerTurno ?? '' }}

@@ -13,8 +13,9 @@ $stateClass = match($state) {
 <tr
     @if($selected) data-state="selected" @endif
     {{ $attributes->twMerge(
-        'border-b border-border transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted',
-        $stateClass
+        'block rounded-lg border border-border transition-colors',
+        $stateClass,
+        'sm:table-row sm:rounded-none sm:border-0 sm:border-b sm:border-border sm:hover:bg-accent/40 sm:data-[state=selected]:bg-muted'
     ) }}
 >
     {{ $slot }}

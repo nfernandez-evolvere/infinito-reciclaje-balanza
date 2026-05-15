@@ -14,7 +14,7 @@
         </x-ui.form-field>
 --}}
 
-<div {{ $attributes->twMerge('grid gap-1.5') }}>
+<div {{ $attributes->twMerge('grid gap-2.5') }}>
     {{ $slot }}
     @if($message)
         <x-ui.helper-text :state="$state" :message="$message" />

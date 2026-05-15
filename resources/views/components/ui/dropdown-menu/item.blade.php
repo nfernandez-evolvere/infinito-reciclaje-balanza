@@ -7,7 +7,7 @@
 ])
 
 @php
-$base = 'relative flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm outline-none select-none transition-colors cursor-default [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=size-])]:size-4';
+$base = 'relative flex items-center gap-1.5 rounded-sm px-2 py-1.5 text-sm outline-none select-none transition-colors cursor-default [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=size-])]:size-4';
 
 $variantClass = $variant === 'destructive'
     ? 'text-destructive data-[highlighted]:bg-destructive/10 data-[highlighted]:text-destructive [&_svg]:text-destructive focus:bg-destructive/10 focus:text-destructive hover:bg-destructive/10 hover:text-destructive'
@@ -15,6 +15,13 @@ $variantClass = $variant === 'destructive'
 
 $stateClass  = $disabled ? 'pointer-events-none opacity-50' : 'cursor-pointer';
 $insetClass  = $inset ? 'pl-8' : '';
+
+// Combine external @click with the internal close handler into a single attribute.
+// HTML doesn't support duplicate attributes — the first one wins, so having both
+// @click="open = false" and @click="externalHandler()" silently discards one of them.
+$extClick  = $attributes->get('@click', '');
+$selfClose = (!$disabled && $closeOnClick) ? 'open = false' : '';
+$clickExpr = collect([$extClick, $selfClose])->filter()->join('; ');
 @endphp
 
 @if($href)
@@ -23,10 +30,10 @@ $insetClass  = $inset ? 'pl-8' : '';
         role="menuitem"
         tabindex="-1"
         @if($disabled) aria-disabled="true" data-disabled @endif
-        @if($closeOnClick) @click="open = false" @endif
+        @if($clickExpr) @click="{!! $clickExpr !!}" @endif
         @focus="$el.setAttribute('data-highlighted', '')"
         @blur="$el.removeAttribute('data-highlighted')"
-        {{ $attributes->twMerge($base, $variantClass, $stateClass, $insetClass) }}
+        {{ $attributes->except('@click')->twMerge($base, $variantClass, $stateClass, $insetClass) }}
     >
         {{ $slot }}
     </a>
@@ -35,11 +42,11 @@ $insetClass  = $inset ? 'pl-8' : '';
         role="menuitem"
         tabindex="-1"
         @if($disabled) aria-disabled="true" data-disabled @endif
-        @if(!$disabled && $closeOnClick) @click="open = false" @endif
+        @if($clickExpr) @click="{!! $clickExpr !!}" @endif
         @if(!$disabled) @keydown.enter.prevent="$el.click()" @endif
         @focus="$el.setAttribute('data-highlighted', '')"
         @blur="$el.removeAttribute('data-highlighted')"
-        {{ $attributes->twMerge($base, $variantClass, $stateClass, $insetClass) }}
+        {{ $attributes->except('@click')->twMerge($base, $variantClass, $stateClass, $insetClass) }}
     >
         {{ $slot }}
     </div>

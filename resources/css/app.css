@@ -48,6 +48,8 @@
     --color-input:                          var(--input);
     --color-ring:                           var(--ring);
 
+    --color-surface-overlay:               var(--surface-overlay);
+
     --color-sidebar:                        var(--sidebar);
     --color-sidebar-foreground:             var(--sidebar-foreground);
     --color-sidebar-primary:                var(--sidebar-primary);

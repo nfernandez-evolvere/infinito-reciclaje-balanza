@@ -1,3 +1,3 @@
-<nav role="navigation" aria-label="pagination" {{ $attributes->twMerge('mx-auto flex w-full justify-center') }}>
+<nav role="navigation" aria-label="pagination" {{ $attributes->twMerge('flex w-full justify-center sm:justify-end') }}>
     {{ $slot }}
 </nav>

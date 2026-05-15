@@ -7,7 +7,7 @@
 <div {{ $attributes->twMerge('flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-muted/30 p-10 text-center') }}>
     @if($icon)
         <div class="flex size-12 items-center justify-center rounded-full bg-muted">
-            <x-ui.icon :name="$icon" class="size-6 text-muted-foreground" />
+            <x-dynamic-component :component="'lucide-' . $icon" class="size-6 text-muted-foreground" />
         </div>
     @endif
 

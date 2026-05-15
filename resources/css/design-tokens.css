@@ -176,7 +176,7 @@
     --chart-5:               var(--neutral-500);
 
     /* — Sidebar — */
-    --sidebar:                       var(--neutral-50);
+    --sidebar:                       oklch(1 0 0);
     --sidebar-foreground:            var(--neutral-950);
     --sidebar-primary:               var(--green-700);
     --sidebar-primary-foreground:    var(--neutral-50);

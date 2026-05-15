@@ -16,7 +16,7 @@
     @focus="$el.setAttribute('data-highlighted', '')"
     @blur="$el.removeAttribute('data-highlighted')"
     {{ $attributes->twMerge(
-        'flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5 text-sm outline-none select-none transition-colors',
+        'flex cursor-pointer items-center gap-1.5 rounded-sm px-2 py-1.5 text-sm outline-none select-none transition-colors',
         'hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
         'data-[state=open]:bg-accent data-[state=open]:text-accent-foreground',
         'data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground',
