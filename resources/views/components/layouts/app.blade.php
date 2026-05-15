@@ -27,7 +27,15 @@
     $transporteActive = collect($transporteItems)->contains(fn($i) => request()->routeIs($i['route']));
     $sistemaActive    = collect($sistemaItems)->contains(fn($i) => request()->routeIs($i['route']));
 
-    $homeRoute = $user->isAdmin() ? route('admin.dashboard') : route('balanza');
+    $homeRoute = $user?->isAdmin() ? route('admin.dashboard') : route('balanza');
+
+    $section = match(true) {
+        request()->routeIs('admin.pesajes.*', 'admin.reportes.*')          => 'Operación',
+        request()->routeIs('admin.zonas.*', 'admin.servicios.*')           => 'Padrón',
+        request()->routeIs('admin.vehiculos.*', 'admin.tipos-vehiculo.*')  => 'Transporte',
+        request()->routeIs('admin.usuarios.*')                             => 'Sistema',
+        default => null,
+    };
 @endphp
 
 <!DOCTYPE html>
@@ -53,7 +61,7 @@
 
         <x-ui.sidebar.content>
 
-            @if($user->isAdmin())
+            @if($user?->isAdmin())
 
                 {{-- Operación --}}
                 <x-ui.sidebar.group>
@@ -159,7 +167,7 @@
                     </x-ui.sidebar.group-content>
                 </x-ui.sidebar.group>
 
-            @else
+            @elseif($user)
 
                 {{-- Operador --}}
                 <x-ui.sidebar.group>
@@ -187,6 +195,7 @@
         </x-ui.sidebar.content>
 
         {{-- User footer --}}
+        @if($user)
         <x-ui.sidebar.footer class="border-t border-sidebar-border p-2">
             <div x-data="{
                     open: false,
@@ -235,15 +244,15 @@
 
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button type="submit"
-                                class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10 transition-colors cursor-default">
+                            <x-ui.button type="submit" variant="ghost" class="w-full justify-start gap-2 text-destructive hover:text-destructive hover:bg-destructive/10">
                                 <x-lucide-log-out class="size-4" /> Cerrar sesión
-                            </button>
+                            </x-ui.button>
                         </form>
                     </div>
                 </template>
             </div>
         </x-ui.sidebar.footer>
+        @endif
 
     </x-ui.sidebar>
 
@@ -253,19 +262,30 @@
         <header class="flex h-14 shrink-0 items-center gap-2 border-b border-border bg-background px-4">
             <x-ui.sidebar.trigger class="-ml-1 text-muted-foreground" />
 
-            <x-ui.separator orientation="vertical" class="h-4" />
             @isset($breadcrumb)
                 {{ $breadcrumb }}
             @else
                 <x-ui.breadcrumb>
-                    <x-ui.breadcrumb.item>
-                        <x-ui.breadcrumb.page>{{ $title }}</x-ui.breadcrumb.page>
-                    </x-ui.breadcrumb.item>
+                    <x-ui.breadcrumb.list>
+                        <x-ui.breadcrumb.item>
+                            <x-ui.breadcrumb.link :href="$homeRoute">Inicio</x-ui.breadcrumb.link>
+                        </x-ui.breadcrumb.item>
+                        <x-ui.breadcrumb.separator />
+                        @if($section)
+                            <x-ui.breadcrumb.item>
+                                <span>{{ $section }}</span>
+                            </x-ui.breadcrumb.item>
+                            <x-ui.breadcrumb.separator />
+                        @endif
+                        <x-ui.breadcrumb.item>
+                            <x-ui.breadcrumb.page>{{ $title }}</x-ui.breadcrumb.page>
+                        </x-ui.breadcrumb.item>
+                    </x-ui.breadcrumb.list>
                 </x-ui.breadcrumb>
             @endisset
 
             <div class="ml-auto flex items-center gap-1">
-                @if($user->isOperador())
+                @if($user?->isOperador())
                     <span
                         x-data="{ time: '' }"
                         x-init="
@@ -281,11 +301,23 @@
                     ></span>
                 @endif
 
-                <x-ui.button size="icon" variant="ghost" @click="$store.theme.toggle()"
-                    aria-label="Cambiar tema" class="size-8 text-muted-foreground">
-                    <x-lucide-sun x-show="!$store.theme.dark" class="size-4" />
-                    <x-lucide-moon x-show="$store.theme.dark" x-cloak class="size-4" />
-                </x-ui.button>
+                <x-ui.tooltip content="Cambiar tema" side="bottom">
+                    <x-ui.button size="icon" variant="ghost" @click="$store.theme.toggle()"
+                        aria-label="Cambiar tema" class="size-8 text-muted-foreground">
+                        <x-lucide-sun x-show="!$store.theme.dark" class="size-4" />
+                        <x-lucide-moon x-show="$store.theme.dark" x-cloak class="size-4" />
+                    </x-ui.button>
+                </x-ui.tooltip>
+
+                <x-ui.tooltip content="Cerrar sesión" side="bottom">
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <x-ui.button type="submit" size="icon" variant="ghost"
+                            aria-label="Cerrar sesión" class="size-8 text-muted-foreground">
+                            <x-lucide-log-out class="size-4" />
+                        </x-ui.button>
+                    </form>
+                </x-ui.tooltip>
             </div>
         </header>
 

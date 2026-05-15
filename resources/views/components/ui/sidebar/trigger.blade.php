@@ -4,7 +4,7 @@
     @click="toggle()"
     x-bind:aria-expanded="(!isCollapsed).toString()"
     aria-label="Toggle sidebar"
-    {{ $attributes->class('text-muted-foreground') }}
+    {{ $attributes->class('text-primary') }}
 >
     <x-lucide-panel-left class="size-4" />
     {{ $slot }}

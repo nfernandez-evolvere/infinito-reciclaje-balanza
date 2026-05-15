@@ -1,3 +1,7 @@
 <x-layouts.app title="Dashboard">
-    <p class="text-muted-foreground">Dashboard — Sprint 4</p>
+    <x-ui.wip
+        icon="layout-dashboard"
+        title="Dashboard"
+        description="Vista general de actividad: KPIs del turno, últimos pesajes y alertas del sistema."
+    />
 </x-layouts.app>

@@ -1,3 +1,7 @@
 <x-layouts.app title="Pesaje">
-    <p class="text-muted-foreground">Pantalla de pesaje — Sprint 3</p>
+    <x-ui.wip
+        icon="scale"
+        title="Pesaje"
+        description="Registrá el ingreso y egreso del vehículo para calcular el peso neto."
+    />
 </x-layouts.app>

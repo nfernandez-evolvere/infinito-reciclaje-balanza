@@ -46,8 +46,8 @@ $colorClass = $state
     }
     : match($variant) {
         'secondary' => 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-        'outline'   => 'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
-        'ghost'     => 'hover:bg-accent hover:text-accent-foreground',
+        'outline'   => 'border border-input bg-background hover:bg-primary hover:text-primary-foreground',
+        'ghost'     => 'hover:bg-primary/10 hover:text-primary',
         'link'      => 'text-primary underline-offset-4 hover:underline p-0 h-auto',
         default     => 'bg-primary text-primary-foreground hover:bg-primary/90',
     };

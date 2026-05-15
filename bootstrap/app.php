@@ -17,5 +17,28 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (
+            \Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e,
+            \Illuminate\Http\Request $request
+        ) {
+            try {
+                $store     = app('session.store');
+                $encrypted = $request->cookies->get(config('session.cookie'));
+                if ($encrypted) {
+                    $store->setId(\Illuminate\Support\Facades\Crypt::decrypt($encrypted, false));
+                    $store->start();
+                    $request->setLaravelSession($store);
+                }
+            } catch (\Throwable) {}
+
+            $user = auth()->user();
+            $home = $user
+                ? ($user->isAdmin() ? route('admin.dashboard') : route('balanza'))
+                : route('login');
+
+            return response()->view('errors.404', [
+                'home'          => $home,
+                'showAppLayout' => $user !== null,
+            ], 404);
+        });
     })->create();

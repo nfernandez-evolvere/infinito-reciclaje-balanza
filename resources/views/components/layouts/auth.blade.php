@@ -1,4 +1,8 @@
-@props(['title' => 'Ingresar'])
+@props([
+    'title'           => 'Ingresar',
+    'cardTitle'       => '',
+    'cardDescription' => null,
+])
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" x-data>
@@ -16,7 +20,44 @@
     </div>
 
     <div class="flex min-h-screen items-center justify-center p-4">
-        {{ $slot }}
+        <div class="w-full max-w-100 space-y-8">
+
+            {{-- Brand --}}
+            <div class="flex flex-col items-center gap-4">
+                <div class="flex items-center justify-center size-14 rounded-xl bg-primary shrink-0">
+                    <span class="text-xl font-bold text-primary-foreground leading-none">IR</span>
+                </div>
+                <div class="text-center space-y-1">
+                    <x-ui.typography as="h3" element="h1">Infinito Reciclaje</x-ui.typography>
+                    <x-ui.typography as="muted">Sistema de gestión de balanza</x-ui.typography>
+                </div>
+            </div>
+
+            {{-- Card --}}
+            <x-ui.card>
+                <x-ui.card.header class="text-center">
+                    <x-ui.card.title>{{ $cardTitle }}</x-ui.card.title>
+                    @if ($cardDescription)
+                        <x-ui.card.description>{{ $cardDescription }}</x-ui.card.description>
+                    @endif
+                </x-ui.card.header>
+                <x-ui.card.content>
+                    {{ $slot }}
+                </x-ui.card.content>
+            </x-ui.card>
+
+            {{-- Footer link (optional named slot) --}}
+            @isset($footerLink)
+                <div class="flex justify-center">
+                    {{ $footerLink }}
+                </div>
+            @endisset
+
+            <x-ui.typography as="muted" class="text-center text-xs">
+                Balanza v1 · Gestión de pesajes
+            </x-ui.typography>
+
+        </div>
     </div>
 
     <x-ui.sonner />

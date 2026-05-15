@@ -9,7 +9,7 @@
         visible:   false,
         preferred: '{{ $side }}',
         actual:    '{{ $side }}',
-        top: 0, left: 0, uid: null,
+        top: 0, left: 0, arrowPos: 0, uid: null,
 
         init() {
             this.uid = 'tip-' + Math.random().toString(36).slice(2, 9);
@@ -29,12 +29,17 @@
             this.actual = s;
             const cx = r.left + r.width  / 2;
             const cy = r.top  + r.height / 2;
-            if      (s === 'top')    { this.top = r.top    - th - g; this.left = cx - tw / 2; }
-            else if (s === 'bottom') { this.top = r.bottom + g;      this.left = cx - tw / 2; }
-            else if (s === 'left')   { this.top = cy - th / 2;       this.left = r.left - tw - g; }
-            else                     { this.top = cy - th / 2;       this.left = r.right + g; }
-            this.left = Math.max(m, Math.min(this.left, innerWidth  - tw - m));
-            this.top  = Math.max(m, Math.min(this.top,  innerHeight - th - m));
+            let tipLeft, tipTop;
+            if      (s === 'top')    { tipTop = r.top    - th - g; tipLeft = cx - tw / 2; }
+            else if (s === 'bottom') { tipTop = r.bottom + g;      tipLeft = cx - tw / 2; }
+            else if (s === 'left')   { tipTop = cy - th / 2;       tipLeft = r.left - tw - g; }
+            else                     { tipTop = cy - th / 2;       tipLeft = r.right + g; }
+            const cl = Math.max(m, Math.min(tipLeft, innerWidth  - tw - m));
+            const ct = Math.max(m, Math.min(tipTop,  innerHeight - th - m));
+            this.left = cl;
+            this.top  = ct;
+            // after clamping, recalculate arrow to point at trigger center
+            this.arrowPos = (s === 'top' || s === 'bottom') ? cx - cl : cy - ct;
         },
 
         _origin() {
@@ -43,11 +48,18 @@
 
         _arrow() {
             return {
-                top:    'bottom-0 translate-y-1/2 left-1/2 -translate-x-1/2',
-                bottom: 'top-0 -translate-y-1/2 left-1/2 -translate-x-1/2',
-                left:   'right-0 translate-x-1/2 top-1/2 -translate-y-1/2',
-                right:  'left-0 -translate-x-1/2 top-1/2 -translate-y-1/2',
+                top:    'bottom-0 translate-y-1/2',
+                bottom: 'top-0 -translate-y-1/2',
+                left:   'right-0 translate-x-1/2',
+                right:  'left-0 -translate-x-1/2',
             }[this.actual] ?? '';
+        },
+
+        _arrowStyle() {
+            const s = this.actual, half = 5;
+            return (s === 'top' || s === 'bottom')
+                ? 'left:' + (this.arrowPos - half) + 'px'
+                : 'top:'  + (this.arrowPos - half) + 'px';
         }
     }"
     @mouseenter="visible = true; $nextTick(() => _place())"
@@ -74,7 +86,7 @@
             class="pointer-events-none fixed z-(--z-tooltip) w-max max-w-[200px] rounded-md bg-foreground px-2.5 py-1.5 text-xs font-medium text-background shadow-md"
         >
             {{ $content }}
-            <span :class="_arrow()" class="absolute size-2.5 rotate-45 bg-foreground"></span>
+            <span :class="_arrow()" :style="_arrowStyle()" class="absolute size-2.5 rotate-45 bg-foreground"></span>
         </span>
     </template>
 </span>

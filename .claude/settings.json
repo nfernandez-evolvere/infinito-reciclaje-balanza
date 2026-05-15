@@ -22,7 +22,8 @@
       "Bash(node -e ' *)",
       "Bash(gh api *)",
       "Bash(curl -s \"https://raw.githubusercontent.com/nico0689crc/laravel-shadcn/main/laravel-app/resources/views/components/layouts/app-sidebar.blade.php\")",
-      "Bash(Remove-Item \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\layouts\\\\admin.blade.php\", \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\layouts\\\\operador.blade.php\", \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\layouts\\\\sidebar.blade.php\", \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\layouts\\\\sidebar-operador.blade.php\")"
+      "Bash(Remove-Item \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\layouts\\\\admin.blade.php\", \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\layouts\\\\operador.blade.php\", \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\layouts\\\\sidebar.blade.php\", \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\layouts\\\\sidebar-operador.blade.php\")",
+      "Bash(git commit -m ' *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\34891406\\Nicolas\\Proyectos\\infinito-reciclaje-balanza\\resources\\views\\components"

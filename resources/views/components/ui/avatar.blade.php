@@ -46,7 +46,7 @@ $initials = $fallback ?? collect(explode(' ', trim($alt)))
             />
         @endif
         <span
-            class="flex h-full w-full items-center justify-center rounded-full bg-muted font-medium text-muted-foreground {{ $src ? 'hidden' : '' }}"
+            class="flex h-full w-full items-center justify-center rounded-full bg-primary font-medium text-primary-foreground {{ $src ? 'hidden' : '' }}"
             aria-hidden="{{ $src ? 'false' : 'true' }}"
         >
             {{ $initials ?: '?' }}

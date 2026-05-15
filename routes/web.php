@@ -23,3 +23,14 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/tipos-vehiculo', fn () => view('modules.admin.tipos-vehiculo.index'))->name('tipos-vehiculo.index');
     Route::get('/usuarios', fn () => view('modules.admin.usuarios.index'))->name('usuarios.index');
 });
+
+Route::fallback(function () {
+    $user = auth()->user();
+    $home = $user
+        ? ($user->isAdmin() ? route('admin.dashboard') : route('balanza'))
+        : route('login');
+    return response()->view('errors.404', [
+        'home'          => $home,
+        'showAppLayout' => $user !== null,
+    ], 404);
+});

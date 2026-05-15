@@ -13,6 +13,7 @@ $config = match($as) {
     'large'      => ['tag' => 'div',        'class' => 'text-lg font-semibold'],
     'small'      => ['tag' => 'small',      'class' => 'text-sm font-medium leading-none'],
     'muted'      => ['tag' => 'p',          'class' => 'text-sm text-muted-foreground'],
+    'span'       => ['tag' => 'span',       'class' => 'text-sm'],
     'section-label' => ['tag' => 'h2',    'class' => 'text-xs font-semibold uppercase tracking-widest text-muted-foreground'],
     'code'       => ['tag' => 'code',       'class' => 'relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold'],
     'blockquote' => ['tag' => 'blockquote', 'class' => 'mt-6 border-l-2 border-border pl-6 italic text-muted-foreground'],

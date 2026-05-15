@@ -1,3 +1,7 @@
 <x-layouts.app title="Historial">
-    <p class="text-muted-foreground">Historial del turno — Sprint 3</p>
+    <x-ui.wip
+        icon="list"
+        title="Historial"
+        description="Pesajes registrados en el turno activo."
+    />
 </x-layouts.app>
