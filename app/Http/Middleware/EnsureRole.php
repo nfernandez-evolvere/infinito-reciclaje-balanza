@@ -17,7 +17,7 @@ class EnsureRole
         }
 
         if ($user->role !== $role) {
-            return redirect($user->isAdmin() ? route('admin.dashboard') : route('balanza'));
+            abort(403);
         }
 
         return $next($request);

@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\View\ComponentAttributeBag;
 
 class AppServiceProvider extends ServiceProvider
@@ -25,6 +26,15 @@ class AppServiceProvider extends ServiceProvider
          * Usage in a Blade component:
          *   <div {{ $attributes->twMerge('p-6 rounded-xl', $variantClass) }}>
          */
+        Password::defaults(fn () =>
+            Password::min(8)
+                ->letters()
+                ->mixedCase()
+                ->numbers()
+                ->symbols()
+                ->uncompromised()
+        );
+
         Gate::define('record-weighing', fn ($user) => $user->isOperador());
         Gate::define('view-own-historial', fn ($user) => $user->isOperador());
         Gate::define('edit-pesaje', fn ($user) => $user->isOperador() || $user->isAdmin());

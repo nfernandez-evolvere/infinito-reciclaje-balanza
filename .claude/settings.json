@@ -23,7 +23,17 @@
       "Bash(gh api *)",
       "Bash(curl -s \"https://raw.githubusercontent.com/nico0689crc/laravel-shadcn/main/laravel-app/resources/views/components/layouts/app-sidebar.blade.php\")",
       "Bash(Remove-Item \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\layouts\\\\admin.blade.php\", \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\layouts\\\\operador.blade.php\", \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\layouts\\\\sidebar.blade.php\", \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\layouts\\\\sidebar-operador.blade.php\")",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(dir \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\app\" -Recurse -Filter \"Mail.php\" -ErrorAction SilentlyContinue)",
+      "Bash(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\app\\\\Notifications\")",
+      "Bash(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\app\\\\Mail\")",
+      "Bash(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\emails\")",
+      "Bash(Write-Output \"Directories created\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\app\\\\Notifications\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\app\\\\Mail\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\emails\")",
+      "Bash(powershell -Command \"\\(Get-Content .env\\) -replace '^APP_NAME=Laravel$', 'APP_NAME=\\\\\"Infinito Reciclaje\\\\\"' | Set-Content .env -Encoding utf8\")",
+      "Bash(Remove-Item \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\ui\\\\input-password.blade.php\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\34891406\\Nicolas\\Proyectos\\infinito-reciclaje-balanza\\resources\\views\\components"

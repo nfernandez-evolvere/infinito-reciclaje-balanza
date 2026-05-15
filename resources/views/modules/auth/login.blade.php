@@ -46,12 +46,18 @@
                         ¿Olvidaste tu contraseña?
                     </a>
                 </div>
-                <x-ui.input
-                    id="password"
-                    type="password"
-                    name="password"
-                    autocomplete="current-password"
-                />
+                <x-ui.input-group x-data="{ show: false }">
+                    <x-ui.input-group.input
+                        id="password"
+                        name="password"
+                        x-bind:type="show ? 'text' : 'password'"
+                        autocomplete="current-password"
+                    />
+                    <x-ui.input-group.button type="button" @click="show = !show" tabindex="-1" aria-label="Mostrar u ocultar contraseña">
+                        <x-lucide-eye     x-show="!show"         class="size-4" />
+                        <x-lucide-eye-off x-show="show" x-cloak  class="size-4" />
+                    </x-ui.input-group.button>
+                </x-ui.input-group>
             </x-ui.form-field>
 
             <x-ui.button type="submit" class="w-full">

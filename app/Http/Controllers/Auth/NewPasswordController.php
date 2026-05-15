@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
@@ -21,18 +22,29 @@ class NewPasswordController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'token'    => ['required'],
             'email'    => ['required', 'email'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ], [
-            'email.required'         => 'El correo electrónico es obligatorio.',
-            'email.email'            => 'Ingresá un correo electrónico válido.',
-            'password.required'      => 'La contraseña es obligatoria.',
-            'password.confirmed'     => 'Las contraseñas no coinciden.',
-            'password.min'           => 'La contraseña debe tener al menos :min caracteres.',
+            'email.required'              => 'El correo electrónico es obligatorio.',
+            'email.email'                 => 'Ingresá un correo electrónico válido.',
+            'password.required'           => 'La contraseña es obligatoria.',
+            'password.confirmed'          => 'Las contraseñas no coinciden.',
+            'password.min'                => 'La contraseña debe tener al menos :min caracteres.',
+            'password.letters'            => 'La contraseña debe contener al menos una letra.',
+            'password.mixed'              => 'La contraseña debe contener mayúsculas y minúsculas.',
+            'password.numbers'            => 'La contraseña debe contener al menos un número.',
+            'password.symbols'            => 'La contraseña debe contener al menos un símbolo.',
+            'password.uncompromised'      => 'Esta contraseña fue expuesta en una filtración de datos. Elegí una diferente.',
             'password_confirmation.required' => 'Confirmá tu contraseña.',
         ]);
+
+        if ($validator->fails()) {
+            return back()
+                ->withErrors($validator)
+                ->withInput($request->only('email', 'password', 'password_confirmation'));
+        }
 
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),

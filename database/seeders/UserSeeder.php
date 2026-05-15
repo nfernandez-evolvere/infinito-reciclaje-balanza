@@ -20,5 +20,17 @@ class UserSeeder extends Seeder
             'email' => 'nacho@balanza.test',
             'role'  => 'admin',
         ]);
+
+        User::factory()->create([
+            'name'  => 'Nicolas Fernandez',
+            'email' => 'nfernandez@evolvere.com.ar',
+            'role'  => 'admin',
+        ]);
+
+        User::factory()->create([
+            'name'  => 'Nicolas Fernandez',
+            'email' => 'nfernandez+1@evolvere.com.ar',
+            'role'  => 'operador',
+        ]);
     }
 }
