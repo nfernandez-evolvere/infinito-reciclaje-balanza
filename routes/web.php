@@ -3,6 +3,8 @@
 use App\Http\Controllers\Admin\TipoServicioController;
 use App\Http\Controllers\Admin\TipoVehiculoController;
 use App\Http\Controllers\Admin\VehiculoController;
+use App\Http\Controllers\Admin\ZonaController;
+use App\Http\Controllers\Admin\ZonaServicioController;
 use Illuminate\Support\Facades\Route;
 
 require __DIR__.'/auth.php';
@@ -20,7 +22,16 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/reportes', fn () => view('modules.admin.reportes.index'))->name('reportes.index');
 
     // Padrón
-    Route::get('/zonas', fn () => view('modules.admin.zonas.index'))->name('zonas.index');
+    Route::resource('zonas', ZonaController::class)
+        ->only(['index', 'store', 'update', 'destroy']);
+    Route::patch('zonas/{zona}/toggle', [ZonaController::class, 'toggle'])
+        ->name('zonas.toggle');
+    Route::post('zonas/{zona}/servicios', [ZonaServicioController::class, 'store'])
+        ->name('zonas.servicios.store');
+    Route::put('zonas/{zona}/servicios/{tipoServicio}', [ZonaServicioController::class, 'update'])
+        ->name('zonas.servicios.update');
+    Route::delete('zonas/{zona}/servicios/{tipoServicio}', [ZonaServicioController::class, 'destroy'])
+        ->name('zonas.servicios.destroy');
     Route::get('/servicios', fn () => view('modules.admin.servicios.index'))->name('servicios.index');
     Route::resource('tipos-servicio', TipoServicioController::class)
         ->only(['index', 'store', 'update', 'destroy']);

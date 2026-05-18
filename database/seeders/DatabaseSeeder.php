@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             TipoVehiculoSeeder::class,
             TipoServicioSeeder::class,
             VehiculoSeeder::class,
+            ZonaSeeder::class,
         ]);
     }
 }

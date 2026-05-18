@@ -1,8 +1,15 @@
 @props([
-    'as' => 'div',
+    'as'          => 'div',
+    'collapsible' => false,
+    'startOpen'   => true,
 ])
 
-<!-- <{{ $as }} {{ $attributes->twMerge('rounded-xl border border-border bg-card text-card-foreground shadow-sm') }}> -->
-<{{ $as }} {{ $attributes->twMerge('rounded-xl bg-card text-card-foreground shadow-lg') }}>
+@php
+    $extra = $collapsible
+        ? ['x-data' => '{ open: ' . ($startOpen ? 'true' : 'false') . ' }']
+        : [];
+@endphp
+
+<{{ $as }} {{ $attributes->merge($extra)->twMerge('rounded-xl bg-card text-card-foreground shadow-lg') }}>
     {{ $slot }}
 </{{ $as }}>

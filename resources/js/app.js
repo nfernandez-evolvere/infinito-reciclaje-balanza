@@ -3,6 +3,7 @@ import Collapse from '@alpinejs/collapse';
 import tiposVehiculo from './alpine/admin/tipos-vehiculo.js';
 import tiposServicio from './alpine/admin/tipos-servicio.js';
 import vehiculos from './alpine/admin/vehiculos.js';
+import zonas from './alpine/admin/zonas.js';
 
 Alpine.plugin(Collapse);
 
@@ -23,6 +24,7 @@ Alpine.store('theme', {
 Alpine.data('tiposVehiculo', tiposVehiculo);
 Alpine.data('tiposServicio', tiposServicio);
 Alpine.data('vehiculos', vehiculos);
+Alpine.data('zonas', zonas);
 
 // — Alpine store: toast ———————————————————————————————————————
 Alpine.store('toast', {

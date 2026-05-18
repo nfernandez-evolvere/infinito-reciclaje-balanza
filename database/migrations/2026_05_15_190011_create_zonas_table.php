@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('zonas', function (Blueprint $table) {
             $table->id();
+            $table->string('nombre', 150)->unique();
+            $table->decimal('hectareas', 10, 2)->nullable();
+            $table->integer('barrios')->nullable();
+            $table->integer('habitantes')->nullable();
+            $table->boolean('activo')->default(true);
             $table->timestamps();
         });
     }

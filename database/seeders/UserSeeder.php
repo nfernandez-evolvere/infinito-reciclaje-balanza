@@ -16,7 +16,7 @@ class UserSeeder extends Seeder
         ]);
 
         User::factory()->create([
-            'name'  => 'Nacho García',
+            'name'  => 'Ignacio Lobera',
             'email' => 'nacho@balanza.test',
             'role'  => 'admin',
         ]);
