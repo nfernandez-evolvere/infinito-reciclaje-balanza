@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\TipoServicioController;
 use App\Http\Controllers\Admin\TipoVehiculoController;
+use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Admin\VehiculoController;
 use App\Http\Controllers\Admin\ZonaController;
 use App\Http\Controllers\Admin\ZonaServicioController;
@@ -45,7 +46,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         ->only(['index', 'store', 'update', 'destroy']);
     Route::patch('tipos-vehiculo/{tiposVehiculo}/toggle', [TipoVehiculoController::class, 'toggle'])
         ->name('tipos-vehiculo.toggle');
-    Route::get('/usuarios', fn () => view('modules.admin.usuarios.index'))->name('usuarios.index');
+    Route::resource('usuarios', UsuarioController::class)
+        ->only(['index', 'store', 'update']);
+    Route::patch('usuarios/{usuario}/toggle', [UsuarioController::class, 'toggle'])
+        ->name('usuarios.toggle');
+    Route::patch('usuarios/{usuario}/reset-password', [UsuarioController::class, 'resetPassword'])
+        ->name('usuarios.reset-password');
 });
 
 Route::fallback(function () {

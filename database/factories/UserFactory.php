@@ -31,6 +31,7 @@ class UserFactory extends Factory
             'password'          => static::$password ??= Hash::make('password'),
             'role'              => 'operador',
             'onboarding_visto'  => false,
+            'activo'            => true,
             'remember_token'    => Str::random(10),
         ];
     }
@@ -42,6 +43,20 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    public function inactive(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'activo' => false,
+        ]);
+    }
+
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'admin',
         ]);
     }
 }

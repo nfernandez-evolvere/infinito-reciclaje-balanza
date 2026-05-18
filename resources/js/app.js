@@ -4,6 +4,7 @@ import tiposVehiculo from './alpine/admin/tipos-vehiculo.js';
 import tiposServicio from './alpine/admin/tipos-servicio.js';
 import vehiculos from './alpine/admin/vehiculos.js';
 import zonas from './alpine/admin/zonas.js';
+import usuarios from './alpine/admin/usuarios.js';
 
 Alpine.plugin(Collapse);
 
@@ -25,6 +26,7 @@ Alpine.data('tiposVehiculo', tiposVehiculo);
 Alpine.data('tiposServicio', tiposServicio);
 Alpine.data('vehiculos', vehiculos);
 Alpine.data('zonas', zonas);
+Alpine.data('usuarios', usuarios);
 
 // — Alpine store: toast ———————————————————————————————————————
 Alpine.store('toast', {

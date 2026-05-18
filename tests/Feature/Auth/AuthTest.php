@@ -62,4 +62,39 @@ class AuthTest extends TestCase
 
         $this->assertGuest();
     }
+
+    #[Test]
+    public function test_inactive_user_cannot_login(): void
+    {
+        $user = User::factory()->inactive()->create(['email' => 'inactivo@test.com']);
+
+        $this->post('/login', ['email' => 'inactivo@test.com', 'password' => 'password'])
+            ->assertSessionHasErrors('email');
+
+        $this->assertGuest();
+    }
+
+    #[Test]
+    public function test_inactive_user_error_message_is_descriptive(): void
+    {
+        $user = User::factory()->inactive()->create(['email' => 'inactivo@test.com']);
+
+        $response = $this->post('/login', [
+            'email'    => 'inactivo@test.com',
+            'password' => 'password',
+        ]);
+
+        $response->assertSessionHasErrors(['email' => 'Tu cuenta está desactivada. Contactá al administrador.']);
+    }
+
+    #[Test]
+    public function test_inactive_user_with_correct_password_is_still_blocked(): void
+    {
+        // Distingue entre "contraseña incorrecta" (mensaje genérico) y "usuario inactivo" (mensaje específico).
+        // Con credenciales correctas pero cuenta inactiva, el error debe ser el de inactividad.
+        $user = User::factory()->inactive()->create(['email' => 'inactivo@test.com']);
+
+        $this->post('/login', ['email' => 'inactivo@test.com', 'password' => 'password'])
+            ->assertSessionHasErrors(['email' => 'Tu cuenta está desactivada. Contactá al administrador.']);
+    }
 }
