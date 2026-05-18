@@ -27,6 +27,35 @@ La baja es siempre **lógica**: los registros nunca se borran. Si un camión dej
 
 ---
 
+## Padrón de tipos de vehículo
+
+**Ruta:** Transporte → Tipos de vehículo
+
+Los tipos de vehículo definen los rangos de **peso bruto** esperados (vehículo + carga completa). El sistema usa estos rangos para detectar pesajes anómalos.
+
+### Campos del formulario
+
+| Campo | Descripción | Obligatorio |
+|-------|-------------|-------------|
+| Nombre | Nombre del tipo (ej: Compactador) | Sí |
+| Peso bruto mínimo (kg) | Lo mínimo que debería marcar la balanza con este tipo cargado | Sí |
+| Peso bruto máximo (kg) | Lo máximo esperado, incluyendo vehículo vacío más la carga | Sí |
+
+> **Importante:** estos rangos son de peso bruto (lo que marca la balanza), no de tara. La tara de cada vehículo se configura por separado en el padrón de Vehículos.
+
+### Rangos configurados en el sistema
+
+| Tipo | Bruto mínimo | Bruto máximo |
+|------|-------------|-------------|
+| Compactador | 10.000 kg | 26.500 kg |
+| Volcador | 13.000 kg | 30.000 kg |
+| Volquete | 7.000 kg | 20.000 kg |
+| Particular | 1.000 kg | 5.000 kg |
+
+Los rangos son informativos — si el peso registrado queda fuera de rango, el sistema lo avisa como anomalía pero el operador puede guardar el pesaje igual.
+
+---
+
 ## Padrón de vehículos
 
 **Ruta:** Transporte → Vehículos
@@ -57,6 +86,37 @@ Cuando un camión deja de operar o sale del padrón de la Municipalidad. Una vez
 - Los reportes siguen incluyendo sus datos históricos
 
 Para reactivarlo, usá la acción **Activar** en la tabla.
+
+---
+
+## Padrón de tipos de servicio
+
+**Ruta:** Padrón → Tipos de servicio
+
+Los tipos de servicio definen el nombre del servicio y el tipo de vehículo habitual. Las zonas donde opera cada servicio se configuran en el padrón de Zonas.
+
+### Campos del formulario
+
+| Campo | Descripción | Obligatorio |
+|-------|-------------|-------------|
+| Nombre | Nombre del tipo de servicio | Sí |
+| Vehículo habitual | Tipo de vehículo que suele prestar este servicio | Si |
+
+### Tipos de servicio del sistema
+
+| Servicio | Descripción |
+|----------|-------------|
+| Domiciliario | Recolección puerta a puerta en barrios residenciales |
+| Voluminoso | Residuos de gran tamaño: muebles, electrodomésticos |
+| Barrido | Residuos de limpieza de calles y espacios públicos |
+| Servicios Especiales | Operativos puntuales, eventos, situaciones de emergencia |
+| Centros de Transferencia | Traslados de residuos desde centros intermedios de transferencia |
+
+### Cómo funciona la zona y el turno en el pesaje
+
+Los turnos **no** se configuran a nivel de tipo de servicio, sino a nivel de **zona + servicio**. Esto significa que Domiciliario puede tener turno Diurna y Nocturna en Zona Norte, pero ningún turno en Zona Industrial.
+
+La configuración se hace desde el padrón de Zonas: para cada zona, se define qué servicios operan en ella y, para cada uno, si aplican turnos.
 
 ---
 
@@ -93,66 +153,6 @@ Esta configuración determina qué le aparece al operador en el formulario de pe
 ### Sobre los datos geográficos
 
 Los campos hectáreas y barrios son opcionales al momento de la carga. Los reportes de densidad (kg por hectárea) quedarán en cero hasta que estén cargados.
-
----
-
-## Padrón de tipos de servicio
-
-**Ruta:** Padrón → Tipos de servicio
-
-Los tipos de servicio definen el nombre del servicio y el tipo de vehículo habitual. Las zonas donde opera cada servicio se configuran en el padrón de Zonas.
-
-### Campos del formulario
-
-| Campo | Descripción | Obligatorio |
-|-------|-------------|-------------|
-| Nombre | Nombre del tipo de servicio | Sí |
-| Vehículo habitual | Tipo de vehículo que suele prestar este servicio | No |
-
-### Tipos de servicio del sistema
-
-| Servicio | Descripción |
-|----------|-------------|
-| Domiciliario | Recolección puerta a puerta en barrios residenciales |
-| Voluminoso | Residuos de gran tamaño: muebles, electrodomésticos |
-| Barrido | Residuos de limpieza de calles y espacios públicos |
-| Servicios Especiales | Operativos puntuales, eventos, situaciones de emergencia |
-| Centros de Transferencia | Traslados de residuos desde centros intermedios de transferencia |
-
-### Cómo funciona la zona y el turno en el pesaje
-
-Los turnos **no** se configuran a nivel de tipo de servicio, sino a nivel de **zona + servicio**. Esto significa que Domiciliario puede tener turno Diurna y Nocturna en Zona Norte, pero ningún turno en Zona Industrial.
-
-La configuración se hace desde el padrón de Zonas: para cada zona, se define qué servicios operan en ella y, para cada uno, si aplican turnos.
-
----
-
-## Padrón de tipos de vehículo
-
-**Ruta:** Transporte → Tipos de vehículo
-
-Los tipos de vehículo definen los rangos de **peso bruto** esperados (vehículo + carga completa). El sistema usa estos rangos para detectar pesajes anómalos.
-
-### Campos del formulario
-
-| Campo | Descripción | Obligatorio |
-|-------|-------------|-------------|
-| Nombre | Nombre del tipo (ej: Compactador) | Sí |
-| Peso bruto mínimo (kg) | Lo mínimo que debería marcar la balanza con este tipo cargado | Sí |
-| Peso bruto máximo (kg) | Lo máximo esperado, incluyendo vehículo vacío más la carga | Sí |
-
-> **Importante:** estos rangos son de peso bruto (lo que marca la balanza), no de tara. La tara de cada vehículo se configura por separado en el padrón de Vehículos.
-
-### Rangos configurados en el sistema
-
-| Tipo | Bruto mínimo | Bruto máximo |
-|------|-------------|-------------|
-| Compactador | 10.000 kg | 26.500 kg |
-| Volcador | 13.000 kg | 30.000 kg |
-| Volquete | 7.000 kg | 20.000 kg |
-| Particular | 1.000 kg | 5.000 kg |
-
-Los rangos son informativos — si el peso registrado queda fuera de rango, el sistema lo avisa como anomalía pero el operador puede guardar el pesaje igual.
 
 ---
 
