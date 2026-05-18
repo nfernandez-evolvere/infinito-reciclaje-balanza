@@ -273,16 +273,34 @@ Es la carga máxima teórica del vehículo. No se usa en ningún cálculo autom�
 
 **Ruta:** Padrón → Tipos de servicio
 
-Los tipos de servicio definen el nombre del servicio y el tipo de vehículo habitual. Las zonas donde opera cada servicio se configuran en el padrón de Zonas.
+Los tipos de servicio definen las categorías de operación disponibles en la balanza — Domiciliario, Barrido, Voluminoso, etc. Cada tipo puede tener un tipo de vehículo habitual sugerido, que el sistema usa como referencia en el formulario de pesaje.
+
+---
+
+### Para qué se usa este padrón
+
+Cuando el operador registra un pesaje, elige el tipo de servicio del camión que ingresa. Este dato clasifica el pesaje y permite al admin ver los reportes separados por operación (cuántas toneladas de Domiciliario, cuántas de Barrido, etc.).
+
+Además, los tipos de servicio se usan para configurar las zonas: cada zona tiene asignados los servicios que operan en ella. Sin un tipo de servicio cargado, no se puede completar esa configuración ni registrar pesajes del tipo correspondiente.
+
+---
 
 ### Campos del formulario
 
 | Campo | Descripción | Obligatorio |
 |-------|-------------|-------------|
-| Nombre | Nombre del tipo de servicio | Sí |
-| Vehículo habitual | Tipo de vehículo que suele prestar este servicio | Si |
+| Nombre | Nombre del tipo de servicio (ej: Domiciliario, Barrido) | Sí |
+| Vehículo habitual | Tipo de vehículo que suele prestar este servicio. Informativo — no bloquea el pesaje si el operador usa otro tipo | No |
 
-### Tipos de servicio del sistema
+> **Importante:** el campo "Vehículo habitual" es una sugerencia, no una restricción. Si se desactiva o elimina el tipo de vehículo asignado, el servicio pierde esa sugerencia pero sigue activo y disponible para el operador.
+
+**Validaciones:**
+- El nombre es obligatorio y no puede superar los 100 caracteres.
+- No pueden existir dos tipos de servicio con el mismo nombre.
+
+---
+
+### Tipos de servicio configurados en el sistema
 
 | Servicio | Descripción |
 |----------|-------------|
@@ -292,11 +310,85 @@ Los tipos de servicio definen el nombre del servicio y el tipo de vehículo habi
 | Servicios Especiales | Operativos puntuales, eventos, situaciones de emergencia |
 | Centros de Transferencia | Traslados de residuos desde centros intermedios de transferencia |
 
+---
+
+### Cómo crear un tipo nuevo
+
+1. Ir a Padrón → Tipos de servicio.
+2. Hacer clic en **Nuevo tipo**.
+3. Completar el nombre y, opcionalmente, elegir el vehículo habitual.
+4. Guardar.
+
+El tipo queda disponible de inmediato para asignarlo a zonas y para que el operador lo use en el formulario de pesaje.
+
+---
+
+### Cómo editar un tipo existente
+
+1. En la tabla, abrir el menú de acciones (⋯) del tipo a modificar.
+2. Seleccionar **Editar**.
+3. Modificar los campos necesarios.
+4. Guardar.
+
+Los cambios toman efecto de inmediato en el formulario de pesaje. Los pesajes ya registrados conservan el nombre del servicio que tenían al momento del ingreso.
+
+---
+
+### Cómo desactivar un tipo
+
+Un tipo desactivado no desaparece del sistema — los pesajes históricos siguen vinculados a él y siguen apareciendo en los reportes. Solo deja de estar disponible para asignar a zonas nuevas y para registrar nuevos pesajes.
+
+1. Abrir el menú de acciones (⋯) del tipo.
+2. Seleccionar **Desactivar**.
+3. Confirmar en el modal.
+
+Para volver a activarlo, repetir el proceso y seleccionar **Activar**.
+
+---
+
+### Cuándo desactivar vs. cuándo eliminar
+
+**Desactivar:** cuando el tipo ya no se usa en la operación actual pero puede volver a necesitarse, o cuando tiene pesajes registrados. Es la acción recomendada en casi todos los casos.
+
+**Eliminar:** solo si el tipo fue creado por error y nunca se usó en ningún pesaje. Si el tipo tiene pesajes registrados, el sistema no permite eliminarlo y muestra un mensaje indicando que hay que desactivarlo en su lugar. Las zonas que tenían asignado ese servicio pierden esa configuración automáticamente al eliminar.
+
+---
+
 ### Cómo funciona la zona y el turno en el pesaje
 
 Los turnos **no** se configuran a nivel de tipo de servicio, sino a nivel de **zona + servicio**. Esto significa que Domiciliario puede tener turno Diurna y Nocturna en Zona Norte, pero ningún turno en Zona Industrial.
 
 La configuración se hace desde el padrón de Zonas: para cada zona, se define qué servicios operan en ella y, para cada uno, si aplican turnos.
+
+---
+
+### Relación con otros padrones
+
+**Con zonas:** cada zona tiene asignados uno o más tipos de servicio. El operador primero elige el servicio, y luego el sistema filtra las zonas disponibles según esa combinación. Si un servicio no está asignado a ninguna zona, el operador no puede usarlo en el formulario de pesaje.
+
+**Con tipos de vehículo:** el campo "Vehículo habitual" es solo una referencia. No afecta qué vehículo puede ingresar — cualquier camión activo puede registrar un pesaje de cualquier servicio.
+
+---
+
+### Preguntas frecuentes sobre tipos de servicio
+
+**¿Qué pasa si elimino un tipo que tiene pesajes registrados?**
+El sistema no lo permite. Aparece un mensaje indicando que el tipo tiene pesajes y que hay que desactivarlo en su lugar. Los pesajes históricos se conservan intactos.
+
+**¿Los cambios en el nombre del servicio afectan los pesajes ya registrados?**
+No. Los pesajes existentes conservan el nombre que tenían al registrarse. El cambio afecta solo los pesajes nuevos.
+
+**¿Puedo tener dos tipos con el mismo nombre?**
+No. El sistema no permite duplicados de nombre. Si al guardar aparece un error, verificá que no exista ya ese tipo de servicio activo o inactivo.
+
+**¿Si desactivo un tipo, las zonas que lo tienen asignado lo pierden?**
+No se pierden automáticamente. Las zonas conservan la configuración existente, pero el tipo desactivado no aparece como opción para asignar a nuevas zonas. Los pesajes futuros tampoco pueden registrarse con ese tipo.
+
+**¿Qué pasa si elimino el tipo de vehículo asignado como "habitual" de un servicio?**
+El servicio pierde esa sugerencia (el campo queda vacío) pero sigue activo y operativo. No hay impacto en la operación.
+
+**¿Cuántos tipos de servicio puedo tener?**
+No hay límite. Podés crear tantos como necesite la operación.
 
 ---
 

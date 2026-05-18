@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\TipoServicioController;
 use App\Http\Controllers\Admin\TipoVehiculoController;
 use App\Http\Controllers\Admin\VehiculoController;
 use Illuminate\Support\Facades\Route;
@@ -21,6 +22,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Padrón
     Route::get('/zonas', fn () => view('modules.admin.zonas.index'))->name('zonas.index');
     Route::get('/servicios', fn () => view('modules.admin.servicios.index'))->name('servicios.index');
+    Route::resource('tipos-servicio', TipoServicioController::class)
+        ->only(['index', 'store', 'update', 'destroy']);
+    Route::patch('tipos-servicio/{tiposServicio}/toggle', [TipoServicioController::class, 'toggle'])
+        ->name('tipos-servicio.toggle');
     Route::resource('vehiculos', VehiculoController::class)
         ->only(['index', 'store', 'update', 'destroy']);
     Route::patch('vehiculos/{vehiculo}/toggle', [VehiculoController::class, 'toggle'])

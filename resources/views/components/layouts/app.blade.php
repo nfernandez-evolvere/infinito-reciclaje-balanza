@@ -9,8 +9,8 @@
         ['route' => 'admin.reportes.index', 'icon' => 'file-bar-chart',   'label' => 'Reportes'],
     ];
     $padronItems = [
-        ['route' => 'admin.zonas.index',     'icon' => 'map-pin',        'label' => 'Zonas'],
-        ['route' => 'admin.servicios.index', 'icon' => 'clipboard-list', 'label' => 'Tipos de servicio'],
+        ['route' => 'admin.zonas.index',          'icon' => 'map-pin',        'label' => 'Zonas'],
+        ['route' => 'admin.tipos-servicio.index', 'icon' => 'clipboard-list', 'label' => 'Tipos de servicio'],
     ];
     $transporteItems = [
         ['route' => 'admin.vehiculos.index',      'icon' => 'truck', 'label' => 'Vehículos'],
@@ -31,7 +31,7 @@
 
     $section = match(true) {
         request()->routeIs('admin.pesajes.*', 'admin.reportes.*')          => 'Operación',
-        request()->routeIs('admin.zonas.*', 'admin.servicios.*')           => 'Padrón',
+        request()->routeIs('admin.zonas.*', 'admin.tipos-servicio.*')       => 'Padrón',
         request()->routeIs('admin.vehiculos.*', 'admin.tipos-vehiculo.*')  => 'Transporte',
         request()->routeIs('admin.usuarios.*')                             => 'Sistema',
         default => null,

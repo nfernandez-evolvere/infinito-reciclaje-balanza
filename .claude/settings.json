@@ -37,7 +37,10 @@
       "Bash(New-Item -Path \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\modules\\\\admin\\\\vehiculos\\\\index.blade.php\" -ItemType File -Force)",
       "Bash(Get-Content \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\storage\\\\logs\\\\laravel.log\" -Tail 80)",
       "Bash(echo \"exit: $?\")",
-      "Read(//c/Users/34891406/.claude/projects/c--Users-34891406-Nicolas-Proyectos-infinito-reciclaje-balanza/memory/**)"
+      "Read(//c/Users/34891406/.claude/projects/c--Users-34891406-Nicolas-Proyectos-infinito-reciclaje-balanza/memory/**)",
+      "Bash(dir tests *)",
+      "Bash(vendor/bin/phpunit tests/Feature/TipoServicioTest.php --filter=\"test_update_permite_mismo_nombre\" --display-errors)",
+      "Bash(vendor/bin/phpunit tests/Feature/TipoServicioTest.php --filter=\"test_update_permite_mismo_nombre\" --testdox)"
     ],
     "additionalDirectories": [
       "C:\\Users\\34891406\\Nicolas\\Proyectos\\infinito-reciclaje-balanza\\resources\\views\\components",
