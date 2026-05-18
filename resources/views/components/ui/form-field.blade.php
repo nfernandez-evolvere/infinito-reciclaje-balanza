@@ -14,9 +14,11 @@
         </x-ui.form-field>
 --}}
 
-<div {{ $attributes->twMerge('grid gap-2.5') }}>
+<div {{ $attributes->twMerge('grid gap-1.5') }}>
     {{ $slot }}
-    @if($message)
+    @if($message || $state)
         <x-ui.helper-text :state="$state" :message="$message" />
+    @else
+        <div class="min-h-[1rem]" aria-hidden="true"></div>
     @endif
 </div>

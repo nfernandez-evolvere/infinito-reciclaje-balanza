@@ -63,26 +63,39 @@ class TipoVehiculoTest extends TestCase
     }
 
     #[Test]
-    public function test_admin_can_deactivate(): void
+    public function test_admin_can_deactivate_via_toggle(): void
     {
         $tipo = TipoVehiculo::factory()->create(['activo' => true]);
 
         $this->actingAs($this->admin())
-            ->delete(route('admin.tipos-vehiculo.destroy', $tipo))
+            ->patch(route('admin.tipos-vehiculo.toggle', $tipo))
             ->assertRedirect(route('admin.tipos-vehiculo.index'));
 
         $this->assertDatabaseHas('tipos_vehiculo', ['id' => $tipo->id, 'activo' => false]);
     }
 
     #[Test]
-    public function test_physical_delete_not_allowed(): void
+    public function test_admin_can_activate_via_toggle(): void
+    {
+        $tipo = TipoVehiculo::factory()->create(['activo' => false]);
+
+        $this->actingAs($this->admin())
+            ->patch(route('admin.tipos-vehiculo.toggle', $tipo))
+            ->assertRedirect(route('admin.tipos-vehiculo.index'));
+
+        $this->assertDatabaseHas('tipos_vehiculo', ['id' => $tipo->id, 'activo' => true]);
+    }
+
+    #[Test]
+    public function test_admin_can_destroy_tipo_without_vehiculos(): void
     {
         $tipo = TipoVehiculo::factory()->create();
 
         $this->actingAs($this->admin())
-            ->delete(route('admin.tipos-vehiculo.destroy', $tipo));
+            ->delete(route('admin.tipos-vehiculo.destroy', $tipo))
+            ->assertRedirect(route('admin.tipos-vehiculo.index'));
 
-        $this->assertDatabaseHas('tipos_vehiculo', ['id' => $tipo->id]);
+        $this->assertDatabaseMissing('tipos_vehiculo', ['id' => $tipo->id]);
     }
 
     #[Test]

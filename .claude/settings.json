@@ -33,10 +33,15 @@
       "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\app\\\\Mail\")",
       "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\emails\")",
       "Bash(powershell -Command \"\\(Get-Content .env\\) -replace '^APP_NAME=Laravel$', 'APP_NAME=\\\\\"Infinito Reciclaje\\\\\"' | Set-Content .env -Encoding utf8\")",
-      "Bash(Remove-Item \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\ui\\\\input-password.blade.php\")"
+      "Bash(Remove-Item \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\ui\\\\input-password.blade.php\")",
+      "Bash(New-Item -Path \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\modules\\\\admin\\\\vehiculos\\\\index.blade.php\" -ItemType File -Force)",
+      "Bash(Get-Content \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\storage\\\\logs\\\\laravel.log\" -Tail 80)",
+      "Bash(echo \"exit: $?\")",
+      "Read(//c/Users/34891406/.claude/projects/c--Users-34891406-Nicolas-Proyectos-infinito-reciclaje-balanza/memory/**)"
     ],
     "additionalDirectories": [
-      "C:\\Users\\34891406\\Nicolas\\Proyectos\\infinito-reciclaje-balanza\\resources\\views\\components"
+      "C:\\Users\\34891406\\Nicolas\\Proyectos\\infinito-reciclaje-balanza\\resources\\views\\components",
+      "c:\\Users\\34891406\\.claude\\projects\\c--Users-34891406-Nicolas-Proyectos-infinito-reciclaje-balanza\\memory"
     ]
   }
 }

@@ -2,14 +2,14 @@
     <x-ui.dialog.content size="sm">
         <x-ui.dialog.header>
             <x-ui.dialog.title
-                x-text="confirmActivo ? 'Desactivar tipo de vehículo' : 'Activar tipo de vehículo'"
+                x-text="confirmActivo ? 'Desactivar vehículo' : 'Activar vehículo'"
             ></x-ui.dialog.title>
             <x-ui.dialog.description>
                 ¿Confirmás que querés
                 <span x-text="confirmActivo ? 'desactivar' : 'activar'"></span>
-                el tipo <strong x-text="confirmNombre" class="text-foreground font-medium"></strong>?
+                el vehículo <strong x-text="confirmNombre" class="text-foreground font-medium"></strong>?
                 <span x-show="confirmActivo" class="block mt-1">
-                    Este tipo no estará disponible para nuevos pesajes.
+                    Este vehículo no aparecerá en el autocompletado al registrar nuevos pesajes.
                 </span>
             </x-ui.dialog.description>
         </x-ui.dialog.header>

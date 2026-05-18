@@ -37,48 +37,48 @@
                 </x-ui.button>
             </div>
 
-            <form method="GET" action="{{ route('admin.tipos-vehiculo.index') }}"
+            <form method="GET" action="{{ route('admin.vehiculos.index') }}"
                 class="flex flex-col flex-1 min-h-0">
 
                 <div class="flex-1 overflow-y-auto px-5 py-5 space-y-2">
 
-                    <x-ui.form-field for="filter-nombre">
-                        <x-ui.label for="filter-nombre">Tipo</x-ui.label>
+                    <x-ui.form-field for="filter-patente">
+                        <x-ui.label for="filter-patente">Patente</x-ui.label>
                         <x-ui.input
-                            id="filter-nombre"
-                            name="nombre"
+                            id="filter-patente"
+                            name="patente"
                             type="search"
-                            placeholder="Buscar por tipo…"
-                            :value="$filters['nombre'] ?? ''"
+                            placeholder="Buscar por patente…"
+                            :value="$filters['patente'] ?? ''"
                             autofocus
                         />
                     </x-ui.form-field>
 
-                    <div class="space-y-2">
-                        <x-ui.form-field for="filter-peso-min">
-                            <x-ui.label for="filter-peso-min">Bruto mínimo desde (kg)</x-ui.label>
-                            <x-ui.input
-                                id="filter-peso-min"
-                                name="peso_min"
-                                type="number"
-                                min="0"
-                                placeholder="0"
-                                :value="$filters['peso_min'] ?? ''"
-                            />
-                        </x-ui.form-field>
+                    <x-ui.form-field for="filter-numero-interno">
+                        <x-ui.label for="filter-numero-interno">N.° interno</x-ui.label>
+                        <x-ui.input
+                            id="filter-numero-interno"
+                            name="numero_interno"
+                            type="search"
+                            placeholder="Buscar por número interno…"
+                            :value="$filters['numero_interno'] ?? ''"
+                        />
+                    </x-ui.form-field>
 
-                        <x-ui.form-field for="filter-peso-max">
-                            <x-ui.label for="filter-peso-max">Bruto máximo hasta (kg)</x-ui.label>
-                            <x-ui.input
-                                id="filter-peso-max"
-                                name="peso_max"
-                                type="number"
-                                min="0"
-                                placeholder="0"
-                                :value="$filters['peso_max'] ?? ''"
-                            />
-                        </x-ui.form-field>
-                    </div>
+                    <x-ui.form-field for="filter-tipo-vehiculo">
+                        <x-ui.label for="filter-tipo-vehiculo">Tipo de vehículo</x-ui.label>
+                        <x-ui.select name="tipo_vehiculo_id" :value="$filters['tipo_vehiculo_id'] ?? ''">
+                            <x-ui.select.trigger id="filter-tipo-vehiculo">
+                                <x-ui.select.value placeholder="Todos" />
+                            </x-ui.select.trigger>
+                            <x-ui.select.content>
+                                <x-ui.select.item value="">Todos</x-ui.select.item>
+                                @foreach($tiposVehiculo as $tipo)
+                                    <x-ui.select.item value="{{ $tipo->id }}">{{ $tipo->nombre }}</x-ui.select.item>
+                                @endforeach
+                            </x-ui.select.content>
+                        </x-ui.select>
+                    </x-ui.form-field>
 
                     <x-ui.form-field for="filter-activo">
                         <x-ui.label for="filter-activo">Estado</x-ui.label>
@@ -97,7 +97,7 @@
                 </div>
 
                 <div class="border-t border-border px-5 py-4 flex gap-2">
-                    <a href="{{ route('admin.tipos-vehiculo.index') }}" class="flex-1">
+                    <a href="{{ route('admin.vehiculos.index') }}" class="flex-1">
                         <x-ui.button type="button" variant="secondary" class="w-full">
                             <x-lucide-x class="size-4" />
                             Limpiar

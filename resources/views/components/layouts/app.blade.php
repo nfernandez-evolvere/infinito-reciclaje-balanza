@@ -343,5 +343,13 @@
 </x-ui.sidebar.provider>
 
 <x-ui.sonner />
+
+@if(session('toast'))
+<script>
+    document.addEventListener('alpine:initialized', () => {
+        Alpine.store('toast').add(@json(session('toast')));
+    });
+</script>
+@endif
 </body>
 </html>

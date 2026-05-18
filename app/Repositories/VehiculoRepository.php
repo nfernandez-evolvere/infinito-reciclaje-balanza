@@ -1,0 +1,60 @@
+<?php
+
+namespace App\Repositories;
+
+use App\Models\Vehiculo;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+
+class VehiculoRepository
+{
+    public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
+    {
+        return Vehiculo::query()
+            ->with('tipoVehiculo')
+            ->when(
+                !empty($filters['patente']),
+                fn ($q) => $q->where('patente', 'like', '%' . $filters['patente'] . '%')
+            )
+            ->when(
+                !empty($filters['numero_interno']),
+                fn ($q) => $q->where('numero_interno', 'like', '%' . $filters['numero_interno'] . '%')
+            )
+            ->when(
+                !empty($filters['tipo_vehiculo_id']),
+                fn ($q) => $q->where('tipo_vehiculo_id', $filters['tipo_vehiculo_id'])
+            )
+            ->when(
+                isset($filters['activo']) && $filters['activo'] !== '',
+                fn ($q) => $q->where('activo', (bool) $filters['activo'])
+            )
+            ->orderBy('patente')
+            ->paginate($perPage)
+            ->appends(array_filter($filters, fn ($v) => $v !== '' && $v !== null));
+    }
+
+    public function create(array $data): Vehiculo
+    {
+        return Vehiculo::create($data);
+    }
+
+    public function update(Vehiculo $vehiculo, array $data): Vehiculo
+    {
+        $vehiculo->update($data);
+        return $vehiculo;
+    }
+
+    public function deactivate(Vehiculo $vehiculo): void
+    {
+        $vehiculo->update(['activo' => false]);
+    }
+
+    public function activate(Vehiculo $vehiculo): void
+    {
+        $vehiculo->update(['activo' => true]);
+    }
+
+    public function delete(Vehiculo $vehiculo): void
+    {
+        $vehiculo->delete();
+    }
+}

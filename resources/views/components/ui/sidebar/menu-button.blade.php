@@ -43,8 +43,11 @@ $base = 'peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded
                 x-show="_t"
                 x-cloak
                 :style="`top:${_y}px;left:${_x}px;transform:translateY(-50%);z-index:var(--z-tooltip)`"
-                class="pointer-events-none fixed rounded-md bg-foreground px-2.5 py-1.5 text-xs font-medium text-background shadow-md whitespace-nowrap"
-            >{{ $tooltip }}</div>
+                class="pointer-events-none fixed flex items-center rounded-md bg-foreground px-2.5 py-1.5 text-xs font-medium text-background shadow-md whitespace-nowrap"
+            >
+                <span class="absolute left-0 -translate-x-1/2 top-1/2 -translate-y-1/2 size-2.5 rotate-45 bg-foreground"></span>
+                {{ $tooltip }}
+            </div>
         </template>
         @endif
     </a>
@@ -67,8 +70,11 @@ $base = 'peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded
                 x-show="_t"
                 x-cloak
                 :style="`top:${_y}px;left:${_x}px;transform:translateY(-50%);z-index:var(--z-tooltip)`"
-                class="pointer-events-none fixed rounded-md bg-foreground px-2.5 py-1.5 text-xs font-medium text-background shadow-md whitespace-nowrap"
-            >{{ $tooltip }}</div>
+                class="pointer-events-none fixed flex items-center rounded-md bg-foreground px-2.5 py-1.5 text-xs font-medium text-background shadow-md whitespace-nowrap"
+            >
+                <span class="absolute left-0 -translate-x-1/2 top-1/2 -translate-y-1/2 size-2.5 rotate-45 bg-foreground"></span>
+                {{ $tooltip }}
+            </div>
         </template>
         @endif
     </button>

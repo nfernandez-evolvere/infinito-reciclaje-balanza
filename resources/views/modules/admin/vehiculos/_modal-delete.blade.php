@@ -1,11 +1,11 @@
 <div x-data="{ get open() { return deleteOpen }, set open(v) { deleteOpen = v } }">
     <x-ui.dialog.content size="sm">
         <x-ui.dialog.header>
-            <x-ui.dialog.title>Eliminar tipo de vehículo</x-ui.dialog.title>
+            <x-ui.dialog.title>Eliminar vehículo</x-ui.dialog.title>
             <x-ui.dialog.description>
                 Al eliminar
                 <strong x-text="deleteNombre" class="text-foreground font-medium"></strong>
-                se perderá la configuración de rangos de peso. Los vehículos y pesajes asociados no se ven afectados.
+                se perderá el registro del vehículo en el padrón. Los pesajes históricos asociados no se ven afectados.
             </x-ui.dialog.description>
         </x-ui.dialog.header>
 

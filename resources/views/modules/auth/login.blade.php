@@ -13,7 +13,7 @@
             </x-ui.alert.description>
         </x-ui.alert>
 
-        <form method="POST" action="{{ route('login') }}" class="space-y-5">
+        <form method="POST" action="{{ route('login') }}" class="space-y-2">
             @csrf
 
             @if ($errors->any())

@@ -17,7 +17,7 @@
                 ></x-ui.dialog.title>
             </x-ui.dialog.header>
 
-            <div class="px-6 space-y-4 pb-2">
+            <div class="px-6 space-y-2 pb-2">
                 <x-ui.form-field
                     for="nombre"
                     :state="$errors->has('nombre') ? 'destructive' : null"

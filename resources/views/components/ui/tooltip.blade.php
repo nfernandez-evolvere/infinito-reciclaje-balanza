@@ -18,6 +18,7 @@
         _place() {
             const tip = document.getElementById(this.uid);
             if (!tip) return;
+            if (!tip.offsetWidth) { requestAnimationFrame(() => this._place()); return; }
             const r  = this.$el.getBoundingClientRect();
             const tw = tip.offsetWidth, th = tip.offsetHeight;
             const g = 8, m = 8;
@@ -62,7 +63,7 @@
                 : 'top:'  + (this.arrowPos - half) + 'px';
         }
     }"
-    @mouseenter="visible = true; $nextTick(() => _place())"
+    @mouseenter="visible = true; $nextTick(() => requestAnimationFrame(() => _place()))"
     @mouseleave="visible = false; actual = preferred"
     @focusin="visible  = true; $nextTick(() => _place())"
     @focusout="visible = false; actual = preferred"

@@ -74,7 +74,7 @@ $posClass = match($position) {
 
             <div class="flex-1 min-w-0 space-y-1">
                 <x-ui.typography as="small" class="font-semibold" x-text="toast.message"></x-ui.typography>
-                <x-ui.typography as="muted" x-show="toast.description" x-text="toast.description"></x-ui.typography>
+                <p class="text-sm opacity-80" x-show="toast.description" x-text="toast.description"></p>
                 <button
                     x-show="toast.action"
                     @click="toast.action?.onClick?.(); $store.toast.dismiss(toast.id)"
