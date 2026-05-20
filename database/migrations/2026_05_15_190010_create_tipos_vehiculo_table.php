@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('tipos_vehiculo', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('organizacion_id')->constrained('organizaciones')->cascadeOnDelete();
             $table->string('nombre');
             $table->unsignedInteger('peso_min_kg');
             $table->unsignedInteger('peso_max_kg');

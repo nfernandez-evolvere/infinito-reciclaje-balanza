@@ -10,7 +10,16 @@ return new class extends Migration
     {
         Schema::create('tipos_servicio', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('organizacion_id')->constrained('organizaciones')->cascadeOnDelete();
+            $table->string('nombre', 100);
+            $table->foreignId('tipo_vehiculo_sugerido_id')
+                ->nullable()
+                ->constrained('tipos_vehiculo')
+                ->noActionOnDelete();
+            $table->boolean('activo')->default(true);
             $table->timestamps();
+
+            $table->unique(['organizacion_id', 'nombre']);
         });
     }
 

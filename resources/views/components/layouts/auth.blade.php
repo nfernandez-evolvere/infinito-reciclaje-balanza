@@ -2,6 +2,7 @@
     'title'           => 'Ingresar',
     'cardTitle'       => '',
     'cardDescription' => null,
+    'bare'            => false,
 ])
 
 <!DOCTYPE html>
@@ -34,17 +35,21 @@
             </div>
 
             {{-- Card --}}
-            <x-ui.card>
-                <x-ui.card.header class="text-center">
-                    <x-ui.card.title>{{ $cardTitle }}</x-ui.card.title>
-                    @if ($cardDescription)
-                        <x-ui.card.description>{{ $cardDescription }}</x-ui.card.description>
-                    @endif
-                </x-ui.card.header>
-                <x-ui.card.content>
-                    {{ $slot }}
-                </x-ui.card.content>
-            </x-ui.card>
+            @if ($bare)
+                {{ $slot }}
+            @else
+                <x-ui.card>
+                    <x-ui.card.header class="text-center">
+                        <x-ui.card.title>{{ $cardTitle }}</x-ui.card.title>
+                        @if ($cardDescription)
+                            <x-ui.card.description>{{ $cardDescription }}</x-ui.card.description>
+                        @endif
+                    </x-ui.card.header>
+                    <x-ui.card.content>
+                        {{ $slot }}
+                    </x-ui.card.content>
+                </x-ui.card>
+            @endif
 
             {{-- Footer link (optional named slot) --}}
             @isset($footerLink)

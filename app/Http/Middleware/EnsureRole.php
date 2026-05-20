@@ -16,6 +16,11 @@ class EnsureRole
             return redirect()->route('login');
         }
 
+        // super_admin tiene acceso a cualquier ruta protegida por rol
+        if ($user->isSuperAdmin()) {
+            return $next($request);
+        }
+
         if ($user->role !== $role) {
             abort(403);
         }

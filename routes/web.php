@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Admin\VehiculoController;
 use App\Http\Controllers\Admin\ZonaController;
 use App\Http\Controllers\Admin\ZonaServicioController;
+use App\Http\Controllers\SuperAdmin\OrganizacionController;
 use Illuminate\Support\Facades\Route;
 
 require __DIR__.'/auth.php';
@@ -54,11 +55,26 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         ->name('usuarios.reset-password');
 });
 
+// --- Super Admin ---
+Route::middleware(['auth', 'role:super_admin'])->name('super.')->group(function () {
+    Route::get('/dashboard', fn () => view('modules.super_admin.dashboard'))->name('dashboard');
+    Route::resource('organizaciones', OrganizacionController::class)
+        ->only(['index', 'store', 'update', 'destroy']);
+    Route::patch('organizaciones/{organizacion}/toggle', [OrganizacionController::class, 'toggle'])
+        ->name('organizaciones.toggle');
+});
+
 Route::fallback(function () {
     $user = auth()->user();
-    $home = $user
-        ? ($user->isAdmin() ? route('admin.dashboard') : route('balanza'))
-        : route('login');
+    if ($user) {
+        $home = match(true) {
+            $user->isSuperAdmin() => route('super.dashboard'),
+            $user->isAdmin()      => route('admin.dashboard'),
+            default               => route('balanza'),
+        };
+    } else {
+        $home = route('login');
+    }
     return response()->view('errors.404', [
         'home'          => $home,
         'showAppLayout' => $user !== null,

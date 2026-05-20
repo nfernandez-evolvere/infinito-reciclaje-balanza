@@ -10,15 +10,19 @@ return new class extends Migration
     {
         Schema::create('vehiculos', function (Blueprint $table) {
             $table->id();
-            $table->string('patente', 20)->unique();
-            $table->string('numero_interno', 20)->unique();
+            $table->foreignId('organizacion_id')->constrained('organizaciones')->cascadeOnDelete();
+            $table->string('patente', 20);
+            $table->string('numero_interno', 20);
             $table->integer('tara_kg');
-            $table->foreignId('tipo_vehiculo_id')->constrained('tipos_vehiculo')->restrictOnDelete();
+            $table->foreignId('tipo_vehiculo_id')->constrained('tipos_vehiculo')->noActionOnDelete();
             $table->string('titular', 200);
             $table->integer('capacidad_kg')->nullable();
             $table->string('observaciones', 500)->nullable();
             $table->boolean('activo')->default(true);
             $table->timestamps();
+
+            $table->unique(['organizacion_id', 'patente']);
+            $table->unique(['organizacion_id', 'numero_interno']);
         });
     }
 

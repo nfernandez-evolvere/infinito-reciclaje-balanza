@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -13,15 +14,26 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('organizacion_id')->nullable()->constrained('organizaciones')->nullOnDelete();
             $table->string('name');
-            $table->string('email')->unique();
+            $table->string('email');
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->enum('role', ['operador', 'admin'])->default('operador');
+            $table->enum('role', ['super_admin', 'admin', 'operador'])->default('operador');
             $table->boolean('onboarding_visto')->default(false);
+            $table->boolean('activo')->default(true);
             $table->rememberToken();
             $table->timestamps();
+
+            $table->unique(['organizacion_id', 'email']);
         });
+
+        DB::statement(
+            "ALTER TABLE [infinito_balanza].[dev_users]"
+            . " ADD CONSTRAINT [chk_users_superadmin_org]"
+            . " CHECK ((role = 'super_admin' AND organizacion_id IS NULL)"
+            . "     OR (role != 'super_admin' AND organizacion_id IS NOT NULL))"
+        );
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();

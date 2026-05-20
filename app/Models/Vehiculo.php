@@ -2,17 +2,19 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToOrganizacion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Vehiculo extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToOrganizacion;
 
     protected $table = 'vehiculos';
 
     protected $fillable = [
+        'organizacion_id',
         'patente',
         'numero_interno',
         'tara_kg',

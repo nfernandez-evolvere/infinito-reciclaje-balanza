@@ -8,10 +8,11 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'role', 'onboarding_visto', 'activo'])]
+#[Fillable(['organizacion_id', 'name', 'email', 'password', 'role', 'onboarding_visto', 'activo'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -26,6 +27,16 @@ class User extends Authenticatable
             'onboarding_visto' => 'boolean',
             'activo' => 'boolean',
         ];
+    }
+
+    public function organizacion(): BelongsTo
+    {
+        return $this->belongsTo(Organizacion::class);
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'super_admin';
     }
 
     public function isAdmin(): bool

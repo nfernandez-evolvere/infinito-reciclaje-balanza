@@ -51,7 +51,9 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        $credentials = $this->buildCredentials();
+
+        if (! Auth::attempt($credentials, $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -59,7 +61,31 @@ class LoginRequest extends FormRequest
             ]);
         }
 
-        if (! Auth::user()->activo) {
+        $user = Auth::user();
+
+        $esSuperContext = app()->bound('es_super_admin_context') && app('es_super_admin_context');
+
+        // En contexto super_admin solo puede ingresar un super_admin
+        if ($esSuperContext && ! $user->isSuperAdmin()) {
+            Auth::logout();
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => trans('auth.failed'),
+            ]);
+        }
+
+        // En contexto de org no puede ingresar un super_admin
+        if (! $esSuperContext && $user->isSuperAdmin()) {
+            Auth::logout();
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => trans('auth.failed'),
+            ]);
+        }
+
+        if (! $user->activo) {
             Auth::logout();
             RateLimiter::hit($this->throttleKey());
 
@@ -69,6 +95,19 @@ class LoginRequest extends FormRequest
         }
 
         RateLimiter::clear($this->throttleKey());
+    }
+
+    private function buildCredentials(): array
+    {
+        $credentials = $this->only('email', 'password');
+
+        // En contexto de organización se agrega el organizacion_id para scope por tenant
+        $org = app()->bound('organizacion') ? app('organizacion') : null;
+        if ($org) {
+            $credentials['organizacion_id'] = $org->id;
+        }
+
+        return $credentials;
     }
 
     /**
