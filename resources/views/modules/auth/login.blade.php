@@ -4,14 +4,18 @@
     cardDescription="Usá tu correo y contraseña para continuar"
 >
     <div class="space-y-2">
-        <x-ui.alert state="info">
-            <x-lucide-info class="size-3.5" />
-            <x-ui.alert.title>Usuarios de prueba</x-ui.alert.title>
-            <x-ui.alert.description class="flex flex-col gap-0.5 text-xs">
-                <span><b>Admin</b> — nacho@balanza.test · pass: password</span>
-                <span><b>Operador</b> — roberto@balanza.test · pass: password</span>
-            </x-ui.alert.description>
-        </x-ui.alert>
+        @if (!empty($usuariosPrueba) && $usuariosPrueba->isNotEmpty())
+            <x-ui.alert state="info">
+                <x-lucide-info class="size-3.5" />
+                <x-ui.alert.title>Usuarios de prueba</x-ui.alert.title>
+                <x-ui.alert.description class="flex flex-col gap-0.5 text-xs">
+                    @foreach ($usuariosPrueba as $u)
+                        @php $label = match($u->role) { 'super_admin' => 'Super Admin', 'admin' => 'Admin', default => 'Operador' } @endphp
+                        <span><b>{{ $label }}</b> — {{ $u->email }} · pass: 1234</span>
+                    @endforeach
+                </x-ui.alert.description>
+            </x-ui.alert>
+        @endif
 
         <form method="POST" action="{{ route('login') }}" class="space-y-2">
             @csrf

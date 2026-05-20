@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Organizacion extends Model
 {
+    protected $table = 'organizaciones';
+
     protected $fillable = ['nombre', 'slug', 'activo'];
 
     protected function casts(): array

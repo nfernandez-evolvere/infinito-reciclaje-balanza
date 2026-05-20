@@ -31,10 +31,12 @@ class OrganizacionController extends Controller
         try {
             $org = $this->service->create($request->validated());
 
+            $adminEmail = $request->validated()['admin_email'];
+
             return redirect()->route('super.organizaciones.index')
                 ->with('toast', [
                     'message'     => 'Organización creada.',
-                    'description' => "\"{$org->nombre}\" está lista para operar.",
+                    'description' => "\"{$org->nombre}\" fue creada con el admin {$adminEmail}.",
                     'variant'     => 'success',
                 ]);
         } catch (\Throwable) {

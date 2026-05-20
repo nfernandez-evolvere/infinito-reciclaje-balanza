@@ -27,6 +27,12 @@ class SqlServerSchemaGrammar extends SqlServerGrammar
             return $this->getValue($table);
         }
 
+        // Laravel uses 'laravel_source' as a derived-table alias in MERGE (upsert).
+        // It is not a real table and must not receive the schema prefix or table prefix.
+        if ($table === 'laravel_source') {
+            return $this->wrapValue('laravel_source');
+        }
+
         $tablePrefix = $prefix ?? $this->connection->getTablePrefix();
 
         return $this->wrapValue($this->dbSchema)

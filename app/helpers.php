@@ -14,6 +14,29 @@ use TailwindMerge\Laravel\Facades\TailwindMerge;
 if (!function_exists('tw')) {
     function tw(string ...$classes): string
     {
-        return TailwindMerge::merge(...$classes);
+        // Single array in memory for the lifetime of the process.
+        // On first call: populated from the persistent cache (one read).
+        // New entries are appended; the whole array is flushed on shutdown (one write).
+        static $mem     = null;
+        static $dirty   = false;
+
+        if ($mem === null) {
+            $mem = cache()->get('tw_cache', []);
+
+            register_shutdown_function(function () use (&$mem, &$dirty): void {
+                if ($dirty) {
+                    cache()->forever('tw_cache', $mem);
+                }
+            });
+        }
+
+        $key = implode("\x00", $classes);
+
+        if (!array_key_exists($key, $mem)) {
+            $mem[$key] = TailwindMerge::merge(...$classes);
+            $dirty = true;
+        }
+
+        return $mem[$key];
     }
 }

@@ -12,6 +12,7 @@
 8. [Crear la primera organización y el super admin](#8-crear-la-primera-organización-y-el-super-admin)
 9. [Agregar una nueva organización](#9-agregar-una-nueva-organización)
 10. [Agregar ambiente stg o prod](#10-agregar-ambiente-stg-o-prod)
+11. [Despliegue en servidor con Docker](#11-despliegue-en-servidor-con-docker)
 
 ---
 
@@ -188,49 +189,94 @@ Si hay error de conexión, verificar:
 
 ---
 
-## 6. Configurar subdominios en local (Windows + Herd)
+## 6. Configurar subdominios en local (Windows + Laragon + nginx)
 
 El sistema resuelve el tenant desde el subdominio: `{slug}.balanza.test`.
 El subdominio `super.balanza.test` es exclusivo del super admin.
 
-### 6.1 Configurar el sitio en Herd
+El stack local usa **Laragon** como servidor nginx y **PHP 8.5** desde `C:\php\` vía CGI.
+Laragon no soporta wildcard DNS, así que cada subdominio se agrega al archivo `hosts`.
 
-Herd sirve sitios desde carpetas en `~/Herd/`. Para configurar este proyecto:
+### 6.1 Instalar Laragon y activar nginx
 
-1. Abrir Herd → Sites → Add site
-2. Apuntar al directorio del proyecto
-3. El dominio base quedará como `balanza.test` (o el nombre de la carpeta)
+1. Instalar [Laragon](https://laragon.org/) (Full o Lite).
+2. En el panel de Laragon: **Menu → Preferences → Server → Use nginx** (desactivar Apache si está activo).
+3. Hacer clic en **Start All**.
 
-### 6.2 Agregar subdominios al archivo hosts
+### 6.2 Virtual host para `*.balanza.test`
 
-Herd Lite no soporta wildcard DNS. Cada subdominio debe agregarse manualmente.
+Crear `C:\laragon\etc\nginx\sites-enabled\balanza.test.conf`:
 
-Abrir PowerShell **como Administrador**:
+```nginx
+server {
+    listen 8080;
+    server_name balanza.test *.balanza.test;
+
+    root "C:/ruta/al/proyecto/public";
+    index index.php;
+    charset utf-8;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include "C:/laragon/bin/nginx/nginx-1.28.2/conf/snippets/fastcgi-php.conf";
+        fastcgi_pass 127.0.0.1:10988;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+    location ~ /\.ht { deny all; }
+}
+```
+
+> Ajustar la versión de nginx en el `include` si es distinta. Revisar en `C:\laragon\bin\nginx\`.
+
+El `fastcgi_pass` apunta al puerto 10988 (PHP 8.5, ver sección 6.3).
+Laragon bloquea el puerto 80 sin privilegios de administrador — en local se usa **puerto 8080**.
+
+### 6.3 PHP 8.5 vía CGI (puerto 10988)
+
+Laragon incluye PHP 8.3 en su CGI propio (puerto 10987). Este proyecto requiere PHP ≥ 8.3 y
+en el equipo de desarrollo se usa PHP 8.5 desde `C:\php\`. Para arrancarlo:
 
 ```powershell
-Add-Content -Path "C:\Windows\System32\drivers\etc\hosts" -Value "127.0.0.1`tsuper.balanza.test"
+Start-Process "C:\php\php-cgi.exe" -ArgumentList "-b 127.0.0.1:10988" -WindowStyle Hidden
 ```
 
-O editar el archivo directamente en el Bloc de Notas (ejecutado como admin):
+**Este proceso no sobrevive reinicios.** Volver a ejecutar el comando cada vez que se reinicia
+la máquina o después de hacer un Stop All / Start All en Laragon.
 
-```
-# Infinito Reciclaje — Balanza
-127.0.0.1   super.balanza.test
-127.0.0.1   municipio-a.balanza.test
-127.0.0.1   municipio-b.balanza.test
-```
+Para automatizarlo, crear una tarea en el Programador de tareas de Windows:
+- Programa: `C:\php\php-cgi.exe`
+- Argumentos: `-b 127.0.0.1:10988`
+- Disparador: Al iniciar sesión
 
-> Cada vez que se crea una organización nueva en el sistema, agregar una línea al archivo hosts
-> con el slug de esa organización.
+### 6.4 Agregar subdominios al archivo hosts
 
-### 6.3 Verificar
+Cada subdominio se agrega una sola vez. Abrir PowerShell **como Administrador**:
 
 ```powershell
-ping super.balanza.test
-# → Pinging super.balanza.test [127.0.0.1]
+# Subdominios de dev (ya configurados)
+Add-Content "C:\Windows\System32\drivers\etc\hosts" "127.0.0.1`tsuper.balanza.test"
+Add-Content "C:\Windows\System32\drivers\etc\hosts" "127.0.0.1`tcorrientes.balanza.test"
+Add-Content "C:\Windows\System32\drivers\etc\hosts" "127.0.0.1`tresistencia.balanza.test"
 ```
 
-Abrir en el navegador: `http://super.balanza.test/login`
+Cada vez que se crea una nueva organización, agregar su subdominio con el mismo comando.
+
+### 6.5 Verificar
+
+Recargar la configuración de nginx:
+
+```powershell
+& "C:\laragon\bin\nginx\nginx-1.28.2\nginx.exe" -s reload
+```
+
+Abrir en el navegador: `http://super.balanza.test:8080/login`
+
+> Las URLs locales llevan `:8080` porque nginx no puede usar el puerto 80 sin privilegios de admin.
 
 ---
 
@@ -279,7 +325,7 @@ server {
     error_page 404 /index.php;
 
     location ~ \.php$ {
-        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+        fastcgi_pass php-fpm:9000;          # contenedor PHP-FPM (Docker)
         fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
         include fastcgi_params;
     }
@@ -296,15 +342,43 @@ Recargar nginx:
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
-### 7.3 .env en producción
+### 7.3 .env por ambiente
 
+El sistema resuelve el tenant extrayendo el primer segmento del host y luego strippeando el prefijo
+configurado en `APP_SUBDOMAIN_PREFIX`. Esto permite usar un único dominio wildcard para todos los
+ambientes.
+
+**Esquema de subdominios:**
+
+| Ambiente   | `APP_SUBDOMAIN_PREFIX` | Super admin URL              | Org URL ejemplo                    |
+|------------|------------------------|------------------------------|------------------------------------|
+| Local      | *(vacío)*              | `super.balanza.test`         | `corrientes.balanza.test`          |
+| Staging    | `staging-`             | `staging-super.inf-bal.com`  | `staging-corrientes.inf-bal.com`   |
+| Producción | *(vacío)*              | `super.inf-bal.com`          | `corrientes.inf-bal.com`           |
+
+El registro DNS wildcard `*.inf-bal.com` cubre tanto staging como producción sin configuración extra.
+
+**.env producción:**
 ```env
 APP_URL=https://inf-bal.com
 APP_ENV=production
 APP_DEBUG=false
+APP_SUBDOMAIN_PREFIX=
 
 DB_CONNECTION=sqlsrv
 DB_TABLE_PREFIX=prod_
+# ... resto de credenciales
+```
+
+**.env staging:**
+```env
+APP_URL=https://inf-bal.com
+APP_ENV=staging
+APP_DEBUG=false
+APP_SUBDOMAIN_PREFIX=staging-
+
+DB_CONNECTION=sqlsrv
+DB_TABLE_PREFIX=stg_
 # ... resto de credenciales
 ```
 
@@ -402,8 +476,168 @@ Repetir para `prod` cambiando `stg_` por `prod_`.
 
 Solo cambiar `DB_TABLE_PREFIX` en el `.env` del servidor correspondiente:
 
-| Ambiente | `DB_TABLE_PREFIX` | `APP_URL` |
-|----------|-------------------|-----------|
-| Local    | `dev_`            | `http://balanza.test` |
-| Staging  | `stg_`            | `https://stg.inf-bal.com` |
-| Producción | `prod_`         | `https://inf-bal.com` |
+| Ambiente   | `DB_TABLE_PREFIX` | `APP_SUBDOMAIN_PREFIX` | `APP_URL`                    |
+|------------|-------------------|------------------------|------------------------------|
+| Local      | `dev_`            | *(vacío)*              | `http://balanza.test`        |
+| Staging    | `stg_`            | `staging-`             | `https://inf-bal.com`        |
+| Producción | `prod_`           | *(vacío)*              | `https://inf-bal.com`        |
+
+---
+
+## 11. Despliegue en servidor con Docker
+
+El stack de producción/staging se levanta con Docker Compose:
+- **nginx** — reverse proxy, termina SSL, sirve assets estáticos
+- **php-fpm** — ejecuta PHP, incluye las extensiones `sqlsrv` y `pdo_sqlsrv`
+- **SQL Server** — externo (servidor Evolvere), no se incluye en Docker
+
+### 11.1 Dockerfile (PHP-FPM + sqlsrv)
+
+```dockerfile
+FROM php:8.4-fpm-bookworm
+
+# Dependencias del sistema
+RUN apt-get update && apt-get install -y \
+    curl gnupg unixodbc-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# ODBC Driver 17 for SQL Server
+RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
+ && curl https://packages.microsoft.com/config/debian/12/prod.list \
+        > /etc/apt/sources.list.d/mssql-release.list \
+ && apt-get update \
+ && ACCEPT_EULA=Y apt-get install -y msodbcsql17 \
+ && rm -rf /var/lib/apt/lists/*
+
+# Extensiones PHP
+RUN pecl install sqlsrv pdo_sqlsrv \
+ && docker-php-ext-enable sqlsrv pdo_sqlsrv \
+ && docker-php-ext-install pcntl
+
+# Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www/html
+
+COPY . .
+
+RUN composer install --no-dev --optimize-autoloader --no-interaction \
+ && php artisan config:cache \
+ && php artisan route:cache \
+ && php artisan view:cache \
+ && chown -R www-data:www-data storage bootstrap/cache
+
+EXPOSE 9000
+CMD ["php-fpm"]
+```
+
+### 11.2 nginx (dentro del contenedor o en el host)
+
+```nginx
+server {
+    listen 80;
+    server_name ~^(?<subdomain>[^.]+)\.inf-bal\.com$;
+
+    root /var/www/html/public;
+    index index.php;
+
+    charset utf-8;
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Content-Type-Options "nosniff";
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass php-fpm:9000;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+    location ~ /\.(?!well-known).* { deny all; }
+}
+```
+
+### 11.3 docker-compose.yml
+
+```yaml
+services:
+  php-fpm:
+    build: .
+    volumes:
+      - ./storage:/var/www/html/storage
+    env_file: .env.production
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./public:/var/www/html/public:ro
+      - ./storage/app/public:/var/www/html/public/storage:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - php-fpm
+    restart: unless-stopped
+```
+
+> El volumen de `storage/` se monta para que los logs y archivos subidos persistan entre
+> deploys. El directorio `public/` se sirve directamente por nginx sin pasar por PHP-FPM.
+
+### 11.4 Variables de entorno en producción
+
+Crear `.env.production` en el servidor (nunca comitear):
+
+```env
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://inf-bal.com
+APP_SUBDOMAIN_PREFIX=
+
+DB_CONNECTION=sqlsrv
+DB_HOST=IP_SERVIDOR_SQL
+DB_PORT=1433
+DB_DATABASE=Evolvere
+DB_USERNAME=balanza_app
+DB_PASSWORD=<password>
+DB_SCHEMA=infinito_balanza
+DB_TABLE_PREFIX=prod_
+
+SESSION_DRIVER=database
+CACHE_STORE=database
+QUEUE_CONNECTION=database
+```
+
+### 11.5 Primer deploy
+
+```bash
+docker compose build
+docker compose up -d
+
+# Migraciones (solo la primera vez o después de cambios de schema)
+docker compose exec php-fpm php artisan migrate --force
+
+# Verificar
+docker compose exec php-fpm php artisan tinker --execute="echo DB::connection()->getPdo() ? 'DB OK' : 'FAIL';"
+```
+
+### 11.6 Actualizar la aplicación
+
+```bash
+git pull
+docker compose build php-fpm
+docker compose up -d --no-deps php-fpm
+docker compose exec php-fpm php artisan config:cache
+docker compose exec php-fpm php artisan route:cache
+docker compose exec php-fpm php artisan view:cache
+```
+
+> No correr migraciones automáticamente en cada deploy — revisarlas siempre antes en staging.
+> SQL Server en producción no permite rollback de ALTER TABLE, así que toda migración
+> destructiva debe probarse en staging primero.

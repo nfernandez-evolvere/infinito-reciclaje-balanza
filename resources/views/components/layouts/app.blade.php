@@ -27,7 +27,16 @@
     $transporteActive = collect($transporteItems)->contains(fn($i) => request()->routeIs($i['route']));
     $sistemaActive    = collect($sistemaItems)->contains(fn($i) => request()->routeIs($i['route']));
 
-    $homeRoute = $user?->isAdmin() ? route('admin.dashboard') : route('balanza');
+    $superItems = [
+        ['route' => 'super.dashboard',            'icon' => 'layout-dashboard', 'label' => 'Dashboard'],
+        ['route' => 'super.organizaciones.index', 'icon' => 'building-2',       'label' => 'Organizaciones'],
+    ];
+
+    $homeRoute = match(true) {
+        $user?->isSuperAdmin() => route('super.dashboard'),
+        $user?->isAdmin()      => route('admin.dashboard'),
+        default                => route('balanza'),
+    };
 
     $section = match(true) {
         request()->routeIs('admin.pesajes.*', 'admin.reportes.*')          => 'Operación',
@@ -61,7 +70,29 @@
 
         <x-ui.sidebar.content>
 
-            @if($user?->isAdmin())
+            @if($user?->isSuperAdmin())
+
+                <x-ui.sidebar.group>
+                    <x-ui.sidebar.group-label x-show="!isCollapsed" x-cloak>Administración</x-ui.sidebar.group-label>
+                    <x-ui.sidebar.group-content>
+                        <x-ui.sidebar.menu>
+                            @foreach($superItems as $item)
+                                <x-ui.sidebar.menu-item>
+                                    <x-ui.sidebar.menu-button
+                                        :href="route($item['route'])"
+                                        :active="request()->routeIs($item['route'])"
+                                        :tooltip="$item['label']"
+                                    >
+                                        <x-dynamic-component :component="'lucide-' . $item['icon']" class="size-4 shrink-0" />
+                                        <span>{{ $item['label'] }}</span>
+                                    </x-ui.sidebar.menu-button>
+                                </x-ui.sidebar.menu-item>
+                            @endforeach
+                        </x-ui.sidebar.menu>
+                    </x-ui.sidebar.group-content>
+                </x-ui.sidebar.group>
+
+            @elseif($user?->isAdmin())
 
                 {{-- Operación --}}
                 <x-ui.sidebar.group>

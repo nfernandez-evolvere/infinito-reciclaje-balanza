@@ -64,8 +64,12 @@ class AppServiceProvider extends ServiceProvider
 
         ComponentAttributeBag::macro('twMerge', function (string ...$classes): ComponentAttributeBag {
             /** @var ComponentAttributeBag $this */
-            $userClass  = $this->get('class', '');
-            $merged     = tw(...[...$classes, $userClass]);
+            $userClass = $this->get('class', '');
+
+            // Skip expensive merge when the caller adds no class override.
+            $merged = ($userClass !== '')
+                ? tw(...[...$classes, $userClass])
+                : implode(' ', array_filter($classes));
 
             return $this->except('class')->merge(['class' => $merged]);
         });

@@ -11,6 +11,18 @@ use Illuminate\Support\Facades\Route;
 
 require __DIR__.'/auth.php';
 
+Route::get('/', function () {
+    if (! auth()->check()) {
+        return redirect()->route('login');
+    }
+    $user = auth()->user();
+    return redirect(match(true) {
+        $user->isSuperAdmin() => route('super.dashboard'),
+        $user->isAdmin()      => route('admin.dashboard'),
+        default               => route('balanza'),
+    });
+});
+
 // --- Operador ---
 Route::middleware(['auth', 'role:operador'])->group(function () {
     Route::get('/balanza', fn () => view('modules.operador.balanza'))->name('balanza');

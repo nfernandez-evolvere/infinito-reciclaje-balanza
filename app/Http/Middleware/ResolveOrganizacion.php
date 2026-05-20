@@ -22,7 +22,11 @@ class ResolveOrganizacion
             return $next($request);
         }
 
-        $subdomain = $parts[0];
+        $raw    = $parts[0];
+        $prefix = config('app.subdomain_prefix', '');
+        $subdomain = ($prefix && str_starts_with($raw, $prefix))
+            ? substr($raw, strlen($prefix))
+            : $raw;
 
         // El subdominio 'super' es el contexto exclusivo del super_admin
         if ($subdomain === 'super') {
@@ -36,6 +40,7 @@ class ResolveOrganizacion
             ->first();
 
         if (! $org) {
+            View::share('subdominio_invalido', $subdomain);
             abort(404);
         }
 

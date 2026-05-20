@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Organizacion;
+use App\Models\User;
 use App\Repositories\OrganizacionRepository;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
@@ -20,8 +21,24 @@ class OrganizacionService
 
     public function create(array $data): Organizacion
     {
+        $adminEmail    = $data['admin_email'];
+        $adminPassword = $data['admin_password'];
+
         $data['slug'] = $this->generateSlug($data['nombre'], $data['slug'] ?? null);
-        return $this->organizacionRepository->create($data);
+
+        $org = $this->organizacionRepository->create(
+            array_diff_key($data, array_flip(['admin_email', 'admin_password', 'admin_password_confirmation']))
+        );
+
+        User::create([
+            'organizacion_id' => $org->id,
+            'name'            => 'Administrador',
+            'email'           => $adminEmail,
+            'password'        => $adminPassword,
+            'role'            => 'admin',
+        ]);
+
+        return $org;
     }
 
     public function update(Organizacion $organizacion, array $data): Organizacion

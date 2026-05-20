@@ -8,12 +8,11 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->call([
-            UserSeeder::class,
-            TipoVehiculoSeeder::class,
-            TipoServicioSeeder::class,
-            VehiculoSeeder::class,
-            ZonaSeeder::class,
-        ]);
+        match (app()->environment()) {
+            'local'       => $this->call([DevSeeder::class]),
+            // 'staging'  => $this->call([StagingSeeder::class]),
+            // 'production'=> $this->call([ProductionSeeder::class]),
+            default       => null,
+        };
     }
 }
