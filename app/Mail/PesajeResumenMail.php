@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Models\Organizacion;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -17,12 +18,15 @@ class PesajeResumenMail extends Mailable
         public readonly Collection $pesajes,
         public readonly string $periodo,
         public readonly float $pesoTotalKg,
+        public readonly ?Organizacion $organizacion = null,
     ) {}
 
     public function envelope(): Envelope
     {
+        $nombre = $this->organizacion?->nombre ?? config('app.name');
+
         return new Envelope(
-            subject: 'Resumen de pesajes — '.$this->periodo.' — '.config('app.name'),
+            subject: 'Resumen de pesajes — '.$this->periodo.' — '.$nombre,
         );
     }
 

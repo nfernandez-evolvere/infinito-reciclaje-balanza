@@ -10,6 +10,7 @@ class UsuarioRepository
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         return User::query()
+            ->where('organizacion_id', app('organizacion')->id)
             ->when(
                 !empty($filters['buscar']),
                 fn ($q) => $q->where(function ($q) use ($filters) {
@@ -32,6 +33,7 @@ class UsuarioRepository
 
     public function create(array $data): User
     {
+        $data['organizacion_id'] = app('organizacion')->id;
         return User::create($data);
     }
 

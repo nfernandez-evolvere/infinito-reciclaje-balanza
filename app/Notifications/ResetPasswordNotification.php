@@ -16,12 +16,15 @@ class ResetPasswordNotification extends ResetPassword
 
         $expireMinutes = config('auth.passwords.'.config('auth.defaults.passwords').'.expire');
 
+        $orgNombre = $notifiable->organizacion?->nombre ?? config('app.name');
+
         return (new MailMessage)
-            ->subject('Restablecer contraseña — '.config('app.name'))
+            ->subject('Restablecer contraseña — '.$orgNombre)
             ->markdown('emails.reset-password', [
-                'url' => $url,
+                'url'           => $url,
                 'expireMinutes' => $expireMinutes,
-                'user' => $notifiable,
+                'user'          => $notifiable,
+                'orgNombre'     => $orgNombre,
             ]);
     }
 }

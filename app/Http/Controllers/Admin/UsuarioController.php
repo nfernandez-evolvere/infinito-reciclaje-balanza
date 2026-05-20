@@ -36,7 +36,7 @@ class UsuarioController extends Controller
             $data['activo'] = true;
             $usuario        = $this->service->crear($data);
 
-            Mail::to($usuario)->send(new WelcomeMail($usuario, $plainPassword));
+            Mail::to($usuario)->send(new WelcomeMail($usuario, $plainPassword, app('organizacion')));
 
             return redirect()->route('admin.usuarios.index')
                 ->with('toast', [

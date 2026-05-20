@@ -13,7 +13,7 @@ El enlace expira en **{{ $expireMinutes }} minutos**.
 
 Si no solicitaste el cambio, ignorá este email. Tu contraseña no se modifica.
 
-Infinito Reciclaje
+{{ $orgNombre }}
 
 <x-mail::subcopy>
 Si el botón no funciona, copiá y pegá esta URL en el navegador: {{ $url }}

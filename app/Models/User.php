@@ -34,6 +34,18 @@ class User extends Authenticatable
         return $this->belongsTo(Organizacion::class);
     }
 
+    public function resolveRouteBinding($value, $field = null): ?static
+    {
+        $query = $this->where($field ?? $this->getRouteKeyName(), $value);
+
+        $org = app('organizacion');
+        if ($org) {
+            $query->where('organizacion_id', $org->id);
+        }
+
+        return $query->first();
+    }
+
     public function isSuperAdmin(): bool
     {
         return $this->role === 'super_admin';

@@ -13,7 +13,7 @@ El enlace expira en **60 minutos**.
 
 Si no creaste una cuenta, ignorá este email.
 
-Infinito Reciclaje
+{{ $orgNombre }}
 
 <x-mail::subcopy>
 Si el botón no funciona, copiá y pegá esta URL en el navegador: {{ $url }}

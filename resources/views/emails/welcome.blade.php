@@ -3,7 +3,7 @@
 
 Hola, {{ $user->name }}.
 
-Tu cuenta en el sistema de gestión de balanza de Infinito Reciclaje está activa.
+Tu cuenta en el sistema de gestión de {{ $organizacion?->nombre ?? config('app.name') }} está activa.
 
 <x-mail::panel>
 **Datos de acceso**
@@ -25,5 +25,5 @@ Ingresar al sistema
 
 Si tenés consultas sobre el acceso, respondé este correo.
 
-Infinito Reciclaje
+{{ $organizacion?->nombre ?? config('app.name') }}
 </x-mail::message>

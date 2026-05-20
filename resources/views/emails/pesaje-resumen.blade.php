@@ -17,5 +17,5 @@ Total acumulado: **{{ number_format($pesoTotalKg, 2, ',', '.') }} kg** · {{ num
 Ver en el sistema
 </x-mail::button>
 
-Infinito Reciclaje
+{{ $organizacion?->nombre ?? config('app.name') }}
 </x-mail::message>
