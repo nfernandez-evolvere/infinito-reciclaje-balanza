@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,24 +18,45 @@ class AuthenticatedSessionController extends Controller
         $usuariosPrueba = null;
 
         if (app()->environment('local', 'staging')) {
-            $esSuperAdmin = app()->bound('es_super_admin_context') && app('es_super_admin_context');
-            $org = app()->bound('organizacion') ? app('organizacion') : null;
-
-            if ($esSuperAdmin) {
-                $usuariosPrueba = User::withoutGlobalScopes()
-                    ->where('role', 'super_admin')
-                    ->select('name', 'email', 'role')
-                    ->get();
-            } elseif ($org) {
-                $usuariosPrueba = User::where('organizacion_id', $org->id)
-                    ->whereIn('role', ['admin', 'operador'])
-                    ->select('name', 'email', 'role')
-                    ->orderBy('role')
-                    ->get();
-            }
+            $usuariosPrueba = User::withoutGlobalScopes()
+                ->orderBy('role')
+                ->orderBy('name')
+                ->select('name', 'email', 'role')
+                ->get();
         }
 
         return view('modules.auth.login', compact('usuariosPrueba'));
+    }
+
+    public function fetchOrganizaciones(Request $request): JsonResponse
+    {
+        $email = $request->query('email', '');
+
+        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return response()->json(['orgs' => []]);
+        }
+
+        $user = User::withoutGlobalScopes()
+            ->where('email', $email)
+            ->where('activo', true)
+            ->first();
+
+        if (! $user) {
+            return response()->json(['orgs' => []]);
+        }
+
+        if ($user->isSuperAdmin()) {
+            return response()->json(['super_admin' => true]);
+        }
+
+        $orgs = $user->organizaciones()
+            ->where('activo', true)
+            ->orderBy('nombre')
+            ->get(['organizaciones.id', 'organizaciones.nombre']);
+
+        return response()->json([
+            'orgs' => $orgs->map(fn ($o) => ['id' => $o->id, 'nombre' => $o->nombre])->values(),
+        ]);
     }
 
     public function store(LoginRequest $request): RedirectResponse
@@ -45,7 +67,7 @@ class AuthenticatedSessionController extends Controller
 
         $user = Auth::user();
 
-        return redirect()->intended(match(true) {
+        return redirect()->intended(match (true) {
             $user->isSuperAdmin() => route('super.dashboard'),
             $user->isAdmin()      => route('admin.dashboard'),
             default               => route('balanza'),

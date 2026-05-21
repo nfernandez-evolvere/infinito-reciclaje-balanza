@@ -10,14 +10,17 @@ class TipoServicioRepository
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         return TipoServicio::query()
-            ->with('tipoVehiculo')
+            ->with('tiposVehiculo')
             ->when(
                 !empty($filters['nombre']),
                 fn ($q) => $q->where('nombre', 'like', '%' . $filters['nombre'] . '%')
             )
             ->when(
                 isset($filters['tipo_vehiculo_id']) && $filters['tipo_vehiculo_id'] !== '',
-                fn ($q) => $q->where('tipo_vehiculo_sugerido_id', (int) $filters['tipo_vehiculo_id'])
+                fn ($q) => $q->whereHas(
+                    'tiposVehiculo',
+                    fn ($r) => $r->where('tipos_vehiculo.id', (int) $filters['tipo_vehiculo_id'])
+                )
             )
             ->when(
                 isset($filters['activo']) && $filters['activo'] !== '',
@@ -28,14 +31,17 @@ class TipoServicioRepository
             ->appends(array_filter($filters, fn ($v) => $v !== '' && $v !== null));
     }
 
-    public function create(array $data): TipoServicio
+    public function create(array $data, array $tipoVehiculoIds = []): TipoServicio
     {
-        return TipoServicio::create($data);
+        $tipoServicio = TipoServicio::create($data);
+        $tipoServicio->tiposVehiculo()->sync($tipoVehiculoIds);
+        return $tipoServicio;
     }
 
-    public function update(TipoServicio $tipoServicio, array $data): TipoServicio
+    public function update(TipoServicio $tipoServicio, array $data, array $tipoVehiculoIds = []): TipoServicio
     {
         $tipoServicio->update($data);
+        $tipoServicio->tiposVehiculo()->sync($tipoVehiculoIds);
         return $tipoServicio;
     }
 

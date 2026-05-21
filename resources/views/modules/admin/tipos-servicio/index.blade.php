@@ -6,9 +6,9 @@
         'modalOpen' => true,
         'modalMode' => $isEditing ? 'edit' : 'create',
         'form'      => [
-            'id'                        => (int) old('_editing_id', 0) ?: null,
-            'nombre'                    => old('nombre', ''),
-            'tipo_vehiculo_sugerido_id' => old('tipo_vehiculo_sugerido_id', ''),
+            'id'                => (int) old('_editing_id', 0) ?: null,
+            'nombre'            => old('nombre', ''),
+            'tipo_vehiculo_ids' => array_map('intval', (array) old('tipo_vehiculo_ids', [])),
         ],
     ] : [];
 @endphp

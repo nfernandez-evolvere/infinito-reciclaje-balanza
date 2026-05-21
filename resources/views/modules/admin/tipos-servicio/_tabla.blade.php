@@ -21,7 +21,7 @@
         <x-ui.table.header>
             <x-ui.table.row>
                 <x-ui.table.head>Nombre</x-ui.table.head>
-                <x-ui.table.head>Vehículo habitual</x-ui.table.head>
+                <x-ui.table.head>Vehículos sugeridos</x-ui.table.head>
                 <x-ui.table.head>Estado</x-ui.table.head>
                 <x-ui.table.head class="w-16 text-right">Acciones</x-ui.table.head>
             </x-ui.table.row>
@@ -30,8 +30,16 @@
             @forelse($tipos as $tipo)
             <x-ui.table.row>
                 <x-ui.table.cell data-label="Nombre" class="font-medium">{{ $tipo->nombre }}</x-ui.table.cell>
-                <x-ui.table.cell data-label="Vehículo habitual">
-                    {{ $tipo->tipoVehiculo?->nombre ?? '—' }}
+                <x-ui.table.cell data-label="Vehículos sugeridos">
+                    @if($tipo->tiposVehiculo->isEmpty())
+                        <span class="text-muted-foreground">—</span>
+                    @else
+                        <div class="flex flex-wrap gap-1">
+                            @foreach($tipo->tiposVehiculo as $tv)
+                                <x-ui.badge variant="secondary">{{ $tv->nombre }}</x-ui.badge>
+                            @endforeach
+                        </div>
+                    @endif
                 </x-ui.table.cell>
                 <x-ui.table.cell data-label="Estado">
                     @if($tipo->activo)
@@ -58,7 +66,7 @@
                         </x-ui.dropdown-menu.trigger>
                         <x-ui.dropdown-menu.content>
                             <x-ui.dropdown-menu.item
-                                @click="openEdit({{ $tipo->id }}, {{ Js::from($tipo->nombre) }}, {{ Js::from($tipo->tipo_vehiculo_sugerido_id) }})"
+                                @click="openEdit({{ $tipo->id }}, {{ Js::from($tipo->nombre) }}, {{ Js::from($tipo->tiposVehiculo->pluck('id')->toArray()) }})"
                             >
                                 <x-lucide-pencil class="size-4" />
                                 Editar

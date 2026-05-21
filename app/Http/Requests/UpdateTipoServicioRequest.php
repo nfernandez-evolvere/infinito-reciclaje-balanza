@@ -17,21 +17,22 @@ class UpdateTipoServicioRequest extends FormRequest
         $tipoId = $this->route('tipos_servicio')?->id;
 
         return [
-            'nombre'                    => [
+            'nombre'              => [
                 'required',
                 'string',
                 'max:100',
                 Rule::unique('tipos_servicio', 'nombre')->ignore($tipoId),
             ],
-            'tipo_vehiculo_sugerido_id' => ['nullable', 'integer', 'exists:tipos_vehiculo,id'],
+            'tipo_vehiculo_ids'   => ['nullable', 'array'],
+            'tipo_vehiculo_ids.*' => ['integer', 'exists:tipos_vehiculo,id'],
         ];
     }
 
     public function attributes(): array
     {
         return [
-            'nombre'                   => 'nombre',
-            'tipo_vehiculo_sugerido_id' => 'vehículo habitual',
+            'nombre'            => 'nombre',
+            'tipo_vehiculo_ids' => 'vehículos sugeridos',
         ];
     }
 }

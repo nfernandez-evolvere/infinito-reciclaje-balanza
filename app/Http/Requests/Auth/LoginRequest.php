@@ -12,24 +12,20 @@ use Illuminate\Validation\ValidationException;
 
 class LoginRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
-            'email'    => ['required', 'string', 'email'],
-            'password' => ['required', 'string'],
+            'email'           => ['required', 'string', 'email'],
+            'password'        => ['required', 'string'],
+            'organizacion_id' => ['nullable', 'integer'],
         ];
     }
 
@@ -43,17 +39,13 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Attempt to authenticate the request's credentials.
-     *
      * @throws ValidationException
      */
     public function authenticate(): void
     {
         $this->ensureIsNotRateLimited();
 
-        $credentials = $this->buildCredentials();
-
-        if (! Auth::attempt($credentials, $this->boolean('remember'))) {
+        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -62,28 +54,6 @@ class LoginRequest extends FormRequest
         }
 
         $user = Auth::user();
-
-        $esSuperContext = app()->bound('es_super_admin_context') && app('es_super_admin_context');
-
-        // En contexto super_admin solo puede ingresar un super_admin
-        if ($esSuperContext && ! $user->isSuperAdmin()) {
-            Auth::logout();
-            RateLimiter::hit($this->throttleKey());
-
-            throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
-            ]);
-        }
-
-        // En contexto de org no puede ingresar un super_admin
-        if (! $esSuperContext && $user->isSuperAdmin()) {
-            Auth::logout();
-            RateLimiter::hit($this->throttleKey());
-
-            throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
-            ]);
-        }
 
         if (! $user->activo) {
             Auth::logout();
@@ -94,25 +64,51 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        $orgId = $this->input('organizacion_id');
+        $esSuperContexto = is_null($orgId) || $orgId === '' || $orgId === 'super';
+
+        if ($user->isSuperAdmin()) {
+            // Super admin solo puede ingresar desde "Administración del sistema"
+            if (! $esSuperContexto) {
+                Auth::logout();
+                RateLimiter::hit($this->throttleKey());
+
+                throw ValidationException::withMessages([
+                    'email' => trans('auth.failed'),
+                ]);
+            }
+        } else {
+            // Usuarios de org: deben seleccionar una org y pertenecer a ella
+            if ($esSuperContexto) {
+                Auth::logout();
+                RateLimiter::hit($this->throttleKey());
+
+                throw ValidationException::withMessages([
+                    'email' => trans('auth.failed'),
+                ]);
+            }
+
+            $org = $user->organizaciones()
+                ->where('organizaciones.id', $orgId)
+                ->where('activo', true)
+                ->first();
+
+            if (! $org) {
+                Auth::logout();
+                RateLimiter::hit($this->throttleKey());
+
+                throw ValidationException::withMessages([
+                    'email' => trans('auth.failed'),
+                ]);
+            }
+
+            session(['organizacion_id' => $org->id]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 
-    private function buildCredentials(): array
-    {
-        $credentials = $this->only('email', 'password');
-
-        // En contexto de organización se agrega el organizacion_id para scope por tenant
-        $org = app()->bound('organizacion') ? app('organizacion') : null;
-        if ($org) {
-            $credentials['organizacion_id'] = $org->id;
-        }
-
-        return $credentials;
-    }
-
     /**
-     * Ensure the login request is not rate limited.
-     *
      * @throws ValidationException
      */
     public function ensureIsNotRateLimited(): void
@@ -133,9 +129,6 @@ class LoginRequest extends FormRequest
         ]);
     }
 
-    /**
-     * Get the rate limiting throttle key for the request.
-     */
     public function throttleKey(): string
     {
         return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());

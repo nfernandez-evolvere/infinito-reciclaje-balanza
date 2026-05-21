@@ -65,10 +65,21 @@
       "Bash(curl -s -H \"Host: resistencia.balanza.test\" http://127.0.0.1:8080/login)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" -H \"Host: super.balanza.test\" http://127.0.0.1:8080/dashboard)",
       "Bash(Test-Path \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\ui\\\\empty-state.blade.php\")",
-      "Bash(php -r \"echo json_decode\\(file_get_contents\\('composer.json'\\), true\\)['require']['gehrisandro/tailwind-merge-laravel'] ?? 'not found';\")"
+      "Bash(php -r \"echo json_decode\\(file_get_contents\\('composer.json'\\), true\\)['require']['gehrisandro/tailwind-merge-laravel'] ?? 'not found';\")",
+      "Bash(xargs grep -l \"belongsToMany\\\\|pivot\")",
+      "Bash(Get-ChildItem \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\database\\\\migrations\")",
+      "Bash(Sort-Object Name)",
+      "Bash(Select-Object -Last 5)",
+      "Bash(Select-Object Name)",
+      "Bash(grep -r \"domain\\\\\\(\" \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\routes\" 2>nul || echo \"No domain\\(\\) calls found\")",
+      "Bash(Remove-Item \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\database\\\\migrations\\\\2026_05_18_000001_add_columns_to_tipos_servicio_table.php\")",
+      "Bash(Remove-Item \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\database\\\\migrations\\\\2026_05_18_175937_add_activo_to_users_table.php\")",
+      "Bash(Remove-Item \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\database\\\\migrations\\\\2026_05_20_000001_refactor_tipo_servicio_vehiculos_sugeridos_to_pivot.php\")",
+      "Bash(Write-Host \"Eliminadas 3 migraciones incrementales\")"
     ],
     "additionalDirectories": [
-      "c:\\Users\\34891406\\Nicolas\\Proyectos\\infinito-reciclaje-balanza\\database\\sql"
+      "c:\\Users\\34891406\\Nicolas\\Proyectos\\infinito-reciclaje-balanza\\database\\sql",
+      "c:\\Users\\34891406\\Nicolas\\Proyectos\\infinito-reciclaje-balanza"
     ]
   }
 }

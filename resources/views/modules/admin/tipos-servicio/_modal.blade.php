@@ -34,26 +34,18 @@
                 </x-ui.form-field>
 
                 <x-ui.form-field
-                    for="tipo_vehiculo_sugerido_id"
-                    :state="$errors->has('tipo_vehiculo_sugerido_id') ? 'destructive' : null"
-                    :message="$errors->first('tipo_vehiculo_sugerido_id')"
+                    :state="$errors->has('tipo_vehiculo_ids') ? 'destructive' : null"
+                    :message="$errors->first('tipo_vehiculo_ids')"
                 >
-                    <x-ui.label for="tipo_vehiculo_sugerido_id">Vehículo habitual</x-ui.label>
-                    <x-ui.select
-                        name="tipo_vehiculo_sugerido_id"
-                        x-effect="value = String(form.tipo_vehiculo_sugerido_id ?? '')"
-                        @select-change="form.tipo_vehiculo_sugerido_id = $event.detail.value"
-                    >
-                        <x-ui.select.trigger id="tipo_vehiculo_sugerido_id">
-                            <x-ui.select.value placeholder="Sin asignar" />
-                        </x-ui.select.trigger>
-                        <x-ui.select.content>
-                            <x-ui.select.item value="">Sin asignar</x-ui.select.item>
-                            @foreach($tiposVehiculo as $tv)
-                                <x-ui.select.item value="{{ $tv->id }}">{{ $tv->nombre }}</x-ui.select.item>
-                            @endforeach
-                        </x-ui.select.content>
-                    </x-ui.select>
+                    <x-ui.label>Vehículos sugeridos</x-ui.label>
+                    <x-ui.multi-select
+                        name="tipo_vehiculo_ids"
+                        :options="$tiposVehiculo->pluck('nombre', 'id')->toArray()"
+                        placeholder="Sin vehículos asignados"
+                        :state="$errors->has('tipo_vehiculo_ids') ? 'destructive' : null"
+                        x-effect="values = form.tipo_vehiculo_ids.map(String)"
+                        @change="form.tipo_vehiculo_ids = $event.detail.values.map(Number)"
+                    />
                 </x-ui.form-field>
             </div>
 

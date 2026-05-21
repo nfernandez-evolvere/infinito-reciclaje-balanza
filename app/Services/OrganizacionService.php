@@ -22,7 +22,7 @@ class OrganizacionService
     public function create(array $data): Organizacion
     {
         $adminEmail    = $data['admin_email'];
-        $adminPassword = $data['admin_password'];
+        $adminPassword = $data['admin_password'] ?? null;
 
         $data['slug'] = $this->generateSlug($data['nombre'], $data['slug'] ?? null);
 
@@ -30,13 +30,19 @@ class OrganizacionService
             array_diff_key($data, array_flip(['admin_email', 'admin_password', 'admin_password_confirmation']))
         );
 
-        User::create([
-            'organizacion_id' => $org->id,
-            'name'            => 'Administrador',
-            'email'           => $adminEmail,
-            'password'        => $adminPassword,
-            'role'            => 'admin',
-        ]);
+        $existingUser = User::where('email', $adminEmail)->first();
+
+        if ($existingUser) {
+            $org->users()->attach($existingUser->id);
+        } else {
+            $newUser = User::create([
+                'name'     => 'Administrador',
+                'email'    => $adminEmail,
+                'password' => $adminPassword,
+                'role'     => 'admin',
+            ]);
+            $org->users()->attach($newUser->id);
+        }
 
         return $org;
     }

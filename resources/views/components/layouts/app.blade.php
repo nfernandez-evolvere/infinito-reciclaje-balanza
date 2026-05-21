@@ -64,7 +64,9 @@
                 <div class="size-6 shrink-0 rounded bg-primary flex items-center justify-center">
                     <span class="text-[10px] font-bold text-primary-foreground leading-none">IR</span>
                 </div>
-                <span class="text-sm font-semibold text-sidebar-foreground truncate">Balanza</span>
+                <span class="text-sm font-semibold text-sidebar-foreground truncate">
+                    {{ isset($organizacion) ? $organizacion->nombre : 'Administración' }}
+                </span>
             </a>
         </x-ui.sidebar.header>
 

@@ -5,7 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\BelongsToOrganizacion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class TipoServicio extends Model
 {
@@ -16,7 +16,6 @@ class TipoServicio extends Model
     protected $fillable = [
         'organizacion_id',
         'nombre',
-        'tipo_vehiculo_sugerido_id',
         'activo',
     ];
 
@@ -24,9 +23,9 @@ class TipoServicio extends Model
         'activo' => 'boolean',
     ];
 
-    public function tipoVehiculo(): BelongsTo
+    public function tiposVehiculo(): BelongsToMany
     {
-        return $this->belongsTo(TipoVehiculo::class, 'tipo_vehiculo_sugerido_id');
+        return $this->belongsToMany(TipoVehiculo::class, 'tipo_servicio_tipo_vehiculo');
     }
 
     public function scopeActivos($query)

@@ -2,7 +2,7 @@ export default (initial = {}) => ({
     // — modal crear/editar —
     modalOpen:   false,
     modalMode:   'create',
-    form: { id: null, nombre: '', tipo_vehiculo_sugerido_id: '' },
+    form: { id: null, nombre: '', tipo_vehiculo_ids: [] },
 
     // — drawer filtros —
     filterOpen: false,
@@ -22,13 +22,13 @@ export default (initial = {}) => ({
 
     openCreate() {
         this.modalMode = 'create';
-        this.form      = { id: null, nombre: '', tipo_vehiculo_sugerido_id: '' };
+        this.form      = { id: null, nombre: '', tipo_vehiculo_ids: [] };
         this.modalOpen = true;
     },
 
-    openEdit(id, nombre, tipoVehiculoSugeridoId) {
+    openEdit(id, nombre, tipoVehiculoIds) {
         this.modalMode = 'edit';
-        this.form      = { id, nombre, tipo_vehiculo_sugerido_id: tipoVehiculoSugeridoId };
+        this.form      = { id, nombre, tipo_vehiculo_ids: tipoVehiculoIds };
         this.modalOpen = true;
     },
 

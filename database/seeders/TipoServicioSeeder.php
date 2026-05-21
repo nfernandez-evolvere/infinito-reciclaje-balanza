@@ -15,18 +15,16 @@ class TipoServicioSeeder extends Seeder
         $volquete    = TipoVehiculo::where('nombre', 'Volquete')->value('id');
 
         $servicios = [
-            ['nombre' => 'Domiciliario',           'tipo_vehiculo_sugerido_id' => $compactador],
-            ['nombre' => 'Voluminoso',              'tipo_vehiculo_sugerido_id' => $compactador],
-            ['nombre' => 'Barrido',                 'tipo_vehiculo_sugerido_id' => $volcador],
-            ['nombre' => 'Servicios Especiales',    'tipo_vehiculo_sugerido_id' => $volcador],
-            ['nombre' => 'Centros de Transferencia','tipo_vehiculo_sugerido_id' => $volquete],
+            ['nombre' => 'Domiciliario',            'vehiculos' => [$compactador]],
+            ['nombre' => 'Voluminoso',               'vehiculos' => [$compactador]],
+            ['nombre' => 'Barrido',                  'vehiculos' => [$volcador]],
+            ['nombre' => 'Servicios Especiales',     'vehiculos' => [$volcador]],
+            ['nombre' => 'Centros de Transferencia', 'vehiculos' => [$volquete]],
         ];
 
-        foreach ($servicios as $servicio) {
-            TipoServicio::firstOrCreate(
-                ['nombre' => $servicio['nombre']],
-                $servicio,
-            );
+        foreach ($servicios as $data) {
+            $tipo = TipoServicio::firstOrCreate(['nombre' => $data['nombre']]);
+            $tipo->tiposVehiculo()->sync(array_filter($data['vehiculos']));
         }
     }
 }

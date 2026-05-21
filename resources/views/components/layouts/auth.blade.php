@@ -30,13 +30,7 @@
                 </div>
                 <div class="text-center space-y-1">
                     <x-ui.typography as="h3" element="h1">Infinito Reciclaje</x-ui.typography>
-                    @if (!empty($organizacion))
-                        <x-ui.typography as="muted">{{ $organizacion->nombre }}</x-ui.typography>
-                    @elseif (!empty($es_super_admin_context))
-                        <x-ui.typography as="muted">Panel de administración</x-ui.typography>
-                    @else
-                        <x-ui.typography as="muted">Sistema de gestión de balanza</x-ui.typography>
-                    @endif
+                    <x-ui.typography as="muted">Sistema de gestión de balanza</x-ui.typography>
                 </div>
             </div>
 

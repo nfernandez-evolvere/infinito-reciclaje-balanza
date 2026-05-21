@@ -8,11 +8,11 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['organizacion_id', 'name', 'email', 'password', 'role', 'onboarding_visto', 'activo'])]
+#[Fillable(['name', 'email', 'password', 'role', 'onboarding_visto', 'activo'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -29,9 +29,9 @@ class User extends Authenticatable
         ];
     }
 
-    public function organizacion(): BelongsTo
+    public function organizaciones(): BelongsToMany
     {
-        return $this->belongsTo(Organizacion::class);
+        return $this->belongsToMany(Organizacion::class, 'organizacion_user');
     }
 
     public function resolveRouteBinding($value, $field = null): ?static
@@ -40,7 +40,7 @@ class User extends Authenticatable
 
         $org = app('organizacion');
         if ($org) {
-            $query->where('organizacion_id', $org->id);
+            $query->whereHas('organizaciones', fn ($q) => $q->where('organizaciones.id', $org->id));
         }
 
         return $query->first();

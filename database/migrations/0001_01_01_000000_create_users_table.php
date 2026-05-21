@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -14,9 +13,8 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('organizacion_id')->nullable()->constrained('organizaciones')->nullOnDelete();
             $table->string('name');
-            $table->string('email');
+            $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->enum('role', ['super_admin', 'admin', 'operador'])->default('operador');
@@ -24,16 +22,7 @@ return new class extends Migration
             $table->boolean('activo')->default(true);
             $table->rememberToken();
             $table->timestamps();
-
-            $table->unique(['organizacion_id', 'email']);
         });
-
-        DB::statement(
-            "ALTER TABLE [infinito_balanza].[dev_users]"
-            . " ADD CONSTRAINT [chk_users_superadmin_org]"
-            . " CHECK ((role = 'super_admin' AND organizacion_id IS NULL)"
-            . "     OR (role != 'super_admin' AND organizacion_id IS NOT NULL))"
-        );
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
@@ -49,6 +38,15 @@ return new class extends Migration
             $table->longText('payload');
             $table->integer('last_activity')->index();
         });
+
+        Schema::create('organizacion_user', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('organizacion_id')->constrained('organizaciones')->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->timestamps();
+
+            $table->unique(['organizacion_id', 'user_id']);
+        });
     }
 
     /**
@@ -56,6 +54,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('organizacion_user');
         Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');

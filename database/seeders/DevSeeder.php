@@ -28,26 +28,36 @@ class DevSeeder extends Seeder
 
         $this->seedOrganizacion($corrientes,  'COR');
         $this->seedOrganizacion($resistencia, 'RES');
+
+        // Admin con acceso a ambas orgs — para probar el selector de organización en el login
+        $adminDoble = User::create([
+            'name'     => 'Admin Doble',
+            'email'    => 'admin.doble@test.com',
+            'password' => '1234',
+            'role'     => 'admin',
+        ]);
+        $corrientes->users()->attach($adminDoble->id);
+        $resistencia->users()->attach($adminDoble->id);
     }
 
     private function seedOrganizacion(Organizacion $org, string $suffix): void
     {
         // ── Usuarios ──────────────────────────────────────────────────────────
-        User::create([
-            'organizacion_id' => $org->id,
-            'name'            => "Admin $suffix",
-            'email'           => "admin@{$org->slug}.com",
-            'password'        => '1234',
-            'role'            => 'admin',
+        $admin = User::create([
+            'name'     => "Admin $suffix",
+            'email'    => "admin@{$org->slug}.com",
+            'password' => '1234',
+            'role'     => 'admin',
         ]);
+        $org->users()->attach($admin->id);
 
-        User::create([
-            'organizacion_id' => $org->id,
-            'name'            => "Operario $suffix",
-            'email'           => "operario@{$org->slug}.com",
-            'password'        => '1234',
-            'role'            => 'operador',
+        $operario = User::create([
+            'name'     => "Operario $suffix",
+            'email'    => "operario@{$org->slug}.com",
+            'password' => '1234',
+            'role'     => 'operador',
         ]);
+        $org->users()->attach($operario->id);
 
         // ── Tipos de vehículo ─────────────────────────────────────────────────
         $compactador = TipoVehiculo::create([
@@ -77,30 +87,32 @@ class DevSeeder extends Seeder
 
         // ── Tipos de servicio ─────────────────────────────────────────────────
         $domiciliario = TipoServicio::create([
-            'organizacion_id'           => $org->id,
-            'nombre'                    => "Domiciliario $suffix",
-            'tipo_vehiculo_sugerido_id' => $compactador->id,
+            'organizacion_id' => $org->id,
+            'nombre'          => "Domiciliario $suffix",
         ]);
+        $domiciliario->tiposVehiculo()->sync([$compactador->id]);
+
         $voluminoso = TipoServicio::create([
-            'organizacion_id'           => $org->id,
-            'nombre'                    => "Voluminoso $suffix",
-            'tipo_vehiculo_sugerido_id' => $compactador->id,
+            'organizacion_id' => $org->id,
+            'nombre'          => "Voluminoso $suffix",
         ]);
+        $voluminoso->tiposVehiculo()->sync([$compactador->id]);
+
         $barrido = TipoServicio::create([
-            'organizacion_id'           => $org->id,
-            'nombre'                    => "Barrido $suffix",
-            'tipo_vehiculo_sugerido_id' => $volcador->id,
+            'organizacion_id' => $org->id,
+            'nombre'          => "Barrido $suffix",
         ]);
+        $barrido->tiposVehiculo()->sync([$volcador->id]);
+
         TipoServicio::create([
-            'organizacion_id'           => $org->id,
-            'nombre'                    => "Servicios Especiales $suffix",
-            'tipo_vehiculo_sugerido_id' => $volcador->id,
-        ]);
+            'organizacion_id' => $org->id,
+            'nombre'          => "Servicios Especiales $suffix",
+        ])->tiposVehiculo()->sync([$volcador->id]);
+
         TipoServicio::create([
-            'organizacion_id'           => $org->id,
-            'nombre'                    => "Centros de Transferencia $suffix",
-            'tipo_vehiculo_sugerido_id' => $volquete->id,
-        ]);
+            'organizacion_id' => $org->id,
+            'nombre'          => "Centros de Transferencia $suffix",
+        ])->tiposVehiculo()->sync([$volquete->id]);
 
         // ── Vehículos ─────────────────────────────────────────────────────────
         $titular = "Municipalidad de {$org->nombre}";

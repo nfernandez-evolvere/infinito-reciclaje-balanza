@@ -9,17 +9,19 @@ class UsuarioRepository
 {
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
+        $orgId = app('organizacion')->id;
+
         return User::query()
-            ->where('organizacion_id', app('organizacion')->id)
+            ->whereHas('organizaciones', fn ($q) => $q->where('organizaciones.id', $orgId))
             ->when(
-                !empty($filters['buscar']),
+                ! empty($filters['buscar']),
                 fn ($q) => $q->where(function ($q) use ($filters) {
                     $q->where('name', 'like', '%' . $filters['buscar'] . '%')
                       ->orWhere('email', 'like', '%' . $filters['buscar'] . '%');
                 })
             )
             ->when(
-                !empty($filters['role']),
+                ! empty($filters['role']),
                 fn ($q) => $q->where('role', $filters['role'])
             )
             ->when(
@@ -33,8 +35,9 @@ class UsuarioRepository
 
     public function create(array $data): User
     {
-        $data['organizacion_id'] = app('organizacion')->id;
-        return User::create($data);
+        $user = User::create($data);
+        $user->organizaciones()->attach(app('organizacion')->id);
+        return $user;
     }
 
     public function update(User $usuario, array $data): User

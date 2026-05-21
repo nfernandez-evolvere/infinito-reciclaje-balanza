@@ -19,12 +19,16 @@ class TipoServicioService
 
     public function crear(array $data): TipoServicio
     {
-        return $this->repository->create($data);
+        $ids = array_map('intval', $data['tipo_vehiculo_ids'] ?? []);
+        unset($data['tipo_vehiculo_ids']);
+        return $this->repository->create($data, $ids);
     }
 
     public function actualizar(TipoServicio $tipoServicio, array $data): TipoServicio
     {
-        return $this->repository->update($tipoServicio, $data);
+        $ids = array_map('intval', $data['tipo_vehiculo_ids'] ?? []);
+        unset($data['tipo_vehiculo_ids']);
+        return $this->repository->update($tipoServicio, $data, $ids);
     }
 
     public function desactivar(TipoServicio $tipoServicio): void

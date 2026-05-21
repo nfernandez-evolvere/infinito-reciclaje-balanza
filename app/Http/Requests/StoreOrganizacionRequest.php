@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreOrganizacionRequest extends FormRequest
 {
@@ -13,11 +15,13 @@ class StoreOrganizacionRequest extends FormRequest
 
     public function rules(): array
     {
+        $emailExists = User::where('email', $this->admin_email)->exists();
+
         return [
             'nombre'                  => ['required', 'string', 'max:150'],
             'slug'                    => ['nullable', 'string', 'max:100', 'alpha_dash', 'unique:organizaciones,slug'],
-            'admin_email'             => ['required', 'email', 'max:255', 'unique:users,email'],
-            'admin_password'          => ['required', 'string', 'min:8', 'confirmed'],
+            'admin_email'             => ['required', 'email', 'max:255'],
+            'admin_password'          => [Rule::when(! $emailExists, ['required', 'string', 'min:8', 'confirmed'], ['nullable'])],
         ];
     }
 
