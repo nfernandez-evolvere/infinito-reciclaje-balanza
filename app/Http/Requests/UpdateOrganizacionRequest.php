@@ -18,7 +18,6 @@ class UpdateOrganizacionRequest extends FormRequest
 
         return [
             'nombre' => ['required', 'string', 'max:150'],
-            'slug'   => ['nullable', 'string', 'max:100', 'alpha_dash', Rule::unique('organizaciones', 'slug')->ignore($id)],
         ];
     }
 
@@ -26,7 +25,6 @@ class UpdateOrganizacionRequest extends FormRequest
     {
         return [
             'nombre' => 'nombre',
-            'slug'   => 'slug',
         ];
     }
 }

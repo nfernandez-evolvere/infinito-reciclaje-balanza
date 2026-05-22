@@ -8,10 +8,10 @@
     x-data="{
         openMobile: false,
         collapsed:  (document.cookie.match(/sidebar_collapsed=([^;]+)/) || [,'false'])[1] !== 'false',
-        isMobile:   window.innerWidth < 768,
+        isMobile:   window.innerWidth < 1024,
 
         init() {
-            const onResize = () => { this.isMobile = window.innerWidth < 768; };
+            const onResize = () => { this.isMobile = window.innerWidth < 1024; };
             window.addEventListener('resize', onResize);
             this.$cleanup = () => window.removeEventListener('resize', onResize);
         },

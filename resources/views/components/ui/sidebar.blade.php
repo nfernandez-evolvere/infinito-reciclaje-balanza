@@ -31,6 +31,8 @@
         'translate-x-0': isOpen,
         'translate-x-full': !isOpen,
         @endif
+        'w-64': !isCollapsed,
+        'w-12': isCollapsed,
     }"
     @click="if (isMobile && $event.target.closest('a[href]')) closeMobile()"
     data-sidebar
@@ -38,8 +40,8 @@
     data-variant="{{ $variant }}"
     data-collapsible="{{ $collapsible }}"
     {{ $attributes->twMerge(
-        'group/sidebar relative flex flex-col shrink-0 overflow-hidden transition-all duration-200 ease-in-out',
-        // Mobile: fixed panel
+        'group/sidebar flex flex-col shrink-0 overflow-hidden transition-all duration-200 ease-in-out',
+        // Mobile: fixed overlay panel, desktop: in-flow
         'fixed inset-y-0 lg:relative lg:inset-auto',
         $side === 'left' ? 'left-0' : 'right-0',
         // Variant styling

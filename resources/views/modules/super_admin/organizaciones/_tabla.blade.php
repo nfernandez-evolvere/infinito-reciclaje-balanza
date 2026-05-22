@@ -50,11 +50,7 @@
                         </x-ui.dropdown-menu.trigger>
                         <x-ui.dropdown-menu.content>
                             <x-ui.dropdown-menu.item
-                                @click="openEdit(
-                                    {{ $org->id }},
-                                    {{ Js::from($org->nombre) }},
-                                    {{ Js::from($org->slug) }}
-                                )"
+                                @click="openEdit({{ $org->id }}, {{ Js::from($org->nombre) }}, {{ Js::from($org->users->map(fn($u) => ['id' => $u->id, 'name' => $u->name, 'email' => $u->email, 'role' => $u->role])) }})"
                             >
                                 <x-lucide-pencil class="size-4" />
                                 Editar

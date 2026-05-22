@@ -7,7 +7,7 @@
         @csrf
 
         @if (session('status'))
-            <x-ui.alert state="success">
+            <x-ui.alert state="success" class="mb-4">
                 <x-lucide-circle-check class="size-4" />
                 <x-ui.alert.title>Enlace enviado</x-ui.alert.title>
                 <x-ui.alert.description>{{ session('status') }}</x-ui.alert.description>

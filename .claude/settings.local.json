@@ -75,7 +75,12 @@
       "Bash(Remove-Item \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\database\\\\migrations\\\\2026_05_18_000001_add_columns_to_tipos_servicio_table.php\")",
       "Bash(Remove-Item \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\database\\\\migrations\\\\2026_05_18_175937_add_activo_to_users_table.php\")",
       "Bash(Remove-Item \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\database\\\\migrations\\\\2026_05_20_000001_refactor_tipo_servicio_vehiculos_sugeridos_to_pivot.php\")",
-      "Bash(Write-Host \"Eliminadas 3 migraciones incrementales\")"
+      "Bash(Write-Host \"Eliminadas 3 migraciones incrementales\")",
+      "Bash(find \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\" -name \"*Organizacion*\" -type f 2>nul | head -20)",
+      "Bash(find \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\database\\\\migrations\" -type f -name \"*organizacion*\" -o -name \"*subdominio*\" 2>nul)",
+      "Bash(find \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\" -type f \\\\\\( -name \"*organizacion*.js\" -o -name \"*organizacion*.ts\" \\\\\\) 2>nul | head -10)",
+      "Bash(find \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\database\\\\migrations\" -type f -name \"*organizacion_user*\" 2>nul)",
+      "Bash(grep -r \"organizacion_user\" \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\database\" --include=\"*.php\" 2>nul)"
     ],
     "additionalDirectories": [
       "c:\\Users\\34891406\\Nicolas\\Proyectos\\infinito-reciclaje-balanza\\database\\sql",

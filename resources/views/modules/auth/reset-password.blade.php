@@ -19,7 +19,7 @@
         </x-ui.form-field>
 
         {{-- Campo contraseña con checklist de requisitos --}}
-        <div x-data="{ show: false, pw: {{ Js::from(old('password', '')) }} }" class="grid gap-1.5">
+        <div x-data="{ show: false, pw: {{ Js::from(old('password', '')) }} }" class="grid gap-1.5 mb-4">
             <x-ui.label for="password">Nueva contraseña</x-ui.label>
 
             <x-ui.input-group :class="$errors->has('password') ? 'border-destructive-border ring-2 ring-destructive/20' : ''">

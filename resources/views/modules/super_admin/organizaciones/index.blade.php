@@ -2,18 +2,18 @@
     $hasErrors = $errors->any();
     $isEditing = old('_mode') === 'edit';
 
-    $initial = $hasErrors ? [
-        'modalOpen' => true,
-        'modalMode' => $isEditing ? 'edit' : 'create',
-        'form'      => [
-            'id'                          => (int) old('_editing_id', 0) ?: null,
-            'nombre'                      => old('nombre', ''),
-            'slug'                        => old('slug', ''),
-            'admin_email'                 => old('admin_email', ''),
-            'admin_password'              => '',
-            'admin_password_confirmation' => '',
-        ],
-    ] : [];
+    $initial = array_filter([
+        'userSearchUrl' => route('super.usuarios.search'),
+        'orgBaseUrl'    => url('/organizaciones'),
+        'modalOpen'     => $hasErrors ?: null,
+        'modalMode'     => $hasErrors ? ($isEditing ? 'edit' : 'create') : null,
+        'userQuery'     => $hasErrors ? old('admin_email', '') : null,
+        'form'          => $hasErrors ? [
+            'id'          => (int) old('_editing_id', 0) ?: null,
+            'nombre'      => old('nombre', ''),
+            'admin_email' => old('admin_email', ''),
+        ] : null,
+    ], fn ($v) => $v !== null);
 @endphp
 
 <x-layouts.app title="Organizaciones">

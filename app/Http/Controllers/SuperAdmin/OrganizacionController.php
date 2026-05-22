@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreOrganizacionRequest;
 use App\Http\Requests\UpdateOrganizacionRequest;
 use App\Models\Organizacion;
+use App\Models\User;
 use App\Services\OrganizacionService;
 use Illuminate\Database\QueryException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -17,6 +19,27 @@ class OrganizacionController extends Controller
     public function __construct(
         protected OrganizacionService $service,
     ) {}
+
+    public function searchUsers(Request $request): JsonResponse
+    {
+        $q = trim($request->get('q', ''));
+
+        if (strlen($q) < 2) {
+            return response()->json([]);
+        }
+
+        $users = User::query()
+            ->where('role', '!=', 'super_admin')
+            ->where(function ($query) use ($q) {
+                $query->where('name', 'like', "%{$q}%")
+                      ->orWhere('email', 'like', "%{$q}%");
+            })
+            ->orderBy('name')
+            ->limit(8)
+            ->get(['id', 'name', 'email']);
+
+        return response()->json($users);
+    }
 
     public function index(Request $request): View
     {
@@ -99,6 +122,42 @@ class OrganizacionController extends Controller
         } catch (\Throwable) {
             return $this->toastError();
         }
+    }
+
+    public function addUser(Request $request, Organizacion $organizacion): JsonResponse
+    {
+        $request->validate(['email' => ['required', 'email', 'max:255']]);
+
+        try {
+            $user = $this->service->addUserToOrg($organizacion, $request->email);
+            return response()->json(['user' => $user]);
+        } catch (\RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        } catch (\Throwable) {
+            return response()->json(['message' => 'Error inesperado.'], 500);
+        }
+    }
+
+    public function removeUser(Organizacion $organizacion, User $user): JsonResponse
+    {
+        if (! $organizacion->users()->where('user_id', $user->id)->exists()) {
+            return response()->json(['message' => 'El usuario no pertenece a esta organización.'], 422);
+        }
+
+        $organizacion->users()->detach($user->id);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function resetUserPassword(Organizacion $organizacion, User $user): JsonResponse
+    {
+        if (! $organizacion->users()->where('user_id', $user->id)->exists()) {
+            return response()->json(['message' => 'El usuario no pertenece a esta organización.'], 422);
+        }
+
+        $this->service->sendPasswordReset($user, $organizacion->nombre);
+
+        return response()->json(['success' => true]);
     }
 
     private function toastError(): RedirectResponse

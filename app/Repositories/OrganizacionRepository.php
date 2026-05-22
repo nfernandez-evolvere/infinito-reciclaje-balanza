@@ -9,7 +9,7 @@ class OrganizacionRepository
 {
     public function paginate(int $perPage = 20): LengthAwarePaginator
     {
-        return Organizacion::orderBy('nombre')->paginate($perPage);
+        return Organizacion::with('users')->orderBy('nombre')->paginate($perPage);
     }
 
     public function create(array $data): Organizacion
