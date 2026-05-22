@@ -11,10 +11,8 @@
     $padronItems = [
         ['route' => 'admin.zonas.index',          'icon' => 'map-pin',        'label' => 'Zonas'],
         ['route' => 'admin.tipos-servicio.index', 'icon' => 'clipboard-list', 'label' => 'Tipos de servicio'],
-    ];
-    $transporteItems = [
-        ['route' => 'admin.vehiculos.index',      'icon' => 'truck', 'label' => 'Vehículos'],
-        ['route' => 'admin.tipos-vehiculo.index', 'icon' => 'car',   'label' => 'Tipos de vehículo'],
+        ['route' => 'admin.vehiculos.index',      'icon' => 'truck',          'label' => 'Vehículos'],
+        ['route' => 'admin.tipos-vehiculo.index', 'icon' => 'car',            'label' => 'Tipos de vehículo'],
     ];
     $sistemaItems = [
         ['route' => 'admin.usuarios.index', 'icon' => 'users', 'label' => 'Usuarios'],
@@ -24,8 +22,6 @@
         ['route' => 'historial', 'icon' => 'list',  'label' => 'Historial'],
     ];
 
-    $transporteActive = collect($transporteItems)->contains(fn($i) => request()->routeIs($i['route']));
-    $sistemaActive    = collect($sistemaItems)->contains(fn($i) => request()->routeIs($i['route']));
 
     $superItems = [
         ['route' => 'super.dashboard',            'icon' => 'layout-dashboard', 'label' => 'Dashboard'],
@@ -40,9 +36,8 @@
 
     $section = match(true) {
         request()->routeIs('admin.pesajes.*', 'admin.reportes.*')          => 'Operación',
-        request()->routeIs('admin.zonas.*', 'admin.tipos-servicio.*')       => 'Padrón',
-        request()->routeIs('admin.vehiculos.*', 'admin.tipos-vehiculo.*')  => 'Transporte',
-        request()->routeIs('admin.usuarios.*')                             => 'Sistema',
+        request()->routeIs('admin.zonas.*', 'admin.tipos-servicio.*', 'admin.vehiculos.*', 'admin.tipos-vehiculo.*') => 'Padrón',
+        request()->routeIs('admin.usuarios.*') => 'Sistema',
         default => null,
     };
 @endphp
@@ -64,9 +59,12 @@
                 <div class="size-6 shrink-0 rounded bg-primary flex items-center justify-center">
                     <span class="text-[10px] font-bold text-primary-foreground leading-none">IR</span>
                 </div>
-                <span class="text-sm font-semibold text-sidebar-foreground truncate">
-                    {{ isset($organizacion) ? $organizacion->nombre : 'Administración' }}
-                </span>
+                <div class="flex flex-col min-w-0">
+                    <span class="text-sm font-semibold text-sidebar-foreground truncate leading-tight">Administración</span>
+                    @isset($organizacion)
+                        <span class="text-xs text-sidebar-foreground/50 truncate leading-tight">{{ $organizacion->nombre }}</span>
+                    @endisset
+                </div>
             </a>
         </x-ui.sidebar.header>
 
@@ -140,62 +138,23 @@
                     </x-ui.sidebar.group-content>
                 </x-ui.sidebar.group>
 
-                {{-- Transporte --}}
-                <x-ui.sidebar.group>
-                    <x-ui.sidebar.group-content>
-                        <x-ui.sidebar.menu>
-                            <x-ui.sidebar.menu-item x-data="{ open: {{ $transporteActive ? 'true' : 'false' }} }">
-                                <x-ui.sidebar.menu-button @click="open = !open" tooltip="Transporte">
-                                    <x-lucide-truck class="size-4 shrink-0" />
-                                    <span>Transporte</span>
-                                    <span class="ml-auto transition-transform" :class="open ? 'rotate-180' : ''">
-                                        <x-lucide-chevron-down class="size-3" />
-                                    </span>
-                                </x-ui.sidebar.menu-button>
-                                <x-ui.sidebar.menu-sub x-show="open && !isCollapsed" x-cloak x-collapse>
-                                    @foreach($transporteItems as $item)
-                                        <x-ui.sidebar.menu-sub-item>
-                                            <x-ui.sidebar.menu-sub-button
-                                                :href="route($item['route'])"
-                                                :active="request()->routeIs($item['route'])"
-                                            >
-                                                <x-dynamic-component :component="'lucide-' . $item['icon']" class="size-4 shrink-0" />
-                                                <span>{{ $item['label'] }}</span>
-                                            </x-ui.sidebar.menu-sub-button>
-                                        </x-ui.sidebar.menu-sub-item>
-                                    @endforeach
-                                </x-ui.sidebar.menu-sub>
-                            </x-ui.sidebar.menu-item>
-                        </x-ui.sidebar.menu>
-                    </x-ui.sidebar.group-content>
-                </x-ui.sidebar.group>
-
                 {{-- Sistema --}}
                 <x-ui.sidebar.group>
+                    <x-ui.sidebar.group-label x-show="!isCollapsed" x-cloak>Sistema</x-ui.sidebar.group-label>
                     <x-ui.sidebar.group-content>
                         <x-ui.sidebar.menu>
-                            <x-ui.sidebar.menu-item x-data="{ open: {{ $sistemaActive ? 'true' : 'false' }} }">
-                                <x-ui.sidebar.menu-button @click="open = !open" tooltip="Sistema">
-                                    <x-lucide-settings class="size-4 shrink-0" />
-                                    <span>Sistema</span>
-                                    <span class="ml-auto transition-transform" :class="open ? 'rotate-180' : ''">
-                                        <x-lucide-chevron-down class="size-3" />
-                                    </span>
-                                </x-ui.sidebar.menu-button>
-                                <x-ui.sidebar.menu-sub x-show="open && !isCollapsed" x-cloak x-collapse>
-                                    @foreach($sistemaItems as $item)
-                                        <x-ui.sidebar.menu-sub-item>
-                                            <x-ui.sidebar.menu-sub-button
-                                                :href="route($item['route'])"
-                                                :active="request()->routeIs($item['route'])"
-                                            >
-                                                <x-dynamic-component :component="'lucide-' . $item['icon']" class="size-4 shrink-0" />
-                                                <span>{{ $item['label'] }}</span>
-                                            </x-ui.sidebar.menu-sub-button>
-                                        </x-ui.sidebar.menu-sub-item>
-                                    @endforeach
-                                </x-ui.sidebar.menu-sub>
-                            </x-ui.sidebar.menu-item>
+                            @foreach($sistemaItems as $item)
+                                <x-ui.sidebar.menu-item>
+                                    <x-ui.sidebar.menu-button
+                                        :href="route($item['route'])"
+                                        :active="request()->routeIs($item['route'])"
+                                        :tooltip="$item['label']"
+                                    >
+                                        <x-dynamic-component :component="'lucide-' . $item['icon']" class="size-4 shrink-0" />
+                                        <span>{{ $item['label'] }}</span>
+                                    </x-ui.sidebar.menu-button>
+                                </x-ui.sidebar.menu-item>
+                            @endforeach
                         </x-ui.sidebar.menu>
                     </x-ui.sidebar.group-content>
                 </x-ui.sidebar.group>

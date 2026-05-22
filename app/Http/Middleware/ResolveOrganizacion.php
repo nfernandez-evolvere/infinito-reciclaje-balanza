@@ -19,9 +19,10 @@ class ResolveOrganizacion
             $orgId = session('organizacion_id');
 
             if ($orgId) {
-                $org = Organizacion::where('id', $orgId)
+                $org = Auth::user()
+                    ->organizaciones()
+                    ->where('organizaciones.id', $orgId)
                     ->where('activo', true)
-                    ->whereHas('users', fn ($q) => $q->where('user_id', Auth::id()))
                     ->first();
 
                 if ($org) {
