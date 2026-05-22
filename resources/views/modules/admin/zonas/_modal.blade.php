@@ -17,7 +17,7 @@
                 ></x-ui.dialog.title>
             </x-ui.dialog.header>
 
-            <div class="px-6 space-y-4 pb-2">
+            <div class="px-6 pb-2">
                 <x-ui.form-field
                     for="nombre"
                     :state="$errors->has('nombre') ? 'destructive' : null"
@@ -33,7 +33,7 @@
                     />
                 </x-ui.form-field>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-x-4">
                     <x-ui.form-field
                         for="hectareas"
                         :state="$errors->has('hectareas') ? 'destructive' : null"
@@ -50,7 +50,6 @@
                             placeholder="0"
                         />
                     </x-ui.form-field>
-
                     <x-ui.form-field
                         for="barrios"
                         :state="$errors->has('barrios') ? 'destructive' : null"
@@ -66,23 +65,22 @@
                             placeholder="0"
                         />
                     </x-ui.form-field>
+                     <x-ui.form-field
+                        for="habitantes"
+                        :state="$errors->has('habitantes') ? 'destructive' : null"
+                        :message="$errors->first('habitantes')"
+                    >
+                        <x-ui.label for="habitantes">Habitantes <span class="text-muted-foreground font-normal">(opcional)</span></x-ui.label>
+                        <x-ui.input
+                            id="habitantes"
+                            name="habitantes"
+                            type="number"
+                            min="0"
+                            x-model="form.habitantes"
+                            placeholder="0"
+                        />
+                    </x-ui.form-field>
                 </div>
-
-                <x-ui.form-field
-                    for="habitantes"
-                    :state="$errors->has('habitantes') ? 'destructive' : null"
-                    :message="$errors->first('habitantes')"
-                >
-                    <x-ui.label for="habitantes">Habitantes <span class="text-muted-foreground font-normal">(opcional)</span></x-ui.label>
-                    <x-ui.input
-                        id="habitantes"
-                        name="habitantes"
-                        type="number"
-                        min="0"
-                        x-model="form.habitantes"
-                        placeholder="0"
-                    />
-                </x-ui.form-field>
             </div>
 
             <x-ui.dialog.footer>

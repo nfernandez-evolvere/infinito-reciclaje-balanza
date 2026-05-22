@@ -35,7 +35,7 @@
             <x-ui.card :collapsible="true" :startOpen="false">
 
                 <x-ui.card.header class="pb-3">
-                    <div class="flex items-start justify-between gap-4">
+                    <div class="flex items-start justify-between gap-2 sm:gap-4">
 
                         {{-- Área clickeable para colapsar --}}
                         <button
@@ -43,7 +43,7 @@
                             class="flex-1 text-left min-w-0 space-y-1"
                             @click="open = !open"
                         >
-                            <div class="flex items-center gap-2.5 flex-wrap">
+                            <div class="flex items-center gap-2 flex-wrap">
                                 <span class="text-base font-semibold">{{ $zona->nombre }}</span>
                                 @if($zona->activo)
                                     <x-ui.badge variant="success">Activo</x-ui.badge>
@@ -68,7 +68,7 @@
                                     class="size-4 transition-transform duration-200"
                                     x-bind:class="open ? 'rotate-0' : '-rotate-90'"
                                 />
-                                <span x-text="open ? 'Ocultar servicios' : 'Ver servicios'"></span>
+                                <span class="hidden sm:inline" x-text="open ? 'Ocultar servicios' : 'Ver servicios'"></span>
                             </x-ui.button>
 
                             {{-- Dropdown de acciones de la zona --}}
