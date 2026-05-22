@@ -27,14 +27,19 @@ export default (initial = {}) => ({
     _userTimer:     null,
 
     // Edit mode: usuarios de la org + combobox para agregar
-    orgUsers:      [],
-    addQuery:      '',
-    addResults:    [],
-    addSearchOpen: false,
-    addSearching:  false,
-    addWorking:    false,
-    addError:      '',
-    _addTimer:     null,
+    orgUsers:        [],
+    addQuery:        '',
+    addResults:      [],
+    addSearchOpen:   false,
+    addSearching:    false,
+    addWorking:      false,
+    addError:        '',
+    _addTimer:       null,
+    pendingRemoveId: null,
+    addNewName:      '',
+
+    // Create mode: nombre del admin nuevo
+    adminName:       '',
 
     ...initial,
 
@@ -47,18 +52,21 @@ export default (initial = {}) => ({
         this.userQuery      = '';
         this.userResults    = [];
         this.userSearchOpen = false;
+        this.adminName      = '';
         this.modalOpen      = true;
     },
 
     openEdit(id, nombre, users = []) {
-        this.modalMode     = 'edit';
-        this.form          = { id, nombre, admin_email: '' };
-        this.orgUsers      = users;
-        this.addQuery      = '';
-        this.addResults    = [];
-        this.addSearchOpen = false;
-        this.addError      = '';
-        this.modalOpen     = true;
+        this.modalMode       = 'edit';
+        this.form            = { id, nombre, admin_email: '' };
+        this.orgUsers        = users;
+        this.addQuery        = '';
+        this.addResults      = [];
+        this.addSearchOpen   = false;
+        this.addError        = '';
+        this.pendingRemoveId = null;
+        this.addNewName      = '';
+        this.modalOpen       = true;
     },
 
     // ── Create mode: combobox admin ────────────────────────────────────────
@@ -111,6 +119,7 @@ export default (initial = {}) => ({
 
     debouncedAddSearch() {
         clearTimeout(this._addTimer);
+        this.addNewName = '';
         if (!this.addQuery.trim()) {
             this.addResults    = [];
             this.addSearchOpen = false;
@@ -143,7 +152,10 @@ export default (initial = {}) => ({
         this.addError      = '';
         this.addSearchOpen = false;
         try {
-            const res  = await this._post(`${this.orgBaseUrl}/${this.form.id}/usuarios`, { email });
+            const payload = { email };
+            if (this.addNewName.trim()) payload.name = this.addNewName.trim();
+
+            const res  = await this._post(`${this.orgBaseUrl}/${this.form.id}/usuarios`, payload);
             const data = await res.json();
             if (!res.ok) {
                 this.addError = data.message ?? 'No se pudo agregar el usuario.';
@@ -151,7 +163,8 @@ export default (initial = {}) => ({
                 this.orgUsers.push(data.user);
                 this.addQuery   = '';
                 this.addResults = [];
-                this._toast('Usuario agregado.', 'success');
+                this.addNewName = '';
+                this._toast('Usuario agregado.', 'success', `"${data.user.name}" fue agregado a la organización.`);
             }
         } catch {
             this.addError = 'Error de conexión.';
@@ -160,16 +173,28 @@ export default (initial = {}) => ({
         }
     },
 
+    confirmRemoveOrgUser(userId) {
+        this.pendingRemoveId = userId;
+    },
+
     async removeOrgUser(userId) {
         if (this.addWorking) return;
         this.addWorking = true;
         try {
             const res = await this._delete(`${this.orgBaseUrl}/${this.form.id}/usuarios/${userId}`);
             if (res.ok) {
-                this.orgUsers = this.orgUsers.filter(u => u.id !== userId);
+                const removed        = this.orgUsers.find(u => u.id === userId);
+                this.orgUsers        = this.orgUsers.filter(u => u.id !== userId);
+                this.pendingRemoveId = null;
+                this._toast('Usuario quitado.', 'success', removed ? `"${removed.name}" fue quitado de la organización.` : '');
+            } else {
+                const data = await res.json().catch(() => ({}));
+                this.pendingRemoveId = null;
+                this._toast('No se pudo quitar el usuario.', 'destructive', data.message ?? '');
             }
         } catch {
-            // silent
+            this.pendingRemoveId = null;
+            this._toast('No se pudo quitar el usuario.', 'destructive', 'Error de conexión.');
         } finally {
             this.addWorking = false;
         }
@@ -180,9 +205,14 @@ export default (initial = {}) => ({
         this.addWorking = true;
         try {
             const res = await this._post(`${this.orgBaseUrl}/${this.form.id}/usuarios/${userId}/reset-password`);
-            if (res.ok) this._toast('Email de restablecimiento enviado.', 'success');
+            if (res.ok) {
+                this._toast('Email de restablecimiento enviado.', 'success');
+            } else {
+                const data = await res.json().catch(() => ({}));
+                this._toast(data.message ?? 'No se pudo enviar el email.', 'destructive');
+            }
         } catch {
-            // silent
+            this._toast('Error de conexión.', 'destructive');
         } finally {
             this.addWorking = false;
         }
@@ -216,8 +246,8 @@ export default (initial = {}) => ({
         });
     },
 
-    _toast(message, variant = 'default') {
-        window.dispatchEvent(new CustomEvent('toast', { detail: { message, variant } }));
+    _toast(message, variant = 'default', description = '') {
+        Alpine.store('toast').add({ message, variant, ...(description && { description }) });
     },
 
     // ── Toggle / delete confirm ───────────────────────────────────────────
@@ -239,7 +269,4 @@ export default (initial = {}) => ({
         this.deleteOpen   = true;
     },
 
-    executeDelete() {
-        document.getElementById('delete-' + this.deleteId).submit();
-    },
 });

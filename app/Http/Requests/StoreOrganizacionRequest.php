@@ -16,6 +16,7 @@ class StoreOrganizacionRequest extends FormRequest
         return [
             'nombre'      => ['required', 'string', 'max:150'],
             'admin_email' => ['required', 'email', 'max:255'],
+            'admin_name'  => ['nullable', 'string', 'max:200'],
         ];
     }
 
@@ -24,6 +25,7 @@ class StoreOrganizacionRequest extends FormRequest
         return [
             'nombre'      => 'nombre',
             'admin_email' => 'email del administrador',
+            'admin_name'  => 'nombre del administrador',
         ];
     }
 }

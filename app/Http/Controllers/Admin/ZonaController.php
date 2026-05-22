@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Concerns\WithToastFlash;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreZonaRequest;
 use App\Http\Requests\UpdateZonaRequest;
@@ -15,6 +16,7 @@ use Illuminate\View\View;
 
 class ZonaController extends Controller
 {
+    use WithToastFlash;
     public function __construct(
         protected ZonaService $service,
     ) {}
@@ -40,7 +42,7 @@ class ZonaController extends Controller
                     'variant'     => 'success',
                 ]);
         } catch (\Throwable) {
-            return $this->toastError();
+            return $this->toastError('admin.zonas.index');
         }
     }
 
@@ -57,7 +59,7 @@ class ZonaController extends Controller
                     'variant'     => 'success',
                 ]);
         } catch (\Throwable) {
-            return $this->toastError();
+            return $this->toastError('admin.zonas.index');
         }
     }
 
@@ -82,7 +84,7 @@ class ZonaController extends Controller
 
             return redirect()->route('admin.zonas.index')->with('toast', $toast);
         } catch (\Throwable) {
-            return $this->toastError();
+            return $this->toastError('admin.zonas.index');
         }
     }
 
@@ -108,22 +110,8 @@ class ZonaController extends Controller
                     'variant'     => 'destructive',
                 ] : $this->toastErrorData());
         } catch (\Throwable) {
-            return $this->toastError();
+            return $this->toastError('admin.zonas.index');
         }
     }
 
-    private function toastError(): RedirectResponse
-    {
-        return redirect()->route('admin.zonas.index')
-            ->with('toast', $this->toastErrorData());
-    }
-
-    private function toastErrorData(): array
-    {
-        return [
-            'message'     => 'Error inesperado.',
-            'description' => 'Si el problema persiste, revisá los logs del sistema.',
-            'variant'     => 'destructive',
-        ];
-    }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Concerns\WithToastFlash;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ResetPasswordUsuarioRequest;
 use App\Http\Requests\StoreUsuarioRequest;
@@ -16,6 +17,7 @@ use Illuminate\View\View;
 
 class UsuarioController extends Controller
 {
+    use WithToastFlash;
     public function __construct(
         protected UsuarioService $service,
     ) {}
@@ -45,7 +47,7 @@ class UsuarioController extends Controller
                     'variant'     => 'success',
                 ]);
         } catch (\Throwable) {
-            return $this->toastError();
+            return $this->toastError('admin.usuarios.index');
         }
     }
 
@@ -72,7 +74,7 @@ class UsuarioController extends Controller
                     'variant'     => 'success',
                 ]);
         } catch (\Throwable) {
-            return $this->toastError();
+            return $this->toastError('admin.usuarios.index');
         }
     }
 
@@ -106,7 +108,7 @@ class UsuarioController extends Controller
 
             return redirect()->route('admin.usuarios.index')->with('toast', $toast);
         } catch (\Throwable) {
-            return $this->toastError();
+            return $this->toastError('admin.usuarios.index');
         }
     }
 
@@ -122,17 +124,8 @@ class UsuarioController extends Controller
                     'variant'     => 'success',
                 ]);
         } catch (\Throwable) {
-            return $this->toastError();
+            return $this->toastError('admin.usuarios.index');
         }
     }
 
-    private function toastError(): RedirectResponse
-    {
-        return redirect()->route('admin.usuarios.index')
-            ->with('toast', [
-                'message'     => 'Error inesperado.',
-                'description' => 'Si el problema persiste, revisá los logs del sistema.',
-                'variant'     => 'destructive',
-            ]);
-    }
 }

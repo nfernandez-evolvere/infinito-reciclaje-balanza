@@ -52,6 +52,7 @@
 
                         <div class="p-4 space-y-3">
                             <input type="hidden" name="admin_email" x-bind:value="form.admin_email" />
+                            <input type="hidden" name="admin_name"  x-bind:value="adminName" />
 
                             {{-- Combobox --}}
                             <div x-show="!selectedUser" class="space-y-1.5">
@@ -109,6 +110,17 @@
                                 </button>
                             </div>
 
+                            {{-- Nombre del admin nuevo (solo cuando es email nuevo) --}}
+                            <div x-show="!selectedUser && userQuery.includes('@')" x-cloak class="space-y-1.5">
+                                <x-ui.label>Nombre completo</x-ui.label>
+                                <x-ui.input
+                                    type="text"
+                                    x-model="adminName"
+                                    placeholder="Ej: Roberto García"
+                                    autocomplete="off"
+                                />
+                            </div>
+
                             {{-- Aviso: usuario nuevo --}}
                             <div x-show="!selectedUser && userQuery.includes('@')" class="flex items-start gap-2.5 rounded-md border border-primary/20 bg-primary/5 px-3 py-2.5">
                                 <x-lucide-mail class="size-4 mt-0.5 shrink-0 text-primary" />
@@ -153,39 +165,71 @@
                             </template>
 
                             <template x-for="u in orgUsers" :key="u.id">
-                                <div class="flex items-center gap-3 px-4 py-3 hover:bg-primary/2 transition-colors">
+                                <div class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-primary/2 transition-colors">
                                     <div
                                         class="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-xs font-semibold uppercase text-primary"
                                         x-text="u.name.charAt(0)"
                                     ></div>
-                                    <div class="flex-1 min-w-0">
+                                    <div x-show="pendingRemoveId !== u.id" class="flex-1 min-w-0">
                                         <p class="text-sm font-medium truncate" x-text="u.name"></p>
                                         <p class="text-xs text-muted-foreground truncate" x-text="u.email"></p>
                                     </div>
-                                    <span
-                                        class="shrink-0 hidden sm:inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium"
-                                        x-bind:class="u.role === 'admin' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'"
-                                        x-text="u.role === 'admin' ? 'Admin' : 'Operador'"
-                                    ></span>
-                                    <x-ui.tooltip content="Enviar link de restablecimiento">
-                                        <button
+
+                                    {{-- Acciones normales --}}
+                                    <div x-show="pendingRemoveId !== u.id" class="flex items-center gap-1 shrink-0">
+                                        <span
+                                            class="shrink-0 hidden sm:inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium mr-1"
+                                            x-bind:class="u.role === 'admin' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'"
+                                            x-text="u.role === 'admin' ? 'Admin' : 'Operador'"
+                                        ></span>
+                                        <x-ui.button
                                             type="button"
+                                            variant="ghost"
+                                            size="sm"
                                             x-on:click="resetOrgUserPassword(u.id)"
                                             x-bind:disabled="addWorking"
-                                            class="shrink-0 p-1.5 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors disabled:opacity-50"
                                         >
                                             <x-lucide-refresh-cw class="size-3.5" />
-                                        </button>
-                                    </x-ui.tooltip>
-                                    <button
-                                        type="button"
-                                        x-on:click="removeOrgUser(u.id)"
-                                        x-bind:disabled="addWorking"
-                                        class="shrink-0 p-1.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
-                                        title="Quitar de la organización"
-                                    >
-                                        <x-lucide-x class="size-3.5" />
-                                    </button>
+                                            <span class="hidden sm:inline">Reenviar link</span>
+                                        </x-ui.button>
+                                        <x-ui.button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            state="destructive"
+                                            x-on:click="confirmRemoveOrgUser(u.id)"
+                                            x-bind:disabled="addWorking"
+                                        >
+                                            <x-lucide-user-minus class="size-3.5" />
+                                            <span class="hidden sm:inline">Quitar</span>
+                                        </x-ui.button>
+                                    </div>
+
+                                    {{-- Confirm quitar --}}
+                                    <div x-show="pendingRemoveId === u.id" class="flex items-center gap-2 shrink-0">
+                                        <span class="text-xs text-muted-foreground whitespace-nowrap">
+                                            ¿Quitar a <strong class="font-medium text-foreground" x-text="u.name"></strong>?
+                                        </span>
+                                        <x-ui.button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            x-on:click="pendingRemoveId = null"
+                                        >
+                                            <x-lucide-x class="size-3.5" />
+                                            <span class="hidden sm:inline">Cancelar</span>
+                                        </x-ui.button>
+                                        <x-ui.button
+                                            type="button"
+                                            size="sm"
+                                            state="destructive"
+                                            x-on:click="removeOrgUser(u.id)"
+                                            x-bind:disabled="addWorking"
+                                        >
+                                            <x-lucide-user-minus class="size-3.5" />
+                                            <span class="hidden sm:inline">Quitar</span>
+                                        </x-ui.button>
+                                    </div>
                                 </div>
                             </template>
                         </div>
@@ -236,35 +280,49 @@
                                             <button
                                                 type="button"
                                                 class="w-full flex items-center gap-3 px-3 py-2.5 text-left text-sm hover:bg-primary/5 transition-colors cursor-pointer"
-                                                x-on:click="addOrgUser(addQuery)"
+                                                x-on:click="addSearchOpen = false"
                                             >
                                                 <div class="size-7 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
                                                     <x-lucide-user-plus class="size-3.5 text-primary" />
                                                 </div>
                                                 <div class="flex-1 min-w-0">
-                                                    <p class="font-medium text-sm truncate text-primary" x-text="'Crear: ' + addQuery"></p>
-                                                    <p class="text-xs text-muted-foreground">Se enviará un email de invitación</p>
+                                                    <p class="font-medium text-sm truncate text-primary" x-text="'Invitar: ' + addQuery"></p>
+                                                    <p class="text-xs text-muted-foreground">Completá el nombre y hacé clic en Agregar</p>
                                                 </div>
                                             </button>
                                         </template>
                                     </div>
                                 </div>
-
-                                <x-ui.button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    x-show="addQuery.includes('@') && !addSearchOpen"
-                                    x-on:click="addOrgUser(addQuery)"
-                                    x-bind:disabled="addWorking"
-                                    class="shrink-0 text-primary border-primary/40 hover:bg-primary/10 hover:text-primary"
-                                >
-                                    <x-lucide-plus class="size-3.5" />
-                                    Agregar
-                                </x-ui.button>
                             </div>
 
-                            <p x-show="addError" x-text="addError" class="text-xs text-destructive"></p>
+                            {{-- Nombre para usuario nuevo --}}
+                            <div x-show="addQuery.includes('@') && addResults.length === 0 && !addSearchOpen && !addWorking" x-cloak class="space-y-1.5">
+                                <x-ui.label>Nombre completo</x-ui.label>
+                                <x-ui.input
+                                    type="text"
+                                    x-model="addNewName"
+                                    placeholder="Ej: Roberto García"
+                                    autocomplete="off"
+                                />
+                            </div>
+
+                            <x-ui.button
+                                type="button"
+                                x-show="addQuery.includes('@') && addResults.length === 0 && !addSearchOpen && !addWorking"
+                                x-cloak
+                                size="sm"
+                                x-on:click="addOrgUser(addQuery)"
+                                x-bind:disabled="addWorking || !addNewName.trim()"
+                            >
+                                <x-lucide-plus class="size-3.5" />
+                                Agregar
+                            </x-ui.button>
+
+                            <x-ui.alert state="destructive" x-show="addError" x-cloak>
+                                <x-lucide-circle-alert class="size-4" />
+                                <x-ui.alert.title>No se pudo realizar el cambio.</x-ui.alert.title>
+                                <x-ui.alert.description x-text="addError"></x-ui.alert.description>
+                            </x-ui.alert>
                         </div>
 
                     </div>

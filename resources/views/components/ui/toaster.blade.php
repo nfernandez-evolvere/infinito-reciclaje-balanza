@@ -24,7 +24,7 @@ $positionClass = match($position) {
     x-data
     aria-live="polite"
     aria-atomic="false"
-    class="fixed {{ $positionClass }} z-(--z-toast) flex flex-col gap-2 w-full max-w-[420px] pointer-events-none px-4 sm:px-0"
+    class="fixed {{ $positionClass }} z-(--z-toast) flex flex-col gap-2 w-full max-w-105 pointer-events-none px-4 sm:px-0"
 >
     <template x-for="toast in $store.toast.toasts" :key="toast.id">
         <div
@@ -44,13 +44,13 @@ $positionClass = match($position) {
             {{-- En fondos sólidos todos usan el *-foreground del variant --}}
             <span
                 x-show="toast.variant !== 'default'"
-                class="mt-0.5 shrink-0 size-4"
+                class="mt-0.5 shrink-0"
                 aria-hidden="true"
             >
-                <x-lucide-check x-show="toast.variant === 'success'"     class="size-4" stroke-width="2.5" />
-                <x-lucide-x x-show="toast.variant === 'destructive'" class="size-4" stroke-width="2.5" />
-                <x-lucide-triangle-alert x-show="toast.variant === 'warning'"     class="size-4" />
-                <x-lucide-info x-show="toast.variant === 'info'"        class="size-4" />
+                <x-lucide-circle-check   x-show="toast.variant === 'success'"     class="size-4" stroke-width="2.5" />
+                <x-lucide-circle-alert   x-show="toast.variant === 'destructive'" class="size-4" stroke-width="2.5" />
+                <x-lucide-triangle-alert x-show="toast.variant === 'warning'"     class="size-4" stroke-width="2.5" />
+                <x-lucide-info           x-show="toast.variant === 'info'"        class="size-4" stroke-width="2.5" />
             </span>
 
             {{-- Contenido --}}

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Concerns\WithToastFlash;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTipoServicioRequest;
 use App\Http\Requests\UpdateTipoServicioRequest;
@@ -15,6 +16,7 @@ use Illuminate\View\View;
 
 class TipoServicioController extends Controller
 {
+    use WithToastFlash;
     public function __construct(
         protected TipoServicioService $service,
     ) {}
@@ -40,7 +42,7 @@ class TipoServicioController extends Controller
                     'variant'     => 'success',
                 ]);
         } catch (\Throwable) {
-            return $this->toastError();
+            return $this->toastError('admin.tipos-servicio.index');
         }
     }
 
@@ -57,7 +59,7 @@ class TipoServicioController extends Controller
                     'variant'     => 'success',
                 ]);
         } catch (\Throwable) {
-            return $this->toastError();
+            return $this->toastError('admin.tipos-servicio.index');
         }
     }
 
@@ -82,7 +84,7 @@ class TipoServicioController extends Controller
 
             return redirect()->route('admin.tipos-servicio.index')->with('toast', $toast);
         } catch (\Throwable) {
-            return $this->toastError();
+            return $this->toastError('admin.tipos-servicio.index');
         }
     }
 
@@ -108,22 +110,8 @@ class TipoServicioController extends Controller
                     'variant'     => 'destructive',
                 ] : $this->toastErrorData());
         } catch (\Throwable) {
-            return $this->toastError();
+            return $this->toastError('admin.tipos-servicio.index');
         }
     }
 
-    private function toastError(): RedirectResponse
-    {
-        return redirect()->route('admin.tipos-servicio.index')
-            ->with('toast', $this->toastErrorData());
-    }
-
-    private function toastErrorData(): array
-    {
-        return [
-            'message'     => 'Error inesperado.',
-            'description' => 'Si el problema persiste, revisá los logs del sistema.',
-            'variant'     => 'destructive',
-        ];
-    }
 }

@@ -13,8 +13,6 @@ class ResolveOrganizacion
 {
     public function handle(Request $request, Closure $next): Response
     {
-        app()->instance('organizacion', null);
-
         if (Auth::check() && ! Auth::user()->isSuperAdmin()) {
             $orgId = session('organizacion_id');
 

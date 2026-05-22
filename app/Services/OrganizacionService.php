@@ -25,23 +25,28 @@ class OrganizacionService
     public function create(array $data): Organizacion
     {
         $adminEmail = $data['admin_email'];
+        $adminName  = $data['admin_name'] ?? null;
 
         $data['slug'] = $this->generateSlug($data['nombre']);
 
         $org = $this->organizacionRepository->create(
-            array_diff_key($data, array_flip(['admin_email']))
+            array_diff_key($data, array_flip(['admin_email', 'admin_name']))
         );
 
-        $this->addUserToOrg($org, $adminEmail);
+        $this->addUserToOrg($org, $adminEmail, $adminName);
 
         return $org;
     }
 
-    public function addUserToOrg(Organizacion $org, string $email): array
+    public function addUserToOrg(Organizacion $org, string $email, ?string $name = null): array
     {
         $existingUser = User::where('email', $email)->first();
 
         if ($existingUser) {
+            if ($existingUser->isSuperAdmin()) {
+                throw new \RuntimeException('Los super admins no pueden pertenecer a una organización.');
+            }
+
             if ($org->users()->where('user_id', $existingUser->id)->exists()) {
                 throw new \RuntimeException('El usuario ya pertenece a esta organización.');
             }
@@ -53,7 +58,7 @@ class OrganizacionService
         }
 
         $newUser = User::create([
-            'name'     => 'Administrador',
+            'name'     => $name ?? $email,
             'email'    => $email,
             'password' => Str::random(32),
             'role'     => 'admin',

@@ -14,7 +14,9 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        // Binding default para que app('organizacion') sea siempre seguro de llamar.
+        // ResolveOrganizacion middleware lo sobreescribe con instance() cuando hay org real.
+        $this->app->bind('organizacion', fn () => null);
     }
 
     public function boot(): void

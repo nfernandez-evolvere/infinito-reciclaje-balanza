@@ -80,11 +80,20 @@
       "Bash(find \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\database\\\\migrations\" -type f -name \"*organizacion*\" -o -name \"*subdominio*\" 2>nul)",
       "Bash(find \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\" -type f \\\\\\( -name \"*organizacion*.js\" -o -name \"*organizacion*.ts\" \\\\\\) 2>nul | head -10)",
       "Bash(find \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\database\\\\migrations\" -type f -name \"*organizacion_user*\" 2>nul)",
-      "Bash(grep -r \"organizacion_user\" \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\database\" --include=\"*.php\" 2>nul)"
+      "Bash(grep -r \"organizacion_user\" \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\database\" --include=\"*.php\" 2>nul)",
+      "Bash(mkdir -p \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\app\\\\Http\\\\Concerns\")",
+      "Bash(Get-Content storage\\\\logs\\\\laravel.log -Tail 50)",
+      "Bash(python -c ' *)",
+      "Bash(php -r ' *)",
+      "Bash(php -r \"echo filesize\\('storage/logs/laravel.log'\\);\")",
+      "Bash(Get-Content storage/logs/laravel.log -Tail 40)",
+      "Bash(Select-String -Pattern \"422|removeUser|organizacion|user_id|Exception|Error\" -Context 2,2)",
+      "Bash(Select-Object -Last 30)"
     ],
     "additionalDirectories": [
       "c:\\Users\\34891406\\Nicolas\\Proyectos\\infinito-reciclaje-balanza\\database\\sql",
-      "c:\\Users\\34891406\\Nicolas\\Proyectos\\infinito-reciclaje-balanza"
+      "c:\\Users\\34891406\\Nicolas\\Proyectos\\infinito-reciclaje-balanza",
+      "c:\\Users\\34891406\\Nicolas\\Proyectos\\infinito-reciclaje-balanza\\app\\Http"
     ]
   }
 }

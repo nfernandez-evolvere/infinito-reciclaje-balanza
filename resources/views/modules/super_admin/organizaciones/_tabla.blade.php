@@ -37,10 +37,6 @@
                         action="{{ route('super.organizaciones.toggle', $org) }}" class="hidden">
                         @csrf @method('PATCH')
                     </form>
-                    <form id="delete-{{ $org->id }}" method="POST"
-                        action="{{ route('super.organizaciones.destroy', $org) }}" class="hidden">
-                        @csrf @method('DELETE')
-                    </form>
 
                     <x-ui.dropdown-menu align="end">
                         <x-ui.dropdown-menu.trigger>

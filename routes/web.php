@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Admin\VehiculoController;
 use App\Http\Controllers\Admin\ZonaController;
 use App\Http\Controllers\Admin\ZonaServicioController;
+use App\Http\Controllers\SuperAdmin\DashboardController as SuperDashboardController;
 use App\Http\Controllers\SuperAdmin\OrganizacionController;
 use Illuminate\Support\Facades\Route;
 
@@ -69,9 +70,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
 // --- Super Admin ---
 Route::middleware(['auth', 'role:super_admin'])->name('super.')->group(function () {
-    Route::get('/dashboard', fn () => view('modules.super_admin.dashboard'))->name('dashboard');
+    Route::get('/dashboard', SuperDashboardController::class)->name('dashboard');
     Route::resource('organizaciones', OrganizacionController::class)
-        ->only(['index', 'store', 'update', 'destroy']);
+        ->only(['index', 'store', 'update', 'destroy'])
+        ->parameters(['organizaciones' => 'organizacion']);
     Route::patch('organizaciones/{organizacion}/toggle', [OrganizacionController::class, 'toggle'])
         ->name('organizaciones.toggle');
     Route::get('usuarios/search', [OrganizacionController::class, 'searchUsers'])
