@@ -19,6 +19,6 @@
     @if($message || $state)
         <x-ui.helper-text :state="$state" :message="$message" />
     @else
-        <div class="min-h-[1rem]" aria-hidden="true"></div>
+        <div class="min-h-4" aria-hidden="true"></div>
     @endif
 </div>
