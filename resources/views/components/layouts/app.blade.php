@@ -293,6 +293,18 @@
                     ></span>
                 @endif
 
+                @if($user?->isOperador())
+                    <x-ui.tooltip content="Ayuda" side="bottom">
+                        <x-ui.button size="icon" variant="ghost"
+                            aria-label="Ayuda"
+                            class="size-8 text-muted-foreground"
+                            @click="$dispatch('abrir-onboarding')"
+                        >
+                            <x-lucide-circle-help class="size-4" />
+                        </x-ui.button>
+                    </x-ui.tooltip>
+                @endif
+
                 <x-ui.tooltip content="Cambiar tema" side="bottom">
                     <x-ui.button size="icon" variant="ghost" @click="$store.theme.toggle()"
                         aria-label="Cambiar tema" class="size-8 text-muted-foreground">
@@ -316,6 +328,8 @@
         <div class="flex-1 overflow-y-auto p-6">
             {{ $slot }}
         </div>
+
+        <div id="layout-action-bar" class="shrink-0"></div>
 
         @if(isset($footerTurno) || isset($footerUltimo))
             <footer class="shrink-0 border-t border-border bg-sidebar">

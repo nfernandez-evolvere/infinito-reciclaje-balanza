@@ -50,7 +50,8 @@
 
         select(val) {
             this.value = val;
-            this.$dispatch('select-change', { value: val });
+            const found = this.items.find(o => String(o.value) === String(val));
+            this.$dispatch('select-change', { value: val, label: found?.label ?? '' });
             this.close();
         },
 
@@ -80,6 +81,8 @@
         }
     }"
     @select-item-init.stop="items.push($event.detail)"
+    @select-sync.stop="value = $event.detail.value"
+    @select-items-clear.stop="items = []"
     @keydown.arrow-down.prevent="move(1)"
     @keydown.arrow-up.prevent="move(-1)"
     @keydown.enter.prevent="confirm()"

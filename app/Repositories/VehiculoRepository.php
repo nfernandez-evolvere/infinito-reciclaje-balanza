@@ -32,6 +32,19 @@ class VehiculoRepository
             ->appends(array_filter($filters, fn ($v) => $v !== '' && $v !== null));
     }
 
+    public function buscar(string $q, int $limit = 6): \Illuminate\Database\Eloquent\Collection
+    {
+        return Vehiculo::query()
+            ->with('tipoVehiculo')
+            ->where('activo', true)
+            ->where(fn ($query) => $query
+                ->where('patente', 'like', '%' . $q . '%')
+                ->orWhere('numero_interno', 'like', '%' . $q . '%')
+            )
+            ->limit($limit)
+            ->get();
+    }
+
     public function create(array $data): Vehiculo
     {
         return Vehiculo::create($data);

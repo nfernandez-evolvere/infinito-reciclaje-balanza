@@ -197,6 +197,16 @@
     }
 }
 
+@keyframes balanza-pop {
+    from { transform: scale(.92); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+}
+@keyframes balanza-ring {
+    0%   { transform: scale(.4); }
+    60%  { transform: scale(1.08); }
+    100% { transform: scale(1); }
+}
+
 /* Fuera de @layer para mayor prioridad que los utilitarios de Tailwind */
 @media (min-width: 1024px) {
     [data-sidebar][data-collapsible="icon"][data-collapsed="true"] [data-sidebar-menu-button] {

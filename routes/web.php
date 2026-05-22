@@ -6,8 +6,14 @@ use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Admin\VehiculoController;
 use App\Http\Controllers\Admin\ZonaController;
 use App\Http\Controllers\Admin\ZonaServicioController;
+use App\Http\Controllers\Api\PesajeLogController;
+use App\Http\Controllers\Api\ServicioZonasController;
+use App\Http\Controllers\Api\VehiculoBuscarController;
+use App\Http\Controllers\Operador\EgresoPesajeController;
+use App\Http\Controllers\Operador\PesajeController;
 use App\Http\Controllers\SuperAdmin\DashboardController as SuperDashboardController;
 use App\Http\Controllers\SuperAdmin\OrganizacionController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 require __DIR__.'/auth.php';
@@ -24,10 +30,35 @@ Route::get('/', function () {
     });
 });
 
+// --- APIs (autenticado) ---
+Route::middleware('auth')->prefix('api')->name('api.')->group(function () {
+    Route::get('/vehiculos/buscar', VehiculoBuscarController::class)->name('vehiculos.buscar');
+    Route::get('/servicios/{servicio}/zonas', ServicioZonasController::class)->name('servicios.zonas');
+    Route::get('/pesajes/{pesaje}/log', PesajeLogController::class)->name('pesajes.log');
+});
+
 // --- Operador ---
 Route::middleware(['auth', 'role:operador'])->group(function () {
-    Route::get('/balanza', fn () => view('modules.operador.balanza'))->name('balanza');
-    Route::get('/historial', fn () => view('modules.operador.historial'))->name('historial');
+    Route::get('/balanza', function () {
+        $servicios = \App\Models\TipoServicio::activos()->with('tipoVehiculoSugerido')->get();
+        return view('modules.operador.balanza', compact('servicios'));
+    })->name('balanza');
+
+    Route::get('/historial', function () {
+        $repo    = app(\App\Repositories\PesajeRepository::class);
+        $pesajes = $repo->delTurnoConRelaciones();
+        $kpis    = $repo->kpisDelTurno();
+        return view('modules.operador.historial', compact('pesajes', 'kpis'));
+    })->name('historial');
+
+    Route::post('/pesajes', [PesajeController::class, 'store'])->name('pesajes.store');
+    Route::put('/pesajes/{id}', [PesajeController::class, 'update'])->name('pesajes.update');
+    Route::post('/pesajes/{id}/egreso', EgresoPesajeController::class)->name('pesajes.egreso');
+
+    Route::post('/onboarding/visto', function (Request $request) {
+        auth()->user()->update(['onboarding_visto' => true]);
+        return response()->json(['ok' => true]);
+    })->name('onboarding.visto');
 });
 
 // --- Admin ---

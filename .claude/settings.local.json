@@ -88,7 +88,11 @@
       "Bash(php -r \"echo filesize\\('storage/logs/laravel.log'\\);\")",
       "Bash(Get-Content storage/logs/laravel.log -Tail 40)",
       "Bash(Select-String -Pattern \"422|removeUser|organizacion|user_id|Exception|Error\" -Context 2,2)",
-      "Bash(Select-Object -Last 30)"
+      "Bash(Select-Object -Last 30)",
+      "PowerShell(head -60)",
+      "PowerShell(New-Item -ItemType Directory -Force \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\onboarding\")",
+      "Bash(del \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\ui\\\\heading.blade.php\")",
+      "Bash(del \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\ui\\\\text.blade.php\")"
     ],
     "additionalDirectories": [
       "c:\\Users\\34891406\\Nicolas\\Proyectos\\infinito-reciclaje-balanza\\database\\sql",
