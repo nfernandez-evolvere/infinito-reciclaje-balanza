@@ -3,7 +3,7 @@
     cardTitle="Nueva contraseña"
     cardDescription="Elegí una contraseña segura para tu cuenta."
 >
-    <form method="POST" action="{{ route('password.store') }}" class="space-y-2">
+    <form method="POST" action="{{ route('password.store') }}">
         @csrf
         <input type="hidden" name="token" value="{{ $request->route('token') }}">
 

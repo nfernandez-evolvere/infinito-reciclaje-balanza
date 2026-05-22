@@ -5,52 +5,7 @@
 >
     <div
         class="space-y-2"
-        x-data="{
-            emailVal:    @js(old('email', '')),
-            orgs:        [],
-            orgId:       null,
-            isSuperAdmin: false,
-            loading:     false,
-            fetched:     false,
-            _t:          null,
-
-            init() {
-                if (this._emailOk(this.emailVal)) this._fetch();
-                this.$watch('emailVal', v => {
-                    this.orgs        = [];
-                    this.orgId       = null;
-                    this.isSuperAdmin = false;
-                    this.fetched     = false;
-                    clearTimeout(this._t);
-                    if (!this._emailOk(v)) return;
-                    this._t = setTimeout(() => this._fetch(), 400);
-                });
-            },
-
-            _emailOk(v) {
-                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((v ?? '').trim());
-            },
-
-            async _fetch() {
-                if (!this._emailOk(this.emailVal)) return;
-                this.loading = true;
-                try {
-                    const r = await fetch(
-                        '/login/organizaciones?email=' + encodeURIComponent(this.emailVal.trim()),
-                        { headers: { 'X-Requested-With': 'XMLHttpRequest' } }
-                    );
-                    if (r.ok) {
-                        const d = await r.json();
-                        this.isSuperAdmin = d.super_admin ?? false;
-                        this.orgs         = d.orgs ?? [];
-                    }
-                } catch (e) {
-                } finally {
-                    this.loading  = false;
-                    this.fetched  = true;
-                }
-            },
-        }"
+        x-data="loginForm({ initialEmail: @js(old('email', '')) })"
     >
         @if (!empty($usuariosPrueba) && $usuariosPrueba->isNotEmpty())
             <x-ui.alert state="info">
@@ -79,12 +34,7 @@
             </x-ui.alert>
         @endif
 
-        <form
-            method="POST"
-            action="{{ route('login') }}"
-            class="space-y-3"
-            x-on:change="if ($event.detail && 'value' in $event.detail) orgId = $event.detail.value"
-        >
+        <form method="POST" action="{{ route('login') }}">
             @csrf
 
             {{-- Email --}}
@@ -101,16 +51,10 @@
                 />
             </x-ui.form-field>
 
-            {{-- Loading --}}
-            <div x-show="loading" x-cloak class="flex items-center gap-2 text-sm text-muted-foreground">
-                <x-lucide-loader-circle class="size-4 animate-spin" />
-                <span>Buscando...</span>
-            </div>
-
             {{-- Org combobox --}}
             <x-ui.form-field
-                x-show="_emailOk(emailVal) && !isSuperAdmin && !loading && orgs.length > 0"
-                x-cloak
+                x-show="!isSuperAdmin"
+                x-bind:class="!(fetched && !loading && orgs.length > 0) ? 'opacity-50 pointer-events-none' : ''"
             >
                 <x-ui.label>Organización</x-ui.label>
                 <x-ui.combobox
@@ -128,7 +72,7 @@
                                     :data-label="org.nombre.toLowerCase()"
                                     :aria-selected="value !== null && String(value) === String(org.id)"
                                     x-show="!search || org.nombre.toLowerCase().includes(search.toLowerCase())"
-                                    @click="select(String(org.id))"
+                                    @click="select(String(org.id)); window.dispatchEvent(new CustomEvent('login:org-select', { detail: { id: String(org.id) } }))"
                                     @mouseenter="highlighted = String(org.id)"
                                     :class="[
                                         _itemCls(),
@@ -159,7 +103,7 @@
             <div
                 x-show="isSuperAdmin && !loading"
                 x-cloak
-                class="flex items-center gap-2 rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground"
+                class="flex items-center gap-2 rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground mb-4"
             >
                 <x-lucide-shield class="size-4 shrink-0" />
                 <span>Administración del sistema</span>
@@ -173,23 +117,26 @@
             >No se encontraron organizaciones para este correo.</div>
 
             {{-- Password --}}
-            <x-ui.form-field for="password" x-show="_emailOk(emailVal) && !loading && (isSuperAdmin || orgId !== null)" x-cloak>
+            <x-ui.form-field
+                for="password"
+                x-bind:class="!(_emailOk(emailVal) && !loading && (isSuperAdmin || orgId !== null)) ? 'opacity-50 pointer-events-none' : ''"
+            >
                 <div class="flex items-center justify-between">
                     <x-ui.label for="password">Contraseña</x-ui.label>
                     <a href="{{ route('password.request') }}" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
                         ¿Olvidaste tu contraseña?
                     </a>
                 </div>
-                <x-ui.input-group x-data="{ show: false }">
+                <x-ui.input-group>
                     <x-ui.input-group.input
                         id="password"
                         name="password"
-                        x-bind:type="show ? 'text' : 'password'"
+                        x-bind:type="showPassword ? 'text' : 'password'"
                         autocomplete="current-password"
                     />
-                    <x-ui.input-group.button type="button" @click="show = !show" tabindex="-1" aria-label="Mostrar u ocultar contraseña">
-                        <x-lucide-eye     x-show="!show"        class="size-4" />
-                        <x-lucide-eye-off x-show="show" x-cloak class="size-4" />
+                    <x-ui.input-group.button type="button" @click="showPassword = !showPassword" tabindex="-1" aria-label="Mostrar u ocultar contraseña">
+                        <x-lucide-eye     x-show="!showPassword"        class="size-4" />
+                        <x-lucide-eye-off x-show="showPassword" x-cloak class="size-4" />
                     </x-ui.input-group.button>
                 </x-ui.input-group>
             </x-ui.form-field>

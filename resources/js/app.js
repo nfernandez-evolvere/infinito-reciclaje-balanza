@@ -6,6 +6,7 @@ import vehiculos from './alpine/admin/vehiculos.js';
 import zonas from './alpine/admin/zonas.js';
 import usuarios from './alpine/admin/usuarios.js';
 import organizaciones from './alpine/super_admin/organizaciones.js';
+import loginForm from './alpine/auth/login.js';
 
 Alpine.plugin(Collapse);
 
@@ -29,6 +30,7 @@ Alpine.data('vehiculos', vehiculos);
 Alpine.data('zonas', zonas);
 Alpine.data('usuarios', usuarios);
 Alpine.data('organizaciones', organizaciones);
+Alpine.data('loginForm', loginForm);
 
 // — Alpine store: toast ———————————————————————————————————————
 Alpine.store('toast', {

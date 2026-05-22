@@ -3,7 +3,7 @@
     cardTitle="Recuperar contraseña"
     cardDescription="Ingresá tu correo y te enviamos un enlace para restablecer tu contraseña."
 >
-    <form method="POST" action="{{ route('password.email') }}" class="space-y-2">
+    <form method="POST" action="{{ route('password.email') }}">
         @csrf
 
         @if (session('status'))
