@@ -20,7 +20,7 @@ $itemLabel = trim(strip_tags($slot->toHtml()));
         'opacity-50 cursor-not-allowed pointer-events-none': itemDisabled,
         'cursor-pointer': !itemDisabled,
     }"
-    {{ $attributes->twMerge('relative flex items-center select-none outline-none rounded-sm pl-8 pr-2 py-1.5 text-sm hover:bg-primary/10') }}
+    {{ $attributes->twMerge('relative flex items-center select-none outline-none rounded-md pl-8 pr-2 py-1.5 text-sm hover:bg-primary/10') }}
 >
     {{-- Checkmark --}}
     <span

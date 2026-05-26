@@ -5,10 +5,10 @@
 
 @php
 $config = match($as) {
-    'h1'         => ['tag' => 'h1',         'class' => 'scroll-m-20 text-4xl font-bold tracking-tight leading-[1.1]'],
-    'h2'         => ['tag' => 'h2',         'class' => 'scroll-m-20 text-3xl font-semibold tracking-tight leading-[1.2] first:mt-0'],
-    'h3'         => ['tag' => 'h3',         'class' => 'scroll-m-20 text-2xl font-semibold tracking-tight leading-[1.25]'],
-    'h4'         => ['tag' => 'h4',         'class' => 'scroll-m-20 text-xl font-semibold tracking-tight leading-[1.3]'],
+    'h1'         => ['tag' => 'h1',         'class' => 'scroll-m-20 text-4xl font-bold tracking-tight leading-[1.1] text-foreground'],
+    'h2'         => ['tag' => 'h2',         'class' => 'scroll-m-20 text-3xl font-semibold tracking-tight leading-[1.2] first:mt-0 text-foreground'],
+    'h3'         => ['tag' => 'h3',         'class' => 'scroll-m-20 text-2xl font-semibold tracking-tight leading-[1.25] text-foreground'],
+    'h4'         => ['tag' => 'h4',         'class' => 'scroll-m-20 text-xl font-semibold tracking-tight leading-[1.3] text-foreground'],
     'lead'       => ['tag' => 'p',          'class' => 'text-xl text-muted-foreground leading-relaxed'],
     'large'      => ['tag' => 'div',        'class' => 'text-lg font-semibold'],
     'small'      => ['tag' => 'small',      'class' => 'text-sm font-medium leading-none'],

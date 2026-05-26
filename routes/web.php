@@ -1,22 +1,11 @@
 <?php
 
-use App\Http\Controllers\Admin\TipoServicioController;
-use App\Http\Controllers\Admin\TipoVehiculoController;
-use App\Http\Controllers\Admin\UsuarioController;
-use App\Http\Controllers\Admin\VehiculoController;
-use App\Http\Controllers\Admin\ZonaController;
-use App\Http\Controllers\Admin\ZonaServicioController;
-use App\Http\Controllers\Api\PesajeLogController;
-use App\Http\Controllers\Api\ServicioZonasController;
-use App\Http\Controllers\Api\VehiculoBuscarController;
-use App\Http\Controllers\Operador\EgresoPesajeController;
-use App\Http\Controllers\Operador\PesajeController;
-use App\Http\Controllers\SuperAdmin\DashboardController as SuperDashboardController;
-use App\Http\Controllers\SuperAdmin\OrganizacionController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 require __DIR__.'/auth.php';
+require __DIR__.'/operador.php';
+require __DIR__.'/admin.php';
+require __DIR__.'/super.php';
 
 Route::get('/', function () {
     if (! auth()->check()) {
@@ -28,93 +17,6 @@ Route::get('/', function () {
         $user->isAdmin()      => route('admin.dashboard'),
         default               => route('balanza'),
     });
-});
-
-// --- APIs (autenticado) ---
-Route::middleware('auth')->prefix('api')->name('api.')->group(function () {
-    Route::get('/vehiculos/buscar', VehiculoBuscarController::class)->name('vehiculos.buscar');
-    Route::get('/servicios/{servicio}/zonas', ServicioZonasController::class)->name('servicios.zonas');
-    Route::get('/pesajes/{pesaje}/log', PesajeLogController::class)->name('pesajes.log');
-});
-
-// --- Operador ---
-Route::middleware(['auth', 'role:operador'])->group(function () {
-    Route::get('/balanza', function () {
-        $servicios = \App\Models\TipoServicio::activos()->with('tipoVehiculoSugerido')->get();
-        return view('modules.operador.balanza', compact('servicios'));
-    })->name('balanza');
-
-    Route::get('/historial', function () {
-        $repo    = app(\App\Repositories\PesajeRepository::class);
-        $pesajes = $repo->delTurnoConRelaciones();
-        $kpis    = $repo->kpisDelTurno();
-        return view('modules.operador.historial', compact('pesajes', 'kpis'));
-    })->name('historial');
-
-    Route::post('/pesajes', [PesajeController::class, 'store'])->name('pesajes.store');
-    Route::put('/pesajes/{id}', [PesajeController::class, 'update'])->name('pesajes.update');
-    Route::post('/pesajes/{id}/egreso', EgresoPesajeController::class)->name('pesajes.egreso');
-
-    Route::post('/onboarding/visto', function (Request $request) {
-        auth()->user()->update(['onboarding_visto' => true]);
-        return response()->json(['ok' => true]);
-    })->name('onboarding.visto');
-});
-
-// --- Admin ---
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', fn () => view('modules.admin.dashboard'))->name('dashboard');
-    Route::get('/pesajes', fn () => view('modules.admin.pesajes.index'))->name('pesajes.index');
-    Route::get('/reportes', fn () => view('modules.admin.reportes.index'))->name('reportes.index');
-
-    // Padrón
-    Route::resource('zonas', ZonaController::class)
-        ->only(['index', 'store', 'update', 'destroy']);
-    Route::patch('zonas/{zona}/toggle', [ZonaController::class, 'toggle'])
-        ->name('zonas.toggle');
-    Route::post('zonas/{zona}/servicios', [ZonaServicioController::class, 'store'])
-        ->name('zonas.servicios.store');
-    Route::put('zonas/{zona}/servicios/{tipoServicio}', [ZonaServicioController::class, 'update'])
-        ->name('zonas.servicios.update');
-    Route::delete('zonas/{zona}/servicios/{tipoServicio}', [ZonaServicioController::class, 'destroy'])
-        ->name('zonas.servicios.destroy');
-    Route::get('/servicios', fn () => view('modules.admin.servicios.index'))->name('servicios.index');
-    Route::resource('tipos-servicio', TipoServicioController::class)
-        ->only(['index', 'store', 'update', 'destroy']);
-    Route::patch('tipos-servicio/{tiposServicio}/toggle', [TipoServicioController::class, 'toggle'])
-        ->name('tipos-servicio.toggle');
-    Route::resource('vehiculos', VehiculoController::class)
-        ->only(['index', 'store', 'update', 'destroy']);
-    Route::patch('vehiculos/{vehiculo}/toggle', [VehiculoController::class, 'toggle'])
-        ->name('vehiculos.toggle');
-    Route::resource('tipos-vehiculo', TipoVehiculoController::class)
-        ->only(['index', 'store', 'update', 'destroy']);
-    Route::patch('tipos-vehiculo/{tiposVehiculo}/toggle', [TipoVehiculoController::class, 'toggle'])
-        ->name('tipos-vehiculo.toggle');
-    Route::resource('usuarios', UsuarioController::class)
-        ->only(['index', 'store', 'update']);
-    Route::patch('usuarios/{usuario}/toggle', [UsuarioController::class, 'toggle'])
-        ->name('usuarios.toggle');
-    Route::patch('usuarios/{usuario}/reset-password', [UsuarioController::class, 'resetPassword'])
-        ->name('usuarios.reset-password');
-});
-
-// --- Super Admin ---
-Route::middleware(['auth', 'role:super_admin'])->name('super.')->group(function () {
-    Route::get('/dashboard', SuperDashboardController::class)->name('dashboard');
-    Route::resource('organizaciones', OrganizacionController::class)
-        ->only(['index', 'store', 'update', 'destroy'])
-        ->parameters(['organizaciones' => 'organizacion']);
-    Route::patch('organizaciones/{organizacion}/toggle', [OrganizacionController::class, 'toggle'])
-        ->name('organizaciones.toggle');
-    Route::get('usuarios/search', [OrganizacionController::class, 'searchUsers'])
-        ->name('usuarios.search');
-    Route::post('organizaciones/{organizacion}/usuarios', [OrganizacionController::class, 'addUser'])
-        ->name('organizaciones.addUser');
-    Route::delete('organizaciones/{organizacion}/usuarios/{user}', [OrganizacionController::class, 'removeUser'])
-        ->name('organizaciones.removeUser');
-    Route::post('organizaciones/{organizacion}/usuarios/{user}/reset-password', [OrganizacionController::class, 'resetUserPassword'])
-        ->name('organizaciones.resetUserPassword');
 });
 
 Route::fallback(function () {

@@ -493,9 +493,16 @@ Props: `variant` (default/secondary/destructive/outline/warning/success)
 
 ### Card
 
+Props: `variant` (default/elevated)
 Sub-componentes: `header`, `title`, `description`, `content`, `footer`
 
+| Variant | Estilo | Cuándo usarla |
+|---------|--------|---------------|
+| `default` | `border border-border` — sin sombra | Patrón estándar: listas, tablas, formularios |
+| `elevated` | `shadow-lg` — sin border | Tarjetas flotantes, KPIs, contenido destacado |
+
 ```blade
+{{-- Default: con border --}}
 <x-ui.card>
     <x-ui.card.header>
         <x-ui.card.title>Título</x-ui.card.title>
@@ -505,6 +512,11 @@ Sub-componentes: `header`, `title`, `description`, `content`, `footer`
     <x-ui.card.footer>
         <x-ui.button size="sm">Acción</x-ui.button>
     </x-ui.card.footer>
+</x-ui.card>
+
+{{-- Elevated: sin border, elevación por shadow --}}
+<x-ui.card variant="elevated">
+    <x-ui.card.content class="pt-6">Contenido destacado</x-ui.card.content>
 </x-ui.card>
 ```
 

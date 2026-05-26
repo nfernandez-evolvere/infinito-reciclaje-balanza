@@ -204,13 +204,14 @@
 
                 <x-ui.button type="button" x-ref="trigger" @click="toggle()"
                     x-bind:aria-expanded="open.toString()" variant="ghost"
-                    class="flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left h-auto">
+                    x-bind:class="isCollapsed ? 'justify-center px-0 w-full' : 'w-full px-2'"
+                    class="flex items-center gap-2.5 rounded-md py-2 text-left h-auto">
                     <x-ui.avatar :fallback="substr($user->name, 0, 2)" class="h-8 w-8 shrink-0" />
-                    <div class="flex-1 min-w-0">
+                    <div x-show="!isCollapsed" x-cloak class="flex-1 min-w-0">
                         <p class="text-sm font-medium text-sidebar-foreground truncate leading-tight">{{ $user->name }}</p>
                         <p class="text-xs text-sidebar-foreground/60 truncate capitalize">{{ $user->role }}</p>
                     </div>
-                    <x-lucide-chevrons-up-down class="size-3.5 shrink-0 text-sidebar-foreground/60" />
+                    <x-lucide-chevrons-up-down x-show="!isCollapsed" x-cloak class="size-3.5 shrink-0 text-sidebar-foreground/60" />
                 </x-ui.button>
 
                 <template x-teleport="body">

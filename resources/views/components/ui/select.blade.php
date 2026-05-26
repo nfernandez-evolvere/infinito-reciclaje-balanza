@@ -2,6 +2,7 @@
     'name'     => null,
     'value'    => null,
     'disabled' => false,
+    'size'     => 'md',   // sm | md | lg — se propaga al trigger vía @aware
 ])
 
 <div

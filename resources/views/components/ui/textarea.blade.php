@@ -4,7 +4,7 @@
 ])
 
 @php
-$base = 'flex w-full rounded-md border bg-background text-foreground shadow-xs transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-y';
+$base = 'flex w-full rounded-2xl border bg-background text-foreground shadow-xs transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-y';
 
 $sizeClass = match($size) {
     'sm'    => 'min-h-[80px] px-3 py-2 text-[13px]',

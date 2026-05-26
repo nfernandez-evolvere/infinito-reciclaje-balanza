@@ -10,7 +10,7 @@
         {{-- Stats --}}
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
-            <x-ui.card>
+            <x-ui.card variant="elevated">
                 <x-ui.card.content class="pt-6">
                     <div class="flex items-start justify-between">
                         <div>
@@ -24,7 +24,7 @@
                 </x-ui.card.content>
             </x-ui.card>
 
-            <x-ui.card>
+            <x-ui.card variant="elevated">
                 <x-ui.card.content class="pt-6">
                     <div class="flex items-start justify-between">
                         <div>
@@ -38,7 +38,7 @@
                 </x-ui.card.content>
             </x-ui.card>
 
-            <x-ui.card>
+            <x-ui.card variant="elevated">
                 <x-ui.card.content class="pt-6">
                     <div class="flex items-start justify-between">
                         <div>
@@ -52,7 +52,7 @@
                 </x-ui.card.content>
             </x-ui.card>
 
-            <x-ui.card>
+            <x-ui.card variant="elevated">
                 <x-ui.card.content class="pt-6">
                     <div class="flex items-start justify-between">
                         <div>
@@ -69,7 +69,7 @@
         </div>
 
         {{-- Organizaciones recientes --}}
-        <x-ui.card>
+        <x-ui.card variant="elevated">
             <x-ui.card.header>
                 <div class="flex items-center justify-between">
                     <div>

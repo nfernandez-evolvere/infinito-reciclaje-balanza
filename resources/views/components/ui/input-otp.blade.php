@@ -96,12 +96,12 @@ $stateRing = match($state) {
     @endif
 
     {{-- Slots --}}
-    <div class="flex items-center rounded-lg {{ $stateRing }}">
+    <div class="flex items-center rounded-full {{ $stateRing }}">
         @for($i = 0; $i < $length; $i++)
             @php
                 $isGroupStart = $i === 0 || ($i > 0 && $i % 3 === 0);
                 $isGroupEnd   = $i === $length - 1 || ($i < $length - 1 && ($i + 1) % 3 === 0);
-                $slotRounded  = ($isGroupStart ? 'rounded-l-lg ' : '') . ($isGroupEnd ? 'rounded-r-lg' : '');
+                $slotRounded  = ($isGroupStart ? 'rounded-l-full ' : '') . ($isGroupEnd ? 'rounded-r-full' : '');
                 $slotBorder   = $isGroupStart ? 'border-l' : '';
             @endphp
             <div

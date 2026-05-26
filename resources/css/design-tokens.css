@@ -97,7 +97,7 @@
 :root {
     /* — Base — */
     --background:            var(--neutral-50);
-    --foreground:            var(--neutral-950);
+    --foreground:            var(--green-950);
 
     /* — Superficies — */
     --surface-0:             var(--neutral-50);     /* página base */
@@ -108,9 +108,9 @@
 
     /* — Superficies nombradas — */
     --card:                  oklch(1 0 0);
-    --card-foreground:       var(--neutral-950);
+    --card-foreground:       var(--green-950);
     --popover:               oklch(1 0 0);
-    --popover-foreground:    var(--neutral-950);
+    --popover-foreground:    var(--green-950);
 
     /* — Semánticos de rol — */
     --primary:               var(--green-700);
@@ -148,7 +148,7 @@
     --info-border:                   var(--blue-300);
 
     /* — Texto jerárquico — */
-    --text-primary:          var(--neutral-950);
+    --text-primary:          var(--green-950);
     --text-secondary:        var(--neutral-700);
     --text-tertiary:         var(--neutral-500);
     --text-disabled:         var(--neutral-400);
@@ -177,7 +177,7 @@
 
     /* — Sidebar — */
     --sidebar:                       oklch(1 0 0);
-    --sidebar-foreground:            var(--neutral-950);
+    --sidebar-foreground:            var(--green-950);
     --sidebar-primary:               var(--green-700);
     --sidebar-primary-foreground:    var(--neutral-50);
     --sidebar-accent:                var(--green-50);

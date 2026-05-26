@@ -27,25 +27,25 @@
 
     {{-- KPIs --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <x-ui.card>
+        <x-ui.card variant="elevated">
             <x-ui.card.content class="pt-6">
                 <div class="text-overline mb-1">Pesajes</div>
                 <div class="text-3xl font-bold font-mono tabular-nums">{{ $kpis['total'] }}</div>
             </x-ui.card.content>
         </x-ui.card>
-        <x-ui.card>
+        <x-ui.card variant="elevated">
             <x-ui.card.content class="pt-6">
                 <div class="text-overline mb-1">Toneladas netas</div>
                 <div class="text-3xl font-bold font-mono tabular-nums">{{ number_format($kpis['toneladas_netas'], 1, ',', '.') }} t</div>
             </x-ui.card.content>
         </x-ui.card>
-        <x-ui.card>
+        <x-ui.card variant="elevated">
             <x-ui.card.content class="pt-6">
                 <div class="text-overline mb-1">Promedio neto</div>
                 <div class="text-3xl font-bold font-mono tabular-nums">{{ number_format($kpis['promedio_kg'], 0, ',', '.') }} kg</div>
             </x-ui.card.content>
         </x-ui.card>
-        <x-ui.card>
+        <x-ui.card variant="elevated">
             <x-ui.card.content class="pt-6">
                 <div class="text-overline mb-1">En predio</div>
                 <div class="text-3xl font-bold font-mono tabular-nums">{{ $kpis['en_predio'] }}</div>
@@ -54,7 +54,7 @@
     </div>
 
     {{-- Tabla --}}
-    <x-ui.card>
+    <x-ui.card variant="elevated">
         <x-ui.card.content class="p-6">
             @if($pesajes->isEmpty())
                 <div class="flex flex-col items-center justify-center py-16 gap-2 text-muted-foreground">
@@ -119,14 +119,14 @@
                                         @if($pesaje->editado)
                                             <x-ui.tooltip content="Ver historial de cambios" side="left">
                                                 <x-ui.button variant="ghost" size="icon" class="size-7"
-                                                    @click="abrirLog({{ $pesaje->id }}, '{{ addslashes($pesaje->vehiculo->patente) }}')">
+                                                    @click="abrirLog('{{ $pesaje->uuid }}', '{{ addslashes($pesaje->vehiculo->patente) }}')">
                                                     <x-lucide-history class="size-3.5" />
                                                 </x-ui.button>
                                             </x-ui.tooltip>
                                         @endif
                                         <x-ui.tooltip content="Editar pesaje" side="left">
                                             <x-ui.button variant="ghost" size="icon" class="size-7"
-                                                @click="abrirEdicion({{ $pesaje->id }}, {
+                                                @click="abrirEdicion('{{ $pesaje->uuid }}', {
                                                     patente: '{{ addslashes($pesaje->vehiculo->patente) }}',
                                                     peso_bruto_kg: {{ $pesaje->peso_bruto_kg }},
                                                     observaciones: '{{ addslashes($pesaje->observaciones ?? '') }}'
@@ -137,7 +137,7 @@
                                         @if($pesaje->estaEnPredio())
                                             <x-ui.tooltip content="Marcar egreso" side="left">
                                                 <x-ui.button variant="ghost" size="icon" class="size-7"
-                                                    @click="abrirEgreso({{ $pesaje->id }}, '{{ addslashes($pesaje->vehiculo->patente) }}')">
+                                                    @click="abrirEgreso('{{ $pesaje->uuid }}', '{{ addslashes($pesaje->vehiculo->patente) }}')">
                                                     <x-lucide-log-out class="size-3.5" />
                                                 </x-ui.button>
                                             </x-ui.tooltip>

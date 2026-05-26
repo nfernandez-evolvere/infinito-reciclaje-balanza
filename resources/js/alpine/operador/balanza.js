@@ -70,7 +70,7 @@ export default function balanza() {
             this.vehiculo = null;
             const q = this.query.trim();
             if (!q) { this.matches = []; return; }
-            const res = await fetch(`/api/vehiculos/buscar?q=${encodeURIComponent(q)}`);
+            const res = await fetch(`/vehiculos/buscar?q=${encodeURIComponent(q)}`);
             this.matches = await res.json();
             this.showSugg = true;
         },
@@ -97,10 +97,9 @@ export default function balanza() {
             this._selectEl('wrapTurno')?.dispatchEvent(new CustomEvent('select-sync',  { detail: { value: '' } }));
             this._selectEl('wrapTurno')?.dispatchEvent(new CustomEvent('select-items-clear'));
             if (!value) return;
-            fetch(`/api/servicios/${value}/zonas`)
+            fetch(`/servicios/${value}/zonas`)
                 .then(r => r.json())
                 .then(data => {
-                    console.log('Zonas y tipo sugerido para servicio', value, data);
                     this.tipoSugerido     = data.tipo_vehiculo_sugerido ?? '';
                     this.zonasDisponibles = data.zonas ?? [];
                     this.$nextTick(() => this.$refs.wrapOrigen?.querySelector('button')?.focus());

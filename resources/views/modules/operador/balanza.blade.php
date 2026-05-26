@@ -1,4 +1,4 @@
-<x-layouts.app title="Pesaje">
+﻿<x-layouts.app title="Pesaje">
 
 <div
     x-data="balanza()"
@@ -19,32 +19,30 @@
     </div>
     <x-ui.typography as="muted" class="mb-4">Seguí los tres pasos. Los datos del padrón se completan solos.</x-ui.typography>
 
-    {{-- ── KBD bar — solo desktop ── --}}
-    <div class="hidden sm:flex items-center gap-4 px-3 py-2 mb-4 bg-card border border-border rounded-md text-xs text-muted-foreground">
-        <x-lucide-keyboard class="size-3.5 shrink-0" />
-        <span class="flex items-center gap-1"><x-domain.balanza.kbd>↵</x-domain.balanza.kbd> siguiente campo</span>
-        <span class="flex items-center gap-1"><x-domain.balanza.kbd>Ctrl</x-domain.balanza.kbd>+<x-domain.balanza.kbd>S</x-domain.balanza.kbd> guardar</span>
-        <span class="flex items-center gap-1"><x-domain.balanza.kbd>Esc</x-domain.balanza.kbd> limpiar</span>
-    </div>
-
-    <div class="flex flex-col gap-4">
+<div class="flex flex-col gap-4">
 
         {{-- ── Paso 1 — Vehículo ── --}}
         <x-domain.balanza.paso numero="1" titulo="Vehículo" completo="vehiculo">
 
             {{-- Input con popper --}}
             <div class="relative">
-                <input
+                <x-ui.input
+                    size="lg"
                     x-ref="inputVehiculo"
                     x-model="query"
                     @input="onQuery()"
                     @focus="showSugg = true"
                     @blur="setTimeout(() => showSugg = false, 150)"
                     @keydown.enter.prevent="enterVehiculo()"
-                    placeholder="Patente o número interno"
+                    placeholder="Ingresá la patente o el número interno del camión"
                     autocomplete="off"
-                    class="w-full text-[15px] px-3.5 py-3 rounded-md border border-border bg-background text-foreground outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/50"
-                />
+                    x-bind:class="vehiculo ? 'bg-success-subtle text-success-subtle-foreground font-semibold border-success/50!' : ''"
+                >
+                    <x-slot:leading>
+                        <x-lucide-search x-show="!vehiculo" class="size-4.5" />
+                        <x-lucide-circle-check x-show="vehiculo" x-cloak class="size-4.5 text-success" />
+                    </x-slot:leading>
+                </x-ui.input>
 
                 <div
                     x-show="showSugg && matches.length > 0"
@@ -53,7 +51,7 @@
                 >
                     <template x-for="v in matches" :key="v.id">
                         <div
-                            class="px-3.5 py-2.5 cursor-pointer text-sm flex flex-col gap-0.5 hover:bg-success-subtle transition-colors"
+                            class="px-4 py-4 cursor-pointer text-base flex flex-col gap-1 hover:bg-success-subtle transition-colors"
                             @mousedown.prevent="seleccionar(v)"
                         >
                             <div>
@@ -68,19 +66,19 @@
                 </div>
             </div>
 
-            {{-- Badges vehículo --}}
+            {{-- Info vehículo seleccionado --}}
             <div x-show="vehiculo" x-cloak class="flex flex-wrap gap-2 mt-3">
-                <span class="inline-flex items-baseline gap-1.5 bg-muted border border-border rounded-md px-2.5 py-1.5 text-xs text-muted-foreground">
-                    Tara: <b class="text-foreground font-semibold tabular-nums" x-text="vehiculo ? fmtKg(vehiculo.tara) : ''"></b>
+                <span class="inline-flex items-baseline gap-1.5 bg-success-subtle border border-success/20 rounded-full px-3.5 py-1.5 text-sm text-success-subtle-foreground">
+                    Tara: <b class="font-bold tabular-nums" x-text="vehiculo ? fmtKg(vehiculo.tara) : ''"></b>
                 </span>
-                <span class="inline-flex items-baseline gap-1.5 bg-muted border border-border rounded-md px-2.5 py-1.5 text-xs text-muted-foreground">
-                    Tipo: <b class="text-foreground font-semibold" x-text="vehiculo?.tipo"></b>
+                <span class="inline-flex items-baseline gap-1.5 bg-success-subtle border border-success/20 rounded-full px-3.5 py-1.5 text-sm text-success-subtle-foreground">
+                    Tipo: <b class="font-bold" x-text="vehiculo?.tipo"></b>
                 </span>
-                <span class="inline-flex items-baseline gap-1.5 bg-muted border border-border rounded-md px-2.5 py-1.5 text-xs text-muted-foreground">
-                    Titular: <b class="text-foreground font-semibold" x-text="vehiculo?.titular"></b>
+                <span class="inline-flex items-baseline gap-1.5 bg-success-subtle border border-success/20 rounded-full px-3.5 py-1.5 text-sm text-success-subtle-foreground">
+                    Titular: <b class="font-bold" x-text="vehiculo?.titular"></b>
                 </span>
-                <span class="inline-flex items-baseline gap-1.5 bg-muted border border-border rounded-md px-2.5 py-1.5 text-xs text-muted-foreground">
-                    Interno: <b class="text-foreground font-semibold" x-text="vehiculo?.interno"></b>
+                <span class="inline-flex items-baseline gap-1.5 bg-success-subtle border border-success/20 rounded-full px-3.5 py-1.5 text-sm text-success-subtle-foreground">
+                    Interno: <b class="font-bold" x-text="vehiculo?.interno"></b>
                 </span>
             </div>
 
@@ -89,13 +87,13 @@
         {{-- ── Paso 2 — Servicio + Origen + Turno ── --}}
         <x-domain.balanza.paso numero="2" titulo="Tipo de servicio y origen" completo="servicioCompleto" inactivo="!vehiculo">
 
-            <div class="flex flex-col gap-3">
+            <div class="flex flex-col gap-5">
                 {{-- Select servicio --}}
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-xs font-medium text-muted-foreground tracking-wide uppercase">Tipo de servicio</label>
+                <div class="flex flex-col gap-2.5">
+                    <x-ui.label>Tipo de servicio</x-ui.label>
                     {{-- wrapper con x-ref en scope de balanza (sin x-data propio) --}}
                     <div x-ref="wrapServicio" @select-change.stop="onSelectServicio($event.detail)">
-                        <x-ui.select>
+                        <x-ui.select size="lg">
                             <x-ui.select.trigger>
                                 <x-ui.select.value placeholder="Seleccionar servicio…" />
                             </x-ui.select.trigger>
@@ -109,11 +107,11 @@
                 </div>
 
                 {{-- Select origen --}}
-                <div x-show="servicioId" x-cloak class="flex flex-col gap-1.5">
-                    <label class="text-xs font-medium text-muted-foreground tracking-wide uppercase">Origen</label>
+                <div x-show="servicioId" x-cloak class="flex flex-col gap-2.5">
+                    <x-ui.label>Origen</x-ui.label>
                     {{-- wrapper con x-ref en scope de balanza (sin x-data propio) --}}
                     <div x-ref="wrapOrigen" @select-change.stop="onZonaChange($event.detail)">
-                        <x-ui.select>
+                        <x-ui.select size="lg">
                             <x-ui.select.trigger>
                                 <x-ui.select.value placeholder="Seleccionar origen…" />
                             </x-ui.select.trigger>
@@ -126,7 +124,7 @@
                                         @click="select(String(z.id))"
                                         @mouseenter="focusIdx = items.findIndex(o => String(o.value) === String(z.id))"
                                         :class="{ 'bg-accent text-accent-foreground': focusIdx === items.findIndex(o => String(o.value) === String(z.id)) }"
-                                        class="relative flex items-center select-none outline-none rounded-sm pl-8 pr-2 py-1.5 text-sm hover:bg-primary/10 cursor-pointer"
+                                        class="relative flex items-center select-none outline-none rounded-md pl-8 pr-2 py-2.5 text-base hover:bg-primary/10 cursor-pointer"
                                     >
                                         <span class="absolute left-2 flex items-center justify-center size-4" x-show="String(value) === String(z.id)" aria-hidden="true">
                                             <x-lucide-check class="size-3.5" stroke-width="2.5" />
@@ -140,13 +138,11 @@
                 </div>
 
                 {{-- Select turno --}}
-                <div x-show="turnosDisponibles.length > 0" x-cloak class="flex flex-col gap-1.5">
-                    <label class="text-xs font-medium text-muted-foreground tracking-wide uppercase">
-                        Turno <span class="normal-case font-normal text-muted-foreground ml-1">— requerido para este servicio.</span>
-                    </label>
+                <div x-show="turnosDisponibles.length > 0" x-cloak class="flex flex-col gap-2.5">
+                    <x-ui.label>Turno <span class="font-normal text-muted-foreground ml-1">— requerido para este servicio.</span></x-ui.label>
                     {{-- wrapper con x-ref en scope de balanza (sin x-data propio) --}}
                     <div x-ref="wrapTurno" @select-change.stop="turno = $event.detail.value">
-                        <x-ui.select>
+                        <x-ui.select size="lg">
                             <x-ui.select.trigger>
                                 <x-ui.select.value placeholder="Seleccionar turno…" />
                             </x-ui.select.trigger>
@@ -159,7 +155,7 @@
                                         @click="select(t)"
                                         @mouseenter="focusIdx = items.findIndex(o => o.value === t)"
                                         :class="{ 'bg-accent text-accent-foreground': focusIdx === items.findIndex(o => o.value === t) }"
-                                        class="relative flex items-center select-none outline-none rounded-sm pl-8 pr-2 py-1.5 text-sm hover:bg-primary/10 cursor-pointer"
+                                        class="relative flex items-center select-none outline-none rounded-md pl-8 pr-2 py-2.5 text-base hover:bg-primary/10 cursor-pointer"
                                     >
                                         <span class="absolute left-2 flex items-center justify-center size-4" x-show="value === t" aria-hidden="true">
                                             <x-lucide-check class="size-3.5" stroke-width="2.5" />
@@ -320,33 +316,20 @@
 
 {{-- ── Barra de acción (teleportada fuera del scroll container) ── --}}
 <template x-teleport="#layout-action-bar">
-    <div class="bg-card border-t border-border px-4 sm:px-6 py-3 flex items-center gap-3">
-        <button
-            type="button"
-            @click="limpiar()"
-            class="inline-flex items-center gap-2 px-3 sm:px-4 h-9 rounded-md border border-border bg-background text-sm font-semibold text-foreground hover:bg-muted transition-colors"
-        >
+    <div class="bg-card border-t border-border px-4 sm:px-6 py-2 flex items-center gap-3">
+        <x-ui.button variant="outline" size="lg" @click="limpiar()">
             <x-lucide-rotate-ccw class="size-4" />
-            <span class="hidden sm:inline">Limpiar</span>
-            <x-domain.balanza.kbd class="opacity-60 hidden sm:inline-block">Esc</x-domain.balanza.kbd>
-        </button>
+            Limpiar
+        </x-ui.button>
 
         <div class="flex-1"></div>
 
-        <span class="hidden sm:block text-sm text-muted-foreground" x-text="hintContextual"></span>
+        <span class="text-sm font-medium text-muted-foreground" x-text="hintContextual"></span>
 
-        <button
-            type="button"
-            @click="guardar()"
-            :disabled="!canSave"
-            class="inline-flex items-center gap-2 px-4 sm:px-5 h-10 sm:h-11 rounded-md bg-primary text-primary-foreground text-sm font-bold uppercase tracking-widest hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-        >
+        <x-ui.button size="lg" class="uppercase tracking-widest font-bold" @click="guardar()" x-bind:disabled="!canSave">
             <x-lucide-save class="size-4" />
-            Guardar<span class="hidden sm:inline"> pesaje</span>
-            <span class="hidden sm:flex items-center gap-0.5 ml-1 opacity-80 text-[10px] font-normal">
-                <x-domain.balanza.kbd inverted>Ctrl</x-domain.balanza.kbd>+<x-domain.balanza.kbd inverted>S</x-domain.balanza.kbd>
-            </span>
-        </button>
+            Guardar pesaje
+        </x-ui.button>
     </div>
 </template>
 
@@ -360,3 +343,4 @@
 @endif
 
 </x-layouts.app>
+

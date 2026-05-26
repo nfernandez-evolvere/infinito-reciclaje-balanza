@@ -36,7 +36,7 @@ export default function historial() {
             this.logCargando = true;
             this.modalLog = true;
 
-            const res = await fetch(`/api/pesajes/${id}/log`);
+            const res = await fetch(`/pesajes/${id}/log`);
             const data = await res.json();
             this.logEntradas = data;
             this.logCargando = false;

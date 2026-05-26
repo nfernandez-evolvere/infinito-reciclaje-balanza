@@ -74,7 +74,7 @@
                             </div>
                             <div>
                                 <p class="text-sm font-semibold">Buscá el vehículo</p>
-                                <p class="text-xs text-muted-foreground mt-0.5">Ingresá la patente o el número interno. Seleccioná con <kbd class="kbd">↵</kbd> y la tara se completa sola.</p>
+                                <p class="text-xs text-muted-foreground mt-0.5">Ingresá la patente o el número interno. Hacé clic en el resultado y la tara se completa sola.</p>
                             </div>
                         </div>
                         {{-- Paso 2 --}}
@@ -99,15 +99,6 @@
                         </div>
                     </div>
 
-                    {{-- Atajos --}}
-                    <div class="rounded-lg bg-muted/50 p-3">
-                        <p class="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-widest">Atajos de teclado</p>
-                        <div class="flex flex-wrap gap-x-5 gap-y-1.5 text-xs">
-                            <span class="flex items-center gap-1.5"><kbd class="kbd">↵</kbd> siguiente campo / confirmar</span>
-                            <span class="flex items-center gap-1.5"><kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">S</kbd> guardar pesaje</span>
-                            <span class="flex items-center gap-1.5"><kbd class="kbd">Esc</kbd> limpiar formulario</span>
-                        </div>
-                    </div>
                 </div>
 
                 {{-- Footer --}}
@@ -118,17 +109,3 @@
         </div>
     </template>
 </div>
-
-<style>
-.kbd {
-    display: inline-flex;
-    align-items: center;
-    border-radius: 4px;
-    border: 1px solid hsl(var(--border));
-    background: hsl(var(--muted));
-    padding: 0 5px;
-    font-size: 11px;
-    font-family: var(--font-mono);
-    line-height: 18px;
-}
-</style>

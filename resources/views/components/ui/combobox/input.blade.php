@@ -20,7 +20,7 @@
     @click="open ? _close() : _open()"
     @if($disabled) disabled @endif
     :disabled="disabled"
-    {{ $attributes->twMerge('w-full flex items-center justify-between whitespace-nowrap rounded-md border bg-background text-foreground shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50') }}
+    {{ $attributes->twMerge('w-full flex items-center justify-between whitespace-nowrap rounded-full border bg-background text-foreground shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50') }}
     :class="_inputCls() + (readOnly ? ' cursor-default' : ' cursor-pointer')"
 >
     <span

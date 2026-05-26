@@ -1,5 +1,6 @@
+@aware(['size' => 'md'])
 @props([
-    'size'     => 'md',   // sm | md | lg
+    'size'     => $size,  // sm | md | lg — hereda del x-ui.select padre
     'state'    => null,   // null | destructive | success | warning | info
     'disabled' => false,
 ])
@@ -35,7 +36,7 @@ $chevronSize = match($size) {
     @click="toggle()"
     @if($disabled) disabled @endif
     {{ $attributes->twMerge(
-        'w-full flex items-center justify-between whitespace-nowrap rounded-md border bg-background text-foreground shadow-xs transition-colors',
+        'w-full flex items-center justify-between whitespace-nowrap rounded-full border bg-background text-foreground shadow-xs transition-colors',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
         'disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer',
         $sizeClass,

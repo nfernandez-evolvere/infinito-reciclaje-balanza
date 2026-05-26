@@ -38,7 +38,7 @@
             @if ($bare)
                 {{ $slot }}
             @else
-                <x-ui.card>
+                <x-ui.card variant="elevated">
                     <x-ui.card.header class="text-center">
                         <x-ui.card.title>{{ $cardTitle }}</x-ui.card.title>
                         @if ($cardDescription)

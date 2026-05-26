@@ -9,7 +9,7 @@ $hasLeading  = isset($leading)  && $leading->isNotEmpty();
 $hasTrailing = isset($trailing) && $trailing->isNotEmpty();
 $hasIcons    = $hasLeading || $hasTrailing;
 
-$base = 'flex w-full rounded-md border bg-background text-foreground shadow-xs transition-colors file:border-0 file:bg-transparent file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
+$base = 'flex w-full rounded-full border bg-background text-foreground shadow-xs transition-colors file:border-0 file:bg-transparent file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
 
 // Padding se ajusta cuando hay íconos para no solapar el contenido
 $sizeClass = match($size) {

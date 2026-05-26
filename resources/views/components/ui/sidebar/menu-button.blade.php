@@ -20,7 +20,7 @@ $variantClass = match($variant) {
 
 $activeClass = $active ? 'bg-sidebar-accent font-medium text-sidebar-accent-foreground' : '';
 
-$base = 'peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 outline-none transition-[width,height,padding] ring-sidebar-ring focus-visible:ring-2 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 disabled:pointer-events-none disabled:opacity-50';
+$base = 'peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-full p-2 outline-none transition-[width,height,padding] ring-sidebar-ring focus-visible:ring-2 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 disabled:pointer-events-none disabled:opacity-50';
 
 @endphp
 

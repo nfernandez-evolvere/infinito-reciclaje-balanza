@@ -32,7 +32,7 @@
                 </form>
             @endforeach
 
-            <x-ui.card :collapsible="true" :startOpen="false">
+            <x-ui.card variant="elevated" :collapsible="true" :startOpen="false">
 
                 <x-ui.card.header class="pb-3">
                     <div class="flex items-start justify-between gap-2 sm:gap-4">

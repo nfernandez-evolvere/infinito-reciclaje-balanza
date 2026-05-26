@@ -5,7 +5,7 @@
     </x-ui.button>
 </div>
 
-<x-ui.card>
+<x-ui.card variant="elevated">
     <x-ui.table>
         <x-ui.table.header>
             <x-ui.table.row>

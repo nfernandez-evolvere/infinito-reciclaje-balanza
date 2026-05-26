@@ -68,7 +68,7 @@ class ServicioZonasTest extends TestCase
         $this->vincular($zona, $servicio, ['Diurna', 'Nocturna']);
 
         $this->actingAs($this->usuario())
-            ->getJson(route('api.servicios.zonas', $servicio))
+            ->getJson(route('servicios.zonas', $servicio))
             ->assertOk()
             ->assertJsonPath('zonas.0.turnos', ['Diurna', 'Nocturna']);
     }
@@ -81,7 +81,7 @@ class ServicioZonasTest extends TestCase
         $this->vincular($zona, $servicio, []);
 
         $this->actingAs($this->usuario())
-            ->getJson(route('api.servicios.zonas', $servicio))
+            ->getJson(route('servicios.zonas', $servicio))
             ->assertOk()
             ->assertJsonPath('zonas.0.turnos', []);
     }
@@ -97,7 +97,7 @@ class ServicioZonasTest extends TestCase
         $this->vincular($zona, $servicio2, ['Nocturna']);
 
         $this->actingAs($this->usuario())
-            ->getJson(route('api.servicios.zonas', $servicio1))
+            ->getJson(route('servicios.zonas', $servicio1))
             ->assertOk()
             ->assertJsonPath('zonas.0.turnos', ['Diurna']);
     }
@@ -115,7 +115,7 @@ class ServicioZonasTest extends TestCase
         $this->vincular($industrial, $servicio, []);
 
         $response = $this->actingAs($this->usuario())
-            ->getJson(route('api.servicios.zonas', $servicio))
+            ->getJson(route('servicios.zonas', $servicio))
             ->assertOk()
             ->assertJsonCount(3, 'zonas');
 
@@ -138,7 +138,7 @@ class ServicioZonasTest extends TestCase
         $this->vincular($zonaInactiva, $servicio, ['Nocturna']);
 
         $this->actingAs($this->usuario())
-            ->getJson(route('api.servicios.zonas', $servicio))
+            ->getJson(route('servicios.zonas', $servicio))
             ->assertOk()
             ->assertJsonCount(1, 'zonas')
             ->assertJsonPath('zonas.0.nombre', 'Activa');
@@ -154,7 +154,7 @@ class ServicioZonasTest extends TestCase
         $this->vincular($this->zona('Del servicio 2'), $servicio2);
 
         $this->actingAs($this->usuario())
-            ->getJson(route('api.servicios.zonas', $servicio1))
+            ->getJson(route('servicios.zonas', $servicio1))
             ->assertOk()
             ->assertJsonCount(1, 'zonas')
             ->assertJsonPath('zonas.0.nombre', 'Del servicio 1');
@@ -169,7 +169,7 @@ class ServicioZonasTest extends TestCase
         $this->vincular($this->zona('Zona A'), $servicio, ['Diurna']);
 
         $this->actingAs($this->usuario())
-            ->getJson(route('api.servicios.zonas', $servicio))
+            ->getJson(route('servicios.zonas', $servicio))
             ->assertOk()
             ->assertJsonStructure([
                 'tipo_vehiculo_sugerido',
@@ -184,7 +184,7 @@ class ServicioZonasTest extends TestCase
         $servicio = $this->servicio(['tipo_vehiculo_sugerido_id' => $tv->id]);
 
         $this->actingAs($this->usuario())
-            ->getJson(route('api.servicios.zonas', $servicio))
+            ->getJson(route('servicios.zonas', $servicio))
             ->assertOk()
             ->assertJsonPath('tipo_vehiculo_sugerido', 'Compactador');
     }
@@ -195,7 +195,7 @@ class ServicioZonasTest extends TestCase
         $servicio = $this->servicio(['tipo_vehiculo_sugerido_id' => null]);
 
         $this->actingAs($this->usuario())
-            ->getJson(route('api.servicios.zonas', $servicio))
+            ->getJson(route('servicios.zonas', $servicio))
             ->assertOk()
             ->assertJsonPath('tipo_vehiculo_sugerido', null);
     }
@@ -207,7 +207,7 @@ class ServicioZonasTest extends TestCase
     {
         $servicio = $this->servicio();
 
-        $this->getJson(route('api.servicios.zonas', $servicio))
+        $this->getJson(route('servicios.zonas', $servicio))
             ->assertUnauthorized();
     }
 }

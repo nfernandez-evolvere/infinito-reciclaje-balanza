@@ -2,18 +2,22 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToOrganizacion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Pesaje extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToOrganizacion;
 
     protected $table = 'pesajes';
 
     protected $fillable = [
+        'uuid',
+        'organizacion_id',
         'vehiculo_id',
         'operador_id',
         'tipo_servicio_id',
@@ -29,6 +33,18 @@ class Pesaje extends Model
         'bruto_salida_kg',
         'editado',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $pesaje) {
+            $pesaje->uuid ??= (string) Str::uuid();
+        });
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'uuid';
+    }
 
     protected $casts = [
         'alerta_peso'   => 'boolean',

@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Operador;
 
 use App\Http\Controllers\Controller;
+use App\Models\Pesaje;
 use App\Repositories\PesajeLogRepository;
 use Illuminate\Http\JsonResponse;
 
@@ -10,9 +11,9 @@ class PesajeLogController extends Controller
 {
     public function __construct(protected PesajeLogRepository $logRepository) {}
 
-    public function __invoke(int $pesajeId): JsonResponse
+    public function __invoke(Pesaje $pesaje): JsonResponse
     {
-        $entradas = $this->logRepository->porPesaje($pesajeId);
+        $entradas = $this->logRepository->porPesaje($pesaje->id);
 
         return response()->json(
             $entradas->map(fn ($e) => [
