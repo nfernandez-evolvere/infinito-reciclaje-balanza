@@ -6,7 +6,7 @@
 ])
 
 @php
-$base = 'inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-full font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0';
+$base = 'inline-flex cursor-pointer items-center justify-center gap-1 whitespace-nowrap rounded-full font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0';
 
 $sizeClass = match($size) {
     'sm'   => 'h-8 px-3 text-[13px] gap-1.5 [&_svg]:size-3.5',
@@ -47,7 +47,7 @@ $colorClass = $state
     : match($variant) {
         'secondary' => 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
         'outline'   => 'border border-input bg-background hover:bg-primary hover:text-primary-foreground',
-        'ghost'     => 'hover:bg-primary/10 hover:text-primary',
+        'ghost'     => 'bg-primary/10 text-primary hover:bg-primary/20',
         'link'      => 'text-primary underline-offset-4 hover:underline p-0 h-auto',
         default     => 'bg-primary text-primary-foreground hover:bg-primary/90',
     };

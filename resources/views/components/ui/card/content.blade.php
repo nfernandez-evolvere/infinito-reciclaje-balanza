@@ -1,3 +1,3 @@
-<div {{ $attributes->twMerge('p-6 pt-0') }}>
+<div>
     {{ $slot }}
 </div>

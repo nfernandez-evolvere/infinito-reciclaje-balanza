@@ -27,131 +27,118 @@
 
     {{-- KPIs --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <x-ui.card variant="elevated">
-            <x-ui.card.content class="pt-6">
-                <div class="text-overline mb-1">Pesajes</div>
-                <div class="text-3xl font-bold font-mono tabular-nums">{{ $kpis['total'] }}</div>
-            </x-ui.card.content>
-        </x-ui.card>
-        <x-ui.card variant="elevated">
-            <x-ui.card.content class="pt-6">
-                <div class="text-overline mb-1">Toneladas netas</div>
-                <div class="text-3xl font-bold font-mono tabular-nums">{{ number_format($kpis['toneladas_netas'], 1, ',', '.') }} t</div>
-            </x-ui.card.content>
-        </x-ui.card>
-        <x-ui.card variant="elevated">
-            <x-ui.card.content class="pt-6">
-                <div class="text-overline mb-1">Promedio neto</div>
-                <div class="text-3xl font-bold font-mono tabular-nums">{{ number_format($kpis['promedio_kg'], 0, ',', '.') }} kg</div>
-            </x-ui.card.content>
-        </x-ui.card>
-        <x-ui.card variant="elevated">
-            <x-ui.card.content class="pt-6">
-                <div class="text-overline mb-1">En predio</div>
-                <div class="text-3xl font-bold font-mono tabular-nums">{{ $kpis['en_predio'] }}</div>
-            </x-ui.card.content>
-        </x-ui.card>
+        <x-ui.kpi title="Pesajes" icon="scale" help="Total de pesajes registrados en el turno actual.">
+            {{ $kpis['total'] }}
+        </x-ui.kpi>
+        <x-ui.kpi title="Toneladas netas" icon="weight" help="Suma de pesos netos de todos los pesajes cerrados en el turno.">
+            {{ number_format($kpis['toneladas_netas'], 1, ',', '.') }} t
+        </x-ui.kpi>
+        <x-ui.kpi title="Promedio neto" icon="chart-bar" help="Peso neto promedio por pesaje en el turno actual.">
+            {{ number_format($kpis['promedio_kg'], 0, ',', '.') }} kg
+        </x-ui.kpi>
+        <x-ui.kpi title="En predio" icon="truck" help="Vehículos con entrada registrada que aún no tienen salida.">
+            {{ $kpis['en_predio'] }}
+        </x-ui.kpi>
     </div>
 
     {{-- Tabla --}}
-    <x-ui.card variant="elevated">
-        <x-ui.card.content class="p-6">
-            @if($pesajes->isEmpty())
+
+    @if($pesajes->isEmpty())
+        <x-ui.card variant="elevated">
+            <x-ui.card.content class="p-6">
                 <div class="flex flex-col items-center justify-center py-16 gap-2 text-muted-foreground">
                     <x-lucide-scale class="size-8 opacity-30" />
                     <p class="text-sm">Sin pesajes en este turno todavía.</p>
                 </div>
-            @else
-                <div>
-                    <x-ui.table>
-                        <x-ui.table.header>
-                            <x-ui.table.row>
-                                <x-ui.table.head>Entrada</x-ui.table.head>
-                                <x-ui.table.head>Salida</x-ui.table.head>
-                                <x-ui.table.head>Estado</x-ui.table.head>
-                                <x-ui.table.head>Patente</x-ui.table.head>
-                                <x-ui.table.head>Servicio</x-ui.table.head>
-                                <x-ui.table.head>Origen</x-ui.table.head>
-                                <x-ui.table.head>Bruto</x-ui.table.head>
-                                <x-ui.table.head>Tara</x-ui.table.head>
-                                <x-ui.table.head>Neto</x-ui.table.head>
-                                <x-ui.table.head>Acciones</x-ui.table.head>
-                            </x-ui.table.row>
-                        </x-ui.table.header>
-                        <x-ui.table.body>
-                            @foreach($pesajes as $pesaje)
-                            <x-ui.table.row class="{{ $pesaje->alerta_peso ? 'bg-warning/5' : '' }}">
-                                <x-ui.table.cell class="pl-6 font-mono text-xs tabular-nums">
-                                    {{ $pesaje->created_at->format('H:i') }}
-                                </x-ui.table.cell>
-                                <x-ui.table.cell class="font-mono text-xs tabular-nums text-muted-foreground">
-                                    {{ $pesaje->hora_salida?->format('H:i') ?? '—' }}
-                                </x-ui.table.cell>
-                                <x-ui.table.cell>
-                                    <div class="flex items-center gap-1.5">
-                                        @if($pesaje->estaEnPredio())
-                                            <x-ui.badge variant="default" class="text-xs">En predio</x-ui.badge>
-                                        @else
-                                            <x-ui.badge variant="secondary" class="text-xs">Cerrado</x-ui.badge>
-                                        @endif
-                                        @if($pesaje->editado)
-                                            <x-ui.badge variant="outline" class="text-xs">Editado</x-ui.badge>
-                                        @endif
-                                        @if($pesaje->alerta_peso)
-                                            <x-ui.badge variant="warning" class="text-xs">Alerta</x-ui.badge>
-                                        @endif
-                                    </div>
-                                </x-ui.table.cell>
-                                <x-ui.table.cell class="font-medium">{{ $pesaje->vehiculo->patente }}</x-ui.table.cell>
-                                <x-ui.table.cell class="text-sm">{{ $pesaje->tipoServicio->nombre }}</x-ui.table.cell>
-                                <x-ui.table.cell class="text-sm text-muted-foreground">{{ $pesaje->zona->nombre }}</x-ui.table.cell>
-                                <x-ui.table.cell class="text-right font-mono text-xs tabular-nums">
-                                    {{ number_format($pesaje->peso_bruto_kg, 0, ',', '.') }} kg
-                                </x-ui.table.cell>
-                                <x-ui.table.cell class="text-right font-mono text-xs tabular-nums text-muted-foreground">
-                                    {{ number_format($pesaje->peso_tara_kg, 0, ',', '.') }} kg
-                                </x-ui.table.cell>
-                                <x-ui.table.cell class="text-right font-mono text-xs tabular-nums font-semibold">
-                                    {{ number_format($pesaje->peso_neto_kg, 0, ',', '.') }} kg
-                                </x-ui.table.cell>
-                                <x-ui.table.cell class="pr-6 text-right">
-                                    <div class="flex items-center justify-end gap-1">
-                                        @if($pesaje->editado)
-                                            <x-ui.tooltip content="Ver historial de cambios" side="left">
-                                                <x-ui.button variant="ghost" size="icon" class="size-7"
-                                                    @click="abrirLog('{{ $pesaje->uuid }}', '{{ addslashes($pesaje->vehiculo->patente) }}')">
-                                                    <x-lucide-history class="size-3.5" />
-                                                </x-ui.button>
-                                            </x-ui.tooltip>
-                                        @endif
-                                        <x-ui.tooltip content="Editar pesaje" side="left">
-                                            <x-ui.button variant="ghost" size="icon" class="size-7"
-                                                @click="abrirEdicion('{{ $pesaje->uuid }}', {
-                                                    patente: '{{ addslashes($pesaje->vehiculo->patente) }}',
-                                                    peso_bruto_kg: {{ $pesaje->peso_bruto_kg }},
-                                                    observaciones: '{{ addslashes($pesaje->observaciones ?? '') }}'
-                                                })">
-                                                <x-lucide-pencil class="size-3.5" />
-                                            </x-ui.button>
-                                        </x-ui.tooltip>
-                                        @if($pesaje->estaEnPredio())
-                                            <x-ui.tooltip content="Marcar egreso" side="left">
-                                                <x-ui.button variant="ghost" size="icon" class="size-7"
-                                                    @click="abrirEgreso('{{ $pesaje->uuid }}', '{{ addslashes($pesaje->vehiculo->patente) }}')">
-                                                    <x-lucide-log-out class="size-3.5" />
-                                                </x-ui.button>
-                                            </x-ui.tooltip>
-                                        @endif
-                                    </div>
-                                </x-ui.table.cell>
-                            </x-ui.table.row>
-                            @endforeach
-                        </x-ui.table.body>
-                    </x-ui.table>
-                </div>
-            @endif
-        </x-ui.card.content>
-    </x-ui.card>
+            </x-ui.card.content>
+        </x-ui.card>
+    @else
+        <x-ui.table class="bg-card">
+            <x-ui.table.header>
+                <x-ui.table.row>
+                    <x-ui.table.head>Entrada</x-ui.table.head>
+                    <x-ui.table.head>Salida</x-ui.table.head>
+                    <x-ui.table.head>Estado</x-ui.table.head>
+                    <x-ui.table.head>Patente</x-ui.table.head>
+                    <x-ui.table.head>Servicio</x-ui.table.head>
+                    <x-ui.table.head>Origen</x-ui.table.head>
+                    <x-ui.table.head>Bruto</x-ui.table.head>
+                    <x-ui.table.head>Tara</x-ui.table.head>
+                    <x-ui.table.head>Neto</x-ui.table.head>
+                    <x-ui.table.head>Acciones</x-ui.table.head>
+                </x-ui.table.row>
+            </x-ui.table.header>
+            <x-ui.table.body>
+                @foreach($pesajes as $pesaje)
+                <x-ui.table.row class="{{ $pesaje->alerta_peso ? 'bg-warning/5' : '' }}">
+                    <x-ui.table.cell class="pl-6 font-mono text-xs tabular-nums">
+                        {{ $pesaje->created_at->format('H:i') }}
+                    </x-ui.table.cell>
+                    <x-ui.table.cell class="font-mono text-xs tabular-nums text-muted-foreground">
+                        {{ $pesaje->hora_salida?->format('H:i') ?? '—' }}
+                    </x-ui.table.cell>
+                    <x-ui.table.cell>
+                        <div class="flex items-center gap-1.5">
+                            @if($pesaje->estaEnPredio())
+                                <x-ui.badge variant="default" class="text-xs">En predio</x-ui.badge>
+                            @else
+                                <x-ui.badge variant="secondary" class="text-xs">Cerrado</x-ui.badge>
+                            @endif
+                            @if($pesaje->editado)
+                                <x-ui.badge variant="outline" class="text-xs">Editado</x-ui.badge>
+                            @endif
+                            @if($pesaje->alerta_peso)
+                                <x-ui.badge variant="warning" class="text-xs">Alerta</x-ui.badge>
+                            @endif
+                        </div>
+                    </x-ui.table.cell>
+                    <x-ui.table.cell class="font-medium">{{ $pesaje->vehiculo->patente }}</x-ui.table.cell>
+                    <x-ui.table.cell class="text-sm">{{ $pesaje->tipoServicio->nombre }}</x-ui.table.cell>
+                    <x-ui.table.cell class="text-sm text-muted-foreground">{{ $pesaje->zona->nombre }}</x-ui.table.cell>
+                    <x-ui.table.cell class="text-right font-mono text-xs tabular-nums">
+                        {{ number_format($pesaje->peso_bruto_kg, 0, ',', '.') }} kg
+                    </x-ui.table.cell>
+                    <x-ui.table.cell class="text-right font-mono text-xs tabular-nums text-muted-foreground">
+                        {{ number_format($pesaje->peso_tara_kg, 0, ',', '.') }} kg
+                    </x-ui.table.cell>
+                    <x-ui.table.cell class="text-right font-mono text-xs tabular-nums font-semibold">
+                        {{ number_format($pesaje->peso_neto_kg, 0, ',', '.') }} kg
+                    </x-ui.table.cell>
+                    <x-ui.table.cell class="pr-6 text-right">
+                        <div class="flex items-center justify-end gap-1">
+                            @if($pesaje->editado)
+                                <x-ui.tooltip content="Ver historial de cambios" side="left">
+                                    <x-ui.button variant="ghost" size="icon" class="size-7"
+                                        @click="abrirLog('{{ $pesaje->uuid }}', '{{ addslashes($pesaje->vehiculo->patente) }}')">
+                                        <x-lucide-history class="size-3.5" />
+                                    </x-ui.button>
+                                </x-ui.tooltip>
+                            @endif
+                            <x-ui.tooltip content="Editar pesaje" side="left">
+                                <x-ui.button variant="ghost" size="icon" class="size-7"
+                                    @click="abrirEdicion('{{ $pesaje->uuid }}', {
+                                        patente: '{{ addslashes($pesaje->vehiculo->patente) }}',
+                                        peso_bruto_kg: {{ $pesaje->peso_bruto_kg }},
+                                        observaciones: '{{ addslashes($pesaje->observaciones ?? '') }}'
+                                    })">
+                                    <x-lucide-pencil class="size-3.5" />
+                                </x-ui.button>
+                            </x-ui.tooltip>
+                            @if($pesaje->estaEnPredio())
+                                <x-ui.tooltip content="Marcar egreso" side="left">
+                                    <x-ui.button variant="ghost" size="icon" class="size-7"
+                                        @click="abrirEgreso('{{ $pesaje->uuid }}', '{{ addslashes($pesaje->vehiculo->patente) }}')">
+                                        <x-lucide-log-out class="size-3.5" />
+                                    </x-ui.button>
+                                </x-ui.tooltip>
+                            @endif
+                        </div>
+                    </x-ui.table.cell>
+                </x-ui.table.row>
+                @endforeach
+            </x-ui.table.body>
+        </x-ui.table>
+    @endif
 
     {{-- Modal egreso (teleportado a body, comparte x-data del padre) --}}
     <template x-teleport="body">

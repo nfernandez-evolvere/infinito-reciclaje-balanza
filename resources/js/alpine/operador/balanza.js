@@ -15,6 +15,10 @@ export default function balanza() {
         bruto: '',
         brutoN: 0,
         fechaHoraActual: '',
+        paso1Editando: false,
+        paso2Editando: false,
+        paso3Editando: false,
+        mobileResumenAbierto: false,
 
         get requiereTurno() { return this.turnosDisponibles.length > 0; },
         get neto() {
@@ -54,6 +58,31 @@ export default function balanza() {
             this.$nextTick(() => this.$refs.inputVehiculo?.focus());
             this.actualizarHora();
             setInterval(() => this.actualizarHora(), 30000);
+
+            // Solo para scroll automático y limpiar flags editando
+            this.$watch('vehiculo', (v) => {
+                if (v) {
+                    this.paso1Editando = false;
+                    this.$nextTick(() => this.scrollToPaso(2));
+                } else {
+                    this.paso1Editando = false;
+                    this.paso2Editando = false;
+                    this.paso3Editando = false;
+                }
+            });
+
+            this.$watch('servicioCompleto', (v) => {
+                if (v) {
+                    this.paso2Editando = false;
+                    this.$nextTick(() => this.scrollToPaso(3));
+                }
+            });
+        },
+        scrollToPaso(n) {
+            const el = document.getElementById(`paso-${n}`);
+            if (!el) return;
+            const top = el.getBoundingClientRect().top + window.scrollY - 96;
+            window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
         },
         actualizarHora() {
             const now = new Date();
@@ -123,6 +152,8 @@ export default function balanza() {
             this.servicioId = ''; this.servicioNombre = ''; this.tipoSugerido = '';
             this.zonasDisponibles = []; this.zonaId = ''; this.zonaNombre = '';
             this.turnosDisponibles = []; this.turno = ''; this.bruto = ''; this.brutoN = 0;
+            this.paso1Editando = false; this.paso2Editando = false; this.paso3Editando = false;
+            this.mobileResumenAbierto = false;
             this._selectEl('wrapServicio')?.dispatchEvent(new CustomEvent('select-sync', { detail: { value: '' } }));
             ['wrapOrigen', 'wrapTurno'].forEach(ref => {
                 this._selectEl(ref)?.dispatchEvent(new CustomEvent('select-sync', { detail: { value: '' } }));

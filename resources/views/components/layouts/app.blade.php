@@ -298,19 +298,18 @@
                     <x-ui.tooltip content="Ayuda" side="bottom">
                         <x-ui.button size="icon" variant="ghost"
                             aria-label="Ayuda"
-                            class="size-8 text-muted-foreground"
                             @click="$dispatch('abrir-onboarding')"
                         >
-                            <x-lucide-circle-help class="size-4" />
+                            <x-lucide-circle-help class="size-6" />
                         </x-ui.button>
                     </x-ui.tooltip>
                 @endif
 
                 <x-ui.tooltip content="Cambiar tema" side="bottom">
                     <x-ui.button size="icon" variant="ghost" @click="$store.theme.toggle()"
-                        aria-label="Cambiar tema" class="size-8 text-muted-foreground">
-                        <x-lucide-sun x-show="!$store.theme.dark" class="size-4" />
-                        <x-lucide-moon x-show="$store.theme.dark" x-cloak class="size-4" />
+                        aria-label="Cambiar tema">
+                        <x-lucide-sun x-show="!$store.theme.dark" />
+                        <x-lucide-moon x-show="$store.theme.dark" x-cloak />
                     </x-ui.button>
                 </x-ui.tooltip>
 
@@ -318,8 +317,8 @@
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <x-ui.button type="submit" size="icon" variant="ghost"
-                            aria-label="Cerrar sesión" class="size-8 text-muted-foreground">
-                            <x-lucide-log-out class="size-4" />
+                            aria-label="Cerrar sesión">
+                            <x-lucide-log-out />
                         </x-ui.button>
                     </form>
                 </x-ui.tooltip>
