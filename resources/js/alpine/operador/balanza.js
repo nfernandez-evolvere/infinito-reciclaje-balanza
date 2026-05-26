@@ -100,6 +100,7 @@ export default function balanza() {
             fetch(`/api/servicios/${value}/zonas`)
                 .then(r => r.json())
                 .then(data => {
+                    console.log('Zonas y tipo sugerido para servicio', value, data);
                     this.tipoSugerido     = data.tipo_vehiculo_sugerido ?? '';
                     this.zonasDisponibles = data.zonas ?? [];
                     this.$nextTick(() => this.$refs.wrapOrigen?.querySelector('button')?.focus());
