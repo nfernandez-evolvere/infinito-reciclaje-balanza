@@ -1,3 +1,5 @@
+@props(['filters'])
+
 <template x-teleport="body">
     <div
         x-show="filterOpen"
@@ -37,34 +39,33 @@
                 </x-ui.button>
             </div>
 
-            <form method="GET" action="{{ route('admin.tipos-servicio.index') }}"
+            <form method="GET" action="{{ route('admin.usuarios.index') }}"
                 class="flex flex-col flex-1 min-h-0">
 
-                <div class="flex-1 overflow-y-auto px-5 py-5 space-y-4">
+                <div class="flex-1 overflow-y-auto px-5 py-5 space-y-2">
 
-                    <x-ui.form-field for="filter-nombre">
-                        <x-ui.label for="filter-nombre">Nombre</x-ui.label>
+                    <x-ui.form-field for="filter-buscar">
+                        <x-ui.label for="filter-buscar">Nombre o correo</x-ui.label>
                         <x-ui.input
-                            id="filter-nombre"
-                            name="nombre"
+                            id="filter-buscar"
+                            name="buscar"
                             type="search"
-                            placeholder="Buscar por nombre…"
-                            :value="$filters['nombre'] ?? ''"
+                            placeholder="Buscar usuario…"
+                            :value="$filters['buscar'] ?? ''"
                             autofocus
                         />
                     </x-ui.form-field>
 
-                    <x-ui.form-field for="filter-tipo-vehiculo">
-                        <x-ui.label for="filter-tipo-vehiculo">Vehículo habitual</x-ui.label>
-                        <x-ui.select name="tipo_vehiculo_id" :value="$filters['tipo_vehiculo_id'] ?? ''">
-                            <x-ui.select.trigger id="filter-tipo-vehiculo">
+                    <x-ui.form-field for="filter-role">
+                        <x-ui.label for="filter-role">Rol</x-ui.label>
+                        <x-ui.select name="role" :value="$filters['role'] ?? ''">
+                            <x-ui.select.trigger id="filter-role">
                                 <x-ui.select.value placeholder="Todos" />
                             </x-ui.select.trigger>
                             <x-ui.select.content>
                                 <x-ui.select.item value="">Todos</x-ui.select.item>
-                                @foreach($tiposVehiculo as $tv)
-                                    <x-ui.select.item value="{{ $tv->id }}">{{ $tv->nombre }}</x-ui.select.item>
-                                @endforeach
+                                <x-ui.select.item value="operador">Operador</x-ui.select.item>
+                                <x-ui.select.item value="admin">Admin</x-ui.select.item>
                             </x-ui.select.content>
                         </x-ui.select>
                     </x-ui.form-field>
@@ -86,7 +87,7 @@
                 </div>
 
                 <div class="border-t border-border px-5 py-4 flex gap-2">
-                    <a href="{{ route('admin.tipos-servicio.index') }}" class="flex-1">
+                    <a href="{{ route('admin.usuarios.index') }}" class="flex-1">
                         <x-ui.button type="button" variant="secondary" class="w-full">
                             <x-lucide-x class="size-4" />
                             Limpiar

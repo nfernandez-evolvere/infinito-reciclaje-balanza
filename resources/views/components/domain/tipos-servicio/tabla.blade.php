@@ -1,48 +1,44 @@
+@props(['tipos', 'activeFilters'])
+
 <x-ui.card variant="elevated">
     <x-ui.table variant="flat">
         <x-ui.table.header>
             <x-ui.table.row>
-                <x-ui.table.head>Patente</x-ui.table.head>
-                <x-ui.table.head>N.° interno</x-ui.table.head>
-                <x-ui.table.head>Tipo</x-ui.table.head>
-                <x-ui.table.head>Tara</x-ui.table.head>
-                <x-ui.table.head>Titular</x-ui.table.head>
+                <x-ui.table.head>Nombre</x-ui.table.head>
+                <x-ui.table.head>Vehículos sugeridos</x-ui.table.head>
                 <x-ui.table.head>Estado</x-ui.table.head>
                 <x-ui.table.head class="w-16 text-right">Acciones</x-ui.table.head>
             </x-ui.table.row>
         </x-ui.table.header>
         <x-ui.table.body>
-            @forelse($vehiculos as $vehiculo)
+            @forelse($tipos as $tipo)
             <x-ui.table.row>
-                <x-ui.table.cell data-label="Patente" class="font-medium">
-                    {{ $vehiculo->patente }}
-                </x-ui.table.cell>
-                <x-ui.table.cell data-label="N.° interno" class="text-muted-foreground">
-                    {{ $vehiculo->numero_interno }}
-                </x-ui.table.cell>
-                <x-ui.table.cell data-label="Tipo">
-                    {{ $vehiculo->tipoVehiculo?->nombre ?? '—' }}
-                </x-ui.table.cell>
-                <x-ui.table.cell data-label="Tara">
-                    {{ number_format($vehiculo->tara_kg) }} kg
-                </x-ui.table.cell>
-                <x-ui.table.cell data-label="Titular" class="text-muted-foreground">
-                    {{ $vehiculo->titular }}
+                <x-ui.table.cell data-label="Nombre" class="font-medium">{{ $tipo->nombre }}</x-ui.table.cell>
+                <x-ui.table.cell data-label="Vehículos sugeridos">
+                    @if($tipo->tiposVehiculo->isEmpty())
+                        <span class="text-muted-foreground">—</span>
+                    @else
+                        <div class="flex flex-wrap gap-1">
+                            @foreach($tipo->tiposVehiculo as $tv)
+                                <x-ui.badge variant="secondary">{{ $tv->nombre }}</x-ui.badge>
+                            @endforeach
+                        </div>
+                    @endif
                 </x-ui.table.cell>
                 <x-ui.table.cell data-label="Estado">
-                    @if($vehiculo->activo)
+                    @if($tipo->activo)
                         <x-ui.badge variant="success">Activo</x-ui.badge>
                     @else
                         <x-ui.badge variant="secondary">Inactivo</x-ui.badge>
                     @endif
                 </x-ui.table.cell>
                 <x-ui.table.cell actions>
-                    <form id="toggle-{{ $vehiculo->id }}" method="POST"
-                        action="{{ route('admin.vehiculos.toggle', $vehiculo) }}" class="hidden">
+                    <form id="toggle-{{ $tipo->id }}" method="POST"
+                        action="{{ route('admin.tipos-servicio.toggle', $tipo) }}" class="hidden">
                         @csrf @method('PATCH')
                     </form>
-                    <form id="delete-{{ $vehiculo->id }}" method="POST"
-                        action="{{ route('admin.vehiculos.destroy', $vehiculo) }}" class="hidden">
+                    <form id="delete-{{ $tipo->id }}" method="POST"
+                        action="{{ route('admin.tipos-servicio.destroy', $tipo) }}" class="hidden">
                         @csrf @method('DELETE')
                     </form>
 
@@ -54,26 +50,17 @@
                         </x-ui.dropdown-menu.trigger>
                         <x-ui.dropdown-menu.content>
                             <x-ui.dropdown-menu.item
-                                @click="openEdit(
-                                    {{ $vehiculo->id }},
-                                    {{ Js::from($vehiculo->patente) }},
-                                    {{ Js::from($vehiculo->numero_interno) }},
-                                    {{ $vehiculo->tara_kg }},
-                                    {{ $vehiculo->tipo_vehiculo_id }},
-                                    {{ Js::from($vehiculo->titular) }},
-                                    {{ $vehiculo->capacidad_kg ?? 'null' }},
-                                    {{ Js::from($vehiculo->observaciones ?? '') }}
-                                )"
+                                @click="openEdit({{ $tipo->id }}, {{ Js::from($tipo->nombre) }}, {{ Js::from($tipo->tiposVehiculo->pluck('id')->toArray()) }})"
                             >
                                 <x-lucide-pencil class="size-4" />
                                 Editar
                             </x-ui.dropdown-menu.item>
                             <x-ui.dropdown-menu.item
-                                variant="{{ $vehiculo->activo ? 'destructive' : 'default' }}"
+                                variant="{{ $tipo->activo ? 'destructive' : 'default' }}"
                                 :closeOnClick="false"
-                                @click="confirmToggle({{ $vehiculo->id }}, {{ Js::from($vehiculo->patente) }}, {{ $vehiculo->activo ? 'true' : 'false' }}); open = false"
+                                @click="confirmToggle({{ $tipo->id }}, {{ Js::from($tipo->nombre) }}, {{ $tipo->activo ? 'true' : 'false' }}); open = false"
                             >
-                                @if($vehiculo->activo)
+                                @if($tipo->activo)
                                     <x-lucide-ban class="size-4" />
                                     Desactivar
                                 @else
@@ -85,7 +72,7 @@
                             <x-ui.dropdown-menu.item
                                 variant="destructive"
                                 :closeOnClick="false"
-                                @click="confirmDelete({{ $vehiculo->id }}, {{ Js::from($vehiculo->patente) }}); open = false"
+                                @click="confirmDelete({{ $tipo->id }}, {{ Js::from($tipo->nombre) }}); open = false"
                             >
                                 <x-lucide-trash-2 class="size-4" />
                                 Eliminar
@@ -97,29 +84,29 @@
 
             @empty
             <tr>
-                <td colspan="7">
+                <td colspan="4">
                     @if($activeFilters > 0)
                         <x-ui.empty-state
                             icon="filter-x"
                             title="Sin resultados"
-                            description="Ningún vehículo coincide con los filtros aplicados."
+                            description="Ningún tipo de servicio coincide con los filtros aplicados."
                             class="rounded-none border-0 bg-transparent"
                         >
-                            <x-ui.button href="{{ route('admin.vehiculos.index') }}">
+                            <x-ui.button href="{{ route('admin.tipos-servicio.index') }}">
                                 <x-lucide-x class="size-4" />
                                 Limpiar filtros
                             </x-ui.button>
                         </x-ui.empty-state>
                     @else
                         <x-ui.empty-state
-                            icon="truck"
-                            title="Todavía no hay vehículos"
-                            description="Creá el primero para que los operadores puedan seleccionarlo al registrar pesajes."
+                            icon="layers"
+                            title="Todavía no hay tipos de servicio"
+                            description="Creá el primero para que el sistema pueda clasificar los pesajes por tipo de operación."
                             class="rounded-none border-0 bg-transparent"
                         >
                             <x-ui.button size="sm" @click="openCreate()">
                                 <x-lucide-plus class="size-4" />
-                                Nuevo vehículo
+                                Nuevo tipo
                             </x-ui.button>
                         </x-ui.empty-state>
                     @endif
@@ -130,28 +117,28 @@
     </x-ui.table>
 </x-ui.card>
 
-@if($vehiculos->hasPages())
+@if($tipos->hasPages())
     <x-ui.pagination>
         <x-ui.pagination.content>
 
             <x-ui.pagination.item>
                 <x-ui.pagination.previous
-                    :href="$vehiculos->previousPageUrl()"
-                    :disabled="$vehiculos->onFirstPage()"
+                    :href="$tipos->previousPageUrl()"
+                    :disabled="$tipos->onFirstPage()"
                 />
             </x-ui.pagination.item>
 
             <x-ui.pagination.item class="sm:hidden">
                 <span class="px-2 text-sm text-muted-foreground tabular-nums">
-                    {{ $vehiculos->currentPage() }} / {{ $vehiculos->lastPage() }}
+                    {{ $tipos->currentPage() }} / {{ $tipos->lastPage() }}
                 </span>
             </x-ui.pagination.item>
 
-            @for($page = 1; $page <= $vehiculos->lastPage(); $page++)
-                @php $isActive = $page === $vehiculos->currentPage(); @endphp
+            @for($page = 1; $page <= $tipos->lastPage(); $page++)
+                @php $isActive = $page === $tipos->currentPage(); @endphp
                 <x-ui.pagination.item class="hidden sm:list-item">
                     <x-ui.pagination.link
-                        :href="$vehiculos->url($page)"
+                        :href="$tipos->url($page)"
                         :active="$isActive"
                     >
                         {{ $page }}
@@ -161,8 +148,8 @@
 
             <x-ui.pagination.item>
                 <x-ui.pagination.next
-                    :href="$vehiculos->nextPageUrl()"
-                    :disabled="!$vehiculos->hasMorePages()"
+                    :href="$tipos->nextPageUrl()"
+                    :disabled="!$tipos->hasMorePages()"
                 />
             </x-ui.pagination.item>
 

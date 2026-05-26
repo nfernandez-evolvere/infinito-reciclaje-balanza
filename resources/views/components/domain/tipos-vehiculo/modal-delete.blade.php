@@ -1,3 +1,5 @@
+@props([])
+
 <div x-data="{ get open() { return deleteOpen }, set open(v) { deleteOpen = v } }">
     <x-ui.dialog.content size="sm">
         <x-ui.dialog.header>

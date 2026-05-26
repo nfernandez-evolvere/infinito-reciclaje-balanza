@@ -1,3 +1,5 @@
+@props(['filters'])
+
 <template x-teleport="body">
     <div
         x-show="filterOpen"
@@ -37,36 +39,48 @@
                 </x-ui.button>
             </div>
 
-            <form method="GET" action="{{ route('admin.usuarios.index') }}"
+            <form method="GET" action="{{ route('admin.tipos-vehiculo.index') }}"
                 class="flex flex-col flex-1 min-h-0">
 
                 <div class="flex-1 overflow-y-auto px-5 py-5 space-y-2">
 
-                    <x-ui.form-field for="filter-buscar">
-                        <x-ui.label for="filter-buscar">Nombre o correo</x-ui.label>
+                    <x-ui.form-field for="filter-nombre">
+                        <x-ui.label for="filter-nombre">Tipo</x-ui.label>
                         <x-ui.input
-                            id="filter-buscar"
-                            name="buscar"
+                            id="filter-nombre"
+                            name="nombre"
                             type="search"
-                            placeholder="Buscar usuario…"
-                            :value="$filters['buscar'] ?? ''"
+                            placeholder="Buscar por tipo…"
+                            :value="$filters['nombre'] ?? ''"
                             autofocus
                         />
                     </x-ui.form-field>
 
-                    <x-ui.form-field for="filter-role">
-                        <x-ui.label for="filter-role">Rol</x-ui.label>
-                        <x-ui.select name="role" :value="$filters['role'] ?? ''">
-                            <x-ui.select.trigger id="filter-role">
-                                <x-ui.select.value placeholder="Todos" />
-                            </x-ui.select.trigger>
-                            <x-ui.select.content>
-                                <x-ui.select.item value="">Todos</x-ui.select.item>
-                                <x-ui.select.item value="operador">Operador</x-ui.select.item>
-                                <x-ui.select.item value="admin">Admin</x-ui.select.item>
-                            </x-ui.select.content>
-                        </x-ui.select>
-                    </x-ui.form-field>
+                    <div class="space-y-2">
+                        <x-ui.form-field for="filter-peso-min">
+                            <x-ui.label for="filter-peso-min">Bruto mínimo desde (kg)</x-ui.label>
+                            <x-ui.input
+                                id="filter-peso-min"
+                                name="peso_min"
+                                type="number"
+                                min="0"
+                                placeholder="0"
+                                :value="$filters['peso_min'] ?? ''"
+                            />
+                        </x-ui.form-field>
+
+                        <x-ui.form-field for="filter-peso-max">
+                            <x-ui.label for="filter-peso-max">Bruto máximo hasta (kg)</x-ui.label>
+                            <x-ui.input
+                                id="filter-peso-max"
+                                name="peso_max"
+                                type="number"
+                                min="0"
+                                placeholder="0"
+                                :value="$filters['peso_max'] ?? ''"
+                            />
+                        </x-ui.form-field>
+                    </div>
 
                     <x-ui.form-field for="filter-activo">
                         <x-ui.label for="filter-activo">Estado</x-ui.label>
@@ -85,7 +99,7 @@
                 </div>
 
                 <div class="border-t border-border px-5 py-4 flex gap-2">
-                    <a href="{{ route('admin.usuarios.index') }}" class="flex-1">
+                    <a href="{{ route('admin.tipos-vehiculo.index') }}" class="flex-1">
                         <x-ui.button type="button" variant="secondary" class="w-full">
                             <x-lucide-x class="size-4" />
                             Limpiar

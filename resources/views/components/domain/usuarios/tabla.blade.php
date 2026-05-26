@@ -1,3 +1,5 @@
+@props(['usuarios', 'activeFilters'])
+
 <x-ui.card variant="elevated">
     <x-ui.table variant="flat">
         <x-ui.table.header>

@@ -1,3 +1,5 @@
+@props([])
+
 <div x-data="{ get open() { return resetOpen }, set open(v) { resetOpen = v } }">
     <x-ui.dialog.content size="sm">
         <form

@@ -1,15 +1,17 @@
+@props([])
+
 <div x-data="{ get open() { return confirmOpen }, set open(v) { confirmOpen = v } }">
     <x-ui.dialog.content size="sm">
         <x-ui.dialog.header>
             <x-ui.dialog.title
-                x-text="confirmActivo ? 'Desactivar usuario' : 'Activar usuario'"
+                x-text="confirmActivo ? 'Desactivar tipo de vehículo' : 'Activar tipo de vehículo'"
             ></x-ui.dialog.title>
             <x-ui.dialog.description>
                 ¿Confirmás que querés
                 <span x-text="confirmActivo ? 'desactivar' : 'activar'"></span>
-                a <strong x-text="confirmNombre" class="text-foreground font-medium"></strong>?
+                el tipo <strong x-text="confirmNombre" class="text-foreground font-medium"></strong>?
                 <span x-show="confirmActivo" class="block mt-1">
-                    Este usuario no podrá iniciar sesión hasta que sea reactivado.
+                    Este tipo no estará disponible para nuevos pesajes.
                 </span>
             </x-ui.dialog.description>
         </x-ui.dialog.header>
@@ -33,7 +35,6 @@
             </x-ui.button>
             <x-ui.button
                 x-show="!confirmActivo"
-                x-cloak
                 state="success"
                 @click="executeToggle(); open = false"
             >

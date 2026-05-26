@@ -1,3 +1,5 @@
+@props(['tipos', 'activeFilters'])
+
 <x-ui.card variant="elevated">
     <x-ui.table variant="flat">
         <x-ui.table.header>
@@ -122,14 +124,12 @@
                 />
             </x-ui.pagination.item>
 
-            {{-- Mobile: indicador compacto --}}
             <x-ui.pagination.item class="sm:hidden">
                 <span class="px-2 text-sm text-muted-foreground tabular-nums">
                     {{ $tipos->currentPage() }} / {{ $tipos->lastPage() }}
                 </span>
             </x-ui.pagination.item>
 
-            {{-- Desktop: números de página --}}
             @for($page = 1; $page <= $tipos->lastPage(); $page++)
                 @php $isActive = $page === $tipos->currentPage(); @endphp
                 <x-ui.pagination.item class="hidden sm:list-item">

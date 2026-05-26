@@ -18,11 +18,9 @@ $variantClass = match($variant) {
     default   => 'hover:bg-muted/60 hover:text-foreground',
 };
 
-$activeClass = $active
-    ? 'font-medium text-primary [&>span:first-child]:bg-primary/15 [&>span:first-child]:text-primary'
-    : '';
+$activeClass = $active ? 'font-medium text-primary' : '';
 
-$base = 'peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-full p-2 outline-none transition-[width,height,padding,color,background-color] ring-sidebar-ring focus-visible:ring-2 [&>span:last-child]:truncate [&_svg]:size-4 [&_svg]:shrink-0 disabled:pointer-events-none disabled:opacity-50';
+$base = 'group peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-full p-1 outline-none transition-[width,height,padding,color,background-color] ring-sidebar-ring focus-visible:ring-2 [&>span:last-child]:truncate [&_svg]:size-6 [&_svg]:shrink-0 disabled:pointer-events-none disabled:opacity-50 hover:bg-primary/10 data-[active=true]:bg-primary/10 hover:text-primary';
 
 @endphp
 

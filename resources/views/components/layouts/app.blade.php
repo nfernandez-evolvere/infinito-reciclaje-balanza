@@ -83,7 +83,7 @@
                                         :active="request()->routeIs($item['route'])"
                                         :tooltip="$item['label']"
                                     >
-                                        <span class="inline-flex size-6 items-center justify-center rounded-md shrink-0 transition-colors">
+                                        <span class="{{ request()->routeIs($item['route']) ? 'bg-primary/20 text-primary' : '' }} inline-flex size-8 items-center justify-center rounded-full shrink-0 transition-colors group-hover:bg-primary/20 group-hover:text-primary">
                                             <x-dynamic-component :component="'lucide-' . $item['icon']" />
                                         </span>
                                         <span>{{ $item['label'] }}</span>
@@ -108,7 +108,7 @@
                                         :active="request()->routeIs($item['route'])"
                                         :tooltip="$item['label']"
                                     >
-                                        <span class="inline-flex size-6 items-center justify-center rounded-md shrink-0 transition-colors">
+                                        <span class="{{ request()->routeIs($item['route']) ? 'bg-primary/20 text-primary' : '' }} inline-flex size-8 items-center justify-center rounded-full shrink-0 transition-colors group-hover:bg-primary/20 group-hover:text-primary">
                                             <x-dynamic-component :component="'lucide-' . $item['icon']" />
                                         </span>
                                         <span>{{ $item['label'] }}</span>
@@ -133,7 +133,7 @@
                                         :active="request()->routeIs($item['route'])"
                                         :tooltip="$item['label']"
                                     >
-                                        <span class="inline-flex size-6 items-center justify-center rounded-md shrink-0 transition-colors">
+                                        <span class="{{ request()->routeIs($item['route']) ? 'bg-primary/20 text-primary' : '' }} inline-flex size-8 items-center justify-center rounded-full shrink-0 transition-colors group-hover:bg-primary/20 group-hover:text-primary">
                                             <x-dynamic-component :component="'lucide-' . $item['icon']" />
                                         </span>
                                         <span>{{ $item['label'] }}</span>
@@ -156,7 +156,7 @@
                                         :active="request()->routeIs($item['route'])"
                                         :tooltip="$item['label']"
                                     >
-                                        <span class="inline-flex size-6 items-center justify-center rounded-md shrink-0 transition-colors">
+                                        <span class="{{ request()->routeIs($item['route']) ? 'bg-primary/20 text-primary' : '' }} inline-flex size-8 items-center justify-center rounded-full shrink-0 transition-colors group-hover:bg-primary/20 group-hover:text-primary">
                                             <x-dynamic-component :component="'lucide-' . $item['icon']" />
                                         </span>
                                         <span>{{ $item['label'] }}</span>
@@ -181,7 +181,7 @@
                                         :active="request()->routeIs($item['route'])"
                                         :tooltip="$item['label']"
                                     >
-                                        <span class="inline-flex size-6 items-center justify-center rounded-md shrink-0 transition-colors">
+                                        <span class="{{ request()->routeIs($item['route']) ? 'bg-primary/20 text-primary' : '' }} inline-flex size-8 items-center justify-center rounded-full shrink-0 transition-colors group-hover:bg-primary/20 group-hover:text-primary">
                                             <x-dynamic-component :component="'lucide-' . $item['icon']" />
                                         </span>
                                         <span>{{ $item['label'] }}</span>

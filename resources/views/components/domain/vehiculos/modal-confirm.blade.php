@@ -1,15 +1,17 @@
+@props([])
+
 <div x-data="{ get open() { return confirmOpen }, set open(v) { confirmOpen = v } }">
     <x-ui.dialog.content size="sm">
         <x-ui.dialog.header>
             <x-ui.dialog.title
-                x-text="confirmActivo ? 'Desactivar tipo de servicio' : 'Activar tipo de servicio'"
+                x-text="confirmActivo ? 'Desactivar vehículo' : 'Activar vehículo'"
             ></x-ui.dialog.title>
             <x-ui.dialog.description>
                 ¿Confirmás que querés
                 <span x-text="confirmActivo ? 'desactivar' : 'activar'"></span>
-                el servicio <strong x-text="confirmNombre" class="text-foreground font-medium"></strong>?
+                el vehículo <strong x-text="confirmNombre" class="text-foreground font-medium"></strong>?
                 <span x-show="confirmActivo" class="block mt-1">
-                    No estará disponible para asignar a nuevas zonas ni para nuevos pesajes.
+                    Este vehículo no aparecerá en el autocompletado al registrar nuevos pesajes.
                 </span>
             </x-ui.dialog.description>
         </x-ui.dialog.header>
