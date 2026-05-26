@@ -33,12 +33,16 @@ class PesajeRepository
 
     public function filtrado(array $filtros): Collection
     {
-        return Pesaje::with(['vehiculo', 'tipoServicio', 'zona', 'operador'])
+        return Pesaje::with(['vehiculo.tipoVehiculo', 'tipoServicio', 'zona', 'operador'])
             ->when($filtros['desde'] ?? null, fn ($q, $d) => $q->whereDate('created_at', '>=', $d))
             ->when($filtros['hasta'] ?? null, fn ($q, $h) => $q->whereDate('created_at', '<=', $h))
             ->when($filtros['patente'] ?? null, fn ($q, $p) => $q->whereHas('vehiculo', fn ($v) => $v->where('patente', 'like', '%' . $p . '%')))
             ->when($filtros['estado'] ?? null, fn ($q, $e) => $q->where('estado', $e))
             ->when($filtros['operario_id'] ?? null, fn ($q, $id) => $q->where('operador_id', $id))
+            ->when($filtros['zona_id'] ?? null, fn ($q, $id) => $q->where('zona_id', $id))
+            ->when($filtros['tipo_servicio_id'] ?? null, fn ($q, $id) => $q->where('tipo_servicio_id', $id))
+            ->when($filtros['solo_alerta'] ?? null, fn ($q) => $q->where('alerta_peso', true))
+            ->when($filtros['solo_editados'] ?? null, fn ($q) => $q->where('editado', true))
             ->orderByDesc('created_at')
             ->get();
     }

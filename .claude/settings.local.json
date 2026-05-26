@@ -100,7 +100,10 @@
       "Bash(Get-ChildItem -Recurse \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\modules\\\\operador\" -File)",
       "PowerShell(Get-ChildItem \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\app\\\\Models\" -File | Where-Object { $_.Name -match 'pesaje|balanza' -or $_.Name -match 'Pesaje|Balanza' } | Select-Object -ExpandProperty FullName)",
       "Bash(Remove-Item \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\modules\\\\operador\\\\balanza.blade.php\")",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(composer require *)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('extra',{}\\), indent=2\\)\\)\")",
+      "PowerShell(npm install apexcharts --save 2>&1)"
     ],
     "additionalDirectories": [
       "c:\\Users\\34891406\\Nicolas\\Proyectos\\infinito-reciclaje-balanza\\database\\sql",

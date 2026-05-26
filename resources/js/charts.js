@@ -1,4 +1,5 @@
 import ApexCharts from 'apexcharts';
+window.ApexCharts = ApexCharts;
 
 export function apexChart(config) {
     return {

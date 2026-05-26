@@ -9,6 +9,7 @@ import organizaciones from './alpine/super_admin/organizaciones.js';
 import loginForm from './alpine/auth/login.js';
 import balanza from './alpine/operador/balanza.js';
 import historial from './alpine/operador/historial.js';
+import { apexChart } from './charts.js';
 
 Alpine.plugin(Collapse);
 
@@ -35,6 +36,7 @@ Alpine.data('organizaciones', organizaciones);
 Alpine.data('loginForm', loginForm);
 Alpine.data('balanza', balanza);
 Alpine.data('historial', historial);
+Alpine.data('apexChart', apexChart);
 
 // — Alpine store: toast ———————————————————————————————————————
 Alpine.store('toast', {
