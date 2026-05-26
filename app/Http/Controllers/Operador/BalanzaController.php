@@ -12,6 +12,10 @@ class BalanzaController extends Controller
     {
         $servicios = TipoServicio::activos()->with('tipoVehiculoSugerido')->get();
 
-        return view('modules.operador.balanza', compact('servicios'));
+        return view('modules.shared.balanza', [
+            'servicios'  => $servicios,
+            'formAction' => route('pesajes.store'),
+            'cancelUrl'  => route('historial'),
+        ]);
     }
 }

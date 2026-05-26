@@ -31,6 +31,15 @@ class HistorialController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('modules.operador.historial', compact('pesajes', 'kpis', 'kpisHoy', 'ultimoPesaje', 'filtros', 'operarios'));
+        return view('modules.shared.historial', [
+            'pesajes'      => $pesajes,
+            'kpis'         => $kpis,
+            'kpisHoy'      => $kpisHoy,
+            'ultimoPesaje' => $ultimoPesaje,
+            'filtros'      => $filtros,
+            'operarios'    => $operarios,
+            'titulo'          => 'Historial del turno',
+            'routeHistorial'  => route('historial'),
+        ]);
     }
 }

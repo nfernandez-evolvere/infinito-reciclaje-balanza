@@ -1,4 +1,4 @@
-<x-layouts.app title="Historial">
+<x-layouts.app :title="$titulo">
 
     <x-slot:footerTurno>
         <span>Pesajes hoy: <b class="text-foreground">{{ $kpisHoy['total'] }}</b></span>
@@ -33,17 +33,17 @@
     @endphp
 
     <div>
-        <x-ui.typography as="h2">Historial del turno</x-ui.typography>
+        <x-ui.typography as="h2">{{ $titulo }}</x-ui.typography>
         <x-ui.typography as="muted" class="mt-1">{{ $subtitulo }}</x-ui.typography>
     </div>
 
-    <x-domain.historial.mobile-drawers :kpis="$kpis" :filtros="$filtros" :operarios="$operarios" :hayFiltros="$hayFiltros" />
+    <x-domain.historial.mobile-drawers :kpis="$kpis" :filtros="$filtros" :operarios="$operarios" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" />
 
     <x-domain.historial.kpis :kpis="$kpis" />
 
-    <x-domain.historial.filtros :filtros="$filtros" :operarios="$operarios" :hayFiltros="$hayFiltros" />
+    <x-domain.historial.filtros :filtros="$filtros" :operarios="$operarios" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" />
 
-    <x-domain.historial.tabla :pesajes="$pesajes" :hayFiltros="$hayFiltros" />
+    <x-domain.historial.tabla :pesajes="$pesajes" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" />
 
     <x-domain.historial.dialog-egreso />
 

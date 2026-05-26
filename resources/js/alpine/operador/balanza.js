@@ -1,5 +1,6 @@
-export default function balanza(initial = null) {
+export default function balanza(initial = null, opts = {}) {
     return {
+        _cancelUrl:          opts.cancelUrl ?? '/historial',
         query:               initial ? initial.vehiculo.patente : '',
         vehiculo:            initial ? initial.vehiculo : null,
         showSugg:            false,
@@ -181,7 +182,7 @@ export default function balanza(initial = null) {
         },
         limpiar() {
             if (this.editMode) {
-                window.location.href = '/historial';
+                window.location.href = this._cancelUrl;
                 return;
             }
             this.query = ''; this.vehiculo = null; this.showSugg = false; this.matches = [];

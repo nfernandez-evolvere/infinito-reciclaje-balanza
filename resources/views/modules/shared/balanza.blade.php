@@ -1,7 +1,7 @@
 <x-layouts.app title="Pesaje">
 
 <div
-    x-data="balanza()"
+    x-data="balanza(null, { cancelUrl: '{{ $cancelUrl }}' })"
     x-init="init()"
     @keydown.window="onKey($event)"
     x-effect="setBeforeUnload(sucio)"
@@ -31,7 +31,7 @@
 
     <x-domain.balanza.mobile-drawer />
 
-    <form method="POST" action="{{ route('pesajes.store') }}" x-ref="form" class="hidden">
+    <form method="POST" action="{{ $formAction }}" x-ref="form" class="hidden">
         @csrf
         <input type="hidden" name="vehiculo_id"      x-bind:value="vehiculo?.id">
         <input type="hidden" name="tipo_servicio_id" x-bind:value="servicioId">
@@ -45,10 +45,12 @@
 
 </div>
 
-@if(!auth()->user()->onboarding_visto)
-    <x-onboarding.bienvenida-operador :forzar="true" />
-@else
-    <x-onboarding.bienvenida-operador :forzar="false" />
+@if(auth()->user()->isOperador())
+    @if(!auth()->user()->onboarding_visto)
+        <x-onboarding.bienvenida-operador :forzar="true" />
+    @else
+        <x-onboarding.bienvenida-operador :forzar="false" />
+    @endif
 @endif
 
 </x-layouts.app>

@@ -1,8 +1,8 @@
-@props(['filtros', 'operarios', 'hayFiltros'])
+@props(['filtros', 'operarios', 'hayFiltros', 'routeHistorial'])
 
 <x-ui.card variant="elevated" class="hidden sm:block">
     <x-ui.card.content class="p-4">
-        <form method="GET" action="{{ route('historial') }}" class="flex flex-wrap gap-3 items-end">
+        <form method="GET" action="{{ $routeHistorial }}" class="flex flex-wrap gap-3 items-end">
             <div class="space-y-1.5">
                 <x-ui.label>Desde</x-ui.label>
                 <x-ui.date-picker name="desde" value="{{ $filtros['desde'] }}" size="sm" placeholder="Desde" />
@@ -48,7 +48,7 @@
                     Filtrar
                 </x-ui.button>
                 @if($hayFiltros)
-                    <x-ui.button variant="secondary" size="sm" href="{{ route('historial') }}">
+                    <x-ui.button variant="secondary" size="sm" href="{{ $routeHistorial }}">
                         <x-lucide-x class="size-3.5" />
                         Limpiar
                     </x-ui.button>

@@ -17,6 +17,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Vistas generales
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::get('/pesajes', [PesajeController::class, 'index'])->name('pesajes.index');
+    Route::get('/pesajes/create', [PesajeController::class, 'create'])->name('pesajes.create');
+    Route::post('/pesajes', [PesajeController::class, 'store'])->name('pesajes.store');
     Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
 
     // Zonas ——————————————————————————————————————————————————————————

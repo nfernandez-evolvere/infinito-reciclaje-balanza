@@ -1,4 +1,4 @@
-@props(['kpis', 'filtros', 'operarios', 'hayFiltros'])
+@props(['kpis', 'filtros', 'operarios', 'hayFiltros', 'routeHistorial'])
 
 <div class="grid grid-cols-2 gap-2 sm:hidden">
 
@@ -64,7 +64,7 @@
         </x-slot:trigger>
         <div class="p-6 pt-10 space-y-5 overflow-y-auto">
             <p class="text-label text-base">Filtros</p>
-            <form method="GET" action="{{ route('historial') }}" class="space-y-3">
+            <form method="GET" action="{{ $routeHistorial }}" class="space-y-3">
                 <div class="space-y-1.5">
                     <x-ui.label>Desde</x-ui.label>
                     <x-ui.date-picker name="desde" value="{{ $filtros['desde'] }}" placeholder="Desde" />
@@ -110,7 +110,7 @@
                         Filtrar
                     </x-ui.button>
                     @if($hayFiltros)
-                        <x-ui.button variant="secondary" href="{{ route('historial') }}" class="flex-1">
+                        <x-ui.button variant="secondary" href="{{ $routeHistorial }}" class="flex-1">
                             <x-lucide-x class="size-4" />
                             Limpiar
                         </x-ui.button>

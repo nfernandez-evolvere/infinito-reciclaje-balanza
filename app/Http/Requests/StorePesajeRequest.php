@@ -8,7 +8,8 @@ class StorePesajeRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->user()?->isOperador() ?? false;
+        $user = auth()->user();
+        return $user?->isOperador() || $user?->isAdmin();
     }
 
     public function rules(): array

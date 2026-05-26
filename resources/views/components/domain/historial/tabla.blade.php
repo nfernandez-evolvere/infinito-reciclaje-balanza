@@ -1,4 +1,4 @@
-@props(['pesajes', 'hayFiltros'])
+@props(['pesajes', 'hayFiltros', 'routeHistorial'])
 
 @if($pesajes->isEmpty())
     @if($hayFiltros)
@@ -7,7 +7,7 @@
             title="Sin resultados"
             description="Ningún pesaje coincide con los filtros aplicados."
         >
-            <x-ui.button size="sm" href="{{ route('historial') }}">
+            <x-ui.button size="sm" href="{{ $routeHistorial }}">
                 <x-lucide-x class="size-3.5" />
                 Limpiar filtros
             </x-ui.button>
