@@ -83,7 +83,9 @@
                                         :active="request()->routeIs($item['route'])"
                                         :tooltip="$item['label']"
                                     >
-                                        <x-dynamic-component :component="'lucide-' . $item['icon']" class="size-4 shrink-0" />
+                                        <span class="inline-flex size-6 items-center justify-center rounded-md shrink-0 transition-colors">
+                                            <x-dynamic-component :component="'lucide-' . $item['icon']" />
+                                        </span>
                                         <span>{{ $item['label'] }}</span>
                                     </x-ui.sidebar.menu-button>
                                 </x-ui.sidebar.menu-item>
@@ -106,7 +108,9 @@
                                         :active="request()->routeIs($item['route'])"
                                         :tooltip="$item['label']"
                                     >
-                                        <x-dynamic-component :component="'lucide-' . $item['icon']" class="size-4 shrink-0" />
+                                        <span class="inline-flex size-6 items-center justify-center rounded-md shrink-0 transition-colors">
+                                            <x-dynamic-component :component="'lucide-' . $item['icon']" />
+                                        </span>
                                         <span>{{ $item['label'] }}</span>
                                     </x-ui.sidebar.menu-button>
                                 </x-ui.sidebar.menu-item>
@@ -129,7 +133,9 @@
                                         :active="request()->routeIs($item['route'])"
                                         :tooltip="$item['label']"
                                     >
-                                        <x-dynamic-component :component="'lucide-' . $item['icon']" class="size-4 shrink-0" />
+                                        <span class="inline-flex size-6 items-center justify-center rounded-md shrink-0 transition-colors">
+                                            <x-dynamic-component :component="'lucide-' . $item['icon']" />
+                                        </span>
                                         <span>{{ $item['label'] }}</span>
                                     </x-ui.sidebar.menu-button>
                                 </x-ui.sidebar.menu-item>
@@ -150,7 +156,9 @@
                                         :active="request()->routeIs($item['route'])"
                                         :tooltip="$item['label']"
                                     >
-                                        <x-dynamic-component :component="'lucide-' . $item['icon']" class="size-4 shrink-0" />
+                                        <span class="inline-flex size-6 items-center justify-center rounded-md shrink-0 transition-colors">
+                                            <x-dynamic-component :component="'lucide-' . $item['icon']" />
+                                        </span>
                                         <span>{{ $item['label'] }}</span>
                                     </x-ui.sidebar.menu-button>
                                 </x-ui.sidebar.menu-item>
@@ -173,7 +181,9 @@
                                         :active="request()->routeIs($item['route'])"
                                         :tooltip="$item['label']"
                                     >
-                                        <x-dynamic-component :component="'lucide-' . $item['icon']" class="size-4 shrink-0" />
+                                        <span class="inline-flex size-6 items-center justify-center rounded-md shrink-0 transition-colors">
+                                            <x-dynamic-component :component="'lucide-' . $item['icon']" />
+                                        </span>
                                         <span>{{ $item['label'] }}</span>
                                     </x-ui.sidebar.menu-button>
                                 </x-ui.sidebar.menu-item>
@@ -223,7 +233,7 @@
                         x-transition:leave="transition ease-in duration-75"
                         x-transition:leave-start="opacity-100 scale-100"
                         x-transition:leave-end="opacity-0 scale-95"
-                        class="origin-bottom-left rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10">
+                        class="origin-bottom-left rounded-lg bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10">
 
                         <div class="flex items-center gap-3 px-3 py-2.5">
                             <x-ui.avatar :fallback="substr($user->name, 0, 2)" class="h-8 w-8 shrink-0" />
@@ -237,7 +247,7 @@
 
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <x-ui.button type="submit" variant="ghost" class="w-full justify-start gap-2 text-destructive hover:text-destructive hover:bg-destructive/10">
+                            <x-ui.button type="submit" variant="ghost" class="w-full justify-start gap-2 text-destructive bg-destructive/10 hover:bg-destructive/20">
                                 <x-lucide-log-out class="size-4" /> Cerrar sesión
                             </x-ui.button>
                         </form>
@@ -278,50 +288,73 @@
             @endisset
 
             <div class="ml-auto flex items-center gap-1">
-                @if($user?->isOperador())
-                    <span
-                        x-data="{ time: '' }"
-                        x-init="
-                            const update = () => {
-                                const now = new Date();
-                                time = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                            };
-                            update();
-                            setInterval(update, 1000);
-                        "
-                        x-text="time"
-                        class="text-caption font-mono tabular-nums px-2"
-                    ></span>
-                @endif
+                {{-- Desktop --}}
+                <div class="hidden sm:flex items-center gap-1">
+                    @if($user?->isOperador())
+                        <x-ui.tooltip content="Ayuda" side="bottom">
+                            <x-ui.button size="icon" variant="ghost"
+                                aria-label="Ayuda"
+                                @click="$dispatch('abrir-onboarding')"
+                            >
+                                <x-lucide-circle-help class="size-6" />
+                            </x-ui.button>
+                        </x-ui.tooltip>
+                    @endif
 
-                @if($user?->isOperador())
-                    <x-ui.tooltip content="Ayuda" side="bottom">
-                        <x-ui.button size="icon" variant="ghost"
-                            aria-label="Ayuda"
-                            @click="$dispatch('abrir-onboarding')"
-                        >
-                            <x-lucide-circle-help class="size-6" />
+                    <x-ui.tooltip content="Cambiar tema" side="bottom">
+                        <x-ui.button size="icon" variant="ghost" @click="$store.theme.toggle()"
+                            aria-label="Cambiar tema">
+                            <x-lucide-sun x-show="!$store.theme.dark" />
+                            <x-lucide-moon x-show="$store.theme.dark" x-cloak />
                         </x-ui.button>
                     </x-ui.tooltip>
-                @endif
 
-                <x-ui.tooltip content="Cambiar tema" side="bottom">
-                    <x-ui.button size="icon" variant="ghost" @click="$store.theme.toggle()"
-                        aria-label="Cambiar tema">
-                        <x-lucide-sun x-show="!$store.theme.dark" />
-                        <x-lucide-moon x-show="$store.theme.dark" x-cloak />
-                    </x-ui.button>
-                </x-ui.tooltip>
+                    <x-ui.tooltip content="Cerrar sesión" side="bottom">
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <x-ui.button type="submit" size="icon" variant="ghost"
+                                aria-label="Cerrar sesión">
+                                <x-lucide-log-out />
+                            </x-ui.button>
+                        </form>
+                    </x-ui.tooltip>
+                </div>
 
-                <x-ui.tooltip content="Cerrar sesión" side="bottom">
-                    <form method="POST" action="{{ route('logout') }}">
+                {{-- Mobile --}}
+                <div class="flex sm:hidden">
+                    <x-ui.dropdown-menu>
+                        <x-ui.dropdown-menu.trigger>
+                            <x-ui.button size="icon" variant="ghost" aria-label="Más opciones">
+                                <x-lucide-ellipsis-vertical class="size-4" />
+                            </x-ui.button>
+                        </x-ui.dropdown-menu.trigger>
+                        <x-ui.dropdown-menu.content align="end">
+                            @if($user?->isOperador())
+                                <x-ui.dropdown-menu.item @click="$dispatch('abrir-onboarding')">
+                                    <x-lucide-circle-help /> Ayuda
+                                </x-ui.dropdown-menu.item>
+                            @endif
+                            <x-ui.dropdown-menu.item @click="$store.theme.toggle()">
+                                <span x-show="!$store.theme.dark" class="flex items-center gap-1.5">
+                                    <x-lucide-moon /> Modo oscuro
+                                </span>
+                                <span x-show="$store.theme.dark" x-cloak class="flex items-center gap-1.5">
+                                    <x-lucide-sun /> Modo claro
+                                </span>
+                            </x-ui.dropdown-menu.item>
+                            <x-ui.dropdown-menu.separator />
+                            <x-ui.dropdown-menu.item
+                                variant="destructive"
+                                @click="document.getElementById('logout-form-mobile').submit()"
+                            >
+                                <x-lucide-log-out /> Cerrar sesión
+                            </x-ui.dropdown-menu.item>
+                        </x-ui.dropdown-menu.content>
+                    </x-ui.dropdown-menu>
+                    <form id="logout-form-mobile" method="POST" action="{{ route('logout') }}" class="hidden">
                         @csrf
-                        <x-ui.button type="submit" size="icon" variant="ghost"
-                            aria-label="Cerrar sesión">
-                            <x-lucide-log-out />
-                        </x-ui.button>
                     </form>
-                </x-ui.tooltip>
+                </div>
             </div>
         </header>
 
@@ -333,8 +366,8 @@
 
         @if(isset($footerTurno) || isset($footerUltimo))
             <footer class="shrink-0 border-t border-border bg-sidebar">
-                <div class="flex items-center justify-between h-11 px-4">
-                    <div class="flex items-center gap-4 text-caption text-muted-foreground">
+                <div class="flex flex-col gap-1 py-2 px-4 sm:flex-row sm:items-center sm:justify-between sm:h-11 sm:py-0 sm:gap-0">
+                    <div class="flex items-center justify-between text-caption text-muted-foreground sm:justify-start sm:gap-3">
                         {{ $footerTurno ?? '' }}
                     </div>
                     <div class="text-caption text-muted-foreground">

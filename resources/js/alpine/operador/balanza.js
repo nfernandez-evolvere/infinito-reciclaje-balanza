@@ -1,24 +1,28 @@
-export default function balanza() {
+export default function balanza(initial = null) {
     return {
-        query: '',
-        vehiculo: null,
-        showSugg: false,
-        matches: [],
-        servicioId: '',
-        servicioNombre: '',
-        tipoSugerido: '',
-        zonasDisponibles: [],
-        zonaId: '',
-        zonaNombre: '',
-        turnosDisponibles: [],
-        turno: '',
-        bruto: '',
-        brutoN: 0,
-        fechaHoraActual: '',
-        paso1Editando: false,
-        paso2Editando: false,
-        paso3Editando: false,
+        query:               initial ? initial.vehiculo.patente : '',
+        vehiculo:            initial ? initial.vehiculo : null,
+        showSugg:            false,
+        matches:             [],
+        servicioId:          initial ? String(initial.servicioId) : '',
+        servicioNombre:      initial ? initial.servicioNombre : '',
+        tipoSugerido:        initial?.tipoSugerido ?? '',
+        zonasDisponibles:    initial ? initial.zonasDisponibles : [],
+        zonaId:              initial ? String(initial.zonaId) : '',
+        zonaNombre:          initial ? initial.zonaNombre : '',
+        turnosDisponibles:   initial ? initial.turnosDisponibles : [],
+        turno:               initial ? (initial.turno ?? '') : '',
+        bruto:               initial ? String(initial.pesoBruto) : '',
+        brutoN:              initial ? initial.pesoBruto : 0,
+        fechaHoraActual:     '',
+        paso1Editando:       false,
+        paso2Editando:       !!initial,
+        paso3Editando:       !!initial,
         mobileResumenAbierto: false,
+        confirmOpen:         false,
+        editMode:            !!initial,
+        motivo:              '',
+        observaciones:       initial?.observaciones ?? '',
 
         get requiereTurno() { return this.turnosDisponibles.length > 0; },
         get neto() {
@@ -40,9 +44,15 @@ export default function balanza() {
             return !!(this.servicioId && this.zonaId && (!this.requiereTurno || this.turno));
         },
         get canSave() {
-            return !!(this.vehiculo && this.servicioId && this.zonaId && (!this.requiereTurno || this.turno) && this.brutoN > 0);
+            const base = !!(this.vehiculo && this.servicioId && this.zonaId && (!this.requiereTurno || this.turno) && this.brutoN > 0);
+            return this.editMode ? base && !!this.motivo.trim() : base;
         },
         get hintContextual() {
+            if (this.editMode) {
+                if (!this.motivo.trim()) return 'Describí el motivo de la edición';
+                if (this.canSave) return 'Listo para guardar';
+                return 'Completá los datos';
+            }
             if (this.canSave) return 'Listo para guardar';
             if (this.vehiculo && this.servicioId && this.zonaId && this.requiereTurno && !this.turno) return 'Elegí el turno';
             if (this.vehiculo && this.servicioId && this.zonaId) return 'Ingresá el peso bruto';
@@ -51,15 +61,17 @@ export default function balanza() {
             return 'Buscá el vehículo';
         },
         get sucio() {
+            if (this.editMode) return false;
             return !!(this.vehiculo || this.servicioId || this.bruto || this.query || this.zonaId);
         },
 
         init() {
-            this.$nextTick(() => this.$refs.inputVehiculo?.focus());
+            if (!this.editMode) {
+                this.$nextTick(() => this.$refs.inputVehiculo?.focus());
+            }
             this.actualizarHora();
             setInterval(() => this.actualizarHora(), 30000);
 
-            // Solo para scroll automático y limpiar flags editando
             this.$watch('vehiculo', (v) => {
                 if (v) {
                     this.paso1Editando = false;
@@ -72,12 +84,29 @@ export default function balanza() {
             });
 
             this.$watch('servicioCompleto', (v) => {
-                if (v) {
+                if (v && !this.editMode) {
                     this.paso2Editando = false;
                     this.$nextTick(() => this.scrollToPaso(3));
                 }
             });
+
+            if (initial) {
+                setTimeout(() => {
+                    this._selectEl('wrapServicio')?.dispatchEvent(
+                        new CustomEvent('select-sync', { detail: { value: String(initial.servicioId) } })
+                    );
+                    this._selectEl('wrapOrigen')?.dispatchEvent(
+                        new CustomEvent('select-sync', { detail: { value: String(initial.zonaId) } })
+                    );
+                    if (initial.turno) {
+                        this._selectEl('wrapTurno')?.dispatchEvent(
+                            new CustomEvent('select-sync', { detail: { value: initial.turno } })
+                        );
+                    }
+                }, 50);
+            }
         },
+
         scrollToPaso(n) {
             const el = document.getElementById(`paso-${n}`);
             if (!el) return;
@@ -144,10 +173,17 @@ export default function balanza() {
             this._selectEl('wrapTurno')?.dispatchEvent(new CustomEvent('select-items-clear'));
         },
         onBruto() {
-            const n = parseInt(this.bruto.replace(/\D/g, ''), 10);
+            const digits = this.bruto.replace(/\D/g, '').slice(0, 6);
+            this.bruto = digits;
+            const n = parseInt(digits, 10);
             this.brutoN = isNaN(n) ? 0 : n;
+            if (this.brutoN > 0) this.paso3Editando = true;
         },
         limpiar() {
+            if (this.editMode) {
+                window.location.href = '/historial';
+                return;
+            }
             this.query = ''; this.vehiculo = null; this.showSugg = false; this.matches = [];
             this.servicioId = ''; this.servicioNombre = ''; this.tipoSugerido = '';
             this.zonasDisponibles = []; this.zonaId = ''; this.zonaNombre = '';
@@ -163,6 +199,14 @@ export default function balanza() {
         },
         guardar() {
             if (!this.canSave) return;
+            if (this.editMode) {
+                window.onbeforeunload = null;
+                this.$refs.form.submit();
+            } else {
+                this.confirmOpen = true;
+            }
+        },
+        confirmar() {
             window.onbeforeunload = null;
             this.$refs.form.submit();
         },

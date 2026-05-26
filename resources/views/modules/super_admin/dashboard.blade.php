@@ -1,10 +1,9 @@
 <x-layouts.app title="Dashboard">
-    <div class="space-y-8">
+    <div class="flex flex-col gap-8">
 
-        {{-- Encabezado --}}
         <div>
-            <h1 class="text-h2">Panel general</h1>
-            <p class="text-lead mt-1">Estado global del sistema.</p>
+            <x-ui.typography as="h2">Panel general</x-ui.typography>
+            <x-ui.typography as="muted" class="mt-1">Estado global del sistema.</x-ui.typography>
         </div>
 
         {{-- Stats --}}

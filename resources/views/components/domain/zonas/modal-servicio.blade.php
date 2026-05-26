@@ -1,3 +1,5 @@
+@props(['tiposServicio'])
+
 <div x-data="{ get open() { return servicioModalOpen }, set open(v) { servicioModalOpen = v } }">
     <x-ui.dialog.content>
         <form
@@ -10,12 +12,10 @@
             <input type="hidden" name="_method"
                 :value="servicioModalMode === 'create' ? 'POST' : 'PUT'" />
 
-            {{-- Turnos serializados como hidden inputs --}}
             <template x-for="turno in servicioForm.turnos" :key="turno">
                 <input type="hidden" name="turnos[]" :value="turno" />
             </template>
 
-            {{-- Horarios serializados como hidden inputs --}}
             <template x-for="(franjas, diaIdx) in servicioForm.horariosPorDia" :key="diaIdx">
                 <template x-for="(franja, franjaIdx) in franjas" :key="franjaIdx">
                     <input type="hidden" :name="`horarios[${diaIdx}][${franjaIdx}][inicio]`" :value="franja.inicio" />
@@ -32,17 +32,14 @@
 
             <div class="px-6 space-y-5 pb-2 overflow-y-auto flex-1">
 
-                {{-- Tipo de servicio --}}
                 <x-ui.form-field for="tipo_servicio_id">
                     <x-ui.label for="tipo_servicio_id">Tipo de servicio</x-ui.label>
 
-                    {{-- En modo edit: solo mostrar el nombre, no se puede cambiar --}}
                     <div x-show="servicioModalMode === 'edit'" x-cloak
                         class="flex h-9 items-center rounded-md border border-input bg-muted px-3 text-sm font-medium text-foreground">
                         <span x-text="editServicioNombre"></span>
                     </div>
 
-                    {{-- En modo create: select de servicios disponibles --}}
                     <div x-show="servicioModalMode === 'create'">
                         <x-ui.select
                             name="tipo_servicio_id"
@@ -64,10 +61,8 @@
                     </div>
                 </x-ui.form-field>
 
-                {{-- Turnos --}}
                 <div class="space-y-3">
                     <label class="flex items-center gap-3 cursor-pointer select-none">
-                        {{-- Toggle inline — sin x-data propio para no perder el scope padre --}}
                         <button
                             type="button"
                             role="switch"
@@ -100,14 +95,12 @@
                     </div>
                 </div>
 
-                {{-- Horarios de recorrido --}}
                 <div class="space-y-3">
                     <div>
                         <p class="text-sm font-medium">Horarios de recorrido</p>
                         <p class="text-xs text-muted-foreground">Optativo. Seleccioná los días y cargá las franjas horarias.</p>
                     </div>
 
-                    {{-- Selector de días --}}
                     <div class="flex flex-wrap gap-1.5">
                         <template x-for="(dia, i) in diasCorto" :key="i">
                             <button
@@ -122,7 +115,6 @@
                         </template>
                     </div>
 
-                    {{-- Franjas por día activo --}}
                     <div class="space-y-3 max-h-52 overflow-y-auto pr-1">
                         <template x-for="(franjas, diaIdx) in servicioForm.horariosPorDia" :key="diaIdx">
                             <div x-show="franjas.length > 0" class="space-y-2">

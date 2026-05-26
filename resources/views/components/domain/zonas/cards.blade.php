@@ -1,3 +1,5 @@
+@props(['zonas', 'tiposServicio'])
+
 @if($zonas->isEmpty())
     <x-ui.empty-state
         icon="map-pin"
@@ -14,7 +16,6 @@
         @foreach($zonas as $zona)
             @php $servicioCount = $zona->zonaServicios->count(); @endphp
 
-            {{-- Forms ocultos para toggle y delete de la zona --}}
             <form id="toggle-{{ $zona->id }}" method="POST"
                 action="{{ route('admin.zonas.toggle', $zona) }}" class="hidden">
                 @csrf @method('PATCH')
@@ -24,7 +25,6 @@
                 @csrf @method('DELETE')
             </form>
 
-            {{-- Forms ocultos para quitar servicios --}}
             @foreach($zona->zonaServicios as $zs)
                 <form id="quitar-{{ $zona->id }}-{{ $zs->tipo_servicio_id }}" method="POST"
                     action="{{ route('admin.zonas.servicios.destroy', [$zona, $zs->tipoServicio]) }}" class="hidden">
@@ -36,8 +36,6 @@
 
                 <x-ui.card.header class="pb-3">
                     <div class="flex items-start justify-between gap-2 sm:gap-4">
-
-                        {{-- Área clickeable para colapsar --}}
                         <button
                             type="button"
                             class="flex-1 text-left min-w-0 space-y-1"
@@ -62,8 +60,7 @@
 
                         <div class="flex items-center gap-1 shrink-0">
 
-                            {{-- Ver / Ocultar servicios --}}
-                            <x-ui.button type="button" size="sm" @click="open = !open">
+                            <x-ui.button type="button" variant="ghost" size="sm" @click="open = !open">
                                 <x-lucide-chevron-down
                                     class="size-4 transition-transform duration-200"
                                     x-bind:class="open ? 'rotate-0' : '-rotate-90'"
@@ -71,7 +68,6 @@
                                 <span class="hidden sm:inline" x-text="open ? 'Ocultar servicios' : 'Ver servicios'"></span>
                             </x-ui.button>
 
-                            {{-- Dropdown de acciones de la zona --}}
                             <x-ui.dropdown-menu align="end">
                                 <x-ui.dropdown-menu.trigger>
                                     <x-ui.button variant="ghost" size="icon" class="size-8">
@@ -120,15 +116,13 @@
                     </div>
                 </x-ui.card.header>
 
-                {{-- Contenido colapsable --}}
                 <x-ui.card.content x-show="open" x-collapse class="pt-0">
                     <x-ui.separator class="mb-4" />
 
-                    {{-- Sección servicios asignados --}}
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-overline">Servicios asignados</span>
                         <x-ui.button
-                            variant="ghost"
+                            variant="secondary"
                             size="sm"
                             @click="openAsignarServicio({{ $zona->id }}, {{ Js::from($zona->nombre) }}, {{ Js::from($zona->zonaServicios->pluck('tipo_servicio_id')->toArray()) }})"
                         >
@@ -154,7 +148,7 @@
                             </x-ui.button>
                         </x-ui.empty-state>
                     @else
-                        <x-ui.table>
+                        <x-ui.table class="rounded-md sm:border" :variant="'flat'">
                             <x-ui.table.header>
                                 <x-ui.table.row>
                                     <x-ui.table.head>Servicio</x-ui.table.head>
@@ -165,10 +159,10 @@
                             <x-ui.table.body>
                                 @foreach($zona->zonaServicios as $zs)
                                     <x-ui.table.row>
-                                        <x-ui.table.cell class="font-medium">
+                                        <x-ui.table.cell class="font-medium" data-label="Servicio">
                                             {{ $zs->tipoServicio->nombre }}
                                         </x-ui.table.cell>
-                                        <x-ui.table.cell>
+                                        <x-ui.table.cell data-label="Turnos">
                                             @if($zs->turnos->isNotEmpty())
                                                 <div class="flex gap-1 flex-wrap">
                                                     @foreach($zs->turnos as $turno)
@@ -179,7 +173,7 @@
                                                 <span class="text-muted-foreground text-sm">Sin turno</span>
                                             @endif
                                         </x-ui.table.cell>
-                                        <x-ui.table.cell class="text-right">
+                                        <x-ui.table.cell class="order-first sm:order-0 justify-end border-b border-border sm:border-b-0">
                                             <x-ui.dropdown-menu align="end">
                                                 <x-ui.dropdown-menu.trigger>
                                                     <x-ui.button variant="ghost" size="icon" class="size-7">

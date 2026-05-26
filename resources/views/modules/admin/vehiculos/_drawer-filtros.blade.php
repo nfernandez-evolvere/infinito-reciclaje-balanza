@@ -29,7 +29,7 @@
         >
             <div class="flex items-center justify-between border-b border-border px-5 py-4">
                 <x-ui.typography as="h4" class="flex items-center gap-2">
-                    <x-lucide-filter class="size-5" />
+                    <x-lucide-sliders-horizontal class="size-5" />
                     Filtros
                 </x-ui.typography>
                 <x-ui.button type="button" variant="ghost" size="icon" @click="filterOpen = false" class="size-7 -mr-1">

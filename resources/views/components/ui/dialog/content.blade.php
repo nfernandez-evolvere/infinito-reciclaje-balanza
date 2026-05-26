@@ -41,14 +41,16 @@ $sizeClass = ['sm' => 'max-w-sm', 'lg' => 'max-w-2xl', 'xl' => 'max-w-4xl'][$siz
             class="relative z-10 flex flex-col w-full {{ $sizeClass }} max-h-[90vh] rounded-xl border border-border bg-background shadow-xl"
         >
             @if($showCloseButton)
-                <button
-                    @click="open = false"
+                <x-ui.button
+                    variant="ghost"
+                    size="icon"
                     type="button"
-                    class="absolute right-4 top-4 flex size-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors z-10"
+                    class="absolute right-6 top-4 z-10 size-7"
                     aria-label="Cerrar"
+                    @click="open = false"
                 >
                     <x-lucide-x class="size-4" />
-                </button>
+                </x-ui.button>
             @endif
 
             {{ $slot }}

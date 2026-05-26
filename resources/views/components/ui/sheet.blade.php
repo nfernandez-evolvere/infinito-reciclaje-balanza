@@ -21,7 +21,7 @@ $enterStart = match($side) {
 <div x-data="{ open: false }">
 
     @isset($trigger)
-        <div @click="open = true" class="inline-flex">{{ $trigger }}</div>
+        <div @click="open = true" class="contents">{{ $trigger }}</div>
     @endisset
 
     <template x-teleport="body">

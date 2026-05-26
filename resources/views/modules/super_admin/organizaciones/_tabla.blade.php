@@ -1,10 +1,3 @@
-<div class="flex justify-end">
-    <x-ui.button @click="openCreate()">
-        <x-lucide-plus class="size-4" />
-        <span class="hidden sm:inline">Nueva organización</span>
-    </x-ui.button>
-</div>
-
 <x-ui.card variant="elevated">
     <x-ui.table>
         <x-ui.table.header>
@@ -32,7 +25,7 @@
                         <x-ui.badge variant="secondary">Inactiva</x-ui.badge>
                     @endif
                 </x-ui.table.cell>
-                <x-ui.table.cell data-label="Acciones" class="text-right">
+                <x-ui.table.cell class="order-first sm:order-0 justify-end border-b border-border sm:border-b-0">
                     <form id="toggle-{{ $org->id }}" method="POST"
                         action="{{ route('super.organizaciones.toggle', $org) }}" class="hidden">
                         @csrf @method('PATCH')

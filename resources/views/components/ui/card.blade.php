@@ -16,6 +16,6 @@
     };
 @endphp
 
-<{{ $as }} {{ $attributes->merge($extra)->twMerge('flex flex-col gap-2 rounded-xl bg-card text-card-foreground py-4 px-6 ' . $variantClass) }}>
+<{{ $as }} {{ $attributes->merge($extra)->twMerge('flex flex-col gap-2 rounded-xl bg-card text-card-foreground p-5  ' . $variantClass) }}>
     {{ $slot }}
 </{{ $as }}>

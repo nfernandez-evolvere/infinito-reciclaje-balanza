@@ -18,6 +18,8 @@ Route::middleware(['auth', 'role:operador'])->group(function () {
 
     // Pesajes
     Route::post('/pesajes', [PesajeController::class, 'store'])->name('pesajes.store');
+    Route::get('/pesajes/{pesaje}', [PesajeController::class, 'show'])->name('pesajes.show');
+    Route::get('/pesajes/{pesaje}/edit', [PesajeController::class, 'edit'])->name('pesajes.edit');
     Route::put('/pesajes/{pesaje}', [PesajeController::class, 'update'])->name('pesajes.update');
     Route::post('/pesajes/{pesaje}/egreso', EgresoPesajeController::class)->name('pesajes.egreso');
     Route::get('/pesajes/{pesaje}/log', PesajeLogController::class)->name('pesajes.log');

@@ -17,9 +17,28 @@
 @endphp
 
 <x-layouts.app title="Organizaciones">
-<div x-data="organizaciones({{ Js::from($initial) }})" class="space-y-6">
+<div x-data="organizaciones({{ Js::from($initial) }})" class="flex flex-col gap-6">
 
-    @include('modules.super_admin.organizaciones._header')
+    <div class="flex items-start justify-between gap-4">
+        <div>
+            <x-ui.typography as="h2">Organizaciones</x-ui.typography>
+            <x-ui.typography as="muted" class="mt-1">Administrá las organizaciones que operan en el sistema.</x-ui.typography>
+        </div>
+        <div class="hidden sm:flex items-center gap-2 shrink-0">
+            <x-ui.button @click="openCreate()">
+                <x-lucide-plus class="size-4" />
+                Agregar organización
+            </x-ui.button>
+        </div>
+    </div>
+
+    <div class="sm:hidden">
+        <x-ui.button size="sm" class="w-full" @click="openCreate()">
+            <x-lucide-plus class="size-3.5" />
+            Agregar organización
+        </x-ui.button>
+    </div>
+
     @include('modules.super_admin.organizaciones._tabla')
     @include('modules.super_admin.organizaciones._modal')
     @include('modules.super_admin.organizaciones._modal-confirm')

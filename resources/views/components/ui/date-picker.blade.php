@@ -93,7 +93,7 @@ $triggerSize = match($size) {
         @click="toggle()"
         :aria-expanded="open.toString()"
         @if($disabled) disabled @endif
-        class="w-full flex items-center gap-2 rounded-md border border-input bg-background text-left shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 {{ $triggerSize }}"
+        class="w-full flex items-center gap-2 rounded-full border border-input bg-background text-left shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 {{ $triggerSize }}"
     >
         <x-lucide-calendar-days class="size-4 text-muted-foreground shrink-0" />
         <span

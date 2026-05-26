@@ -11,7 +11,7 @@
     <x-ui.card variant="elevated">
 
         {{-- ── Header (siempre visible) ── --}}
-        <div class="px-4 sm:px-6 py-4 flex items-center gap-3">
+        <div class="flex items-center gap-3">
             <div
                 class="size-7 rounded-full grid place-items-center text-sm font-bold shrink-0 transition-all duration-300"
                 x-bind:class="({!! $completo !!}) ? 'bg-success text-success-foreground' : 'bg-card border-2 border-primary text-primary'"
@@ -38,7 +38,7 @@
         </div>
 
         {{-- ── Resumen compacto (completado y colapsado) ── --}}
-        @isset($resumen)
+{{--         @isset($resumen)
         <div
             x-show="({!! $completo !!}) && !({!! $abierto !!})"
             x-cloak
@@ -48,7 +48,7 @@
                 {{ $resumen }}
             </div>
         </div>
-        @endisset
+        @endisset --}}
 
         {{-- ── Contenido completo ── --}}
         {{-- Visible cuando: no está inactivo Y (no está completo O el usuario eligió editar) --}}
@@ -56,7 +56,7 @@
             x-show="!({!! $inactivo ?? 'false' !!}) && (!({!! $completo !!}) || ({!! $abierto !!}))"
             x-collapse
         >
-            <div class="px-4 sm:px-6 pb-4 sm:pb-6 border-t border-border/50 pt-4 sm:pt-5">
+            <div class="pb-4 sm:pb-6 pt-4 sm:pt-5">
                 {{ $slot }}
             </div>
         </div>

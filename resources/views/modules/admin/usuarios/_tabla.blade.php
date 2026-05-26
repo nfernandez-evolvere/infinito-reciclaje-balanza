@@ -1,23 +1,5 @@
-@php $activeFilters = count(array_filter($filters ?? [], fn($v) => $v !== null && $v !== '')); @endphp
-
-<div class="flex justify-end gap-2">
-    <x-ui.button variant="secondary" @click="filterOpen = true" class="relative">
-        <x-lucide-filter class="size-4" />
-        <span class="hidden sm:inline">Filtros</span>
-        @if($activeFilters > 0)
-            <span class="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground leading-none">
-                {{ $activeFilters }}
-            </span>
-        @endif
-    </x-ui.button>
-    <x-ui.button @click="openCreate()">
-        <x-lucide-plus class="size-4" />
-        <span class="hidden sm:inline">Nuevo usuario</span>
-    </x-ui.button>
-</div>
-
 <x-ui.card variant="elevated">
-    <x-ui.table>
+    <x-ui.table variant="flat">
         <x-ui.table.header>
             <x-ui.table.row>
                 <x-ui.table.head>Usuario</x-ui.table.head>
@@ -29,7 +11,7 @@
         <x-ui.table.body>
             @forelse($usuarios as $usuario)
             <x-ui.table.row>
-                <x-ui.table.cell data-label="Usuario">
+                <x-ui.table.cell data-label="Usuario" stack="true">
                     <div class="flex items-center gap-3">
                         <x-ui.avatar :alt="$usuario->name" size="sm" />
                         <div class="text-left">
@@ -52,7 +34,7 @@
                         <x-ui.badge variant="secondary">Inactivo</x-ui.badge>
                     @endif
                 </x-ui.table.cell>
-                <x-ui.table.cell data-label="Acciones" class="text-right">
+                <x-ui.table.cell actions>
                     <form id="toggle-{{ $usuario->id }}" method="POST"
                         action="{{ route('admin.usuarios.toggle', $usuario) }}" class="hidden">
                         @csrf @method('PATCH')
@@ -114,12 +96,10 @@
                             description="Ningún usuario coincide con los filtros aplicados."
                             class="rounded-none border-0 bg-transparent"
                         >
-                            <a href="{{ route('admin.usuarios.index') }}">
-                                <x-ui.button>
-                                    <x-lucide-x class="size-4" />
-                                    Limpiar filtros
-                                </x-ui.button>
-                            </a>
+                            <x-ui.button href="{{ route('admin.usuarios.index') }}">
+                                <x-lucide-x class="size-4" />
+                                Limpiar filtros
+                            </x-ui.button>
                         </x-ui.empty-state>
                     @else
                         <x-ui.empty-state

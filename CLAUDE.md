@@ -424,6 +424,60 @@ Al comenzar un módulo (ej: `pesajes`):
 
 ---
 
+### Patrón de desacoplamiento con subcomponentes de dominio
+
+Las vistas complejas se desacoplan en subcomponentes de dominio. La vista principal queda como orquestadora: solo declara el `x-data` de Alpine, calcula las variables PHP necesarias con `@php`, y delega cada sección a un `<x-domain.[módulo].*>`.
+
+**Cuándo extraer a subcomponente:**
+- La sección tiene más de ~20 líneas de Blade
+- Se repite en más de un lugar (mobile + desktop)
+- Es una unidad semántica independiente (filtros, tabla, dialog)
+
+**Qué va en la vista principal:**
+- `x-data` de Alpine (fuente de verdad del estado JS)
+- Slots del layout (`footerTurno`, etc.)
+- Variables PHP de configuración/derivadas (`@php ... @endphp`)
+- Solo llamadas a `<x-domain.[módulo].*>` con sus props
+
+**Qué va en el subcomponente:**
+- El HTML completo de la sección
+- `@props([])` para todo lo que viene del controller
+- Acceso al estado Alpine del padre directamente (sin `x-data` propio, a menos que sea un sub-árbol aislado)
+
+**Ejemplo — módulo `historial`:**
+
+```
+resources/views/
+├── modules/operador/historial.blade.php     → orquestadora (36 líneas)
+└── components/domain/historial/
+    ├── kpis.blade.php                        → grid desktop de KPIs
+    ├── filtros.blade.php                     → card desktop de filtros
+    ├── mobile-drawers.blade.php              → drawers mobile (métricas + filtros)
+    ├── tabla.blade.php                       → tabla + empty states
+    ├── dialog-egreso.blade.php               → dialog marcar egreso
+    └── dialog-cambios.blade.php              → dialog historial de cambios
+```
+
+```blade
+{{-- historial.blade.php — la vista solo orquesta --}}
+<div class="flex flex-col gap-6" x-data="historial()">
+    @php $hayFiltros = ...; @endphp
+
+    <x-domain.historial.mobile-drawers :kpis="$kpis" :filtros="$filtros" :operarios="$operarios" :hayFiltros="$hayFiltros" />
+    <x-domain.historial.kpis :kpis="$kpis" />
+    <x-domain.historial.filtros :filtros="$filtros" :operarios="$operarios" :hayFiltros="$hayFiltros" />
+    <x-domain.historial.tabla :pesajes="$pesajes" :hayFiltros="$hayFiltros" />
+    <x-domain.historial.dialog-egreso />
+    <x-domain.historial.dialog-cambios />
+</div>
+```
+
+Los subcomponentes que dependen de Alpine (dialogs, acciones de tabla) no reciben props para el estado JS — lo acceden directamente por pertenecer al mismo ámbito `x-data` del padre.
+
+Este patrón está aplicado en: `balanza` y `historial`.
+
+---
+
 ## Catálogo de componentes
 
 Todos los primitivos viven en `resources/views/components/ui/` y se usan con el prefijo `<x-ui.*>`.
@@ -846,22 +900,41 @@ Integración con paginación de Laravel:
 
 Sub-componentes: `header`, `body`, `footer`, `row`, `head`, `cell`, `caption`
 
+#### Reglas de mobile (siempre aplicar)
+
+En mobile cada `<x-ui.table.row>` se convierte en una tarjeta (`flex flex-col`). El `<thead>` se oculta (`hidden sm:table-header-group`). Para que las celdas muestren su etiqueta de columna en mobile se usa el pseudo-elemento `before:content-[attr(data-label)]` definido en `cell.blade.php`.
+
+**Reglas que nunca omitir:**
+
+1. **Toda `<x-ui.table.cell>` de datos lleva `data-label` con el texto exacto del `<x-ui.table.head>` correspondiente.**  
+   Sin este atributo el usuario no sabe a qué columna pertenece el valor en mobile.
+
+2. **La celda de acciones (botones, dropdown de opciones) NO lleva `data-label`.**  
+   Se agrega `order-first sm:order-0 justify-end border-b border-border sm:border-b-0` para que aparezca **primero** en la tarjeta mobile con un separador inferior, sin etiqueta. En desktop `order` no aplica a celdas de tabla y el borde se oculta.
+
 ```blade
 <x-ui.table>
     <x-ui.table.header>
         <x-ui.table.row>
             <x-ui.table.head>Nombre</x-ui.table.head>
             <x-ui.table.head>Email</x-ui.table.head>
-            <x-ui.table.head class="text-right">Estado</x-ui.table.head>
+            <x-ui.table.head>Estado</x-ui.table.head>
+            <x-ui.table.head class="text-right">Acciones</x-ui.table.head>
         </x-ui.table.row>
     </x-ui.table.header>
     <x-ui.table.body>
         @foreach ($usuarios as $usuario)
         <x-ui.table.row>
-            <x-ui.table.cell class="font-medium">{{ $usuario->name }}</x-ui.table.cell>
-            <x-ui.table.cell>{{ $usuario->email }}</x-ui.table.cell>
-            <x-ui.table.cell class="text-right">
+            <x-ui.table.cell class="font-medium" data-label="Nombre">{{ $usuario->name }}</x-ui.table.cell>
+            <x-ui.table.cell data-label="Email">{{ $usuario->email }}</x-ui.table.cell>
+            <x-ui.table.cell data-label="Estado">
                 <x-ui.badge variant="success">Activo</x-ui.badge>
+            </x-ui.table.cell>
+            {{-- Celda de acciones: sin data-label, primera en mobile, separador inferior --}}
+            <x-ui.table.cell class="order-first sm:order-0 justify-end border-b border-border sm:border-b-0">
+                <x-ui.dropdown-menu align="end">
+                    ...
+                </x-ui.dropdown-menu>
             </x-ui.table.cell>
         </x-ui.table.row>
         @endforeach

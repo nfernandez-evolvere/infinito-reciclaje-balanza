@@ -65,7 +65,7 @@
                             placeholder="0"
                         />
                     </x-ui.form-field>
-                     <x-ui.form-field
+                    <x-ui.form-field
                         for="habitantes"
                         :state="$errors->has('habitantes') ? 'destructive' : null"
                         :message="$errors->first('habitantes')"
