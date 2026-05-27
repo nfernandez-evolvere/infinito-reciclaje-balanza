@@ -13,14 +13,12 @@ class DashboardService
     {
         $pesajes = Pesaje::whereDate('created_at', today())->get(['peso_neto_kg', 'estado', 'created_at']);
 
-        $total    = $pesajes->count();
+        $total     = $pesajes->count();
         $toneladas = round($pesajes->sum('peso_neto_kg') / 1000, 2);
         $promedio  = $total > 0 ? round($pesajes->avg('peso_neto_kg') / 1000, 2) : 0;
 
-        $primerPesaje = $pesajes->sortBy('created_at')->first();
-        $horasOp = $primerPesaje
-            ? round($primerPesaje->created_at->diffInMinutes(now()) / 60, 1)
-            : 0;
+        $ultimo = $pesajes->sortByDesc('created_at')->first();
+        $ultimoHaceMin = $ultimo ? (int) $ultimo->created_at->diffInMinutes(now()) : null;
 
         $mesAnteriorHoy = Pesaje::whereDate('created_at', today()->subMonth())->count();
         $deltaDia = $mesAnteriorHoy > 0
@@ -28,11 +26,11 @@ class DashboardService
             : null;
 
         return [
-            'total'      => $total,
-            'toneladas'  => $toneladas,
-            'promedio'   => $promedio,
-            'horas_op'   => $horasOp,
-            'delta'      => $deltaDia,
+            'total'          => $total,
+            'toneladas'      => $toneladas,
+            'promedio'       => $promedio,
+            'ultimo_hace_min' => $ultimoHaceMin,
+            'delta'          => $deltaDia,
         ];
     }
 
@@ -48,26 +46,35 @@ class DashboardService
 
         $inicioMesAnterior = today()->subMonth()->startOfMonth();
         $finMesAnterior    = today()->subMonth();
-        $totalMesAnterior  = Pesaje::whereDate('created_at', '>=', $inicioMesAnterior)
+
+        $mesAnterior = Pesaje::whereDate('created_at', '>=', $inicioMesAnterior)
             ->whereDate('created_at', '<=', $finMesAnterior)
-            ->count();
+            ->get(['peso_neto_kg']);
+
+        $totalMesAnterior     = $mesAnterior->count();
+        $toneladasMesAnterior = round($mesAnterior->sum('peso_neto_kg') / 1000, 2);
 
         $delta = $totalMesAnterior > 0
             ? round((($total - $totalMesAnterior) / $totalMesAnterior) * 100, 1)
             : null;
 
+        $deltaToneladas = $toneladasMesAnterior > 0
+            ? round((($toneladas - $toneladasMesAnterior) / $toneladasMesAnterior) * 100, 1)
+            : null;
+
         return [
-            'total'      => $total,
-            'toneladas'  => $toneladas,
-            'dias_op'    => $diasOp,
-            'delta'      => $delta,
+            'total'           => $total,
+            'toneladas'       => $toneladas,
+            'dias_op'         => $diasOp,
+            'delta'           => $delta,
+            'delta_toneladas' => $deltaToneladas,
         ];
     }
 
     public function evolucionDiaria(int $dias = 7): array
     {
-        $desde  = today()->subDays($dias - 1);
-        $hasta  = today();
+        $desde   = today()->subDays($dias - 1);
+        $hasta   = today();
         $formato = $dias <= 15 ? 'D d/m' : 'd/m';
 
         $pesajesPorDia = Pesaje::whereDate('created_at', '>=', $desde)
@@ -75,32 +82,43 @@ class DashboardService
             ->groupBy(fn ($p) => $p->created_at->toDateString())
             ->map(fn ($grupo) => round($grupo->sum('peso_neto_kg') / 1000, 2));
 
-        return collect(CarbonPeriod::create($desde, $hasta))
+        $promedio = $pesajesPorDia->isNotEmpty()
+            ? round($pesajesPorDia->avg(), 1)
+            : 0;
+
+        $datos = collect(CarbonPeriod::create($desde, $hasta))
             ->map(fn (Carbon $dia) => [
                 'fecha'     => $dia->translatedFormat($formato),
                 'toneladas' => $pesajesPorDia[$dia->toDateString()] ?? 0,
             ])
             ->values()
             ->all();
+
+        return ['datos' => $datos, 'promedio' => $promedio];
     }
 
     public function desgloseByZona(): Collection
     {
         $pesajes = Pesaje::with('zona')
             ->whereDate('created_at', today())
-            ->get(['zona_id', 'peso_neto_kg']);
+            ->get(['zona_id', 'peso_neto_kg', 'turno']);
 
         $total = $pesajes->sum('peso_neto_kg');
 
-        return $pesajes->groupBy('zona_id')
+        return $pesajes->groupBy(fn ($p) => $p->zona_id . '|' . ($p->turno ?? ''))
             ->map(function ($grupo) use ($total) {
+                $turno  = $grupo->first()->turno;
+                $nombre = ($grupo->first()->zona?->nombre ?? '—') . ($turno ? ' ' . $turno : '');
+                $count  = $grupo->count();
+                $sumaKg = $grupo->sum('peso_neto_kg');
+
                 return [
-                    'nombre'    => $grupo->first()->zona?->nombre ?? '—',
-                    'pesajes'   => $grupo->count(),
-                    'toneladas' => round($grupo->sum('peso_neto_kg') / 1000, 2),
-                    'porcentaje' => $total > 0
-                        ? round(($grupo->sum('peso_neto_kg') / $total) * 100, 1)
-                        : 0,
+                    'nombre'       => $nombre,
+                    'turno'        => $turno,
+                    'pesajes'      => $count,
+                    'toneladas'    => round($sumaKg / 1000, 2),
+                    'kg_por_viaje' => $count > 0 ? number_format((int) round($sumaKg / $count), 0, ',', '.') : '—',
+                    'porcentaje'   => $total > 0 ? round(($sumaKg / $total) * 100, 1) : 0,
                 ];
             })
             ->sortByDesc('toneladas')
@@ -117,13 +135,15 @@ class DashboardService
 
         return $pesajes->groupBy(fn ($p) => $p->vehiculo?->tipo_vehiculo_id)
             ->map(function ($grupo) use ($total) {
+                $count  = $grupo->count();
+                $sumaKg = $grupo->sum('peso_neto_kg');
+
                 return [
-                    'nombre'    => $grupo->first()->vehiculo?->tipoVehiculo?->nombre ?? '—',
-                    'pesajes'   => $grupo->count(),
-                    'toneladas' => round($grupo->sum('peso_neto_kg') / 1000, 2),
-                    'porcentaje' => $total > 0
-                        ? round(($grupo->sum('peso_neto_kg') / $total) * 100, 1)
-                        : 0,
+                    'nombre'       => $grupo->first()->vehiculo?->tipoVehiculo?->nombre ?? '—',
+                    'pesajes'      => $count,
+                    'toneladas'    => round($sumaKg / 1000, 2),
+                    'kg_por_viaje' => $count > 0 ? number_format((int) round($sumaKg / $count), 0, ',', '.') : '—',
+                    'porcentaje'   => $total > 0 ? round(($sumaKg / $total) * 100, 1) : 0,
                 ];
             })
             ->sortByDesc('toneladas')

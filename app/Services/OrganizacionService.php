@@ -92,6 +92,28 @@ class OrganizacionService
         return $this->organizacionRepository->toggleActivo($organizacion);
     }
 
+    public function removeUser(Organizacion $org, User $user): void
+    {
+        if (! $org->users()->whereKey($user->id)->exists()) {
+            throw new \RuntimeException('El usuario no pertenece a esta organización.');
+        }
+
+        if ($org->users()->count() <= 1) {
+            throw new \RuntimeException('La organización debe tener al menos un usuario.');
+        }
+
+        $org->users()->detach($user->id);
+    }
+
+    public function resetUserPassword(Organizacion $org, User $user): void
+    {
+        if (! $org->users()->whereKey($user->id)->exists()) {
+            throw new \RuntimeException('El usuario no pertenece a esta organización.');
+        }
+
+        $this->sendPasswordReset($user, $org->nombre);
+    }
+
     private function generateSlug(string $nombre, ?int $excludeId = null): string
     {
         $base = Str::slug($nombre);

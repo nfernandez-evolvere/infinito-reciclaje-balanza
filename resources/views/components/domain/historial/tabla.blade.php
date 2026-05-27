@@ -1,4 +1,4 @@
-@props(['pesajes', 'hayFiltros', 'routeHistorial'])
+@props(['pesajes', 'hayFiltros', 'routeHistorial', 'sortDirection' => 'desc'])
 
 @if($pesajes->isEmpty())
     @if($hayFiltros)
@@ -23,55 +23,121 @@
     <x-ui.table class="bg-card">
         <x-ui.table.header>
             <x-ui.table.row>
-                <x-ui.table.head>Entrada</x-ui.table.head>
-                <x-ui.table.head>Salida</x-ui.table.head>
-                <x-ui.table.head>Estado</x-ui.table.head>
-                <x-ui.table.head>Patente</x-ui.table.head>
-                <x-ui.table.head>Servicio</x-ui.table.head>
+                <x-ui.table.head>
+                    @php
+                        $nextDirection = $sortDirection === 'desc' ? 'asc' : 'desc';
+                        $sortUrl = request()->fullUrlWithQuery(['direction' => $nextDirection, 'page' => null]);
+                    @endphp
+                    <a href="{{ $sortUrl }}" class="inline-flex items-center justify-center gap-1 hover:text-foreground transition-colors">
+                        Ingreso
+                        @if($sortDirection === 'desc')
+                            <x-lucide-arrow-down class="size-3.5" />
+                        @else
+                            <x-lucide-arrow-up class="size-3.5" />
+                        @endif
+                    </a>
+                </x-ui.table.head>
+                <x-ui.table.head>Patente / N.° interno</x-ui.table.head>
                 <x-ui.table.head>Origen</x-ui.table.head>
-                <x-ui.table.head>Operario</x-ui.table.head>
-                <x-ui.table.head>Bruto</x-ui.table.head>
-                <x-ui.table.head>Tara</x-ui.table.head>
-                <x-ui.table.head>Neto</x-ui.table.head>
+                <x-ui.table.head>Servicio</x-ui.table.head>
+                <x-ui.table.head>Peso neto</x-ui.table.head>
+                <x-ui.table.head>Estado</x-ui.table.head>
                 <x-ui.table.head>Acciones</x-ui.table.head>
             </x-ui.table.row>
         </x-ui.table.header>
         <x-ui.table.body>
             @foreach($pesajes as $pesaje)
             <x-ui.table.row class="{{ $pesaje->alerta_peso ? 'bg-warning/5' : '' }}">
-                <x-ui.table.cell data-label="Entrada">
-                    {{ $pesaje->created_at->format('d/m/Y H:i') }}
+                {{-- Ingreso --}}
+                <x-ui.table.cell data-label="Ingreso">
+                    <div class="flex items-center justify-center gap-1.5 text-sm">
+                        <x-lucide-log-in class="size-3.5 shrink-0 text-success" />
+                        <span>{{ $pesaje->created_at->format('d/m/Y H:i') }}</span>
+                    </div>
                 </x-ui.table.cell>
-                <x-ui.table.cell class="text-muted-foreground" data-label="Salida">
-                    {{ $pesaje->hora_salida?->format('d/m/Y H:i') ?? '—' }}
-                </x-ui.table.cell>
-                <x-ui.table.cell data-label="Estado">
-                    <div class="flex items-center gap-1.5">
-                        @if($pesaje->estaEnPredio())
-                            <x-ui.badge variant="default" class="text-xs">En predio</x-ui.badge>
-                        @else
-                            <x-ui.badge variant="secondary" class="text-xs">Cerrado</x-ui.badge>
-                        @endif
-                        @if($pesaje->editado)
-                            <x-ui.badge variant="outline" class="text-xs">Editado</x-ui.badge>
-                        @endif
-                        @if($pesaje->alerta_peso)
-                            <x-ui.badge variant="warning" class="text-xs">Alerta</x-ui.badge>
+                {{-- Patente / N.° interno --}}
+                <x-ui.table.cell data-label="Patente / N.° interno">
+                    <div class="flex justify-center gap-2">
+                        <div class="flex items-center gap-1">
+                            <x-ui.tooltip content="Patente">
+                                <x-lucide-car class="size-3.5 shrink-0 text-muted-foreground" />
+                            </x-ui.tooltip>
+                            <span class="font-medium">{{ $pesaje->vehiculo->patente }}</span>
+                        </div>
+                        @if($pesaje->vehiculo->numero_interno)
+                            <div class="flex items-center gap-1">
+                                <x-ui.tooltip content="N.° interno">
+                                    <x-lucide-hash class="size-3.5 shrink-0 text-muted-foreground" />
+                                </x-ui.tooltip>
+                                <span class="font-medium">{{ $pesaje->vehiculo->numero_interno }}</span>
+                            </div>
                         @endif
                     </div>
                 </x-ui.table.cell>
-                <x-ui.table.cell class="font-medium" data-label="Patente">{{ $pesaje->vehiculo->patente }}</x-ui.table.cell>
-                <x-ui.table.cell class="text-sm" data-label="Servicio">{{ $pesaje->tipoServicio->nombre }}</x-ui.table.cell>
-                <x-ui.table.cell class="text-sm text-muted-foreground" data-label="Origen">{{ $pesaje->zona->nombre }}</x-ui.table.cell>
-                <x-ui.table.cell class="text-sm text-muted-foreground" data-label="Operario">{{ $pesaje->operador->name }}</x-ui.table.cell>
-                <x-ui.table.cell data-label="Bruto">
-                    {{ number_format($pesaje->peso_bruto_kg, 0, ',', '.') }} kg
+                {{-- Origen --}}
+                <x-ui.table.cell class="text-sm justify-center" data-label="Origen">
+                    <span>{{ $pesaje->zona->nombre }}</span>
+                    @if($pesaje->turno)
+                        <span class="text-muted-foreground"> — {{ $pesaje->turno }}</span>
+                    @endif
                 </x-ui.table.cell>
-                <x-ui.table.cell class="text-muted-foreground" data-label="Tara">
-                    {{ number_format($pesaje->peso_tara_kg, 0, ',', '.') }} kg
+                {{-- Servicio --}}
+                <x-ui.table.cell class="text-sm justify-center" data-label="Servicio">{{ $pesaje->tipoServicio->nombre }}</x-ui.table.cell>
+                {{-- Peso neto --}}
+                <x-ui.table.cell data-label="Peso neto">
+                    <div class="flex items-center justify-center gap-1">
+                        <span class="font-semibold tabular-nums text-sm">
+                            {{ number_format($pesaje->peso_neto_kg, 0, ',', '.') }} kg
+                        </span>
+                        <x-ui.popover align="end">
+                            <x-slot:trigger>
+                                <x-lucide-info class="size-3.5 text-muted-foreground hover:text-foreground transition-colors" />
+                            </x-slot:trigger>
+                            <p class="text-xs font-medium text-muted-foreground mb-2">Cálculo de peso</p>
+                            <div class="flex flex-col gap-1 text-sm tabular-nums">
+                                <div class="flex items-center justify-between gap-6">
+                                    <div class="flex items-center gap-1.5 text-muted-foreground">
+                                        <x-lucide-package class="size-3.5 shrink-0" />
+                                        <span>Bruto</span>
+                                    </div>
+                                    <span>{{ number_format($pesaje->peso_bruto_kg, 0, ',', '.') }} kg</span>
+                                </div>
+                                <div class="flex items-center justify-between gap-6">
+                                    <div class="flex items-center gap-1.5 text-muted-foreground">
+                                        <x-lucide-minus class="size-3.5 shrink-0" />
+                                        <span>Tara</span>
+                                    </div>
+                                    <span>{{ number_format($pesaje->peso_tara_kg, 0, ',', '.') }} kg</span>
+                                </div>
+                                <div class="flex items-center justify-between gap-6 font-semibold border-t border-border pt-1 mt-0.5">
+                                    <div class="flex items-center gap-1.5">
+                                        <x-lucide-equal class="size-3.5 shrink-0" />
+                                        <span>Neto</span>
+                                    </div>
+                                    <span>{{ number_format($pesaje->peso_neto_kg, 0, ',', '.') }} kg</span>
+                                </div>
+                            </div>
+                        </x-ui.popover>
+                    </div>
                 </x-ui.table.cell>
-                <x-ui.table.cell class="font-semibold" data-label="Neto">
-                    {{ number_format($pesaje->peso_neto_kg, 0, ',', '.') }} kg
+                {{-- Estado --}}
+                <x-ui.table.cell data-label="Estado">
+                    <div class="flex items-center justify-center gap-1">
+                        @if($pesaje->editado)
+                            <x-ui.tooltip content="Editado">
+                                <x-ui.badge variant="default" class="size-6 p-0 justify-center">
+                                    <x-lucide-pen-line class="size-3" />
+                                </x-ui.badge>
+                            </x-ui.tooltip>
+                        @endif
+                        @if($pesaje->alerta_peso)
+                            <x-ui.tooltip content="Alerta de peso">
+                                <x-ui.badge variant="warning" class="size-6 p-0 justify-center">
+                                    <x-lucide-triangle-alert class="size-3" />
+                                </x-ui.badge>
+                            </x-ui.tooltip>
+                        @endif
+                    </div>
                 </x-ui.table.cell>
                 <x-ui.table.cell class="order-first sm:order-0 justify-end border-b border-border sm:border-b-0">
                     <x-ui.dropdown-menu>
@@ -97,15 +163,6 @@
                                     Ver cambios
                                 </x-ui.dropdown-menu.item>
                             @endif
-                            @if($pesaje->estaEnPredio())
-                                <x-ui.dropdown-menu.separator />
-                                <x-ui.dropdown-menu.item
-                                    @click="abrirEgreso('{{ $pesaje->uuid }}', '{{ addslashes($pesaje->vehiculo->patente) }}')"
-                                >
-                                    <x-lucide-log-out class="size-4" />
-                                    Marcar egreso
-                                </x-ui.dropdown-menu.item>
-                            @endif
                         </x-ui.dropdown-menu.content>
                     </x-ui.dropdown-menu>
                 </x-ui.table.cell>
@@ -113,4 +170,11 @@
             @endforeach
         </x-ui.table.body>
     </x-ui.table>
+
+    @if($pesajes->hasPages())
+        <div class="flex items-center justify-between px-1 pt-2 text-sm text-muted-foreground">
+            <span class="flex-1">Página {{ $pesajes->currentPage() }} de {{ $pesajes->lastPage() }} · {{ number_format($pesajes->total(), 0, ',', '.') }} pesajes</span>
+            <x-ui.pagination :paginator="$pesajes" />
+        </div>
+    @endif
 @endif

@@ -12,7 +12,7 @@
         x-transition:leave-start="opacity-100 scale-y-100 translate-y-0"
         x-transition:leave-end="opacity-0 scale-y-95 translate-y-1"
         {{ $attributes->twMerge(
-            'fixed z-50 w-auto min-w-[220px]',
+            'fixed z-(--z-popover) w-auto min-w-[220px]',
             'rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-lg'
         ) }}
     >

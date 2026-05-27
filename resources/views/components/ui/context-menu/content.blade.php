@@ -35,7 +35,7 @@
         aria-orientation="vertical"
         :data-state="open ? 'open' : 'closed'"
         {{ $attributes->twMerge(
-            'fixed z-50 min-w-40 w-max max-h-[80vh] overflow-y-auto',
+            'fixed z-(--z-popover) min-w-40 w-max max-h-[80vh] overflow-y-auto',
             'rounded-lg bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10'
         ) }}
     >

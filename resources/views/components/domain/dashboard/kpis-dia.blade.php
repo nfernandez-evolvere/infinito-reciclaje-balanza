@@ -23,9 +23,21 @@
         <p class="text-xs font-normal mt-0.5 text-muted-foreground">por pesaje</p>
     </x-ui.kpi>
 
-    <x-ui.kpi title="Horas operativas" icon="clock" help="Tiempo transcurrido desde el primer pesaje del día.">
-        {{ number_format($kpis['horas_op'], 1, ',', '.') }} h
-        <p class="text-xs font-normal mt-0.5 text-muted-foreground">desde el primer pesaje</p>
+    <x-ui.kpi title="Último pesaje" icon="timer" help="Minutos transcurridos desde el último pesaje registrado hoy.">
+        @if($kpis['ultimo_hace_min'] === null)
+            <span class="text-muted-foreground">—</span>
+            <p class="text-xs font-normal mt-0.5 text-muted-foreground">Sin actividad hoy</p>
+        @elseif($kpis['ultimo_hace_min'] < 15)
+            <span class="text-success">{{ $kpis['ultimo_hace_min'] }} min</span>
+            <p class="text-xs font-normal mt-0.5 text-success/80">Operación activa</p>
+        @elseif($kpis['ultimo_hace_min'] < 60)
+            <span class="text-warning">{{ $kpis['ultimo_hace_min'] }} min</span>
+            <p class="text-xs font-normal mt-0.5 text-muted-foreground">Sin pesajes recientes</p>
+        @else
+            @php $h = intdiv($kpis['ultimo_hace_min'], 60); $m = $kpis['ultimo_hace_min'] % 60; @endphp
+            <span class="text-destructive">{{ $h }}h{{ $m > 0 ? ' ' . $m . 'min' : '' }}</span>
+            <p class="text-xs font-normal mt-0.5 text-destructive/80">Sin actividad reciente</p>
+        @endif
     </x-ui.kpi>
 
 </div>

@@ -121,7 +121,7 @@ $triggerSize = match($size) {
             x-transition:leave-start="opacity-100 scale-100"
             x-transition:leave-end="opacity-0 scale-95"
             @change="onPick($event.detail.value)"
-            class="fixed z-50"
+            class="fixed z-(--z-popover)"
         >
             <x-ui.calendar
                 :value="$value"

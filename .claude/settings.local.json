@@ -104,7 +104,11 @@
       "Bash(composer require *)",
       "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('extra',{}\\), indent=2\\)\\)\")",
       "PowerShell(npm install apexcharts --save 2>&1)",
-      "Bash(python3 -c ' *)"
+      "Bash(python3 -c ' *)",
+      "Bash(Remove-Item \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\app\\\\Http\\\\Controllers\\\\Admin\\\\PesajeController.php\")",
+      "Bash(git -C \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\" status)",
+      "Bash(git -C \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\" log --oneline -5)",
+      "Bash(git -C \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\" diff --stat HEAD)"
     ],
     "additionalDirectories": [
       "c:\\Users\\34891406\\Nicolas\\Proyectos\\infinito-reciclaje-balanza\\database\\sql",

@@ -13,17 +13,21 @@
                 <x-ui.table.header>
                     <x-ui.table.row>
                         <x-ui.table.head>Origen</x-ui.table.head>
-                        <x-ui.table.head>Pesajes</x-ui.table.head>
+                        <x-ui.table.head>Viajes</x-ui.table.head>
                         <x-ui.table.head>Toneladas</x-ui.table.head>
+                        <x-ui.table.head>KG/viaje</x-ui.table.head>
                         <x-ui.table.head>%</x-ui.table.head>
                     </x-ui.table.row>
                 </x-ui.table.header>
                 <x-ui.table.body>
                     @foreach($desglose as $fila)
                     <x-ui.table.row>
-                        <x-ui.table.cell class="font-medium" data-label="Origen">{{ $fila['nombre'] }}</x-ui.table.cell>
-                        <x-ui.table.cell class="tabular-nums" data-label="Pesajes">{{ $fila['pesajes'] }}</x-ui.table.cell>
+                        <x-ui.table.cell class="font-medium" data-label="Origen">
+                            {{ $fila['nombre'] }}
+                        </x-ui.table.cell>
+                        <x-ui.table.cell class="tabular-nums" data-label="Viajes">{{ $fila['pesajes'] }}</x-ui.table.cell>
                         <x-ui.table.cell class="tabular-nums" data-label="Toneladas">{{ number_format($fila['toneladas'], 2, ',', '.') }}</x-ui.table.cell>
+                        <x-ui.table.cell class="tabular-nums text-muted-foreground" data-label="KG/viaje">{{ $fila['kg_por_viaje'] }}</x-ui.table.cell>
                         <x-ui.table.cell class="tabular-nums text-muted-foreground" data-label="%">{{ $fila['porcentaje'] }}%</x-ui.table.cell>
                     </x-ui.table.row>
                     @endforeach

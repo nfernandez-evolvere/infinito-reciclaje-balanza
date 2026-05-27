@@ -23,8 +23,8 @@
 <div class="flex flex-col gap-6" x-data="historial()">
 
     @php
-        $esHoy = $filtros['desde'] === today()->toDateString() && $filtros['hasta'] === today()->toDateString();
-        $hayFiltros = !$esHoy
+        $hayFiltros = $filtros['desde']
+            || $filtros['hasta']
             || $filtros['patente']
             || $filtros['estado']
             || $filtros['operario_id']
@@ -32,11 +32,18 @@
             || ($filtros['tipo_servicio_id'] ?? null)
             || ($filtros['solo_alerta'] ?? null)
             || ($filtros['solo_editados'] ?? null);
-        $subtitulo = $esHoy
-            ? 'Pesajes de hoy · ' . now()->format('d/m/Y')
-            : ($filtros['desde'] === $filtros['hasta']
+
+        if ($filtros['desde'] && $filtros['hasta']) {
+            $subtitulo = $filtros['desde'] === $filtros['hasta']
                 ? 'Pesajes del ' . \Carbon\Carbon::parse($filtros['desde'])->format('d/m/Y')
-                : 'Pesajes del ' . \Carbon\Carbon::parse($filtros['desde'])->format('d/m') . ' al ' . \Carbon\Carbon::parse($filtros['hasta'])->format('d/m/Y'));
+                : 'Pesajes del ' . \Carbon\Carbon::parse($filtros['desde'])->format('d/m') . ' al ' . \Carbon\Carbon::parse($filtros['hasta'])->format('d/m/Y');
+        } elseif ($filtros['desde']) {
+            $subtitulo = 'Desde el ' . \Carbon\Carbon::parse($filtros['desde'])->format('d/m/Y');
+        } elseif ($filtros['hasta']) {
+            $subtitulo = 'Hasta el ' . \Carbon\Carbon::parse($filtros['hasta'])->format('d/m/Y');
+        } else {
+            $subtitulo = 'Todos los pesajes';
+        }
         $exportUrl     = $exportUrl ?? null;
         $zonas         = $zonas ?? collect();
         $tiposServicio = $tiposServicio ?? collect();
@@ -47,21 +54,22 @@
             <x-ui.typography as="h2">{{ $titulo }}</x-ui.typography>
             <x-ui.typography as="muted" class="mt-1">{{ $subtitulo }}</x-ui.typography>
         </div>
-        @if($exportUrl)
-            <x-ui.button variant="outline" size="sm" href="{{ $exportUrl . '?' . http_build_query(array_filter($filtros)) }}">
-                <x-lucide-download class="size-3.5" />
-                Exportar Excel
-            </x-ui.button>
-        @endif
+        <div class="flex items-center gap-2">
+            <x-domain.historial.filtros :filtros="$filtros" :operarios="$operarios" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" :zonas="$zonas" :tiposServicio="$tiposServicio" :sortDirection="$filtros['sort_direction']" />
+            @if($exportUrl)
+                <x-ui.button variant="outline" size="sm" href="{{ $exportUrl . '?' . http_build_query(array_filter($filtros)) }}">
+                    <x-lucide-download class="size-3.5" />
+                    Exportar
+                </x-ui.button>
+            @endif
+        </div>
     </div>
 
-    <x-domain.historial.mobile-drawers :kpis="$kpis" :filtros="$filtros" :operarios="$operarios" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" />
+    <x-domain.historial.mobile-drawers :kpis="$kpis" />
 
     <x-domain.historial.kpis :kpis="$kpis" />
 
-    <x-domain.historial.filtros :filtros="$filtros" :operarios="$operarios" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" :zonas="$zonas" :tiposServicio="$tiposServicio" />
-
-    <x-domain.historial.tabla :pesajes="$pesajes" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" />
+    <x-domain.historial.tabla :pesajes="$pesajes" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" :sortDirection="$filtros['sort_direction']" />
 
     <x-domain.historial.dialog-egreso />
 

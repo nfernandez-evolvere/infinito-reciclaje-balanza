@@ -6,8 +6,8 @@ use App\Http\Concerns\WithToastFlash;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreZonaRequest;
 use App\Http\Requests\UpdateZonaRequest;
-use App\Models\TipoServicio;
 use App\Models\Zona;
+use App\Repositories\TipoServicioRepository;
 use App\Services\ZonaService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
@@ -19,13 +19,14 @@ class ZonaController extends Controller
     use WithToastFlash;
     public function __construct(
         protected ZonaService $service,
+        protected TipoServicioRepository $tipoServicioRepository,
     ) {}
 
     public function index(Request $request): View
     {
-        $filters      = $request->only(['nombre', 'activo']);
-        $zonas        = $this->service->listar($filters);
-        $tiposServicio = TipoServicio::activos()->orderBy('nombre')->get();
+        $filters       = $request->only(['nombre', 'activo']);
+        $zonas         = $this->service->listar($filters);
+        $tiposServicio = $this->tipoServicioRepository->activos();
 
         return view('modules.admin.zonas.index', compact('zonas', 'filters', 'tiposServicio'));
     }

@@ -4,10 +4,12 @@ namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Concerns\WithToastFlash;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AddUserToOrganizacionRequest;
 use App\Http\Requests\StoreOrganizacionRequest;
 use App\Http\Requests\UpdateOrganizacionRequest;
 use App\Models\Organizacion;
 use App\Models\User;
+use App\Repositories\UsuarioRepository;
 use App\Services\OrganizacionService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
@@ -18,8 +20,10 @@ use Illuminate\View\View;
 class OrganizacionController extends Controller
 {
     use WithToastFlash;
+
     public function __construct(
         protected OrganizacionService $service,
+        protected UsuarioRepository $usuarioRepository,
     ) {}
 
     public function searchUsers(Request $request): JsonResponse
@@ -30,22 +34,12 @@ class OrganizacionController extends Controller
             return response()->json([]);
         }
 
-        $users = User::query()
-            ->where('role', '!=', 'super_admin')
-            ->where(function ($query) use ($q) {
-                $query->where('name', 'like', "%{$q}%")
-                      ->orWhere('email', 'like', "%{$q}%");
-            })
-            ->orderBy('name')
-            ->limit(8)
-            ->get(['id', 'name', 'email']);
-
-        return response()->json($users);
+        return response()->json($this->usuarioRepository->searchByNameOrEmail($q));
     }
 
     public function index(Request $request): View
     {
-        $filters = $request->only(['nombre', 'activo']);
+        $filters        = $request->only(['nombre', 'activo']);
         $organizaciones = $this->service->paginate();
 
         return view('modules.super_admin.organizaciones.index', compact('organizaciones', 'filters'));
@@ -54,8 +48,7 @@ class OrganizacionController extends Controller
     public function store(StoreOrganizacionRequest $request): RedirectResponse
     {
         try {
-            $org = $this->service->create($request->validated());
-
+            $org        = $this->service->create($request->validated());
             $adminEmail = $request->validated()['admin_email'];
 
             return redirect()->route('super.organizaciones.index')
@@ -128,18 +121,13 @@ class OrganizacionController extends Controller
         }
     }
 
-    public function addUser(Request $request, Organizacion $organizacion): JsonResponse
+    public function addUser(AddUserToOrganizacionRequest $request, Organizacion $organizacion): JsonResponse
     {
-        $validated = $request->validate([
-            'email' => ['required', 'email', 'max:255'],
-            'name'  => ['nullable', 'string', 'max:200'],
-        ]);
-
         try {
             $user = $this->service->addUserToOrg(
                 $organizacion,
-                $validated['email'],
-                $validated['name'] ?? null,
+                $request->validated('email'),
+                $request->validated('name'),
             );
             return response()->json(['user' => $user]);
         } catch (\RuntimeException $e) {
@@ -151,28 +139,21 @@ class OrganizacionController extends Controller
 
     public function removeUser(Organizacion $organizacion, User $user): JsonResponse
     {
-        if (! $organizacion->users()->whereKey($user->id)->exists()) {
-            return response()->json(['message' => 'El usuario no pertenece a esta organización.'], 422);
+        try {
+            $this->service->removeUser($organizacion, $user);
+            return response()->json(['success' => true]);
+        } catch (\RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
         }
-
-        if ($organizacion->users()->count() <= 1) {
-            return response()->json(['message' => 'La organización debe tener al menos un usuario.'], 422);
-        }
-
-        $organizacion->users()->detach($user->id);
-
-        return response()->json(['success' => true]);
     }
 
     public function resetUserPassword(Organizacion $organizacion, User $user): JsonResponse
     {
-        if (! $organizacion->users()->whereKey($user->id)->exists()) {
-            return response()->json(['message' => 'El usuario no pertenece a esta organización.'], 422);
+        try {
+            $this->service->resetUserPassword($organizacion, $user);
+            return response()->json(['success' => true]);
+        } catch (\RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
         }
-
-        $this->service->sendPasswordReset($user, $organizacion->nombre);
-
-        return response()->json(['success' => true]);
     }
-
 }

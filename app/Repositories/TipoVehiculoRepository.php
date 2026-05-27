@@ -4,9 +4,15 @@ namespace App\Repositories;
 
 use App\Models\TipoVehiculo;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 
 class TipoVehiculoRepository
 {
+    public function todos(): Collection
+    {
+        return TipoVehiculo::orderBy('nombre')->get();
+    }
+
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         return TipoVehiculo::query()

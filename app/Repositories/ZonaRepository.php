@@ -2,14 +2,43 @@
 
 namespace App\Repositories;
 
+use App\Models\TipoServicio;
 use App\Models\Zona;
 use App\Models\ZonaServicio;
 use App\Models\ZonaServicioHorario;
 use App\Models\ZonaServicioTurno;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection as SupportCollection;
 
 class ZonaRepository
 {
+    public function activos(): Collection
+    {
+        return Zona::activos()->orderBy('nombre')->get();
+    }
+
+    public function zonasConTurnosPara(TipoServicio $servicio): SupportCollection
+    {
+        $zonaServicios = ZonaServicio::with('zona')
+            ->where('tipo_servicio_id', $servicio->id)
+            ->whereHas('zona', fn ($q) => $q->where('activo', true))
+            ->get();
+
+        $zonaIds = $zonaServicios->pluck('zona_id');
+
+        $turnosPorZona = ZonaServicioTurno::where('tipo_servicio_id', $servicio->id)
+            ->whereIn('zona_id', $zonaIds)
+            ->get()
+            ->groupBy(fn ($t) => (string) $t->zona_id)
+            ->map(fn ($ts) => $ts->pluck('turno')->values()->all());
+
+        return $zonaServicios->map(fn ($zs) => [
+            'id'     => $zs->zona->id,
+            'nombre' => $zs->zona->nombre,
+            'turnos' => $turnosPorZona[(string) $zs->zona_id] ?? [],
+        ]);
+    }
+
     public function all(array $filters = []): Collection
     {
         $zonas = Zona::query()

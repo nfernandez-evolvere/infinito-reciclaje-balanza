@@ -3,13 +3,16 @@
 namespace App\Http\Controllers\Operador;
 
 use App\Http\Controllers\Controller;
+use App\Repositories\UsuarioRepository;
 use Illuminate\Http\JsonResponse;
 
 class OnboardingController extends Controller
 {
+    public function __construct(protected UsuarioRepository $usuarioRepository) {}
+
     public function __invoke(): JsonResponse
     {
-        auth()->user()->update(['onboarding_visto' => true]);
+        $this->usuarioRepository->marcarOnboardingVisto(auth()->user());
 
         return response()->json(['ok' => true]);
     }

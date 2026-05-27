@@ -38,6 +38,8 @@ class DevSeeder extends Seeder
         ]);
         $corrientes->users()->attach($adminDoble->id);
         $resistencia->users()->attach($adminDoble->id);
+
+        $this->call(PesajeSeeder::class);
     }
 
     private function seedOrganizacion(Organizacion $org, string $suffix): void

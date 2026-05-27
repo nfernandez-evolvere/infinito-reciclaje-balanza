@@ -47,13 +47,25 @@
                         </div>
                     </div>
                     <div class="bg-card rounded-xl p-3 flex flex-col gap-2">
-                        <x-lucide-clock class="size-8 text-primary p-1.5 bg-primary/10 rounded-lg" />
+                        <x-lucide-timer class="size-8 text-primary p-1.5 bg-primary/10 rounded-lg" />
                         <div>
-                            <p class="text-overline">Horas operativas</p>
-                            <p class="text-2xl font-bold leading-tight">
-                                {{ number_format($kpisDia['horas_op'], 1, ',', '.') }}
-                                <span class="text-sm font-normal text-muted-foreground">h</span>
-                            </p>
+                            <p class="text-overline">Último pesaje</p>
+                            @if($kpisDia['ultimo_hace_min'] === null)
+                                <p class="text-base font-medium text-muted-foreground leading-tight">Sin actividad</p>
+                            @elseif($kpisDia['ultimo_hace_min'] < 15)
+                                <p class="text-2xl font-bold leading-tight text-success">
+                                    {{ $kpisDia['ultimo_hace_min'] }}<span class="text-sm font-normal"> min</span>
+                                </p>
+                            @elseif($kpisDia['ultimo_hace_min'] < 60)
+                                <p class="text-2xl font-bold leading-tight text-warning">
+                                    {{ $kpisDia['ultimo_hace_min'] }}<span class="text-sm font-normal"> min</span>
+                                </p>
+                            @else
+                                @php $h = intdiv($kpisDia['ultimo_hace_min'], 60); $m = $kpisDia['ultimo_hace_min'] % 60; @endphp
+                                <p class="text-2xl font-bold leading-tight text-destructive">
+                                    {{ $h }}h{{ $m > 0 ? ' ' . $m . 'min' : '' }}
+                                </p>
+                            @endif
                         </div>
                     </div>
                 </div>

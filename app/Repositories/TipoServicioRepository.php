@@ -4,9 +4,20 @@ namespace App\Repositories;
 
 use App\Models\TipoServicio;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 
 class TipoServicioRepository
 {
+    public function activos(): Collection
+    {
+        return TipoServicio::activos()->orderBy('nombre')->get();
+    }
+
+    public function activosConVehiculoSugerido(): Collection
+    {
+        return TipoServicio::activos()->with('tipoVehiculoSugerido')->get();
+    }
+
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         return TipoServicio::query()

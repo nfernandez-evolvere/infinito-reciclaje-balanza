@@ -10,6 +10,7 @@
                 15: {{ Js::from($evolucion15) }},
                 90: {{ Js::from($evolucion90) }},
             },
+            get promedio() { return this.datasets[this.periodo].promedio; },
             primaryColor() {
                 const el = document.createElement('span');
                 el.className = 'bg-primary';
@@ -20,16 +21,38 @@
                 return c;
             },
             get series() {
-                return [{ name: 'Toneladas netas', data: this.datasets[this.periodo].map(d => d.toneladas) }];
+                return [{ name: 'Toneladas netas', data: this.datasets[this.periodo].datos.map(d => d.toneladas) }];
             },
             get categories() {
-                return this.datasets[this.periodo].map(d => d.fecha);
+                return this.datasets[this.periodo].datos.map(d => d.fecha);
             },
             columnWidth() {
                 return this.periodo <= 15 ? '55%' : '80%';
             },
             tickAmount() {
                 return this.periodo <= 15 ? undefined : 10;
+            },
+            promedioAnnotation(muted) {
+                if (!this.promedio) return { yaxis: [] };
+                return {
+                    yaxis: [{
+                        y: this.promedio,
+                        borderColor: muted,
+                        strokeDashArray: 4,
+                        label: {
+                            text: 'Prom. ' + this.promedio + ' t',
+                            position: 'right',
+                            offsetX: -8,
+                            style: {
+                                color: muted,
+                                fontSize: '10px',
+                                fontWeight: 400,
+                                background: 'transparent',
+                                padding: { left: 4, right: 4, top: 2, bottom: 2 },
+                            },
+                        },
+                    }],
+                };
             },
             baseOptions(color) {
                 const dark   = document.documentElement.classList.contains('dark');
@@ -55,6 +78,7 @@
                         tickAmount: this.tickAmount(),
                     },
                     yaxis: { labels: { style: { colors: muted, fontSize: '11px' } } },
+                    annotations: this.promedioAnnotation(muted),
                     tooltip: {
                         theme: dark ? 'dark' : 'light',
                         style: { fontSize: '12px', fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif' },
@@ -68,10 +92,13 @@
                 this.chart.render();
 
                 this.$watch('periodo', () => {
+                    const dark  = document.documentElement.classList.contains('dark');
+                    const muted = dark ? '#a1a1aa' : '#71717a';
                     this.chart.updateOptions({
                         series: this.series,
                         xaxis: { categories: this.categories, tickAmount: this.tickAmount() },
                         plotOptions: { bar: { borderRadius: 3, columnWidth: this.columnWidth() } },
+                        annotations: this.promedioAnnotation(muted),
                     });
                 });
 

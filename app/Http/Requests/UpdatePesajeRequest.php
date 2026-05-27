@@ -8,7 +8,8 @@ class UpdatePesajeRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->user()?->isOperador() ?? false;
+        $user = auth()->user();
+        return $user?->isOperador() || $user?->isAdmin() ?? false;
     }
 
     public function rules(): array

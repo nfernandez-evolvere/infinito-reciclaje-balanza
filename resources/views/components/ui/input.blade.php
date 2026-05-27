@@ -13,9 +13,9 @@ $base = 'flex w-full rounded-full border bg-background text-foreground shadow-xs
 
 // Padding se ajusta cuando hay íconos para no solapar el contenido
 $sizeClass = match($size) {
-    'sm'    => 'h-8 text-[13px] '  . ($hasLeading ? 'pl-8'  : 'pl-3') . ' ' . ($hasTrailing ? 'pr-8'  : 'pr-3'),
-    'lg'    => 'h-12 text-base '   . ($hasLeading ? 'pl-11' : 'pl-4') . ' ' . ($hasTrailing ? 'pr-11' : 'pr-4'),
-    default => 'h-10 text-sm '     . ($hasLeading ? 'pl-9'  : 'pl-3') . ' ' . ($hasTrailing ? 'pr-9'  : 'pr-3'),
+    'sm'    => 'h-8 text-base sm:text-[13px] ' . ($hasLeading ? 'pl-8'  : 'pl-3') . ' ' . ($hasTrailing ? 'pr-8'  : 'pr-3'),
+    'lg'    => 'h-12 text-base '               . ($hasLeading ? 'pl-11' : 'pl-4') . ' ' . ($hasTrailing ? 'pr-11' : 'pr-4'),
+    default => 'h-10 text-base sm:text-sm '    . ($hasLeading ? 'pl-9'  : 'pl-3') . ' ' . ($hasTrailing ? 'pr-9'  : 'pr-3'),
 };
 
 $stateClass = match($state) {

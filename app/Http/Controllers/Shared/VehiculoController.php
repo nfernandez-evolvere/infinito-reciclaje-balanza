@@ -1,17 +1,17 @@
 <?php
 
-namespace App\Http\Controllers\Operador;
+namespace App\Http\Controllers\Shared;
 
 use App\Http\Controllers\Controller;
 use App\Repositories\VehiculoRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class VehiculoBuscarController extends Controller
+class VehiculoController extends Controller
 {
     public function __construct(protected VehiculoRepository $vehiculoRepository) {}
 
-    public function __invoke(Request $request): JsonResponse
+    public function buscar(Request $request): JsonResponse
     {
         $q = trim($request->query('q', ''));
 
@@ -19,10 +19,8 @@ class VehiculoBuscarController extends Controller
             return response()->json([]);
         }
 
-        $vehiculos = $this->vehiculoRepository->buscar($q);
-
         return response()->json(
-            $vehiculos->map(fn ($v) => [
+            $this->vehiculoRepository->buscar($q)->map(fn ($v) => [
                 'id'       => $v->id,
                 'patente'  => $v->patente,
                 'interno'  => $v->numero_interno,

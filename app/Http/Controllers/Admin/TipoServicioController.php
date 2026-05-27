@@ -7,7 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTipoServicioRequest;
 use App\Http\Requests\UpdateTipoServicioRequest;
 use App\Models\TipoServicio;
-use App\Models\TipoVehiculo;
+use App\Repositories\TipoVehiculoRepository;
 use App\Services\TipoServicioService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
@@ -19,13 +19,14 @@ class TipoServicioController extends Controller
     use WithToastFlash;
     public function __construct(
         protected TipoServicioService $service,
+        protected TipoVehiculoRepository $tipoVehiculoRepository,
     ) {}
 
     public function index(Request $request): View
     {
         $filters       = $request->only(['nombre', 'activo', 'tipo_vehiculo_id']);
         $tipos         = $this->service->listar($filters);
-        $tiposVehiculo = TipoVehiculo::orderBy('nombre')->get();
+        $tiposVehiculo = $this->tipoVehiculoRepository->todos();
 
         return view('modules.admin.tipos-servicio.index', compact('tipos', 'filters', 'tiposVehiculo'));
     }

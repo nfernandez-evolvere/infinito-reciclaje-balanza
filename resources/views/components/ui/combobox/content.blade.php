@@ -19,7 +19,7 @@
         x-transition:leave-start="opacity-100 scale-y-100"
         x-transition:leave-end="opacity-0 scale-y-95"
         :class="placement === 'top' ? 'origin-bottom' : 'origin-top'"
-        {{ $attributes->twMerge('fixed z-50 rounded-md border border-border bg-popover shadow-md overflow-hidden') }}
+        {{ $attributes->twMerge('fixed z-(--z-popover) rounded-md border border-border bg-popover shadow-md overflow-hidden') }}
     >
         @if($searchable)
         <div class="border-b border-border p-1">

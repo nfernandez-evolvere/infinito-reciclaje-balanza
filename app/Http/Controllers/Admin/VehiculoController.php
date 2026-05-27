@@ -6,8 +6,8 @@ use App\Http\Concerns\WithToastFlash;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreVehiculoRequest;
 use App\Http\Requests\UpdateVehiculoRequest;
-use App\Models\TipoVehiculo;
 use App\Models\Vehiculo;
+use App\Repositories\TipoVehiculoRepository;
 use App\Services\VehiculoService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
@@ -19,13 +19,14 @@ class VehiculoController extends Controller
     use WithToastFlash;
     public function __construct(
         protected VehiculoService $service,
+        protected TipoVehiculoRepository $tipoVehiculoRepository,
     ) {}
 
     public function index(Request $request): View
     {
         $filters        = $request->only(['patente', 'numero_interno', 'tipo_vehiculo_id', 'activo']);
         $vehiculos      = $this->service->listar($filters);
-        $tiposVehiculo  = TipoVehiculo::orderBy('nombre')->get();
+        $tiposVehiculo  = $this->tipoVehiculoRepository->todos();
 
         return view('modules.admin.vehiculos.index', compact('vehiculos', 'filters', 'tiposVehiculo'));
     }

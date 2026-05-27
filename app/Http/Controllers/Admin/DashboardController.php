@@ -22,7 +22,6 @@ class DashboardController extends Controller
             'evolucion90'      => $this->dashboardService->evolucionDiaria(90),
             'desgloseZona'     => $this->dashboardService->desgloseByZona(),
             'desgloseVehiculo' => $this->dashboardService->desgloseByTipoVehiculo(),
-            'camiones'         => $this->dashboardService->camionesEnPredio(),
             'alertas'          => $this->dashboardService->alertasActivas(),
         ]);
     }

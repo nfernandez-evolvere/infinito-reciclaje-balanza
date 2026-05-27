@@ -1,8 +1,8 @@
 <?php
 
 use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\PesajeController;
 use App\Http\Controllers\Admin\ReporteController;
+use App\Http\Controllers\Shared\PesajeController;
 use App\Http\Controllers\Admin\ServicioController;
 use App\Http\Controllers\Admin\TipoServicioController;
 use App\Http\Controllers\Admin\TipoVehiculoController;
@@ -18,8 +18,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::get('/pesajes', [PesajeController::class, 'index'])->name('pesajes.index');
     Route::get('/pesajes/export', [PesajeController::class, 'export'])->name('pesajes.export');
-    Route::get('/pesajes/create', [PesajeController::class, 'create'])->name('pesajes.create');
-    Route::post('/pesajes', [PesajeController::class, 'store'])->name('pesajes.store');
     Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
 
     // Zonas ——————————————————————————————————————————————————————————

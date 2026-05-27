@@ -6,7 +6,9 @@ use App\Models\Pesaje;
 use App\Models\User;
 use App\Repositories\PesajeLogRepository;
 use App\Repositories\PesajeRepository;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PesajeService
 {
@@ -96,5 +98,41 @@ class PesajeService
         }
 
         return $pesaje->fresh();
+    }
+
+    public function exportarCsv(Collection $pesajes, string $filename): StreamedResponse
+    {
+        return response()->streamDownload(function () use ($pesajes) {
+            $handle = fopen('php://output', 'w');
+            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            fputcsv($handle, [
+                'ID', 'Entrada', 'Salida', 'Estado',
+                'Patente', 'Tipo vehículo', 'Servicio', 'Origen',
+                'Operario', 'Bruto (kg)', 'Tara (kg)', 'Neto (kg)',
+                'Alerta peso', 'Editado',
+            ]);
+
+            foreach ($pesajes as $p) {
+                fputcsv($handle, [
+                    $p->id,
+                    $p->created_at->format('d/m/Y H:i'),
+                    $p->hora_salida?->format('d/m/Y H:i') ?? '',
+                    $p->estado,
+                    $p->vehiculo->patente,
+                    $p->vehiculo->tipoVehiculo?->nombre ?? '',
+                    $p->tipoServicio->nombre,
+                    $p->zona->nombre,
+                    $p->operador->name,
+                    $p->peso_bruto_kg,
+                    $p->peso_tara_kg,
+                    $p->peso_neto_kg,
+                    $p->alerta_peso ? 'Sí' : 'No',
+                    $p->editado ? 'Sí' : 'No',
+                ]);
+            }
+
+            fclose($handle);
+        }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
 }

@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 
 class UsuarioRepository
 {
@@ -59,5 +60,33 @@ class UsuarioRepository
     public function resetPassword(User $usuario, string $password): void
     {
         $usuario->update(['password' => $password]);
+    }
+
+    public function getOperadoresDeLaOrg(): Collection
+    {
+        $orgId = app('organizacion')->id;
+
+        return User::whereHas('organizaciones', fn ($q) => $q->where('organizaciones.id', $orgId))
+            ->where('role', 'operador')
+            ->orderBy('name')
+            ->get();
+    }
+
+    public function searchByNameOrEmail(string $q, int $limit = 8): Collection
+    {
+        return User::query()
+            ->where('role', '!=', 'super_admin')
+            ->where(function ($query) use ($q) {
+                $query->where('name', 'like', "%{$q}%")
+                      ->orWhere('email', 'like', "%{$q}%");
+            })
+            ->orderBy('name')
+            ->limit($limit)
+            ->get(['id', 'name', 'email']);
+    }
+
+    public function marcarOnboardingVisto(User $user): void
+    {
+        $user->update(['onboarding_visto' => true]);
     }
 }

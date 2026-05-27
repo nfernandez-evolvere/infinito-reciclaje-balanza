@@ -320,7 +320,7 @@ $itemSize = match($size) {
                 x-transition:leave-start="opacity-100 scale-y-100"
                 x-transition:leave-end="opacity-0 scale-y-95"
                 :class="placement === 'top' ? 'origin-bottom' : 'origin-top'"
-                class="fixed z-50 rounded-md border border-border bg-popover shadow-md overflow-hidden"
+                class="fixed z-(--z-popover) rounded-md border border-border bg-popover shadow-md overflow-hidden"
             >
                 <div class="border-b border-border p-1">
                     <div class="relative flex items-center">

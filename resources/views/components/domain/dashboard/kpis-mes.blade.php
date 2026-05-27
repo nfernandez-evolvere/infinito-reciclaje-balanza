@@ -15,7 +15,13 @@
 
     <x-ui.kpi title="Toneladas del mes" icon="package" help="Suma de toneladas netas acumuladas en el mes.">
         {{ number_format($kpis['toneladas'], 1, ',', '.') }} t
-        <p class="text-xs font-normal mt-0.5 text-muted-foreground">toneladas netas acumuladas</p>
+        @if($kpis['delta_toneladas'] !== null)
+            <p class="text-xs font-normal mt-0.5 {{ $kpis['delta_toneladas'] >= 0 ? 'text-success' : 'text-destructive' }}">
+                {{ $kpis['delta_toneladas'] >= 0 ? '+' : '' }}{{ $kpis['delta_toneladas'] }}% vs mismo período mes anterior
+            </p>
+        @else
+            <p class="text-xs font-normal mt-0.5 text-muted-foreground">Sin comparación disponible</p>
+        @endif
     </x-ui.kpi>
 
     <x-ui.kpi title="Días operativos" icon="calendar-days" help="Cantidad de días con al menos un pesaje registrado.">

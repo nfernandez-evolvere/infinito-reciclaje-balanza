@@ -47,8 +47,6 @@
         <x-domain.dashboard.desglose-vehiculo :desglose="$desgloseVehiculo" />
     </div>
 
-    {{-- Camiones en el predio --}}
-    <x-domain.dashboard.camiones-predio :camiones="$camiones" />
 </div>
 
 </x-layouts.app>

@@ -4,18 +4,18 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class EgresoPesajeRequest extends FormRequest
+class AddUserToOrganizacionRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $user = auth()->user();
-        return $user?->isOperador() || $user?->isAdmin() ?? false;
+        return true;
     }
 
     public function rules(): array
     {
         return [
-            'bruto_salida_kg' => ['nullable', 'integer', 'min:1'],
+            'email' => ['required', 'email', 'max:255'],
+            'name'  => ['nullable', 'string', 'max:200'],
         ];
     }
 }
