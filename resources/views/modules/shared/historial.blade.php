@@ -75,5 +75,7 @@
 
     <x-domain.historial.dialog-cambios />
 
+    <x-domain.historial.dialog-cancelar />
+
 </div>
 </x-layouts.app>

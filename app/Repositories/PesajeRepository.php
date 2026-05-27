@@ -51,6 +51,7 @@ class PesajeRepository
     public function kpisFiltrado(array $filtros): array
     {
         $stats = $this->buildQuery($filtros)
+            ->where('estado', '!=', 'Cancelado')
             ->selectRaw('COUNT(*) as total, SUM(peso_neto_kg) as total_neto, AVG(peso_neto_kg) as avg_neto')
             ->first();
 
@@ -70,7 +71,7 @@ class PesajeRepository
 
     public function kpisDelTurno(): array
     {
-        $pesajes = Pesaje::delTurno()->get(['peso_neto_kg', 'estado']);
+        $pesajes = Pesaje::delTurno()->where('estado', '!=', 'Cancelado')->get(['peso_neto_kg', 'estado']);
 
         return [
             'total'           => $pesajes->count(),
@@ -82,7 +83,7 @@ class PesajeRepository
 
     public function ultimoDelTurno(): ?Pesaje
     {
-        return Pesaje::with('vehiculo')->delTurno()->latest()->first();
+        return Pesaje::with('vehiculo')->delTurno()->where('estado', '!=', 'Cancelado')->latest()->first();
     }
 
     private function buildQuery(array $filtros): Builder

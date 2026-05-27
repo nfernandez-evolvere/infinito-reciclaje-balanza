@@ -1,6 +1,7 @@
 @props([
     'size'            => 'md',
     'showCloseButton' => true,
+    'closeState'      => null,
 ])
 
 @php
@@ -43,6 +44,7 @@ $sizeClass = ['sm' => 'max-w-sm', 'lg' => 'max-w-2xl', 'xl' => 'max-w-4xl'][$siz
             @if($showCloseButton)
                 <x-ui.button
                     variant="ghost"
+                    :state="$closeState"
                     size="icon"
                     type="button"
                     class="absolute right-6 top-4 z-10 size-7"

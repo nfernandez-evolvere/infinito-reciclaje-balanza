@@ -108,7 +108,8 @@
       "Bash(Remove-Item \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\app\\\\Http\\\\Controllers\\\\Admin\\\\PesajeController.php\")",
       "Bash(git -C \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\" status)",
       "Bash(git -C \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\" log --oneline -5)",
-      "Bash(git -C \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\" diff --stat HEAD)"
+      "Bash(git -C \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\" diff --stat HEAD)",
+      "Bash(git -C \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\" push)"
     ],
     "additionalDirectories": [
       "c:\\Users\\34891406\\Nicolas\\Proyectos\\infinito-reciclaje-balanza\\database\\sql",

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Shared;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CancelarPesajeRequest;
 use App\Http\Requests\EgresoPesajeRequest;
 use App\Http\Requests\UpdatePesajeRequest;
 use App\Models\Pesaje;
@@ -29,6 +30,7 @@ class PesajeController extends Controller
         'peso_bruto_kg'    => 'Peso bruto',
         'observaciones'    => 'Observaciones',
         'turno'            => 'Turno',
+        'estado'           => 'Estado',
     ];
 
     public function __construct(
@@ -143,6 +145,21 @@ class PesajeController extends Controller
 
         return redirect()->route($route)
             ->with('toast', ['message' => 'Egreso registrado.', 'description' => '', 'variant' => 'success']);
+    }
+
+    public function cancelar(CancelarPesajeRequest $request, Pesaje $pesaje): RedirectResponse
+    {
+        $this->pesajeService->cancelar($pesaje, $request->validated(), auth()->user());
+
+        $pesaje->loadMissing('vehiculo');
+        $route = auth()->user()->isAdmin() ? 'admin.pesajes.index' : 'historial';
+
+        return redirect()->route($route)
+            ->with('toast', [
+                'message'     => 'Pesaje cancelado',
+                'description' => 'Se canceló el pesaje de ' . $pesaje->vehiculo->patente . '.',
+                'variant'     => 'default',
+            ]);
     }
 
     public function log(Pesaje $pesaje): JsonResponse

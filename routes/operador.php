@@ -28,5 +28,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pesajes/{pesaje}/edit', [PesajeController::class, 'edit'])->name('pesajes.edit');
     Route::put('/pesajes/{pesaje}', [PesajeController::class, 'update'])->name('pesajes.update');
     Route::post('/pesajes/{pesaje}/egreso', [PesajeController::class, 'egreso'])->name('pesajes.egreso');
+    Route::patch('/pesajes/{pesaje}/cancelar', [PesajeController::class, 'cancelar'])->name('pesajes.cancelar');
     Route::get('/pesajes/{pesaje}/log', [PesajeController::class, 'log'])->name('pesajes.log');
 });

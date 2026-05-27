@@ -100,6 +100,29 @@ class PesajeService
         return $pesaje->fresh();
     }
 
+    public function cancelar(Pesaje $pesaje, array $data, User $usuario): Pesaje
+    {
+        if ($pesaje->estaCancelado()) {
+            throw ValidationException::withMessages(['estado' => 'El pesaje ya fue cancelado.']);
+        }
+
+        $this->logRepository->create([
+            'pesaje_id'      => $pesaje->id,
+            'campo'          => 'estado',
+            'valor_anterior' => $pesaje->estado,
+            'valor_nuevo'    => 'Cancelado',
+            'motivo'         => $data['motivo'],
+            'usuario_id'     => $usuario->id,
+        ]);
+
+        return $this->pesajeRepository->update($pesaje, [
+            'estado'             => 'Cancelado',
+            'cancelado_por_id'   => $usuario->id,
+            'cancelado_at'       => now(),
+            'motivo_cancelacion' => $data['motivo'],
+        ]);
+    }
+
     public function exportarCsv(Collection $pesajes, string $filename): StreamedResponse
     {
         return response()->streamDownload(function () use ($pesajes) {

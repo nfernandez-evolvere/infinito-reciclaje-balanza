@@ -10,12 +10,23 @@ export default function historial() {
         logEntradas: [],
         logCargando: false,
 
+        cancelarId: null,
+        cancelarPatente: '',
+        motivoCancelacion: '',
+
         abrirEgreso(id, patente) {
             this.egresoId = id;
             this.egresoPatente = patente;
             const now = new Date();
             this.horaActual = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
             window.dispatchEvent(new Event('modal-egreso-open'));
+        },
+
+        abrirCancelar(id, patente) {
+            this.cancelarId = id;
+            this.cancelarPatente = patente;
+            this.motivoCancelacion = '';
+            window.dispatchEvent(new Event('modal-cancelar-open'));
         },
 
         async abrirLog(id, patente) {

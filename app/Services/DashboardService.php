@@ -11,7 +11,7 @@ class DashboardService
 {
     public function kpisDelDia(): array
     {
-        $pesajes = Pesaje::whereDate('created_at', today())->get(['peso_neto_kg', 'estado', 'created_at']);
+        $pesajes = Pesaje::whereDate('created_at', today())->where('estado', '!=', 'Cancelado')->get(['peso_neto_kg', 'estado', 'created_at']);
 
         $total     = $pesajes->count();
         $toneladas = round($pesajes->sum('peso_neto_kg') / 1000, 2);
@@ -38,7 +38,7 @@ class DashboardService
     {
         $inicioMes = today()->startOfMonth();
 
-        $pesajes = Pesaje::whereDate('created_at', '>=', $inicioMes)->get(['peso_neto_kg', 'created_at']);
+        $pesajes = Pesaje::whereDate('created_at', '>=', $inicioMes)->where('estado', '!=', 'Cancelado')->get(['peso_neto_kg', 'created_at']);
 
         $total     = $pesajes->count();
         $toneladas = round($pesajes->sum('peso_neto_kg') / 1000, 2);
@@ -78,6 +78,7 @@ class DashboardService
         $formato = $dias <= 15 ? 'D d/m' : 'd/m';
 
         $pesajesPorDia = Pesaje::whereDate('created_at', '>=', $desde)
+            ->where('estado', '!=', 'Cancelado')
             ->get(['peso_neto_kg', 'created_at'])
             ->groupBy(fn ($p) => $p->created_at->toDateString())
             ->map(fn ($grupo) => round($grupo->sum('peso_neto_kg') / 1000, 2));
@@ -101,6 +102,7 @@ class DashboardService
     {
         $pesajes = Pesaje::with('zona')
             ->whereDate('created_at', today())
+            ->where('estado', '!=', 'Cancelado')
             ->get(['zona_id', 'peso_neto_kg', 'turno']);
 
         $total = $pesajes->sum('peso_neto_kg');
@@ -129,6 +131,7 @@ class DashboardService
     {
         $pesajes = Pesaje::with('vehiculo.tipoVehiculo')
             ->whereDate('created_at', today())
+            ->where('estado', '!=', 'Cancelado')
             ->get(['vehiculo_id', 'peso_neto_kg']);
 
         $total = $pesajes->sum('peso_neto_kg');

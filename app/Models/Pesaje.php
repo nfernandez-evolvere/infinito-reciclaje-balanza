@@ -32,6 +32,9 @@ class Pesaje extends Model
         'hora_salida',
         'bruto_salida_kg',
         'editado',
+        'motivo_cancelacion',
+        'cancelado_por_id',
+        'cancelado_at',
     ];
 
     protected static function booted(): void
@@ -50,6 +53,7 @@ class Pesaje extends Model
         'alerta_peso'   => 'boolean',
         'editado'       => 'boolean',
         'hora_salida'   => 'datetime',
+        'cancelado_at'  => 'datetime',
         'peso_bruto_kg' => 'integer',
         'peso_tara_kg'  => 'integer',
         'peso_neto_kg'  => 'integer',
@@ -75,6 +79,11 @@ class Pesaje extends Model
         return $this->belongsTo(Zona::class);
     }
 
+    public function canceladoPor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cancelado_por_id');
+    }
+
     public function logs(): HasMany
     {
         return $this->hasMany(PesajeLog::class);
@@ -98,5 +107,10 @@ class Pesaje extends Model
     public function estaCerrado(): bool
     {
         return $this->estado === 'Cerrado';
+    }
+
+    public function estaCancelado(): bool
+    {
+        return $this->estado === 'Cancelado';
     }
 }
