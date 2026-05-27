@@ -146,9 +146,8 @@
                             </x-ui.select.trigger>
                             <x-ui.select.content>
                                 <x-ui.select.item value="">Todos</x-ui.select.item>
-                                <x-ui.select.item value="En predio">En predio</x-ui.select.item>
-                                <x-ui.select.item value="Cerrado">Cerrado</x-ui.select.item>
-                                <x-ui.select.item value="Cancelado">Cancelado</x-ui.select.item>
+                                <x-ui.select.item value="Activos">Activos</x-ui.select.item>
+                                <x-ui.select.item value="Cancelado">Cancelados</x-ui.select.item>
                             </x-ui.select.content>
                         </x-ui.select>
                     </x-ui.form-field>

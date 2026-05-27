@@ -92,7 +92,10 @@ class PesajeRepository
             ->when($filtros['desde'] ?? null, fn ($q, $d) => $q->whereDate('created_at', '>=', $d))
             ->when($filtros['hasta'] ?? null, fn ($q, $h) => $q->whereDate('created_at', '<=', $h))
             ->when($filtros['patente'] ?? null, fn ($q, $p) => $q->whereHas('vehiculo', fn ($v) => $v->where('patente', 'like', '%' . $p . '%')))
-            ->when($filtros['estado'] ?? null, fn ($q, $e) => $q->where('estado', $e))
+            ->when($filtros['estado'] ?? null, fn ($q, $e) => $e === 'Activos'
+                ? $q->where('estado', '!=', 'Cancelado')
+                : $q->where('estado', $e)
+            )
             ->when($filtros['operario_id'] ?? null, fn ($q, $id) => $q->where('operador_id', $id))
             ->when($filtros['zona_id'] ?? null, fn ($q, $id) => $q->where('zona_id', $id))
             ->when($filtros['tipo_servicio_id'] ?? null, fn ($q, $id) => $q->where('tipo_servicio_id', $id))

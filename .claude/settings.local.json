@@ -109,7 +109,12 @@
       "Bash(git -C \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\" status)",
       "Bash(git -C \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\" log --oneline -5)",
       "Bash(git -C \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\" diff --stat HEAD)",
-      "Bash(git -C \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\" push)"
+      "Bash(git -C \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\" push)",
+      "Bash(php -r \"echo json_encode\\(['total' => 5, 'label' => 'hoy'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT\\);\")",
+      "Bash(php -r \"echo var_export\\(json_encode\\(['total' => 5, 'label' => 'hoy'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT\\), true\\);\")",
+      "Bash(php -r \"echo json_encode\\(['label' => 'hoy'], JSON_HEX_QUOT\\); echo PHP_EOL; echo JSON_HEX_QUOT;\")",
+      "Bash(php -r \"echo json_encode\\(['text' => 'say \\\\\"hello\\\\\"'], JSON_HEX_QUOT\\); echo PHP_EOL; echo json_encode\\(['text' => 'say \\\\\"hello\\\\\"'], 0\\);\")",
+      "PowerShell(Remove-Item \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\domain\\\\dashboard\\\\camiones-predio.blade.php\" -Confirm:$false)"
     ],
     "additionalDirectories": [
       "c:\\Users\\34891406\\Nicolas\\Proyectos\\infinito-reciclaje-balanza\\database\\sql",

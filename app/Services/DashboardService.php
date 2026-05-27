@@ -98,10 +98,14 @@ class DashboardService
         return ['datos' => $datos, 'promedio' => $promedio];
     }
 
-    public function desgloseByZona(): Collection
+    public function desgloseByZona(?Carbon $desde = null, ?Carbon $hasta = null): Collection
     {
+        $desde = $desde ?? today();
+        $hasta = $hasta ?? today();
+
         $pesajes = Pesaje::with('zona')
-            ->whereDate('created_at', today())
+            ->whereDate('created_at', '>=', $desde)
+            ->whereDate('created_at', '<=', $hasta)
             ->where('estado', '!=', 'Cancelado')
             ->get(['zona_id', 'peso_neto_kg', 'turno']);
 
@@ -127,10 +131,14 @@ class DashboardService
             ->values();
     }
 
-    public function desgloseByTipoVehiculo(): Collection
+    public function desgloseByTipoVehiculo(?Carbon $desde = null, ?Carbon $hasta = null): Collection
     {
+        $desde = $desde ?? today();
+        $hasta = $hasta ?? today();
+
         $pesajes = Pesaje::with('vehiculo.tipoVehiculo')
-            ->whereDate('created_at', today())
+            ->whereDate('created_at', '>=', $desde)
+            ->whereDate('created_at', '<=', $hasta)
             ->where('estado', '!=', 'Cancelado')
             ->get(['vehiculo_id', 'peso_neto_kg']);
 
@@ -151,14 +159,6 @@ class DashboardService
             })
             ->sortByDesc('toneladas')
             ->values();
-    }
-
-    public function camionesEnPredio(): Collection
-    {
-        return Pesaje::with(['vehiculo.tipoVehiculo', 'tipoServicio', 'zona', 'operador'])
-            ->where('estado', 'En predio')
-            ->orderBy('created_at')
-            ->get();
     }
 
     public function alertasActivas(): int

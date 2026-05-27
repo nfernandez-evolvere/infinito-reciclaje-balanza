@@ -6,6 +6,185 @@
 
 ---
 
+## 0. Análisis del Excel actual — `REPORTE MARZO_ INFINITO RECICLAJE.xlsx`
+
+### 0.1 Estructura del archivo
+
+El Excel tiene 3 hojas con roles bien diferenciados:
+
+| Hoja | Filas | Cols | Rol |
+|------|-------|------|-----|
+| `Dashboard- Infinito` | 150 | 17 | Resumen ejecutivo con tablas pivot y series diarias |
+| `Reporte Infinito` | 3.426 | 17 | Datos raw de pesajes del mes |
+| `no tocar` | ~60 | 6 | Tabla maestra de vehículos (N° interno → tara, zona habitual) |
+
+---
+
+### 0.2 Hoja `Reporte Infinito` — datos raw de pesajes
+
+**Columnas registradas por el operador:**
+
+| Col | Campo | Tipo | Notas |
+|-----|-------|------|-------|
+| B | N° correlativo | Entero | Numeración manual, puede repetirse entre meses |
+| C | N° Interno | Entero | Identificador del vehículo (ej: 7101, 7462) |
+| D | Tipo | Texto | Lookup desde hoja "no tocar" — puede quedar `#N/A` si el N° no existe en la tabla |
+| E | Tara | Entero (kg) | Lookup desde hoja "no tocar" — peso vacío del vehículo |
+| F | Pesaje bruto | Entero (kg) | Lo que marca la balanza |
+| G | Kilos netos | Entero (kg) | `Pesaje - Tara`, calculado en celda |
+| H | Fecha | Fecha | Día del pesaje |
+| I | Hora | Hora | Momento del pesaje — **un registro tiene fecha 1903 (bug de Excel)** |
+| J | Zona | Texto libre | Escrito a mano por el operador — sin normalización |
+
+**No existe en el raw:**
+- Hora de salida / egreso
+- Turno (diurno / nocturno)
+- Operador que registró
+- Estado del pesaje (abierto / cerrado)
+- Observaciones o alertas
+
+---
+
+### 0.3 Hoja `no tocar` — tabla maestra de vehículos
+
+Tabla de referencia con ~60 vehículos activos:
+
+| Campo | Ejemplo |
+|-------|---------|
+| N° Interno | 7030, 7101, 7462… |
+| Tara (kg) | 7240, 8540, 11460… |
+| Barrio/Zona habitual | "LAGUNA SOTO SUR", "Barrio Monta\xd1a"… |
+
+El `VLOOKUP` del tipo y la tara en "Reporte Infinito" se hace contra esta tabla. Si el N° interno no figura → `#N/A` en tipo, tara copiada a mano o cero.
+
+---
+
+### 0.4 Hoja `Dashboard- Infinito` — resumen ejecutivo
+
+Contiene **5 bloques concatenados verticalmente** en la misma hoja:
+
+#### Bloque 1 — Resumen general (marzo 2026)
+
+| Métrica | Valor real |
+|---------|-----------|
+| Total registros con peso | 3.119 |
+| Total kg netos | 14.295.149 |
+| Total toneladas | 14.295 t |
+| Días con operación | 28 de 31 |
+| Promedio diario | 510.541 kg / 510,5 t |
+| Promedio por viaje | 4.583 kg |
+
+#### Bloque 2 — Desglose por tipo de vehículo
+
+| Tipo | Viajes | KG netos | % | KG/viaje |
+|------|--------|----------|---|----------|
+| Compactador | 1.215 | 6.805.752 | 47,6% | 5.601 |
+| Volcador | 1.471 | 6.434.157 | 45,0% | 4.374 |
+| Volquete | 432 | 1.051.400 | 7,4% | 2.434 |
+| Particular | 1 | 0 | 0% | 0 |
+| **TOTAL** | **3.119** | **14.291.309** | | **4.582** |
+
+> **Discrepancia**: la fila TOTAL de kg (14.291.309) difiere del resumen general (14.295.149). Diferencia de 3.840 kg — hay 4 viajes del Particular con peso 0 que no suman pero sí cuentan en el total de registros.
+
+#### Bloque 3 — Desglose diario por tipo de vehículo
+
+Serie por fecha con columnas: `Fecha | Total Viajes | Total KG | Compactador Viajes | Compactador KG | Volcador Viajes | Volcador KG | Volquete Viajes | Volquete KG`
+
+Estadísticas del período (calculadas sobre los 28 días operativos):
+
+| Estadístico | Viajes/día | KG/día |
+|-------------|-----------|--------|
+| Promedio | 111,5 | 510.541 |
+| Máximo | 146 (09/03) | 775.020 (30/03) |
+| Mínimo | 8 (22/03) | 27.600 (22/03) |
+
+> **22/03**: solo 8 viajes y 27.600 kg — el documento PDF lo menciona como día con corte de luz.
+> **29/03**: 79 viajes pero 734.300 kg — el volcador ese día registró 696.380 kg (96 viajes), un outlier importante.
+
+#### Bloque 4 — Tabla cruzada zona × tipo de vehículo
+
+**Período parcial: 20/03 al 31/03** (12 días de los 28 operativos del mes).
+
+Zonas consolidadas y sus totales en ese período:
+
+| Zona | Viajes | KG | % |
+|------|--------|----|---|
+| SERVICIO ESPECIAL | 237 | 1.302.980 | 19,6% |
+| ZONA SUR 1 | 207 | 1.055.916 | 15,9% |
+| ZONA NORTE | 201 | 939.770 | 14,1% |
+| ZONA SUR 2 | 176 | 773.989 | 11,6% |
+| ZONA 16 NOCTURNA | 23 | 151.940 | 2,3% |
+| ZONA 6 DIURNA | 25 | 189.500 | 2,9% |
+| *(18 zonas numeradas DIURNA/NOCTURNA)* | … | … | … |
+| CENTRO DE TRANSFERENCIA | 1 | 10.180 | 0,2% |
+
+**Zonas numeradas con split turno:** ZONA 1 a ZONA 18 + ZONA 16 NOCTURNA.
+El split DIURNA/NOCTURNA **no viene del campo "turno"** del raw (no existe) — se deriva de la hora del pesaje.
+
+#### Bloque 5 — Serie diaria por zona (mismo período 20/03–31/03)
+
+Tabla de `zona × fecha` con kg netos por día, con fila TOTALES al pie.
+
+---
+
+### 0.5 Problemas críticos del Excel como fuente de datos
+
+#### Problema 1 — Zonas son texto libre (764 variantes únicas)
+
+El campo zona se escribe a mano. Para 3.416 pesajes hay **764 valores únicos distintos** para el mismo mes. Ejemplos de variantes para la misma zona real:
+
+| Zona canónica | Variantes encontradas en el raw |
+|--------------|--------------------------------|
+| Barrio Montaña | `MONTA\xd1A`, `Monta\xd1a`, `monmta\xd1a`, `MONMRTA\xd1A`, `b monta\xd1a`, `barrio monta\xd1a`, `MONTA\xd1A BARIDO`, `B MONTA\xd1A`, `Zona monta\xd1a`… |
+| Zona 1 | `ZONA 1`, `zona 1`, `ZONA  1`, `zona 1-Molina Punta`, `ZONA 1 DIURNA`, `ZONA 1 NOCTURNA`, `zona1`… |
+| Servicio Especial | `SERVICIO ESPECIAL`, `Servicio Especial`, `servicio especial`, `SERV ESPECIAL`, `servicio esepecial`, `SERVICIO ESEPECIAL`, `servicioespecial`… |
+| Zona Norte | `ZONA NORTE`, `zona norte`, `ZONA  NORTE`, `S.NORTE`, `NORTE`, `Zona Norte`, `ZONANO`… |
+
+**Impacto en el sistema:** el campo `zona` del formulario de pesaje debe ser un **select / autocomplete contra la tabla `zonas`**, nunca texto libre. Sin esto, los reportes por zona son imposibles de automatizar.
+
+#### Problema 2 — El turno no es un campo, se infiere de la hora
+
+La clasificación DIURNA/NOCTURNA del dashboard **no existe como dato** en el raw. Se construye a partir de la hora del pesaje. La regla exacta de corte no está documentada en el Excel (probablemente antes/después de las 14:00 o 18:00).
+
+**Acción necesaria:** definir con el cliente la hora de corte entre turno diurno y nocturno. El campo `turno` en el modelo de datos debe calcularse automáticamente al registrar el pesaje, no pedírselo al operador.
+
+#### Problema 3 — Sin hora de salida
+
+El raw solo tiene hora de entrada. No existe campo de egreso. El tiempo en predio y el estado "En predio" / "Cerrado" son conceptos que el sistema agrega — no existen en el Excel.
+
+#### Problema 4 — Sin operador
+
+No hay dato de quién registró cada pesaje. El sistema agrega trazabilidad de operador desde cero.
+
+#### Problema 5 — Bug de hora en Excel
+
+Un registro tiene `1903-06-01 00:00:00` como hora — error de Excel al interpretar un valor numérico como fecha. El sistema debe validar que la hora sea del día actual al guardar.
+
+#### Problema 6 — Tabla maestra de vehículos fuera de sync
+
+Si se agrega un vehículo nuevo sin actualizar la hoja "no tocar", el lookup queda en `#N/A`. En el sistema esto se resuelve con la tabla `vehiculos` que el admin mantiene.
+
+#### Problema 7 — Tabla zona × tipo solo cubre la segunda mitad del mes
+
+El bloque 4 del Dashboard cubre solo del 20/03 al 31/03. No queda claro si la primera mitad del mes no tiene datos o si es un corte intencional del reporte.
+
+---
+
+### 0.6 Lo que el sistema aporta que el Excel no tiene
+
+| Capacidad | Excel | Sistema nuevo |
+|-----------|-------|---------------|
+| Hora de egreso / tiempo en predio | ✗ | ✓ |
+| Turno calculado automáticamente | ✗ (manual) | ✓ |
+| Operador que registró | ✗ | ✓ |
+| Zonas normalizadas (sin variantes de texto) | ✗ | ✓ |
+| Alertas automáticas (peso anómalo, gap operativo) | ✗ | ✓ |
+| Reportes sin trabajo manual | ✗ | ✓ |
+| Historial de cambios / auditoría | ✗ | ✓ |
+| Acceso multi-usuario en tiempo real | ✗ | ✓ |
+
+---
+
 ## 1. Reporte oficial al municipio — datos que el cliente produce hoy
 
 El informe mensual tiene 6 secciones. Esta tabla documenta qué dato se muestra, cómo se calcula desde la DB y qué condición previa necesita.
