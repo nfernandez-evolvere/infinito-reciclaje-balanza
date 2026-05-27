@@ -49,12 +49,12 @@
         $tiposServicio = $tiposServicio ?? collect();
     @endphp
 
-    <div class="flex items-start justify-between gap-4">
+    <div class="flex flex-col lg:flex-row items-start justify-between gap-4">
         <div>
             <x-ui.typography as="h2">{{ $titulo }}</x-ui.typography>
             <x-ui.typography as="muted" class="mt-1">{{ $subtitulo }}</x-ui.typography>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center justify-end gap-2">
             <x-domain.historial.filtros :filtros="$filtros" :operarios="$operarios" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" :zonas="$zonas" :tiposServicio="$tiposServicio" :sortDirection="$filtros['sort_direction']" />
             @if($exportUrl)
                 <x-ui.button variant="outline" size="sm" href="{{ $exportUrl . '?' . http_build_query(array_filter($filtros)) }}">

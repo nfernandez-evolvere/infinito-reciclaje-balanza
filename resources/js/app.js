@@ -11,6 +11,7 @@ import balanza from './alpine/operador/balanza.js';
 import historial from './alpine/operador/historial.js';
 import dashboard from './alpine/admin/dashboard.js';
 import evolucionChart from './alpine/admin/evolucion-chart.js';
+import desgloseChart from './alpine/admin/desglose-chart.js';
 import { apexChart } from './charts.js';
 
 Alpine.plugin(Collapse);
@@ -40,6 +41,7 @@ Alpine.data('balanza', balanza);
 Alpine.data('historial', historial);
 Alpine.data('dashboardData', dashboard);
 Alpine.data('evolucionChart', evolucionChart);
+Alpine.data('desgloseChart', desgloseChart);
 Alpine.data('apexChart', apexChart);
 
 // — Alpine store: toast ———————————————————————————————————————

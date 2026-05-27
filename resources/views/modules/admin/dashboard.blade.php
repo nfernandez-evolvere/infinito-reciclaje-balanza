@@ -52,7 +52,7 @@
         <x-ui.tabs.content value="hoy">
             <div class="flex flex-col gap-6 pt-6">
                 <x-domain.dashboard.kpis-dia />
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 gap-6">
                     <x-domain.dashboard.desglose-vehiculo source="desgloseVehiculo" description="Distribución de flota del día" />
                     <x-domain.dashboard.desglose-zona source="desgloseZona" description="Actividad del día por zona de recolección" />
                 </div>
@@ -64,7 +64,7 @@
             <div class="flex flex-col gap-6 pt-6">
                 <x-domain.dashboard.kpis-mes />
                 <x-domain.dashboard.evolucion />
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 gap-6">
                     <x-domain.dashboard.desglose-vehiculo source="desgloseVehiculoMes" description="Distribución de flota del mes" />
                     <x-domain.dashboard.desglose-zona source="desgloseZonaMes" description="Actividad del mes por zona de recolección" />
                 </div>

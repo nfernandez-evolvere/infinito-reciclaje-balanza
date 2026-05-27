@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\Pesaje;
+use App\Models\TipoVehiculo;
+use App\Models\Zona;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Collection;
@@ -111,24 +113,41 @@ class DashboardService
 
         $total = $pesajes->sum('peso_neto_kg');
 
-        return $pesajes->groupBy(fn ($p) => $p->zona_id . '|' . ($p->turno ?? ''))
+        $agrupados = $pesajes
+            ->filter(fn ($p) => $p->zona_id !== null)
+            ->groupBy(fn ($p) => $p->zona_id . '|' . ($p->turno ?? ''))
             ->map(function ($grupo) use ($total) {
                 $turno  = $grupo->first()->turno;
-                $nombre = ($grupo->first()->zona?->nombre ?? '—') . ($turno ? ' ' . $turno : '');
                 $count  = $grupo->count();
                 $sumaKg = $grupo->sum('peso_neto_kg');
 
                 return [
-                    'nombre'       => $nombre,
+                    'zona_id'      => $grupo->first()->zona_id,
+                    'nombre'       => ($grupo->first()->zona?->nombre ?? '—') . ($turno ? ' ' . $turno : ''),
                     'turno'        => $turno,
                     'pesajes'      => $count,
                     'toneladas'    => round($sumaKg / 1000, 2),
-                    'kg_por_viaje' => $count > 0 ? number_format((int) round($sumaKg / $count), 0, ',', '.') : '—',
+                    'kg_por_viaje' => number_format((int) round($sumaKg / $count), 0, ',', '.'),
                     'porcentaje'   => $total > 0 ? round(($sumaKg / $total) * 100, 1) : 0,
                 ];
-            })
-            ->sortByDesc('toneladas')
-            ->values();
+            });
+
+        $zonasConPesajes = $pesajes->filter(fn ($p) => $p->zona_id !== null)->pluck('zona_id')->unique();
+
+        $zonasSinPesajes = Zona::activos()
+            ->whereNotIn('id', $zonasConPesajes)
+            ->get()
+            ->map(fn ($zona) => [
+                'zona_id'      => $zona->id,
+                'nombre'       => $zona->nombre,
+                'turno'        => null,
+                'pesajes'      => 0,
+                'toneladas'    => 0.0,
+                'kg_por_viaje' => '—',
+                'porcentaje'   => 0,
+            ]);
+
+        return $agrupados->values()->concat($zonasSinPesajes)->sortByDesc('toneladas')->values();
     }
 
     public function desgloseByTipoVehiculo(?Carbon $desde = null, ?Carbon $hasta = null): Collection
@@ -144,19 +163,30 @@ class DashboardService
 
         $total = $pesajes->sum('peso_neto_kg');
 
-        return $pesajes->groupBy(fn ($p) => $p->vehiculo?->tipo_vehiculo_id)
+        $agrupados = $pesajes
+            ->filter(fn ($p) => $p->vehiculo?->tipo_vehiculo_id !== null)
+            ->groupBy(fn ($p) => $p->vehiculo->tipo_vehiculo_id)
             ->map(function ($grupo) use ($total) {
                 $count  = $grupo->count();
                 $sumaKg = $grupo->sum('peso_neto_kg');
-
                 return [
-                    'nombre'       => $grupo->first()->vehiculo?->tipoVehiculo?->nombre ?? '—',
+                    'nombre'       => $grupo->first()->vehiculo->tipoVehiculo?->nombre ?? '—',
                     'pesajes'      => $count,
                     'toneladas'    => round($sumaKg / 1000, 2),
-                    'kg_por_viaje' => $count > 0 ? number_format((int) round($sumaKg / $count), 0, ',', '.') : '—',
+                    'kg_por_viaje' => number_format((int) round($sumaKg / $count), 0, ',', '.'),
                     'porcentaje'   => $total > 0 ? round(($sumaKg / $total) * 100, 1) : 0,
                 ];
-            })
+            });
+
+        return TipoVehiculo::activos()
+            ->get()
+            ->map(fn ($tipo) => $agrupados->get($tipo->id, [
+                'nombre'       => $tipo->nombre,
+                'pesajes'      => 0,
+                'toneladas'    => 0.0,
+                'kg_por_viaje' => '—',
+                'porcentaje'   => 0,
+            ]))
             ->sortByDesc('toneladas')
             ->values();
     }

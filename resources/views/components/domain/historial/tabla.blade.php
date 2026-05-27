@@ -20,7 +20,112 @@
         />
     @endif
 @else
-    <x-ui.table class="bg-card">
+
+    {{-- ── Mobile: cards ────────────────────────────────────────── --}}
+    <div class="sm:hidden space-y-2">
+        @foreach($pesajes as $pesaje)
+            @php
+                $cardClass = $pesaje->estaCancelado()
+                    ? 'opacity-60'
+                    : ($pesaje->alerta_peso ? 'bg-warning/5 border-warning/40' : '');
+            @endphp
+            <div class="bg-card border border-border rounded-lg p-3 flex flex-col gap-2 {{ $cardClass }}">
+
+                {{-- Fila 1: Identificador + estado + acciones --}}
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-1.5 min-w-0">
+                        <x-lucide-car class="size-3.5 shrink-0 text-muted-foreground" />
+                        <span class="font-semibold text-sm">{{ $pesaje->vehiculo->patente }}</span>
+                        @if($pesaje->vehiculo->numero_interno)
+                            <span class="text-xs text-muted-foreground">#{{ $pesaje->vehiculo->numero_interno }}</span>
+                        @endif
+                    </div>
+                    <div class="flex items-center gap-1 shrink-0">
+                        @if($pesaje->estaCancelado())
+                            <x-ui.tooltip :content="'Motivo: ' . $pesaje->motivo_cancelacion">
+                                <x-ui.badge variant="destructive" class="gap-1">
+                                    <x-lucide-ban class="size-3" />
+                                    Cancelado
+                                </x-ui.badge>
+                            </x-ui.tooltip>
+                        @else
+                            @if($pesaje->editado)
+                                <x-ui.tooltip content="Editado">
+                                    <x-ui.badge variant="default" class="size-5 p-0 justify-center">
+                                        <x-lucide-pen-line class="size-3" />
+                                    </x-ui.badge>
+                                </x-ui.tooltip>
+                            @endif
+                            @if($pesaje->alerta_peso)
+                                <x-ui.tooltip content="Alerta de peso">
+                                    <x-ui.badge variant="warning" class="size-5 p-0 justify-center">
+                                        <x-lucide-triangle-alert class="size-3" />
+                                    </x-ui.badge>
+                                </x-ui.tooltip>
+                            @endif
+                        @endif
+                        <x-ui.dropdown-menu>
+                            <x-ui.dropdown-menu.trigger>
+                                <x-ui.button variant="ghost" size="icon" class="size-7 -mr-1">
+                                    <x-lucide-ellipsis class="size-4" />
+                                </x-ui.button>
+                            </x-ui.dropdown-menu.trigger>
+                            <x-ui.dropdown-menu.content align="end">
+                                <x-ui.dropdown-menu.item href="{{ route('pesajes.show', $pesaje) }}">
+                                    <x-lucide-eye class="size-4" />
+                                    Detalles
+                                </x-ui.dropdown-menu.item>
+                                @if(!$pesaje->estaCancelado())
+                                    <x-ui.dropdown-menu.item href="{{ route('pesajes.edit', $pesaje) }}">
+                                        <x-lucide-pencil class="size-4" />
+                                        Editar
+                                    </x-ui.dropdown-menu.item>
+                                @endif
+                                @if($pesaje->editado || $pesaje->estaCancelado())
+                                    <x-ui.dropdown-menu.item
+                                        @click="abrirLog('{{ $pesaje->uuid }}', '{{ addslashes($pesaje->vehiculo->patente) }}')"
+                                    >
+                                        <x-lucide-history class="size-4" />
+                                        Ver cambios
+                                    </x-ui.dropdown-menu.item>
+                                @endif
+                                @if(!$pesaje->estaCancelado())
+                                    <x-ui.dropdown-menu.separator />
+                                    <x-ui.dropdown-menu.item
+                                        variant="destructive"
+                                        @click="abrirCancelar('{{ $pesaje->uuid }}', '{{ addslashes($pesaje->vehiculo->patente) }}')"
+                                    >
+                                        <x-lucide-ban class="size-4" />
+                                        Cancelar pesaje
+                                    </x-ui.dropdown-menu.item>
+                                @endif
+                            </x-ui.dropdown-menu.content>
+                        </x-ui.dropdown-menu>
+                    </div>
+                </div>
+
+                {{-- Fila 2: secundario (origen, fecha) + peso neto --}}
+                <div class="flex items-end justify-between gap-3">
+                    <div class="flex flex-col gap-0.5 text-xs text-muted-foreground min-w-0">
+                        <span class="truncate">
+                            {{ $pesaje->zona->nombre }}@if($pesaje->turno) — {{ $pesaje->turno }}@endif · {{ $pesaje->tipoServicio->nombre }}
+                        </span>
+                        <div class="flex items-center gap-1">
+                            <x-lucide-log-in class="size-3 shrink-0 text-success" />
+                            <span>{{ $pesaje->created_at->format('d/m/Y H:i') }}</span>
+                        </div>
+                    </div>
+                    <span class="font-semibold tabular-nums text-sm shrink-0">
+                        {{ number_format($pesaje->peso_neto_kg, 0, ',', '.') }} kg
+                    </span>
+                </div>
+
+            </div>
+        @endforeach
+    </div>
+
+    {{-- ── Desktop: tabla ────────────────────────────────────────── --}}
+    <x-ui.table class="hidden sm:block bg-card">
         <x-ui.table.header>
             <x-ui.table.row>
                 <x-ui.table.head>
@@ -48,16 +153,14 @@
         <x-ui.table.body>
             @foreach($pesajes as $pesaje)
             <x-ui.table.row class="{{ $pesaje->estaCancelado() ? 'opacity-60' : ($pesaje->alerta_peso ? 'bg-warning/5' : '') }}">
-                {{-- Ingreso --}}
                 <x-ui.table.cell data-label="Ingreso">
                     <div class="flex items-center justify-center gap-1.5 text-sm">
                         <x-lucide-log-in class="size-3.5 shrink-0 text-success" />
                         <span>{{ $pesaje->created_at->format('d/m/Y H:i') }}</span>
                     </div>
                 </x-ui.table.cell>
-                {{-- Patente / N.° interno --}}
                 <x-ui.table.cell data-label="Patente / N.° interno">
-                    <div class="flex justify-center gap-2">
+                    <div class="flex items-center justify-center gap-2">
                         <div class="flex items-center gap-1">
                             <x-ui.tooltip content="Patente">
                                 <x-lucide-car class="size-3.5 shrink-0 text-muted-foreground" />
@@ -74,16 +177,13 @@
                         @endif
                     </div>
                 </x-ui.table.cell>
-                {{-- Origen --}}
-                <x-ui.table.cell class="text-sm justify-center" data-label="Origen">
+                <x-ui.table.cell class="text-sm" data-label="Origen">
                     <span>{{ $pesaje->zona->nombre }}</span>
                     @if($pesaje->turno)
                         <span class="text-muted-foreground"> — {{ $pesaje->turno }}</span>
                     @endif
                 </x-ui.table.cell>
-                {{-- Servicio --}}
-                <x-ui.table.cell class="text-sm justify-center" data-label="Servicio">{{ $pesaje->tipoServicio->nombre }}</x-ui.table.cell>
-                {{-- Peso neto --}}
+                <x-ui.table.cell class="text-sm" data-label="Servicio">{{ $pesaje->tipoServicio->nombre }}</x-ui.table.cell>
                 <x-ui.table.cell data-label="Peso neto">
                     <div class="flex items-center justify-center gap-1">
                         <span class="font-semibold tabular-nums text-sm">
@@ -120,7 +220,6 @@
                         </x-ui.popover>
                     </div>
                 </x-ui.table.cell>
-                {{-- Estado --}}
                 <x-ui.table.cell data-label="Estado">
                     <div class="flex items-center justify-center gap-1">
                         @if($pesaje->estaCancelado())
@@ -148,7 +247,7 @@
                         @endif
                     </div>
                 </x-ui.table.cell>
-                <x-ui.table.cell class="order-first sm:order-0 justify-end border-b border-border sm:border-b-0">
+                <x-ui.table.cell :actions="true" class="border-b border-border sm:border-b-0">
                     <x-ui.dropdown-menu>
                         <x-ui.dropdown-menu.trigger>
                             <x-ui.button variant="ghost" size="icon" class="size-8">
@@ -198,4 +297,5 @@
             <x-ui.pagination :paginator="$pesajes" />
         </div>
     @endif
+
 @endif

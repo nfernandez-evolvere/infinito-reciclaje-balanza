@@ -1,4 +1,4 @@
-@props(['variant' => 'default'])
+@props(['variant' => 'default', 'compact' => false])
 
 @php
 $base = 'w-full relative rounded-xl sm:overflow-x-auto sm:border sm:border-border sm:rounded-xl [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full';
@@ -8,7 +8,7 @@ $variants = [
 ];
 @endphp
 
-<div {{ $attributes->twMerge($base . ' ' . ($variants[$variant] ?? $variants['default'])) }}>
+<div {{ $attributes->twMerge($base . ' ' . ($variants[$variant] ?? $variants['default']) . ($compact ? ' table-compact' : '')) }}>
     <table class="w-full text-sm block sm:table">
         {{ $slot }}
     </table>
