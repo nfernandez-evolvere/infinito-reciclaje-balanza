@@ -17,6 +17,22 @@ class ZonaRepository
         return Zona::activos()->orderBy('nombre')->get();
     }
 
+    public function totales(): array
+    {
+        $zonas = Zona::activos()->get(['hectareas', 'habitantes']);
+        return [
+            'hectareas'  => (float) $zonas->sum('hectareas'),
+            'habitantes' => (int) $zonas->sum('habitantes'),
+        ];
+    }
+
+    public function activosExcluyendo(array $ids): Collection
+    {
+        return Zona::activos()
+            ->when(!empty($ids), fn ($q) => $q->whereNotIn('id', $ids))
+            ->get();
+    }
+
     public function zonasConTurnosPara(TipoServicio $servicio): SupportCollection
     {
         $zonaServicios = ZonaServicio::with('zona')

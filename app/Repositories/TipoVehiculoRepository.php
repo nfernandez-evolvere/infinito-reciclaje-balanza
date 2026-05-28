@@ -13,6 +13,11 @@ class TipoVehiculoRepository
         return TipoVehiculo::orderBy('nombre')->get();
     }
 
+    public function activos(): Collection
+    {
+        return TipoVehiculo::activos()->get();
+    }
+
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         return TipoVehiculo::query()

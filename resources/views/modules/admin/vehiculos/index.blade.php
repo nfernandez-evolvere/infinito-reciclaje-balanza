@@ -37,17 +37,14 @@
 @endphp
 
 <x-layouts.app title="Vehículos">
-<div
-    x-data="{
-        tab: '{{ $activeTab }}',
-        switchTab(t) {
-            this.tab = t;
-            const url = new URL(window.location);
-            url.searchParams.set('tab', t);
-            history.pushState({}, '', url);
-        }
-    }"
+<x-ui.tabs
+    :value="$activeTab"
     class="flex flex-col gap-6"
+    x-init="$watch('active', val => {
+        const url = new URL(window.location);
+        url.searchParams.set('tab', val);
+        history.pushState({}, '', url);
+    })"
 >
 
     <div class="flex flex-col items-start gap-2">
@@ -55,66 +52,57 @@
         <x-ui.typography as="muted">Padrón de vehículos habilitados para operar en la balanza y sus categorías.</x-ui.typography>
     </div>
 
-    {{-- Tabs --}}
-    <div role="tablist" class="inline-flex h-9 w-fit items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground">
-        <button
-            role="tab"
-            :aria-selected="tab === 'vehiculos'"
-            @click="switchTab('vehiculos')"
-            :class="tab === 'vehiculos' ? 'bg-background text-foreground shadow-sm' : 'hover:text-foreground/80'"
-            class="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-all"
-        >
+    <x-ui.tabs.list class="flex w-full sm:w-fit">
+        <x-ui.tabs.trigger value="vehiculos" class="flex-1 sm:flex-none">
             <x-lucide-truck class="size-4" />
             Vehículos
-        </button>
-        <button
-            role="tab"
-            :aria-selected="tab === 'tipos'"
-            @click="switchTab('tipos')"
-            :class="tab === 'tipos' ? 'bg-background text-foreground shadow-sm' : 'hover:text-foreground/80'"
-            class="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-all"
-        >
+        </x-ui.tabs.trigger>
+        <x-ui.tabs.trigger value="tipos" class="flex-1 sm:flex-none">
             <x-lucide-car class="size-4" />
             Tipos
-        </button>
-    </div>
+        </x-ui.tabs.trigger>
+    </x-ui.tabs.list>
 
     {{-- Tab: Vehículos --}}
-    <div x-show="tab === 'vehiculos'" x-data="vehiculos({{ Js::from($vInitial) }})" class="flex flex-col gap-6">
+    <x-ui.tabs.content value="vehiculos" class="mt-0">
+        <div x-data="vehiculos({{ Js::from($vInitial) }})" class="flex flex-col gap-6">
 
-        <x-domain.vehiculos.mobile-drawers
-            :filters="$filters"
-            :tiposVehiculo="$tiposVehiculo"
-            :hayFiltros="$vHayFiltros"
-            :activeFilters="$vActiveFilters"
-        />
+            <x-domain.vehiculos.mobile-drawers
+                :filters="$filters"
+                :tiposVehiculo="$tiposVehiculo"
+                :hayFiltros="$vHayFiltros"
+                :activeFilters="$vActiveFilters"
+            />
 
-        <x-domain.vehiculos.tabla :vehiculos="$vehiculos" :activeFilters="$vActiveFilters" />
+            <x-domain.vehiculos.tabla :vehiculos="$vehiculos" :activeFilters="$vActiveFilters" />
 
-        <x-domain.vehiculos.drawer-filtros :filters="$filters" :tiposVehiculo="$tiposVehiculo" />
-        <x-domain.vehiculos.modal :tiposVehiculo="$tiposVehiculo" />
-        <x-domain.vehiculos.modal-confirm />
-        <x-domain.vehiculos.modal-delete />
+            <x-domain.vehiculos.drawer-filtros :filters="$filters" :tiposVehiculo="$tiposVehiculo" />
+            <x-domain.vehiculos.modal :tiposVehiculo="$tiposVehiculo" />
+            <x-domain.vehiculos.modal-confirm />
+            <x-domain.vehiculos.modal-delete />
 
-    </div>
+        </div>
+    </x-ui.tabs.content>
 
     {{-- Tab: Tipos de vehículo --}}
-    <div x-show="tab === 'tipos'" x-data="tiposVehiculo({{ Js::from($tInitial) }})" class="flex flex-col gap-6">
+    <x-ui.tabs.content value="tipos" class="mt-0">
+        <div x-data="tiposVehiculo({{ Js::from($tInitial) }})" class="flex flex-col gap-6">
 
-        <x-domain.tipos-vehiculo.mobile-drawers
-            :filters="$tiposFiltros"
-            :hayFiltros="$tHayFiltros"
-            :activeFilters="$tActiveFilters"
-        />
+            <x-domain.tipos-vehiculo.mobile-drawers
+                :filters="$tiposFiltros"
+                :hayFiltros="$tHayFiltros"
+                :activeFilters="$tActiveFilters"
+            />
 
-        <x-domain.tipos-vehiculo.tabla :tipos="$tipos" :activeFilters="$tActiveFilters" />
+            <x-domain.tipos-vehiculo.tabla :tipos="$tipos" :activeFilters="$tActiveFilters" />
 
-        <x-domain.tipos-vehiculo.drawer-filtros :filters="$tiposFiltros" />
-        <x-domain.tipos-vehiculo.modal />
-        <x-domain.tipos-vehiculo.modal-confirm />
-        <x-domain.tipos-vehiculo.modal-delete />
+            <x-domain.tipos-vehiculo.drawer-filtros :filters="$tiposFiltros" />
+            <x-domain.tipos-vehiculo.modal />
+            <x-domain.tipos-vehiculo.modal-confirm />
+            <x-domain.tipos-vehiculo.modal-delete />
 
-    </div>
+        </div>
+    </x-ui.tabs.content>
 
-</div>
+</x-ui.tabs>
 </x-layouts.app>

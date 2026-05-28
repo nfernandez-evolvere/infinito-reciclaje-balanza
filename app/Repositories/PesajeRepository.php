@@ -3,12 +3,46 @@
 namespace App\Repositories;
 
 use App\Models\Pesaje;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class PesajeRepository
 {
+    public function enFechaSinCancelados(Carbon $fecha, array $columns = ['peso_neto_kg', 'created_at']): Collection
+    {
+        return Pesaje::whereDate('created_at', $fecha)
+            ->where('estado', '!=', 'Cancelado')
+            ->get($columns);
+    }
+
+    public function enRangoSinCancelados(Carbon $desde, Carbon $hasta, array $columns = ['peso_neto_kg', 'created_at']): Collection
+    {
+        return Pesaje::whereDate('created_at', '>=', $desde)
+            ->whereDate('created_at', '<=', $hasta)
+            ->where('estado', '!=', 'Cancelado')
+            ->get($columns);
+    }
+
+    public function paraDesglosePorZona(Carbon $desde, Carbon $hasta): Collection
+    {
+        return Pesaje::with('zona')
+            ->whereDate('created_at', '>=', $desde)
+            ->whereDate('created_at', '<=', $hasta)
+            ->where('estado', '!=', 'Cancelado')
+            ->get(['zona_id', 'peso_neto_kg', 'turno']);
+    }
+
+    public function paraDesglosePorVehiculo(Carbon $desde, Carbon $hasta): Collection
+    {
+        return Pesaje::with('vehiculo.tipoVehiculo')
+            ->whereDate('created_at', '>=', $desde)
+            ->whereDate('created_at', '<=', $hasta)
+            ->where('estado', '!=', 'Cancelado')
+            ->get(['vehiculo_id', 'peso_neto_kg']);
+    }
+
     public function create(array $data): Pesaje
     {
         return Pesaje::create($data);

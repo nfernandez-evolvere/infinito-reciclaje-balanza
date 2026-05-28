@@ -2,18 +2,28 @@
 
 namespace App\Services;
 
-use App\Models\Pesaje;
-use App\Models\TipoVehiculo;
-use App\Models\Zona;
+use App\Repositories\PesajeRepository;
+use App\Repositories\TipoVehiculoRepository;
+use App\Repositories\ZonaRepository;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
-use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection as SupportCollection;
 
 class DashboardService
 {
+    private ?array $cacheTotalesZonas = null;
+    private ?Collection $cachePesajesEvolucion = null;
+
+    public function __construct(
+        protected PesajeRepository $pesajeRepository,
+        protected ZonaRepository $zonaRepository,
+        protected TipoVehiculoRepository $tipoVehiculoRepository,
+    ) {}
+
     public function kpisDelDia(): array
     {
-        $pesajes = Pesaje::whereDate('created_at', today())->where('estado', '!=', 'Cancelado')->get(['peso_neto_kg', 'estado', 'created_at']);
+        $pesajes = $this->pesajeRepository->enFechaSinCancelados(today(), ['peso_neto_kg', 'estado', 'created_at']);
 
         $total     = $pesajes->count();
         $kgTotal   = $pesajes->sum('peso_neto_kg');
@@ -28,7 +38,7 @@ class DashboardService
         $kgPorHa   = $ha > 0 ? round($kgTotal / $ha, 1) : null;
         $kgPorPers = $hab > 0 ? round($kgTotal / $hab, 2) : null;
 
-        $ant         = Pesaje::whereDate('created_at', today()->subMonth())->where('estado', '!=', 'Cancelado')->get(['peso_neto_kg']);
+        $ant         = $this->pesajeRepository->enFechaSinCancelados(today()->subMonth(), ['peso_neto_kg']);
         $antCount    = $ant->count();
         $antKg       = $ant->sum('peso_neto_kg');
         $antTons     = round($antKg / 1000, 2);
@@ -65,17 +75,17 @@ class DashboardService
     {
         $inicioMes = today()->startOfMonth();
 
-        $pesajes = Pesaje::whereDate('created_at', '>=', $inicioMes)->where('estado', '!=', 'Cancelado')->get(['peso_neto_kg', 'created_at']);
+        $pesajes = $this->pesajeRepository->enRangoSinCancelados($inicioMes, today());
 
         $total   = $pesajes->count();
         $kgTotal = $pesajes->sum('peso_neto_kg');
         $tons    = round($kgTotal / 1000, 2);
         $diasOp  = $pesajes->groupBy(fn ($p) => $p->created_at->toDateString())->count();
 
-        $ant = Pesaje::whereDate('created_at', '>=', today()->subMonth()->startOfMonth())
-            ->whereDate('created_at', '<=', today()->subMonth())
-            ->where('estado', '!=', 'Cancelado')
-            ->get(['peso_neto_kg', 'created_at']);
+        $ant = $this->pesajeRepository->enRangoSinCancelados(
+            today()->subMonth()->startOfMonth(),
+            today()->subMonth()
+        );
 
         $antTotal  = $ant->count();
         $antKg     = $ant->sum('peso_neto_kg');
@@ -94,10 +104,10 @@ class DashboardService
             : null;
 
         return [
-            'total'      => $total,
-            'toneladas'  => $tons,
-            'dias_op'    => $diasOp,
-            'kg_por_ha'  => $kgPorHa,
+            'total'          => $total,
+            'toneladas'      => $tons,
+            'dias_op'        => $diasOp,
+            'kg_por_ha'      => $kgPorHa,
             'kg_por_persona' => $kgPorPers,
 
             'delta'                     => $pct($total, $antTotal ?: null),
@@ -115,13 +125,17 @@ class DashboardService
 
     public function evolucionDiaria(int $dias = 7): array
     {
+        // Carga 90 días una sola vez por instancia; las llamadas con 7 y 15 días filtran en memoria.
+        $this->cachePesajesEvolucion ??= $this->pesajeRepository->enRangoSinCancelados(
+            today()->subDays(89),
+            today()
+        );
+
         $desde   = today()->subDays($dias - 1);
-        $hasta   = today();
         $formato = $dias <= 15 ? 'D d/m' : 'd/m';
 
-        $pesajesPorDia = Pesaje::whereDate('created_at', '>=', $desde)
-            ->where('estado', '!=', 'Cancelado')
-            ->get(['peso_neto_kg', 'created_at'])
+        $pesajesPorDia = $this->cachePesajesEvolucion
+            ->filter(fn ($p) => $p->created_at->gte($desde))
             ->groupBy(fn ($p) => $p->created_at->toDateString())
             ->map(fn ($grupo) => round($grupo->sum('peso_neto_kg') / 1000, 2));
 
@@ -129,7 +143,7 @@ class DashboardService
             ? round($pesajesPorDia->avg(), 1)
             : 0;
 
-        $datos = collect(CarbonPeriod::create($desde, $hasta))
+        $datos = collect(CarbonPeriod::create($desde, today()))
             ->map(fn (Carbon $dia) => [
                 'fecha'     => $dia->translatedFormat($formato),
                 'toneladas' => $pesajesPorDia[$dia->toDateString()] ?? 0,
@@ -140,16 +154,12 @@ class DashboardService
         return ['datos' => $datos, 'promedio' => $promedio];
     }
 
-    public function desgloseByZona(?Carbon $desde = null, ?Carbon $hasta = null): Collection
+    public function desgloseByZona(?Carbon $desde = null, ?Carbon $hasta = null): SupportCollection
     {
         $desde = $desde ?? today();
         $hasta = $hasta ?? today();
 
-        $pesajes = Pesaje::with('zona')
-            ->whereDate('created_at', '>=', $desde)
-            ->whereDate('created_at', '<=', $hasta)
-            ->where('estado', '!=', 'Cancelado')
-            ->get(['zona_id', 'peso_neto_kg', 'turno']);
+        $pesajes = $this->pesajeRepository->paraDesglosePorZona($desde, $hasta);
 
         $total = $pesajes->sum('peso_neto_kg');
 
@@ -160,8 +170,8 @@ class DashboardService
                 $turno  = $grupo->first()->turno;
                 $count  = $grupo->count();
                 $sumaKg = $grupo->sum('peso_neto_kg');
+                $zona   = $grupo->first()->zona;
 
-                $zona = $grupo->first()->zona;
                 return [
                     'zona_id'      => $grupo->first()->zona_id,
                     'nombre'       => ($zona?->nombre ?? '—') . ($turno ? ' ' . $turno : ''),
@@ -175,11 +185,9 @@ class DashboardService
                 ];
             });
 
-        $zonasConPesajes = $pesajes->filter(fn ($p) => $p->zona_id !== null)->pluck('zona_id')->unique();
+        $zonasConPesajes = $pesajes->filter(fn ($p) => $p->zona_id !== null)->pluck('zona_id')->unique()->all();
 
-        $zonasSinPesajes = Zona::activos()
-            ->whereNotIn('id', $zonasConPesajes)
-            ->get()
+        $zonasSinPesajes = $this->zonaRepository->activosExcluyendo($zonasConPesajes)
             ->map(fn ($zona) => [
                 'zona_id'      => $zona->id,
                 'nombre'       => $zona->nombre,
@@ -195,16 +203,12 @@ class DashboardService
         return $agrupados->values()->concat($zonasSinPesajes)->sortByDesc('toneladas')->values();
     }
 
-    public function desgloseByTipoVehiculo(?Carbon $desde = null, ?Carbon $hasta = null): Collection
+    public function desgloseByTipoVehiculo(?Carbon $desde = null, ?Carbon $hasta = null): SupportCollection
     {
         $desde = $desde ?? today();
         $hasta = $hasta ?? today();
 
-        $pesajes = Pesaje::with('vehiculo.tipoVehiculo')
-            ->whereDate('created_at', '>=', $desde)
-            ->whereDate('created_at', '<=', $hasta)
-            ->where('estado', '!=', 'Cancelado')
-            ->get(['vehiculo_id', 'peso_neto_kg']);
+        $pesajes = $this->pesajeRepository->paraDesglosePorVehiculo($desde, $hasta);
 
         $total = $pesajes->sum('peso_neto_kg');
 
@@ -223,8 +227,7 @@ class DashboardService
                 ];
             });
 
-        return TipoVehiculo::activos()
-            ->get()
+        return $this->tipoVehiculoRepository->activos()
             ->map(fn ($tipo) => $agrupados->get($tipo->id, [
                 'nombre'       => $tipo->nombre,
                 'pesajes'      => 0,
@@ -241,10 +244,7 @@ class DashboardService
         $diasRango = (int) ($desde->diffInDays($hasta) + 1);
         $formato   = $diasRango <= 15 ? 'D d/m' : 'd/m';
 
-        $pesajesPorDia = Pesaje::whereDate('created_at', '>=', $desde)
-            ->whereDate('created_at', '<=', $hasta)
-            ->where('estado', '!=', 'Cancelado')
-            ->get(['peso_neto_kg', 'created_at'])
+        $pesajesPorDia = $this->pesajeRepository->enRangoSinCancelados($desde, $hasta)
             ->groupBy(fn ($p) => $p->created_at->toDateString())
             ->map(fn ($grupo) => round($grupo->sum('peso_neto_kg') / 1000, 2));
 
@@ -265,19 +265,16 @@ class DashboardService
 
     public function kpisDelRango(Carbon $desde, Carbon $hasta): array
     {
-        $pesajes = Pesaje::whereDate('created_at', '>=', $desde)
-            ->whereDate('created_at', '<=', $hasta)
-            ->where('estado', '!=', 'Cancelado')
-            ->get(['peso_neto_kg', 'created_at']);
+        $pesajes = $this->pesajeRepository->enRangoSinCancelados($desde, $hasta);
 
-        $total      = $pesajes->count();
-        $toneladas  = round($pesajes->sum('peso_neto_kg') / 1000, 2);
-        $diasOp     = $pesajes->groupBy(fn ($p) => $p->created_at->toDateString())->count();
-        $diasRango  = (int) ($desde->diffInDays($hasta) + 1);
-        $promedioDia = $diasOp > 0 ? round(($pesajes->sum('peso_neto_kg') / $diasOp) / 1000, 2) : 0;
+        $total       = $pesajes->count();
+        $kgTotal     = $pesajes->sum('peso_neto_kg');
+        $toneladas   = round($kgTotal / 1000, 2);
+        $diasOp      = $pesajes->groupBy(fn ($p) => $p->created_at->toDateString())->count();
+        $diasRango   = (int) ($desde->diffInDays($hasta) + 1);
+        $promedioDia = $diasOp > 0 ? round(($kgTotal / $diasOp) / 1000, 2) : 0;
 
         ['hectareas' => $ha, 'habitantes' => $hab] = $this->totalesZonas();
-        $kgTotal = $pesajes->sum('peso_neto_kg');
 
         return [
             'total'          => $total,
@@ -298,10 +295,6 @@ class DashboardService
 
     private function totalesZonas(): array
     {
-        $zonas = Zona::activos()->get(['hectareas', 'habitantes']);
-        return [
-            'hectareas'  => (float) $zonas->sum('hectareas'),
-            'habitantes' => (int) $zonas->sum('habitantes'),
-        ];
+        return $this->cacheTotalesZonas ??= $this->zonaRepository->totales();
     }
 }

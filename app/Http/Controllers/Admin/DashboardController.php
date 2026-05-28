@@ -17,38 +17,12 @@ class DashboardController extends Controller
 
     public function __invoke(): View
     {
-        $inicioMes = today()->startOfMonth();
-
-        return view('modules.admin.dashboard', [
-            'kpisDia'             => $this->dashboardService->kpisDelDia(),
-            'kpisMes'             => $this->dashboardService->kpisDelMes(),
-            'evolucion7'          => $this->dashboardService->evolucionDiaria(7),
-            'evolucion15'         => $this->dashboardService->evolucionDiaria(15),
-            'evolucion90'         => $this->dashboardService->evolucionDiaria(90),
-            'desgloseVehiculo'    => $this->dashboardService->desgloseByTipoVehiculo(),
-            'desgloseZona'        => $this->dashboardService->desgloseByZona(),
-            'desgloseVehiculoMes' => $this->dashboardService->desgloseByTipoVehiculo($inicioMes, today()),
-            'desgloseZonaMes'     => $this->dashboardService->desgloseByZona($inicioMes, today()),
-            'alertas'             => $this->dashboardService->alertasActivas(),
-        ]);
+        return view('modules.admin.dashboard', $this->buildDashboardData());
     }
 
     public function data(Request $request): JsonResponse
     {
-        $inicioMes = today()->startOfMonth();
-
-        $response = [
-            'kpisDia'             => $this->dashboardService->kpisDelDia(),
-            'kpisMes'             => $this->dashboardService->kpisDelMes(),
-            'evolucion7'          => $this->dashboardService->evolucionDiaria(7),
-            'evolucion15'         => $this->dashboardService->evolucionDiaria(15),
-            'evolucion90'         => $this->dashboardService->evolucionDiaria(90),
-            'desgloseVehiculo'    => $this->dashboardService->desgloseByTipoVehiculo(),
-            'desgloseZona'        => $this->dashboardService->desgloseByZona(),
-            'desgloseVehiculoMes' => $this->dashboardService->desgloseByTipoVehiculo($inicioMes, today()),
-            'desgloseZonaMes'     => $this->dashboardService->desgloseByZona($inicioMes, today()),
-            'alertas'             => $this->dashboardService->alertasActivas(),
-        ];
+        $response = $this->buildDashboardData();
 
         if ($request->filled('desde') && $request->filled('hasta')) {
             try {
@@ -67,5 +41,23 @@ class DashboardController extends Controller
         }
 
         return response()->json($response);
+    }
+
+    private function buildDashboardData(): array
+    {
+        $inicioMes = today()->startOfMonth();
+
+        return [
+            'kpisDia'             => $this->dashboardService->kpisDelDia(),
+            'kpisMes'             => $this->dashboardService->kpisDelMes(),
+            'evolucion7'          => $this->dashboardService->evolucionDiaria(7),
+            'evolucion15'         => $this->dashboardService->evolucionDiaria(15),
+            'evolucion90'         => $this->dashboardService->evolucionDiaria(90),
+            'desgloseVehiculo'    => $this->dashboardService->desgloseByTipoVehiculo(),
+            'desgloseZona'        => $this->dashboardService->desgloseByZona(),
+            'desgloseVehiculoMes' => $this->dashboardService->desgloseByTipoVehiculo($inicioMes, today()),
+            'desgloseZonaMes'     => $this->dashboardService->desgloseByZona($inicioMes, today()),
+            'alertas'             => $this->dashboardService->alertasActivas(),
+        ];
     }
 }
