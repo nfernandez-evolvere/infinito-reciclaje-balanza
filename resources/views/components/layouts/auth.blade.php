@@ -9,18 +9,25 @@
 <head>
     <x-layouts.head :title="$title" />
 </head>
-<body class="min-h-svh bg-muted text-foreground antialiased">
+<body class="flex min-h-svh flex-col bg-muted text-foreground antialiased">
 
-    {{-- Dark mode toggle --}}
-    <div class="absolute top-4 right-4 z-10">
-        <x-ui.button variant="ghost" @click="$store.theme.toggle()"
-            class="size-8">
-            <x-lucide-sun x-show="!$store.theme.dark" class="size-4" />
-            <x-lucide-moon x-show="$store.theme.dark" x-cloak class="size-4" />
-        </x-ui.button>
-    </div>
+    {{-- Navbar --}}
+    <header class="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-sm">
+        <div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
+            <a href="{{ route('landing') }}" class="flex items-center gap-2.5">
+                <div class="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary">
+                    <span class="text-[11px] font-bold leading-none text-primary-foreground">IR</span>
+                </div>
+                <span class="text-sm font-semibold">Infinito Reciclaje</span>
+            </a>
+            <x-ui.button variant="ghost" size="icon" @click="$store.theme.toggle()" aria-label="Cambiar tema">
+                <x-lucide-sun x-show="!$store.theme.dark" class="size-4" />
+                <x-lucide-moon x-show="$store.theme.dark" x-cloak class="size-4" />
+            </x-ui.button>
+        </div>
+    </header>
 
-    <div class="flex min-h-svh items-center justify-center p-6 md:p-10">
+    <div class="flex flex-1 items-center justify-center p-6 md:p-10">
         <div class="w-full max-w-sm md:max-w-4xl">
 
             {{-- Two-column card --}}
