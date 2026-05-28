@@ -19,6 +19,11 @@
 <x-layouts.app title="Tipos de servicio">
 <div x-data="tiposServicio({{ Js::from($initial) }})" class="flex flex-col gap-6">
 
+    <div class="flex flex-col items-start gap-2">
+        <x-ui.typography as="h2">Tipos de servicio</x-ui.typography>
+        <x-ui.typography as="muted">Categorías de pesaje y los tipos de vehículo asociados a cada una.</x-ui.typography>
+    </div>
+
     <x-domain.tipos-servicio.mobile-drawers
         :filters="$filters"
         :tiposVehiculo="$tiposVehiculo"

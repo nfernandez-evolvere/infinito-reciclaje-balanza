@@ -16,12 +16,11 @@
     </x-ui.button>
 </div>
 
-<div class="grid grid-cols-2 gap-2 sm:hidden">
+<div class="flex justify-end sm:hidden gap-2">
     <x-ui.sheet side="bottom">
         <x-slot:trigger>
-            <x-ui.button variant="{{ $hayFiltros ? 'default' : 'outline' }}" size="sm" class="w-full">
+            <x-ui.button size="icon" variant="ghost">
                 <x-lucide-sliders-horizontal class="size-3.5" />
-                Filtros
                 @if($hayFiltros)
                     <x-ui.badge variant="secondary" class="ml-0.5">•</x-ui.badge>
                 @endif
@@ -81,8 +80,7 @@
         </div>
     </x-ui.sheet>
 
-    <x-ui.button size="sm" class="w-full" @click="openCreate()">
+    <x-ui.button size="icon" @click="openCreate()">
         <x-lucide-plus class="size-3.5" />
-        Agregar vehículo
     </x-ui.button>
 </div>

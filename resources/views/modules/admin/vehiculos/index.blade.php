@@ -50,6 +50,11 @@
     class="flex flex-col gap-6"
 >
 
+    <div class="flex flex-col items-start gap-2">
+        <x-ui.typography as="h2">Vehículos</x-ui.typography>
+        <x-ui.typography as="muted">Padrón de vehículos habilitados para operar en la balanza y sus categorías.</x-ui.typography>
+    </div>
+
     {{-- Tabs --}}
     <div role="tablist" class="inline-flex h-9 w-fit items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground">
         <button
