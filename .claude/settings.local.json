@@ -121,7 +121,8 @@
       "mcp__shadcn__view_items_in_registries",
       "WebFetch(domain:api.github.com)",
       "Bash(mkdir -p \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\public\\\\assets\" && cp \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\assets\\\\\"*.png \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\public\\\\assets\\\\\")",
-      "Bash(dir \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\app\\\\Http\\\\Controllers\" -Filter \"*Report*\")"
+      "Bash(dir \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\app\\\\Http\\\\Controllers\" -Filter \"*Report*\")",
+      "PowerShell(php -r \"echo PHP_VERSION; echo PHP_EOL; echo \\(extension_loaded\\('gd'\\) ? 'gd: YES' : 'gd: NO'\\); echo PHP_EOL; echo \\(extension_loaded\\('zip'\\) ? 'zip: YES' : 'zip: NO'\\); echo PHP_EOL; echo \\(extension_loaded\\('xml'\\) ? 'xml: YES' : 'xml: NO'\\);\")"
     ],
     "additionalDirectories": [
       "c:\\Users\\34891406\\Nicolas\\Proyectos\\infinito-reciclaje-balanza\\database\\sql",
