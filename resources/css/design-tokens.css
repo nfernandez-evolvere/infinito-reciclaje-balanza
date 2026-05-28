@@ -218,7 +218,7 @@
     --popover-foreground:    var(--neutral-50);
 
     /* — Semánticos de rol — */
-    --primary:               var(--green-400);
+    --primary:               oklch(0.754 0.110 144); /* green-400 lightness, chroma reducido para evitar efecto neon en dark */
     --primary-foreground:    var(--neutral-950);
     --secondary:             var(--neutral-800);
     --secondary-foreground:  var(--neutral-50);
@@ -234,7 +234,7 @@
     --destructive-subtle-foreground: var(--red-200);
     --destructive-border:            var(--red-800);
 
-    --success:                       var(--green-500);
+    --success:                       oklch(0.665 0.110 144); /* green-500 lightness, chroma reducido */
     --success-foreground:            var(--neutral-50);
     --success-subtle:                oklch(0.207 0.060 145 / 30%);
     --success-subtle-foreground:     var(--green-200);
@@ -260,7 +260,7 @@
     --text-placeholder:      var(--neutral-600);
     --text-inverse:          var(--neutral-950);
     --text-destructive:      var(--red-400);
-    --text-success:          var(--green-400);
+    --text-success:          oklch(0.754 0.110 144); /* chroma reducido, mismo que --primary dark */
     --text-warning:          var(--yellow-400);
     --text-info:             var(--blue-400);
 
@@ -273,12 +273,12 @@
     /* — Sidebar (dark) — */
     --sidebar:                       var(--neutral-900);
     --sidebar-foreground:            var(--neutral-50);
-    --sidebar-primary:               var(--green-500);
+    --sidebar-primary:               oklch(0.665 0.110 144); /* chroma reducido */
     --sidebar-primary-foreground:    var(--neutral-50);
     --sidebar-accent:                var(--green-950);
     --sidebar-accent-foreground:     var(--green-100);
     --sidebar-border:                oklch(1 0 0 / 10%);
-    --sidebar-ring:                  var(--green-400);
+    --sidebar-ring:                  oklch(0.754 0.110 144); /* chroma reducido */
 }
 
 

@@ -88,7 +88,7 @@
                             description="Ningún tipo coincide con los filtros aplicados."
                             class="rounded-none border-0 bg-transparent"
                         >
-                            <x-ui.button href="{{ route('admin.tipos-vehiculo.index') }}">
+                            <x-ui.button href="{{ route('admin.vehiculos.index', ['tab' => 'tipos']) }}">
                                 <x-lucide-x class="size-4" />
                                 Limpiar filtros
                             </x-ui.button>

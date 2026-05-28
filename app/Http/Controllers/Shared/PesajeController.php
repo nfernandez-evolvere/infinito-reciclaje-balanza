@@ -69,7 +69,7 @@ class PesajeController extends Controller
             $viewData['zonas']          = $this->zonaRepository->activos();
             $viewData['tiposServicio']  = $this->tipoServicioRepository->activos();
         } else {
-            $viewData['titulo']         = 'Historial del turno';
+            $viewData['titulo']         = 'Pesajes';
             $viewData['routeHistorial'] = route('historial');
         }
 

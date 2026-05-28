@@ -14,7 +14,7 @@ function Historial({ pesajes, log, actor, onEdit, onEgreso }) {
   const enPredio = mine.filter((p) => p.estado === "En predio").length;
 
   return (
-    <div className="page" style={{ maxWidth: 1180 }}>
+    <div className="page">
       <h1>Historial del turno</h1>
       <p className="lede">Pesajes registrados en esta sesión. Podés corregir errores y marcar el egreso del camión.</p>
 

@@ -69,15 +69,40 @@
             <div class="flex items-center gap-1 shrink-0">
             <x-domain.dashboard.mobile-kpis />
 
+            {{-- Info --}}
+            <x-ui.popover width="w-72" align="end">
+                <x-slot:trigger>
+                    <x-ui.button variant="ghost" size="icon">
+                        <x-lucide-circle-help class="size-4" />
+                    </x-ui.button>
+                </x-slot:trigger>
+                <div class="space-y-3">
+                    <p class="text-sm font-medium">Sobre este dashboard</p>
+                    <div class="space-y-2 text-xs text-muted-foreground">
+                        <p>Los KPIs incluyen todos los pesajes excepto los cancelados.</p>
+                        <p>Los porcentajes de variación comparan contra el mismo período del mes anterior.</p>
+                        <p>Los datos se actualizan automáticamente cada 10 minutos. También podés refrescar manualmente con el botón de la esquina.</p>
+                    </div>
+                </div>
+            </x-ui.popover>
+
             {{-- Date range picker --}}
             <x-ui.popover width="w-72" align="end">
                     <x-slot:trigger>
-                        <x-ui.button variant="ghost" size="icon"
-                                x-bind:class="desdeRango ? 'text-primary w-auto! px-2.5 gap-1.5' : ''">
+                        <x-ui.button variant="ghost"
+                                x-bind:class="desdeRango ? 'text-primary' : ''"
+                                class="hidden sm:flex gap-1.5 px-2.5">
                             <x-lucide-calendar-range class="size-4 shrink-0" />
+                            <span x-show="!desdeRango" x-cloak
+                                  class="text-sm font-medium">Filtrar por período</span>
                             <span x-show="desdeRango" x-cloak
                                   x-text="rangoLabel()"
                                   class="text-xs font-medium tabular-nums"></span>
+                        </x-ui.button>
+                        <x-ui.button variant="ghost" size="icon"
+                                x-bind:class="desdeRango ? 'text-primary' : ''"
+                                class="sm:hidden">
+                            <x-lucide-calendar-range class="size-4 shrink-0" />
                         </x-ui.button>
                     </x-slot:trigger>
                     <div class="space-y-4">

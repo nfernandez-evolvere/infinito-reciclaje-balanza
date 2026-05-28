@@ -29,7 +29,8 @@
         </x-slot:trigger>
         <div class="p-6 pt-10 space-y-5 overflow-y-auto">
             <p class="text-label text-base">Filtros</p>
-            <form method="GET" action="{{ route('admin.tipos-vehiculo.index') }}" class="space-y-3">
+            <form method="GET" action="{{ route('admin.vehiculos.index') }}" class="space-y-3">
+                <input type="hidden" name="tab" value="tipos" />
                 <div class="space-y-1.5">
                     <x-ui.label>Tipo</x-ui.label>
                     <x-ui.input type="search" name="nombre" value="{{ $filters['nombre'] ?? '' }}" placeholder="Buscar por tipo…" />
@@ -61,7 +62,7 @@
                         Aplicar
                     </x-ui.button>
                     @if($hayFiltros)
-                        <x-ui.button variant="secondary" href="{{ route('admin.tipos-vehiculo.index') }}" class="flex-1">
+                        <x-ui.button variant="secondary" href="{{ route('admin.vehiculos.index', ['tab' => 'tipos']) }}" class="flex-1">
                             <x-lucide-x class="size-4" />
                             Limpiar
                         </x-ui.button>

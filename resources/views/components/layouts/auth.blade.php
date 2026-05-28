@@ -2,7 +2,6 @@
     'title'           => 'Ingresar',
     'cardTitle'       => '',
     'cardDescription' => null,
-    'bare'            => false,
 ])
 
 <!DOCTYPE html>
@@ -10,57 +9,91 @@
 <head>
     <x-layouts.head :title="$title" />
 </head>
-<body class="min-h-screen bg-background text-foreground antialiased">
+<body class="min-h-svh bg-muted text-foreground antialiased">
 
-    <div class="absolute top-4 right-4">
-        <x-ui.button size="icon" variant="ghost" @click="$store.theme.toggle()"
-            class="size-8 text-muted-foreground">
+    {{-- Dark mode toggle --}}
+    <div class="absolute top-4 right-4 z-10">
+        <x-ui.button variant="ghost" @click="$store.theme.toggle()"
+            class="size-8">
             <x-lucide-sun x-show="!$store.theme.dark" class="size-4" />
             <x-lucide-moon x-show="$store.theme.dark" x-cloak class="size-4" />
         </x-ui.button>
     </div>
 
-    <div class="flex min-h-screen items-center justify-center p-4">
-        <div class="w-full max-w-100 space-y-8">
+    <div class="flex min-h-svh items-center justify-center p-6 md:p-10">
+        <div class="w-full max-w-sm md:max-w-4xl">
 
-            {{-- Brand --}}
-            <div class="flex flex-col items-center gap-4">
-                <div class="flex items-center justify-center size-14 rounded-xl bg-primary shrink-0">
-                    <span class="text-xl font-bold text-primary-foreground leading-none">IR</span>
-                </div>
-                <div class="text-center space-y-1">
-                    <x-ui.typography as="h3" element="h1">Infinito Reciclaje</x-ui.typography>
-                    <x-ui.typography as="muted">Sistema de gestión de balanza</x-ui.typography>
+            {{-- Two-column card --}}
+            <div class="overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-sm">
+                <div class="grid md:grid-cols-2">
+
+                    {{-- Left: form panel --}}
+                    <div class="flex flex-col gap-6 p-8 md:p-10">
+
+                        {{-- Brand --}}
+                        <div class="flex items-center gap-3">
+                            <div class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary">
+                                <span class="text-sm font-bold leading-none text-primary-foreground">IR</span>
+                            </div>
+                            <span class="font-semibold text-sm">Infinito Reciclaje</span>
+                        </div>
+
+                        {{-- Title & description --}}
+                        <div>
+                            <x-ui.typography as="h3" element="h1">{{ $cardTitle }}</x-ui.typography>
+                            @if ($cardDescription)
+                                <x-ui.typography as="muted" class="mt-1">{{ $cardDescription }}</x-ui.typography>
+                            @endif
+                        </div>
+
+                        {{-- Form slot --}}
+                        <div>
+                            {{ $slot }}
+                        </div>
+
+                        {{-- Footer link (back to login, etc.) --}}
+                        @isset($footerLink)
+                            <div class="flex justify-center">
+                                {{ $footerLink }}
+                            </div>
+                        @endisset
+
+                    </div>
+
+                    {{-- Right: branded panel (hidden on mobile) --}}
+                    <div class="relative hidden flex-col items-center justify-center overflow-hidden bg-primary p-10 text-primary-foreground md:flex">
+
+                        {{-- Decorative circles --}}
+                        <div class="absolute -top-24 -right-24 size-72 rounded-full bg-white/5"></div>
+                        <div class="absolute -bottom-24 -left-24 size-80 rounded-full bg-white/5"></div>
+                        <div class="absolute top-1/2 right-0 size-40 -translate-y-1/2 translate-x-1/2 rounded-full bg-white/5"></div>
+
+                        {{-- Brand mark --}}
+                        <div class="relative z-10 flex flex-col items-center gap-6 text-center">
+                            <div class="flex size-16 items-center justify-center rounded-2xl bg-white/15 backdrop-blur-sm">
+                                <span class="text-2xl font-bold">IR</span>
+                            </div>
+                            <div class="space-y-1.5">
+                                <p class="text-lg font-semibold">Infinito Reciclaje</p>
+                                <p class="text-sm opacity-60">Sistema de gestión de balanza</p>
+                            </div>
+                            <div class="mt-2 max-w-55 space-y-1">
+                                <p class="text-sm opacity-50 leading-relaxed">
+                                    Control preciso del pesaje.<br>
+                                    Trazabilidad completa del reciclaje.
+                                </p>
+                            </div>
+                        </div>
+
+                    </div>
+
                 </div>
             </div>
 
-            {{-- Card --}}
-            @if ($bare)
-                {{ $slot }}
-            @else
-                <x-ui.card variant="elevated">
-                    <x-ui.card.header class="text-center">
-                        <x-ui.card.title>{{ $cardTitle }}</x-ui.card.title>
-                        @if ($cardDescription)
-                            <x-ui.card.description>{{ $cardDescription }}</x-ui.card.description>
-                        @endif
-                    </x-ui.card.header>
-                    <x-ui.card.content>
-                        {{ $slot }}
-                    </x-ui.card.content>
-                </x-ui.card>
-            @endif
-
-            {{-- Footer link (optional named slot) --}}
-            @isset($footerLink)
-                <div class="flex justify-center">
-                    {{ $footerLink }}
-                </div>
-            @endisset
-
-            <x-ui.typography as="muted" class="text-center text-xs">
+            {{-- Footer --}}
+            <p class="mt-4 text-center text-xs text-muted-foreground">
                 Balanza v1 · Gestión de pesajes
-            </x-ui.typography>
+            </p>
 
         </div>
     </div>

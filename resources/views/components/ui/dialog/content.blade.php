@@ -42,17 +42,25 @@ $sizeClass = ['sm' => 'max-w-sm', 'lg' => 'max-w-2xl', 'xl' => 'max-w-4xl'][$siz
             class="relative z-10 flex flex-col w-full {{ $sizeClass }} max-h-[90vh] rounded-xl border border-border bg-background shadow-xl"
         >
             @if($showCloseButton)
-                <x-ui.button
-                    variant="ghost"
-                    :state="$closeState"
-                    size="icon"
+                @php
+                $btnBase = 'absolute right-6 top-4 z-10 size-7 inline-flex items-center justify-center rounded-full transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4';
+                $btnColor = $closeState ? '' : 'text-muted-foreground hover:bg-accent focus-visible:ring-ring';
+                @endphp
+                <button
                     type="button"
-                    class="absolute right-6 top-4 z-10 size-7"
-                    aria-label="Cerrar"
+                    class="{{ $btnBase }} {{ $btnColor }}"
+                    @if($closeState)
+                    x-bind:class="
+                        ({{ $closeState }}) === 'destructive' ? 'text-destructive hover:bg-destructive/10 focus-visible:ring-destructive' :
+                        ({{ $closeState }}) === 'success'     ? 'text-success hover:bg-success/10 focus-visible:ring-success' :
+                        'text-muted-foreground hover:bg-accent focus-visible:ring-ring'
+                    "
+                    @endif
                     @click="open = false"
+                    aria-label="Cerrar"
                 >
                     <x-lucide-x class="size-4" />
-                </x-ui.button>
+                </button>
             @endif
 
             {{ $slot }}

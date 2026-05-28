@@ -39,8 +39,9 @@
                 </x-ui.button>
             </div>
 
-            <form method="GET" action="{{ route('admin.tipos-vehiculo.index') }}"
+            <form method="GET" action="{{ route('admin.vehiculos.index') }}"
                 class="flex flex-col flex-1 min-h-0">
+                <input type="hidden" name="tab" value="tipos" />
 
                 <div class="flex-1 overflow-y-auto px-5 py-5 space-y-2">
 
@@ -99,7 +100,7 @@
                 </div>
 
                 <div class="border-t border-border px-5 py-4 flex gap-2">
-                    <a href="{{ route('admin.tipos-vehiculo.index') }}" class="flex-1">
+                    <a href="{{ route('admin.vehiculos.index', ['tab' => 'tipos']) }}" class="flex-1">
                         <x-ui.button type="button" variant="secondary" class="w-full">
                             <x-lucide-x class="size-4" />
                             Limpiar

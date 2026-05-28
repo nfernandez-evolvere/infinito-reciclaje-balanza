@@ -8,6 +8,7 @@ use App\Http\Requests\StoreVehiculoRequest;
 use App\Http\Requests\UpdateVehiculoRequest;
 use App\Models\Vehiculo;
 use App\Repositories\TipoVehiculoRepository;
+use App\Services\TipoVehiculoService;
 use App\Services\VehiculoService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
@@ -20,15 +21,30 @@ class VehiculoController extends Controller
     public function __construct(
         protected VehiculoService $service,
         protected TipoVehiculoRepository $tipoVehiculoRepository,
+        protected TipoVehiculoService $tipoVehiculoService,
     ) {}
 
     public function index(Request $request): View
     {
-        $filters        = $request->only(['patente', 'numero_interno', 'tipo_vehiculo_id', 'activo']);
-        $vehiculos      = $this->service->listar($filters);
-        $tiposVehiculo  = $this->tipoVehiculoRepository->todos();
+        $tab = $request->input('tab', 'vehiculos');
 
-        return view('modules.admin.vehiculos.index', compact('vehiculos', 'filters', 'tiposVehiculo'));
+        $filters = $request->only(['patente', 'numero_interno', 'tipo_vehiculo_id']);
+        if ($tab === 'vehiculos') {
+            $filters['activo'] = $request->input('activo');
+        }
+        $vehiculos     = $this->service->listar($filters);
+        $tiposVehiculo = $this->tipoVehiculoRepository->todos();
+
+        $tiposFiltros = $request->only(['nombre', 'peso_min', 'peso_max']);
+        if ($tab === 'tipos') {
+            $tiposFiltros['activo'] = $request->input('activo');
+        }
+        $tipos = $this->tipoVehiculoService->listar($tiposFiltros);
+
+        return view('modules.admin.vehiculos.index', compact(
+            'vehiculos', 'filters', 'tiposVehiculo',
+            'tipos', 'tiposFiltros', 'tab',
+        ));
     }
 
     public function store(StoreVehiculoRequest $request): RedirectResponse

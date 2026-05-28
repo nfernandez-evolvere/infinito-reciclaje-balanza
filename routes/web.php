@@ -9,7 +9,7 @@ require __DIR__.'/super.php';
 
 Route::get('/', function () {
     if (! auth()->check()) {
-        return redirect()->route('login');
+        return view('modules.landing');
     }
     $user = auth()->user();
     return redirect(match(true) {
@@ -17,7 +17,7 @@ Route::get('/', function () {
         $user->isAdmin()      => route('admin.dashboard'),
         default               => route('balanza'),
     });
-});
+})->name('landing');
 
 Route::fallback(function () {
     $user = auth()->user();

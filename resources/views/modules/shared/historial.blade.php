@@ -50,16 +50,18 @@
     @endphp
 
     <div class="flex flex-col lg:flex-row items-start justify-between gap-4">
-        <div>
-            <x-ui.typography as="h2">{{ $titulo }}</x-ui.typography>
-            <x-ui.typography as="muted" class="mt-1">{{ $subtitulo }}</x-ui.typography>
+        <div class="flex-1 min-w-0">
+            <x-ui.typography as="h2" class="truncate">{{ $titulo }}</x-ui.typography>
+            <x-ui.typography as="muted" class="mt-1 truncate">{{ $subtitulo }}</x-ui.typography>
         </div>
-        <div class="flex items-center justify-end gap-1 w-full">
-            <x-ui.tooltip content="Métricas">
-                <x-ui.button variant="ghost" size="icon" @click="metricasOpen = true">
-                    <x-lucide-chart-bar class="size-4" />
-                </x-ui.button>
-            </x-ui.tooltip>
+        <div class="flex items-center justify-end gap-1 w-full lg:w-auto shrink-0">
+            <div class="sm:hidden">
+                <x-ui.tooltip content="Métricas">
+                    <x-ui.button variant="ghost" size="icon" @click="metricasOpen = true">
+                        <x-lucide-chart-bar class="size-4" />
+                    </x-ui.button>
+                </x-ui.tooltip>
+            </div>
             <x-domain.historial.filtros :filtros="$filtros" :operarios="$operarios" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" :zonas="$zonas" :tiposServicio="$tiposServicio" :sortDirection="$filtros['sort_direction']" />
             @if($exportUrl)
                 <x-ui.tooltip content="Exportar">

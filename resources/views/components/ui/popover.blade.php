@@ -101,7 +101,7 @@
             x-transition:leave-start="opacity-100 scale-100"
             x-transition:leave-end="opacity-0 scale-95"
             x-cloak
-            class="fixed z-(--z-popover) {{ $width }} rounded-lg border border-border bg-popover p-4 text-popover-foreground shadow-md"
+            class="fixed z-(--z-popover) {{ $width }} rounded-lg border border-border bg-popover p-4 text-popover-foreground shadow-lg"
         >
             {{ $slot }}
             <span :class="_arrow()" class="absolute size-2.5 rotate-45 bg-popover border-border"></span>

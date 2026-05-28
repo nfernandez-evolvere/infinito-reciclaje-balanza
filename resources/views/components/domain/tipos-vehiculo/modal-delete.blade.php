@@ -1,7 +1,7 @@
 @props([])
 
 <div x-data="{ get open() { return deleteOpen }, set open(v) { deleteOpen = v } }">
-    <x-ui.dialog.content size="sm">
+    <x-ui.dialog.content size="sm" closeState="destructive">
         <x-ui.dialog.header>
             <x-ui.dialog.title>Eliminar tipo de vehículo</x-ui.dialog.title>
             <x-ui.dialog.description>

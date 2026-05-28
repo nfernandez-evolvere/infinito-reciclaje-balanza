@@ -7,7 +7,7 @@
     </x-ui.card.header>
     <x-ui.card.content class="pt-0">
         <div class="grid grid-cols-1 xl:grid-cols-12 gap-4 items-start">
-            <div class="xl:col-span-9 min-w-0">
+            <div class="xl:col-span-9 xl:order-2 min-w-0">
 
                 {{-- Mobile: cards --}}
                 <div class="sm:hidden space-y-1.5">
@@ -39,7 +39,7 @@
                             <x-ui.table.head>Viajes</x-ui.table.head>
                             <x-ui.table.head>Toneladas</x-ui.table.head>
                             <x-ui.table.head>KG/viaje</x-ui.table.head>
-                            <x-ui.table.head>%</x-ui.table.head>
+                            <x-ui.table.head>Porcentaje</x-ui.table.head>
                         </x-ui.table.row>
                     </x-ui.table.header>
                     <x-ui.table.body>
@@ -52,15 +52,15 @@
                                     </span>
                                 </x-ui.table.cell>
                                 <x-ui.table.cell data-label="Viajes" class="tabular-nums" x-text="fila.pesajes"></x-ui.table.cell>
-                                <x-ui.table.cell data-label="Toneladas" class="tabular-nums" x-text="fmt(fila.toneladas, 2)"></x-ui.table.cell>
-                                <x-ui.table.cell data-label="KG/viaje" class="tabular-nums text-muted-foreground" x-text="fila.kg_por_viaje"></x-ui.table.cell>
-                                <x-ui.table.cell data-label="%" class="tabular-nums text-muted-foreground" x-text="fila.porcentaje + '%'"></x-ui.table.cell>
+                                <x-ui.table.cell data-label="Toneladas" class="tabular-nums" x-text="fmt(fila.toneladas, 2) + ' t'"></x-ui.table.cell>
+                                <x-ui.table.cell data-label="kg/viaje" class="tabular-nums text-muted-foreground" x-text="fila.kg_por_viaje + ' kg'"></x-ui.table.cell>
+                                <x-ui.table.cell data-label="Porcentaje" class="tabular-nums text-muted-foreground" x-text="fila.porcentaje + '%'"></x-ui.table.cell>
                             </x-ui.table.row>
                         </template>
                     </x-ui.table.body>
                 </x-ui.table>
             </div>
-            <div class="xl:col-span-3 w-full max-w-xs sm:max-w-sm md:max-w-md xl:max-w-xs mx-auto" x-data="desgloseChart('{{ $source }}')">
+            <div class="xl:col-span-3 xl:order-1 w-full max-w-xs sm:max-w-sm md:max-w-md xl:max-w-xs mx-auto" x-data="desgloseChart('{{ $source }}')">
                 <div x-ref="chart"></div>
             </div>
         </div>

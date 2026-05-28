@@ -12,6 +12,7 @@
             <input type="hidden" name="_method"     :value="modalMode === 'edit' ? 'PUT' : 'POST'" />
             <input type="hidden" name="_mode"       :value="modalMode" />
             <input type="hidden" name="_editing_id" :value="form.id" />
+            <input type="hidden" name="_tab"        value="tipos" />
 
             <x-ui.dialog.header>
                 <x-ui.dialog.title

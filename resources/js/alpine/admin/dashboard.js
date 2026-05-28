@@ -45,6 +45,23 @@ export default function dashboardData() {
             if (delta === null) return 'text-xs font-normal mt-0.5 text-muted-foreground';
             return 'text-xs font-normal mt-0.5 ' + (delta >= 0 ? 'text-success' : 'text-destructive');
         },
+        deltaBadgeText(delta) {
+            if (delta === null) return '—';
+            return (delta >= 0 ? '+' : '') + delta + '%';
+        },
+        deltaBorderStyle(delta) {
+            if (delta === null) return 'border-left: 2px solid var(--color-border)';
+            return delta >= 0
+                ? 'border-left: 2px solid var(--color-success)'
+                : 'border-left: 2px solid var(--color-destructive)';
+        },
+        deltaBadgeClass(delta) {
+            const base = 'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold cursor-pointer select-none transition-colors';
+            if (delta === null) return base + ' border-border text-muted-foreground';
+            return delta >= 0
+                ? base + ' bg-success/10 text-success border-success/30'
+                : base + ' bg-destructive/10 text-destructive border-destructive/30';
+        },
         ultimoLabel(min) {
             if (min === null) return '—';
             if (min < 60) return min + ' min';

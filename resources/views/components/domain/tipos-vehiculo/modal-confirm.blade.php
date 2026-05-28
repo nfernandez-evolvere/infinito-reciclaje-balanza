@@ -1,7 +1,7 @@
 @props([])
 
 <div x-data="{ get open() { return confirmOpen }, set open(v) { confirmOpen = v } }">
-    <x-ui.dialog.content size="sm">
+    <x-ui.dialog.content size="sm" closeState="confirmActivo ? 'destructive' : 'success'">
         <x-ui.dialog.header>
             <x-ui.dialog.title
                 x-text="confirmActivo ? 'Desactivar tipo de vehículo' : 'Activar tipo de vehículo'"

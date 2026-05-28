@@ -199,7 +199,7 @@ $inputName = $name ? rtrim($name, '[]') . '[]' : null;
         @click="open ? _close() : _open()"
         @if($disabled) disabled @endif
         :disabled="disabled"
-        class="w-full flex items-start justify-between gap-2 min-h-9 px-3 py-1.5 rounded-md border bg-background text-foreground text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer {{ $stateClass }}"
+        class="w-full flex items-start justify-between gap-2 min-h-9 px-3 py-1.5 rounded-full border bg-background text-foreground text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer {{ $stateClass }}"
     >
         <span class="flex flex-wrap gap-1 flex-1 min-w-0 self-center">
             <span

@@ -182,6 +182,17 @@
 
     [x-cloak] { display: none !important; }
 
+    /* Autofill del browser — mantiene colores del sistema */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus,
+    input:-webkit-autofill:active,
+    input:autofill {
+        -webkit-box-shadow: 0 0 0 9999px var(--background) inset !important;
+        box-shadow: 0 0 0 9999px var(--background) inset !important;
+        -webkit-text-fill-color: var(--foreground) !important;
+    }
+
     /* Sidebar collapsible="icon" — ancho controlado por data-collapsed */
     [data-sidebar][data-collapsible="icon"] {
         width: var(--sidebar-width);

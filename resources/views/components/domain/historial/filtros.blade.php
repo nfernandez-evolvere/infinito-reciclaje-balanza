@@ -57,7 +57,7 @@
 @endphp
 
 <div class="relative">
-    <x-ui.tooltip content="Filtros">
+    <x-ui.tooltip content="Filtros" class="sm:hidden">
         <x-ui.button
             variant="ghost"
             size="icon"
@@ -66,6 +66,15 @@
             <x-lucide-sliders-horizontal class="size-4" />
         </x-ui.button>
     </x-ui.tooltip>
+    <x-ui.button
+        variant="ghost"
+        size="sm"
+        class="hidden sm:flex gap-1.5"
+        @click="filterOpen = true"
+    >
+        <x-lucide-sliders-horizontal class="size-4" />
+        Filtros
+    </x-ui.button>
     @if($hayFiltros)
         <span class="pointer-events-none absolute -top-1.5 -right-1.5 flex size-4 items-center justify-center rounded-full bg-primary text-primary-foreground ring-2 ring-background text-[10px] font-semibold leading-none">
             {{ count($chips) }}

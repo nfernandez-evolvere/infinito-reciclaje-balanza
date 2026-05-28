@@ -13,7 +13,7 @@
 <div
     role="group"
     {{ $attributes->twMerge(
-        'flex h-10 w-full items-center rounded-full border border-input bg-background transition-colors',
+        'flex h-10 w-full items-center rounded-full border border-input bg-background transition-colors overflow-hidden',
         'has-[[data-slot=input-group-control]:focus-visible]:border-ring has-[[data-slot=input-group-control]:focus-visible]:ring-2 has-[[data-slot=input-group-control]:focus-visible]:ring-ring/50',
         'has-[[data-slot=input-group-control][aria-invalid=true]]:border-destructive has-[[data-slot=input-group-control][aria-invalid=true]]:ring-2 has-[[data-slot=input-group-control][aria-invalid=true]]:ring-destructive/20',
         'has-[>[data-align=block-start]]:h-auto has-[>[data-align=block-start]]:flex-col',

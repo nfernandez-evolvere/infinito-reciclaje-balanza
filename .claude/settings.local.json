@@ -115,7 +115,12 @@
       "Bash(php -r \"echo json_encode\\(['label' => 'hoy'], JSON_HEX_QUOT\\); echo PHP_EOL; echo JSON_HEX_QUOT;\")",
       "Bash(php -r \"echo json_encode\\(['text' => 'say \\\\\"hello\\\\\"'], JSON_HEX_QUOT\\); echo PHP_EOL; echo json_encode\\(['text' => 'say \\\\\"hello\\\\\"'], 0\\);\")",
       "PowerShell(Remove-Item \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\domain\\\\dashboard\\\\camiones-predio.blade.php\" -Confirm:$false)",
-      "PowerShell(Get-Process -Name \"node\" -ErrorAction SilentlyContinue)"
+      "PowerShell(Get-Process -Name \"node\" -ErrorAction SilentlyContinue)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\modules\" -Directory)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\domain\" -Directory)",
+      "mcp__shadcn__view_items_in_registries",
+      "WebFetch(domain:api.github.com)",
+      "Bash(mkdir -p \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\public\\\\assets\" && cp \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\assets\\\\\"*.png \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\public\\\\assets\\\\\")"
     ],
     "additionalDirectories": [
       "c:\\Users\\34891406\\Nicolas\\Proyectos\\infinito-reciclaje-balanza\\database\\sql",

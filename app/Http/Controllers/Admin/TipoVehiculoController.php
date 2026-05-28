@@ -10,7 +10,6 @@ use App\Services\TipoVehiculoService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
 
 class TipoVehiculoController extends Controller
 {
@@ -18,12 +17,9 @@ class TipoVehiculoController extends Controller
         protected TipoVehiculoService $service,
     ) {}
 
-    public function index(Request $request): View
+    public function index(): RedirectResponse
     {
-        $filters = $request->only(['nombre', 'peso_min', 'peso_max', 'activo']);
-        $tipos   = $this->service->listar($filters);
-
-        return view('modules.admin.tipos-vehiculo.index', compact('tipos', 'filters'));
+        return redirect()->route('admin.vehiculos.index', ['tab' => 'tipos']);
     }
 
     public function store(StoreTipoVehiculoRequest $request): RedirectResponse
@@ -31,14 +27,14 @@ class TipoVehiculoController extends Controller
         try {
             $tipo = $this->service->crear($request->validated());
 
-            return redirect()->route('admin.tipos-vehiculo.index')
+            return redirect()->route('admin.vehiculos.index', ['tab' => 'tipos'])
                 ->with('toast', [
                     'message'     => 'Tipo de vehículo creado.',
                     'description' => "\"{$tipo->nombre}\" quedó disponible para asignar a vehículos.",
                     'variant'     => 'success',
                 ]);
         } catch (\Throwable) {
-            return redirect()->route('admin.tipos-vehiculo.index')
+            return redirect()->route('admin.vehiculos.index', ['tab' => 'tipos'])
                 ->with('toast', [
                     'message'     => 'Error inesperado.',
                     'description' => 'Si el problema persiste, revisá los logs del sistema.',
@@ -53,14 +49,14 @@ class TipoVehiculoController extends Controller
             $validated = $request->validated();
             $this->service->actualizar($tiposVehiculo, $validated);
 
-            return redirect()->route('admin.tipos-vehiculo.index')
+            return redirect()->route('admin.vehiculos.index', ['tab' => 'tipos'])
                 ->with('toast', [
                     'message'     => 'Cambios guardados.',
                     'description' => "\"{$validated['nombre']}\" fue actualizado correctamente.",
                     'variant'     => 'success',
                 ]);
         } catch (\Throwable) {
-            return redirect()->route('admin.tipos-vehiculo.index')
+            return redirect()->route('admin.vehiculos.index', ['tab' => 'tipos'])
                 ->with('toast', [
                     'message'     => 'Error inesperado.',
                     'description' => 'Si el problema persiste, revisá los logs del sistema.',
@@ -88,9 +84,9 @@ class TipoVehiculoController extends Controller
                 ];
             }
 
-            return redirect()->route('admin.tipos-vehiculo.index')->with('toast', $toast);
+            return redirect()->route('admin.vehiculos.index', ['tab' => 'tipos'])->with('toast', $toast);
         } catch (\Throwable) {
-            return redirect()->route('admin.tipos-vehiculo.index')
+            return redirect()->route('admin.vehiculos.index', ['tab' => 'tipos'])
                 ->with('toast', [
                     'message'     => 'Error inesperado.',
                     'description' => 'Si el problema persiste, revisá los logs del sistema.',
@@ -104,7 +100,7 @@ class TipoVehiculoController extends Controller
         try {
             $this->service->eliminar($tiposVehiculo);
 
-            return redirect()->route('admin.tipos-vehiculo.index')
+            return redirect()->route('admin.vehiculos.index', ['tab' => 'tipos'])
                 ->with('toast', [
                     'message'     => 'Tipo de vehículo eliminado.',
                     'description' => 'Los vehículos y pesajes asociados no se ven afectados.',
@@ -113,7 +109,7 @@ class TipoVehiculoController extends Controller
         } catch (QueryException $e) {
             $isConstraint = in_array($e->getCode(), ['23000', '23503']);
 
-            return redirect()->route('admin.tipos-vehiculo.index')
+            return redirect()->route('admin.vehiculos.index', ['tab' => 'tipos'])
                 ->with('toast', $isConstraint ? [
                     'message'     => 'No se puede eliminar.',
                     'description' => "\"{$tiposVehiculo->nombre}\" tiene vehículos asignados. Primero reasignalos o desactivá el tipo.",
@@ -124,7 +120,7 @@ class TipoVehiculoController extends Controller
                     'variant'     => 'destructive',
                 ]);
         } catch (\Throwable) {
-            return redirect()->route('admin.tipos-vehiculo.index')
+            return redirect()->route('admin.vehiculos.index', ['tab' => 'tipos'])
                 ->with('toast', [
                     'message'     => 'Error inesperado.',
                     'description' => 'Si el problema persiste, revisá los logs del sistema.',
