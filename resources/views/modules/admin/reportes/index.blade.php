@@ -2,6 +2,14 @@
 
 <div class="space-y-6">
 
+    @if($errors->has('pdf'))
+    <x-ui.alert variant="destructive">
+        <x-lucide-circle-alert class="size-4" />
+        <x-ui.alert.title>No se pudo generar el PDF</x-ui.alert.title>
+        <x-ui.alert.description>{{ $errors->first('pdf') }}</x-ui.alert.description>
+    </x-ui.alert>
+    @endif
+
     {{-- Encabezado + botones de descarga --}}
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
