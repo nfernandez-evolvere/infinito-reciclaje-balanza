@@ -120,7 +120,8 @@
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\resources\\\\views\\\\components\\\\domain\" -Directory)",
       "mcp__shadcn__view_items_in_registries",
       "WebFetch(domain:api.github.com)",
-      "Bash(mkdir -p \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\public\\\\assets\" && cp \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\assets\\\\\"*.png \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\public\\\\assets\\\\\")"
+      "Bash(mkdir -p \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\public\\\\assets\" && cp \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\assets\\\\\"*.png \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\public\\\\assets\\\\\")",
+      "Bash(dir \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\\\\app\\\\Http\\\\Controllers\" -Filter \"*Report*\")"
     ],
     "additionalDirectories": [
       "c:\\Users\\34891406\\Nicolas\\Proyectos\\infinito-reciclaje-balanza\\database\\sql",
