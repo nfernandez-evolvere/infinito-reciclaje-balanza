@@ -1,7 +1,7 @@
 @props(['filters', 'hayFiltros'])
 
 <div class="hidden sm:flex items-center justify-end gap-2 shrink-0">
-    <x-ui.button variant="secondary" @click="filterOpen = true" class="relative">
+    <x-ui.button variant="ghost" @click="filterOpen = true" class="relative">
         <x-lucide-sliders-horizontal class="size-4" />
         Filtros
         @if($hayFiltros)

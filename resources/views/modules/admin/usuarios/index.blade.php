@@ -22,11 +22,6 @@
 <x-layouts.app title="Usuarios">
 <div x-data="usuarios({{ Js::from($initial) }})" class="flex flex-col gap-6">
 
-    <div class="flex flex-col items-start gap-2">
-        <x-ui.typography as="h2">Usuarios</x-ui.typography>
-        <x-ui.typography as="muted">Gestioná los usuarios del sistema. Solo los usuarios activos pueden iniciar sesión.</x-ui.typography>
-    </div>
-
     <x-domain.usuarios.mobile-drawers
         :filters="$filters"
         :hayFiltros="$hayFiltros"

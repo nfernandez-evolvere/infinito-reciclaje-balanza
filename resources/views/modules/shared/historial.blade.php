@@ -62,14 +62,14 @@
                     </x-ui.button>
                 </x-ui.tooltip>
             </div>
-            <x-domain.historial.filtros :filtros="$filtros" :operarios="$operarios" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" :zonas="$zonas" :tiposServicio="$tiposServicio" :sortDirection="$filtros['sort_direction']" />
             @if($exportUrl)
-                <x-ui.tooltip content="Exportar">
-                    <x-ui.button variant="ghost" size="icon" href="{{ $exportUrl . '?' . http_build_query(array_filter($filtros)) }}">
-                        <x-lucide-download class="size-4" />
-                    </x-ui.button>
-                </x-ui.tooltip>
+            <x-ui.tooltip content="Exportar">
+                <x-ui.button variant="ghost" size="icon" href="{{ $exportUrl . '?' . http_build_query(array_filter($filtros)) }}">
+                    <x-lucide-download class="size-4" />
+                </x-ui.button>
+            </x-ui.tooltip>
             @endif
+            <x-domain.historial.filtros :filtros="$filtros" :operarios="$operarios" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" :zonas="$zonas" :tiposServicio="$tiposServicio" :sortDirection="$filtros['sort_direction']" />
         </div>
     </div>
 

@@ -1,5 +1,5 @@
 <x-ui.dialog @modal-cancelar-open.window="open = true">
-    <x-ui.dialog.content size="sm" closeState="destructive">
+    <x-ui.dialog.content size="sm" closeState="'destructive'">
         <x-ui.dialog.header>
             <x-ui.dialog.title x-text="'Cancelar pesaje de ' + cancelarPatente"></x-ui.dialog.title>
             <x-ui.dialog.description>

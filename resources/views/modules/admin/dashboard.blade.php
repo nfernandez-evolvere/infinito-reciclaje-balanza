@@ -89,7 +89,7 @@
             {{-- Date range picker --}}
             <x-ui.popover width="w-72" align="end">
                     <x-slot:trigger>
-                        <x-ui.button variant="ghost"
+                        <x-ui.button
                                 x-bind:class="desdeRango ? 'text-primary' : ''"
                                 class="hidden sm:flex gap-1.5 px-2.5">
                             <x-lucide-calendar-range class="size-4 shrink-0" />

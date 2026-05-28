@@ -19,11 +19,6 @@
 <x-layouts.app title="Tipos de servicio">
 <div x-data="tiposServicio({{ Js::from($initial) }})" class="flex flex-col gap-6">
 
-    <div class="flex flex-col items-start gap-2">
-        <x-ui.typography as="h2">Tipos de servicio</x-ui.typography>
-        <x-ui.typography as="muted">Servicios de recolección habilitados. Se usan para clasificar pesajes y armar las zonas de operación.</x-ui.typography>
-    </div>
-
     <x-domain.tipos-servicio.mobile-drawers
         :filters="$filters"
         :tiposVehiculo="$tiposVehiculo"

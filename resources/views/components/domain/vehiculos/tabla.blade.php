@@ -1,6 +1,11 @@
-@props(['vehiculos', 'activeFilters'])
+@props(['vehiculos', 'activeFilters', 'title' => 'Vehículos', 'description' => 'Padrón de vehículos habilitados para registrar pesajes. La tara se copia automáticamente al crear un pesaje.'])
 
 <x-ui.card variant="elevated">
+    <x-ui.card.header>
+        <x-ui.card.title>{{ $title }}</x-ui.card.title>
+        <x-ui.card.description>{{ $description }}</x-ui.card.description>
+    </x-ui.card.header>
+    <x-ui.card.content>
     <x-ui.table variant="flat">
         <x-ui.table.header>
             <x-ui.table.row>
@@ -130,6 +135,7 @@
             @endforelse
         </x-ui.table.body>
     </x-ui.table>
+    </x-ui.card.content>
 </x-ui.card>
 
 @if($vehiculos->hasPages())

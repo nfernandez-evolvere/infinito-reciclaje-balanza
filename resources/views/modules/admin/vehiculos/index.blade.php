@@ -50,22 +50,6 @@
     class="flex flex-col gap-6"
 >
 
-    {{-- Header --}}
-    <div class="flex flex-col items-start gap-2">
-        <template x-if="tab === 'vehiculos'">
-            <div>
-                <x-ui.typography as="h2">Vehículos</x-ui.typography>
-                <x-ui.typography as="muted">Padrón de vehículos habilitados para registrar pesajes. La tara de cada vehículo se copia automáticamente al crear un pesaje.</x-ui.typography>
-            </div>
-        </template>
-        <template x-if="tab === 'tipos'">
-            <div>
-                <x-ui.typography as="h2">Tipos de vehículo</x-ui.typography>
-                <x-ui.typography as="muted">Rangos de peso bruto esperados por tipo (vehículo + carga). Se usan para detectar pesajes anómalos.</x-ui.typography>
-            </div>
-        </template>
-    </div>
-
     {{-- Tabs --}}
     <div role="tablist" class="inline-flex h-9 w-fit items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground">
         <button

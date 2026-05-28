@@ -60,15 +60,12 @@
     <x-ui.tooltip content="Filtros" class="sm:hidden">
         <x-ui.button
             variant="ghost"
-            size="icon"
             @click="filterOpen = true"
         >
             <x-lucide-sliders-horizontal class="size-4" />
         </x-ui.button>
     </x-ui.tooltip>
     <x-ui.button
-        variant="ghost"
-        size="sm"
         class="hidden sm:flex gap-1.5"
         @click="filterOpen = true"
     >

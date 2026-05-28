@@ -1,6 +1,11 @@
-@props(['usuarios', 'activeFilters'])
+@props(['usuarios', 'activeFilters', 'title' => 'Usuarios', 'description' => 'Solo los usuarios activos pueden iniciar sesión.'])
 
 <x-ui.card variant="elevated">
+    <x-ui.card.header>
+        <x-ui.card.title>{{ $title }}</x-ui.card.title>
+        <x-ui.card.description>{{ $description }}</x-ui.card.description>
+    </x-ui.card.header>
+    <x-ui.card.content>
     <x-ui.table variant="flat">
         <x-ui.table.header>
             <x-ui.table.row>
@@ -121,6 +126,7 @@
             @endforelse
         </x-ui.table.body>
     </x-ui.table>
+    </x-ui.card.content>
 </x-ui.card>
 
 @if($usuarios->hasPages())

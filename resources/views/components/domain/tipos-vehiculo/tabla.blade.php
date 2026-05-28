@@ -1,6 +1,11 @@
-@props(['tipos', 'activeFilters'])
+@props(['tipos', 'activeFilters', 'title' => 'Tipos de vehículo', 'description' => 'Rangos de peso bruto esperados por tipo. Se usan para detectar pesajes anómalos.'])
 
 <x-ui.card variant="elevated">
+    <x-ui.card.header>
+        <x-ui.card.title>{{ $title }}</x-ui.card.title>
+        <x-ui.card.description>{{ $description }}</x-ui.card.description>
+    </x-ui.card.header>
+    <x-ui.card.content>
     <x-ui.table variant="flat">
         <x-ui.table.header>
             <x-ui.table.row>
@@ -111,6 +116,7 @@
             @endforelse
         </x-ui.table.body>
     </x-ui.table>
+    </x-ui.card.content>
 </x-ui.card>
 
 @if($tipos->hasPages())
