@@ -46,9 +46,9 @@
 <head>
     <x-layouts.head :title="$title" />
 </head>
-<body class="h-screen overflow-hidden bg-background text-foreground antialiased">
+<body class="h-dvh overflow-hidden bg-background text-foreground antialiased">
 
-<x-ui.sidebar.provider class="h-screen">
+<x-ui.sidebar.provider class="h-dvh">
 
     {{-- Sidebar --}}
     <x-ui.sidebar collapsible="icon">
