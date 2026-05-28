@@ -17,65 +17,12 @@
 </div>
 
 <div class="flex justify-end gap-2 sm:hidden">
-    <x-ui.sheet side="bottom">
-        <x-slot:trigger>
-            <x-ui.button variant="ghost" size="icon">
-                <x-lucide-sliders-horizontal class="size-3.5" />
-                @if($hayFiltros)
-                    <x-ui.badge variant="secondary" class="ml-0.5">•</x-ui.badge>
-                @endif
-            </x-ui.button>
-        </x-slot:trigger>
-        <div class="p-6 pt-10 space-y-5 overflow-y-auto">
-            <p class="text-label text-base">Filtros</p>
-            <form method="GET" action="{{ route('admin.tipos-servicio.index') }}" class="space-y-3">
-                <div class="space-y-1.5">
-                    <x-ui.label>Nombre</x-ui.label>
-                    <x-ui.input type="search" name="nombre" value="{{ $filters['nombre'] ?? '' }}" placeholder="Buscar por nombre…" />
-                </div>
-                <div class="space-y-1.5">
-                    <x-ui.label>Vehículo habitual</x-ui.label>
-                    <x-ui.select name="tipo_vehiculo_id" :value="$filters['tipo_vehiculo_id'] ?? ''">
-                        <x-ui.select.trigger>
-                            <x-ui.select.value placeholder="Todos" />
-                        </x-ui.select.trigger>
-                        <x-ui.select.content>
-                            <x-ui.select.item value="">Todos</x-ui.select.item>
-                            @foreach($tiposVehiculo as $tv)
-                                <x-ui.select.item value="{{ $tv->id }}">{{ $tv->nombre }}</x-ui.select.item>
-                            @endforeach
-                        </x-ui.select.content>
-                    </x-ui.select>
-                </div>
-                <div class="space-y-1.5">
-                    <x-ui.label>Estado</x-ui.label>
-                    <x-ui.select name="activo" :value="$filters['activo'] ?? ''">
-                        <x-ui.select.trigger>
-                            <x-ui.select.value placeholder="Todos" />
-                        </x-ui.select.trigger>
-                        <x-ui.select.content>
-                            <x-ui.select.item value="">Todos</x-ui.select.item>
-                            <x-ui.select.item value="1">Activo</x-ui.select.item>
-                            <x-ui.select.item value="0">Inactivo</x-ui.select.item>
-                        </x-ui.select.content>
-                    </x-ui.select>
-                </div>
-                <div class="flex gap-2 pt-1">
-                    <x-ui.button type="submit" class="flex-1">
-                        <x-lucide-search class="size-4" />
-                        Aplicar
-                    </x-ui.button>
-                    @if($hayFiltros)
-                        <x-ui.button variant="secondary" href="{{ route('admin.tipos-servicio.index') }}" class="flex-1">
-                            <x-lucide-x class="size-4" />
-                            Limpiar
-                        </x-ui.button>
-                    @endif
-                </div>
-            </form>
-        </div>
-    </x-ui.sheet>
-
+    <x-ui.button variant="ghost" size="icon" @click="filterOpen = true" class="relative">
+        <x-lucide-sliders-horizontal class="size-3.5" />
+        @if($hayFiltros)
+            <x-ui.badge variant="secondary" class="absolute -top-1 -right-1 size-3.5 p-0 flex items-center justify-center text-[9px]">{{ $activeFilters }}</x-ui.badge>
+        @endif
+    </x-ui.button>
     <x-ui.button size="icon" @click="openCreate()">
         <x-lucide-plus class="size-3.5" />
     </x-ui.button>
