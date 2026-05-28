@@ -30,25 +30,15 @@
 <div class="sm:hidden space-y-2">
     @foreach($usuarios as $usuario)
     <x-ui.card variant="elevated" class="p-3">
-        <x-ui.card.header class="items-center gap-2">
-            <div class="flex items-center gap-2 min-w-0">
-                <x-ui.avatar :alt="$usuario->name" size="sm" />
-                <div class="min-w-0">
-                    <p class="font-medium text-sm leading-tight truncate">{{ $usuario->name }}</p>
-                    <p class="text-xs text-muted-foreground truncate">{{ $usuario->email }}</p>
+        <div class="flex flex-col items-start gap-2">
+            <div class="w-full flex items-start justify-between gap-2">
+                <div class="flex items-center gap-3">
+                    <x-ui.avatar :alt="$usuario->name" size="sm" class="shrink-0" />
+                    <div class="min-w-0 flex-1">
+                        <p class="font-medium text-sm leading-tight truncate">{{ $usuario->name }}</p>
+                        <p class="text-xs text-muted-foreground truncate">{{ $usuario->email }}</p>
+                    </div>
                 </div>
-            </div>
-            <x-slot:actions>
-                @if($usuario->isAdmin())
-                    <x-ui.badge variant="default">Admin</x-ui.badge>
-                @else
-                    <x-ui.badge variant="secondary">Operador</x-ui.badge>
-                @endif
-                @if($usuario->activo)
-                    <x-ui.badge variant="success">Activo</x-ui.badge>
-                @else
-                    <x-ui.badge variant="secondary">Inactivo</x-ui.badge>
-                @endif
                 <x-ui.dropdown-menu>
                     <x-ui.dropdown-menu.trigger>
                         <x-ui.button variant="ghost" size="icon" class="size-7 -mr-1">
@@ -87,8 +77,21 @@
                         @endif
                     </x-ui.dropdown-menu.content>
                 </x-ui.dropdown-menu>
-            </x-slot:actions>
-        </x-ui.card.header>
+            </div>  
+            <div class="flex justify-start gap-1 shrink-0">
+                @if($usuario->isAdmin())
+                    <x-ui.badge variant="default">Admin</x-ui.badge>
+                @else
+                    <x-ui.badge variant="secondary">Operador</x-ui.badge>
+                @endif
+                @if($usuario->activo)
+                    <x-ui.badge variant="success">Activo</x-ui.badge>
+                @else
+                    <x-ui.badge variant="secondary">Inactivo</x-ui.badge>
+                @endif
+
+            </div>
+        </div>
     </x-ui.card>
     @endforeach
 </div>

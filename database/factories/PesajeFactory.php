@@ -6,6 +6,7 @@ use App\Models\Pesaje;
 use App\Models\TipoServicio;
 use App\Models\User;
 use App\Models\Vehiculo;
+use App\Models\Zona;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -27,7 +28,7 @@ class PesajeFactory extends Factory
             'vehiculo_id'        => Vehiculo::factory(),
             'operador_id'        => User::factory(),
             'tipo_servicio_id'   => TipoServicio::factory(),
-            'zona_id'            => null,
+            'zona_id'            => Zona::factory(),
             'turno'              => $this->faker->randomElement(['Mañana', 'Tarde', 'Noche']),
             'peso_bruto_kg'      => $bruto,
             'peso_tara_kg'       => $tara,
@@ -46,11 +47,11 @@ class PesajeFactory extends Factory
 
     public function cancelado(): static
     {
-        return $this->state(fn (array $attrs) => ['estado' => 'Cancelado']);
+        return $this->state(fn () => ['estado' => 'Cancelado']);
     }
 
     public function enPredio(): static
     {
-        return $this->state(fn (array $attrs) => ['estado' => 'En predio']);
+        return $this->state(fn () => ['estado' => 'En predio']);
     }
 }

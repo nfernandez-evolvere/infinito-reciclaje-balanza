@@ -39,8 +39,8 @@ class DashboardServiceTest extends TestCase
         $kpis = $this->service->kpisDelDia();
 
         $this->assertSame(0, $kpis['total']);
-        $this->assertSame(0.0, $kpis['toneladas']);
-        $this->assertSame(0.0, $kpis['promedio']);
+        $this->assertEquals(0, $kpis['toneladas']);
+        $this->assertEquals(0, $kpis['promedio']);
         $this->assertNull($kpis['ultimo_hace_min']);
         $this->assertNull($kpis['delta']);
     }
@@ -265,6 +265,110 @@ class DashboardServiceTest extends TestCase
         $this->assertSame(2, $kpis['total']);
         $this->assertSame(8.0, $kpis['toneladas']);
         $this->assertSame(7, $kpis['dias_rango']);
+    }
+
+    // ── kpisDelMes delta ──────────────────────────────────────────────
+
+    #[Test]
+    public function kpisDelMes_calcula_delta_contra_mes_anterior(): void
+    {
+        // Mes actual: 4 pesajes de 2000 kg c/u = 8000 kg
+        Pesaje::factory()->count(4)->create(['created_at' => today(), 'peso_neto_kg' => 2000]);
+        // Mes anterior mismo período: 2 pesajes → delta total = +100%, delta toneladas = +100%
+        Pesaje::factory()->count(2)->create(['created_at' => today()->subMonth(), 'peso_neto_kg' => 2000]);
+
+        $kpis = $this->service->kpisDelMes();
+
+        $this->assertSame(4, $kpis['total']);
+        $this->assertSame(2, $kpis['delta_base']);
+        $this->assertSame(100.0, $kpis['delta']);
+        $this->assertSame(8.0, $kpis['toneladas']);
+        $this->assertSame(4.0, $kpis['delta_toneladas_base']);
+        $this->assertSame(100.0, $kpis['delta_toneladas']);
+    }
+
+    // ── desgloseByZona turno ──────────────────────────────────────────
+
+    #[Test]
+    public function desgloseByZona_agrupa_misma_zona_en_turnos_distintos(): void
+    {
+        $zona = Zona::factory()->create();
+
+        Pesaje::factory()->create(['created_at' => today(), 'zona_id' => $zona->id, 'turno' => 'Mañana', 'peso_neto_kg' => 3000]);
+        Pesaje::factory()->create(['created_at' => today(), 'zona_id' => $zona->id, 'turno' => 'Tarde',  'peso_neto_kg' => 2000]);
+
+        $desglose = $this->service->desgloseByZona();
+        $entradas = $desglose->filter(fn ($e) => $e['zona_id'] === $zona->id);
+
+        $this->assertCount(2, $entradas);
+
+        $turnos = $entradas->pluck('turno')->sort()->values();
+        $this->assertEquals(['Mañana', 'Tarde'], $turnos->all());
+    }
+
+    #[Test]
+    public function desgloseByZona_calcula_kg_por_ha_y_kg_por_hab_de_zona(): void
+    {
+        $zona = Zona::factory()->create(['hectareas' => 100.0, 'habitantes' => 5000]);
+
+        // 2 pesajes × 5000 kg, mismo turno → mismo grupo → 10 000 kg para esta zona
+        Pesaje::factory()->count(2)->create(['created_at' => today(), 'zona_id' => $zona->id, 'peso_neto_kg' => 5000, 'turno' => 'Mañana']);
+
+        $desglose  = $this->service->desgloseByZona();
+        $entrada   = $desglose->firstWhere('zona_id', $zona->id);
+
+        // kg_por_ha  = round(10000 / 100,  1) = 100.0
+        // kg_por_hab = round(10000 / 5000, 2) =   2.0
+        $this->assertEquals(100.0, $entrada['kg_por_ha']);
+        $this->assertEquals(2.0,   $entrada['kg_por_hab']);
+    }
+
+    #[Test]
+    public function desgloseByZona_viene_ordenado_descendente_por_toneladas(): void
+    {
+        $zona1 = Zona::factory()->create();
+        $zona2 = Zona::factory()->create();
+
+        Pesaje::factory()->create(['created_at' => today(), 'zona_id' => $zona1->id, 'peso_neto_kg' => 8000]);
+        Pesaje::factory()->create(['created_at' => today(), 'zona_id' => $zona2->id, 'peso_neto_kg' => 2000]);
+
+        $toneladas = $this->service->desgloseByZona()->pluck('toneladas');
+
+        $this->assertTrue($toneladas->first() >= $toneladas->last());
+        $this->assertEquals(8.0, $toneladas->first());
+    }
+
+    // ── evolucionDelRango ──────────────────────────────────────────────
+
+    #[Test]
+    public function evolucionDelRango_contiene_un_dato_por_dia_del_rango(): void
+    {
+        $desde = today()->subDays(13)->startOfDay();
+        $hasta = today()->endOfDay();
+
+        Pesaje::factory()->create(['created_at' => today()->subDays(5), 'peso_neto_kg' => 4000]);
+
+        $result = $this->service->evolucionDelRango($desde, $hasta);
+
+        $this->assertCount(14, $result['datos']);
+    }
+
+    #[Test]
+    public function evolucionDelRango_registra_toneladas_en_el_dia_correcto(): void
+    {
+        $desde = today()->subDays(6)->startOfDay();
+        $hasta = today()->endOfDay();
+
+        Pesaje::factory()->create(['created_at' => today()->subDays(2), 'peso_neto_kg' => 6000]);
+
+        $datos = collect($this->service->evolucionDelRango($desde, $hasta)['datos']);
+
+        // El 5to día (índice 4 desde el inicio, que es subDays(2)) debe tener 6.0 tons
+        $diaConPesaje = $datos->firstWhere('toneladas', 6.0);
+        $this->assertNotNull($diaConPesaje);
+
+        // Los demás días deben ser 0
+        $this->assertEquals(6, $datos->where('toneladas', 0)->count());
     }
 
     // ── cache de totalesZonas ─────────────────────────────────────────
