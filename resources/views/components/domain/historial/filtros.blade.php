@@ -56,25 +56,21 @@
     }
 @endphp
 
-<div class="flex items-center gap-2 flex-wrap">
-
-    @if($chips)
-        <div class="hidden sm:flex items-center gap-1.5 flex-wrap">
-            @foreach($chips as $chip)
-                <x-ui.chip href="{{ $chip['url'] }}">{{ $chip['label'] }}</x-ui.chip>
-            @endforeach
-        </div>
+<div class="relative">
+    <x-ui.tooltip content="Filtros">
+        <x-ui.button
+            variant="ghost"
+            size="icon"
+            @click="filterOpen = true"
+        >
+            <x-lucide-sliders-horizontal class="size-4" />
+        </x-ui.button>
+    </x-ui.tooltip>
+    @if($hayFiltros)
+        <span class="pointer-events-none absolute -top-1.5 -right-1.5 flex size-4 items-center justify-center rounded-full bg-primary text-primary-foreground ring-2 ring-background text-[10px] font-semibold leading-none">
+            {{ count($chips) }}
+        </span>
     @endif
-
-    <x-ui.button
-        variant="{{ $hayFiltros ? 'default' : 'outline' }}"
-        size="sm"
-        @click="filterOpen = true"
-    >
-        <x-lucide-sliders-horizontal class="size-3.5" />
-        Filtros
-    </x-ui.button>
-
 </div>
 
 <template x-teleport="body">

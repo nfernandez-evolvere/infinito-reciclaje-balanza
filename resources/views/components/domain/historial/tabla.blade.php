@@ -29,10 +29,8 @@
                     ? 'opacity-60'
                     : ($pesaje->alerta_peso ? 'bg-warning/5 border-warning/40' : '');
             @endphp
-            <div class="bg-card border border-border rounded-lg p-3 flex flex-col gap-2 {{ $cardClass }}">
-
-                {{-- Fila 1: Identificador + estado + acciones --}}
-                <div class="flex items-center justify-between gap-2">
+            <x-ui.card class="p-3 {{ $cardClass }}" variant="elevated">
+                <x-ui.card.header class="items-center gap-2">
                     <div class="flex items-center gap-1.5 min-w-0">
                         <x-lucide-car class="size-3.5 shrink-0 text-muted-foreground" />
                         <span class="font-semibold text-sm">{{ $pesaje->vehiculo->patente }}</span>
@@ -40,7 +38,7 @@
                             <span class="text-xs text-muted-foreground">#{{ $pesaje->vehiculo->numero_interno }}</span>
                         @endif
                     </div>
-                    <div class="flex items-center gap-1 shrink-0">
+                    <x-slot:actions>
                         @if($pesaje->estaCancelado())
                             <x-ui.tooltip :content="'Motivo: ' . $pesaje->motivo_cancelacion">
                                 <x-ui.badge variant="destructive" class="gap-1">
@@ -101,26 +99,62 @@
                                 @endif
                             </x-ui.dropdown-menu.content>
                         </x-ui.dropdown-menu>
-                    </div>
-                </div>
+                    </x-slot:actions>
+                </x-ui.card.header>
 
-                {{-- Fila 2: secundario (origen, fecha) + peso neto --}}
-                <div class="flex items-end justify-between gap-3">
-                    <div class="flex flex-col gap-0.5 text-xs text-muted-foreground min-w-0">
-                        <span class="truncate">
-                            {{ $pesaje->zona->nombre }}@if($pesaje->turno) — {{ $pesaje->turno }}@endif · {{ $pesaje->tipoServicio->nombre }}
-                        </span>
+                <x-ui.card.content class="flex items-end justify-between gap-3">
+                    <div class="flex flex-col gap-1 text-xs text-muted-foreground min-w-0">
+                        <div class="flex flex-col gap-1">
+                            <div class="flex items-center gap-1">
+                                <x-lucide-map-pin class="size-3.5 shrink-0 text-primary" />
+                                <span class="truncate">{{ $pesaje->zona->nombre }}@if($pesaje->turno) — {{ $pesaje->turno }}@endif</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <x-lucide-briefcase class="size-3.5 shrink-0 text-primary" />
+                                <span class="truncate">{{ $pesaje->tipoServicio->nombre }}</span>
+                            </div>
+                        </div>
                         <div class="flex items-center gap-1">
-                            <x-lucide-log-in class="size-3 shrink-0 text-success" />
+                            <x-lucide-log-in class="size-3 shrink-0 text-primary" />
                             <span>{{ $pesaje->created_at->format('d/m/Y H:i') }}</span>
                         </div>
                     </div>
-                    <span class="font-semibold tabular-nums text-sm shrink-0">
-                        {{ number_format($pesaje->peso_neto_kg, 0, ',', '.') }} kg
-                    </span>
-                </div>
-
-            </div>
+                    <x-ui.popover side="top" align="end" width="w-56">
+                        <x-slot:trigger>
+                            <div class="flex items-center gap-1">
+                                <span class="font-semibold tabular-nums text-sm">
+                                    {{ number_format($pesaje->peso_neto_kg, 0, ',', '.') }} kg
+                                </span>
+                                <x-lucide-info class="size-3.5 text-muted-foreground" />
+                            </div>
+                        </x-slot:trigger>
+                        <p class="text-xs font-medium text-muted-foreground mb-2">Cálculo de peso</p>
+                        <div class="flex flex-col gap-1 text-sm tabular-nums">
+                            <div class="flex items-center justify-between gap-6">
+                                <div class="flex items-center gap-1.5 text-muted-foreground">
+                                    <x-lucide-package class="size-3.5 shrink-0" />
+                                    <span>Bruto</span>
+                                </div>
+                                <span>{{ number_format($pesaje->peso_bruto_kg, 0, ',', '.') }} kg</span>
+                            </div>
+                            <div class="flex items-center justify-between gap-6">
+                                <div class="flex items-center gap-1.5 text-muted-foreground">
+                                    <x-lucide-minus class="size-3.5 shrink-0" />
+                                    <span>Tara</span>
+                                </div>
+                                <span>{{ number_format($pesaje->peso_tara_kg, 0, ',', '.') }} kg</span>
+                            </div>
+                            <div class="flex items-center justify-between gap-6 font-semibold border-t border-border pt-1 mt-0.5">
+                                <div class="flex items-center gap-1.5">
+                                    <x-lucide-equal class="size-3.5 shrink-0" />
+                                    <span>Neto</span>
+                                </div>
+                                <span>{{ number_format($pesaje->peso_neto_kg, 0, ',', '.') }} kg</span>
+                            </div>
+                        </div>
+                    </x-ui.popover>
+                </x-ui.card.content>
+            </x-ui.card>
         @endforeach
     </div>
 

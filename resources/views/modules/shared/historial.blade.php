@@ -54,13 +54,19 @@
             <x-ui.typography as="h2">{{ $titulo }}</x-ui.typography>
             <x-ui.typography as="muted" class="mt-1">{{ $subtitulo }}</x-ui.typography>
         </div>
-        <div class="flex items-center justify-end gap-2">
+        <div class="flex items-center justify-end gap-1 w-full">
+            <x-ui.tooltip content="Métricas">
+                <x-ui.button variant="ghost" size="icon" @click="metricasOpen = true">
+                    <x-lucide-chart-bar class="size-4" />
+                </x-ui.button>
+            </x-ui.tooltip>
             <x-domain.historial.filtros :filtros="$filtros" :operarios="$operarios" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" :zonas="$zonas" :tiposServicio="$tiposServicio" :sortDirection="$filtros['sort_direction']" />
             @if($exportUrl)
-                <x-ui.button variant="outline" size="sm" href="{{ $exportUrl . '?' . http_build_query(array_filter($filtros)) }}">
-                    <x-lucide-download class="size-3.5" />
-                    Exportar
-                </x-ui.button>
+                <x-ui.tooltip content="Exportar">
+                    <x-ui.button variant="ghost" size="icon" href="{{ $exportUrl . '?' . http_build_query(array_filter($filtros)) }}">
+                        <x-lucide-download class="size-4" />
+                    </x-ui.button>
+                </x-ui.tooltip>
             @endif
         </div>
     </div>

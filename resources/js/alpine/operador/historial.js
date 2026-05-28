@@ -1,6 +1,7 @@
 export default function historial() {
     return {
         filterOpen: false,
+        metricasOpen: false,
 
         egresoId: null,
         egresoPatente: '',

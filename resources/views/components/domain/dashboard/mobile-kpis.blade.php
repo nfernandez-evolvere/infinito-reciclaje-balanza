@@ -1,114 +1,82 @@
-@props(['kpisDia', 'kpisMes'])
-
 <div class="sm:hidden">
     <x-ui.sheet side="bottom">
         <x-slot:trigger>
-            <x-ui.button variant="outline" size="sm" class="w-full">
-                <x-lucide-chart-bar class="size-3.5" />
-                Métricas
+            <x-ui.button variant="ghost" size="icon">
+                <x-lucide-chart-bar class="size-4" />
             </x-ui.button>
         </x-slot:trigger>
-        <div class="p-6 pt-10 space-y-6 overflow-y-auto max-h-[85vh]">
+        <div class="p-6 pt-10 space-y-4 overflow-y-auto max-h-[85vh]">
 
             {{-- Hoy --}}
-            <div class="space-y-3">
-                <p class="text-label text-base">Hoy · {{ now()->format('d/m/Y') }}</p>
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="bg-card rounded-xl p-3 flex flex-col gap-2">
-                        <x-lucide-scale class="size-8 text-primary p-1.5 bg-primary/10 rounded-lg" />
-                        <div>
-                            <p class="text-overline">Pesajes</p>
-                            <p class="text-2xl font-bold leading-tight">{{ number_format($kpisDia['total']) }}</p>
-                            @if($kpisDia['delta'] !== null)
-                                <p class="text-xs mt-0.5 {{ $kpisDia['delta'] >= 0 ? 'text-success' : 'text-destructive' }}">
-                                    {{ $kpisDia['delta'] >= 0 ? '+' : '' }}{{ $kpisDia['delta'] }}%
-                                </p>
-                            @endif
-                        </div>
-                    </div>
-                    <div class="bg-card rounded-xl p-3 flex flex-col gap-2">
-                        <x-lucide-weight class="size-8 text-primary p-1.5 bg-primary/10 rounded-lg" />
-                        <div>
-                            <p class="text-overline">Toneladas netas</p>
-                            <p class="text-2xl font-bold leading-tight">
-                                {{ number_format($kpisDia['toneladas'], 1, ',', '.') }}
-                                <span class="text-sm font-normal text-muted-foreground">t</span>
-                            </p>
-                        </div>
-                    </div>
-                    <div class="bg-card rounded-xl p-3 flex flex-col gap-2">
-                        <x-lucide-trending-up class="size-8 text-primary p-1.5 bg-primary/10 rounded-lg" />
-                        <div>
-                            <p class="text-overline">Promedio / viaje</p>
-                            <p class="text-2xl font-bold leading-tight">
-                                {{ number_format($kpisDia['promedio'], 2, ',', '.') }}
-                                <span class="text-sm font-normal text-muted-foreground">t</span>
-                            </p>
-                        </div>
-                    </div>
-                    <div class="bg-card rounded-xl p-3 flex flex-col gap-2">
-                        <x-lucide-timer class="size-8 text-primary p-1.5 bg-primary/10 rounded-lg" />
-                        <div>
-                            <p class="text-overline">Último pesaje</p>
-                            @if($kpisDia['ultimo_hace_min'] === null)
-                                <p class="text-base font-medium text-muted-foreground leading-tight">Sin actividad</p>
-                            @elseif($kpisDia['ultimo_hace_min'] < 15)
-                                <p class="text-2xl font-bold leading-tight text-success">
-                                    {{ $kpisDia['ultimo_hace_min'] }}<span class="text-sm font-normal"> min</span>
-                                </p>
-                            @elseif($kpisDia['ultimo_hace_min'] < 60)
-                                <p class="text-2xl font-bold leading-tight text-warning">
-                                    {{ $kpisDia['ultimo_hace_min'] }}<span class="text-sm font-normal"> min</span>
-                                </p>
-                            @else
-                                @php $h = intdiv($kpisDia['ultimo_hace_min'], 60); $m = $kpisDia['ultimo_hace_min'] % 60; @endphp
-                                <p class="text-2xl font-bold leading-tight text-destructive">
-                                    {{ $h }}h{{ $m > 0 ? ' ' . $m . 'min' : '' }}
-                                </p>
-                            @endif
-                        </div>
-                    </div>
+            <div x-show="active === 'hoy'" class="space-y-4">
+                <p class="text-label text-base">KPIs del día</p>
+                <div class="grid grid-cols-1 gap-3">
+                    <x-ui.kpi title="Pesajes hoy" icon="scale" variant="primary">
+                        <span x-text="fmt(kpisDia.total)"></span>
+                        <p :class="deltaClass(kpisDia.delta)" x-text="deltaText(kpisDia.delta, 'vs mes ant.')"></p>
+                    </x-ui.kpi>
+                    <x-ui.kpi title="Toneladas netas" icon="weight" variant="success">
+                        <span x-text="fmt(kpisDia.toneladas, 1) + ' t'"></span>
+                        <p class="text-xs font-normal mt-0.5 text-muted-foreground">acumuladas hoy</p>
+                    </x-ui.kpi>
+                    <x-ui.kpi title="Promedio / viaje" icon="trending-up" variant="success">
+                        <span x-text="fmt(kpisDia.promedio, 2) + ' t'"></span>
+                        <p class="text-xs font-normal mt-0.5 text-muted-foreground">por pesaje</p>
+                    </x-ui.kpi>
+                    <x-ui.kpi title="Último pesaje" icon="timer" variantExpr="ultimoVariant(kpisDia.ultimo_hace_min)">
+                        <span :class="ultimoClass(kpisDia.ultimo_hace_min)" x-text="ultimoLabel(kpisDia.ultimo_hace_min)"></span>
+                        <p class="text-xs font-normal mt-0.5 text-muted-foreground"
+                           x-text="kpisDia.ultimo_hace_min === null ? 'Sin actividad hoy' :
+                                   kpisDia.ultimo_hace_min < 180 ? 'Operación activa' :
+                                   kpisDia.ultimo_hace_min < 480 ? 'Sin pesajes recientes' :
+                                   'Sin actividad reciente'"></p>
+                    </x-ui.kpi>
                 </div>
             </div>
-
-            <x-ui.separator />
 
             {{-- Este mes --}}
-            <div class="space-y-3">
-                <p class="text-label text-base">{{ now()->translatedFormat('F Y') }}</p>
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="bg-card rounded-xl p-3 flex flex-col gap-2">
-                        <x-lucide-calendar-check class="size-8 text-primary p-1.5 bg-primary/10 rounded-lg" />
-                        <div>
-                            <p class="text-overline">Pesajes</p>
-                            <p class="text-2xl font-bold leading-tight">{{ number_format($kpisMes['total']) }}</p>
-                            @if($kpisMes['delta'] !== null)
-                                <p class="text-xs mt-0.5 {{ $kpisMes['delta'] >= 0 ? 'text-success' : 'text-destructive' }}">
-                                    {{ $kpisMes['delta'] >= 0 ? '+' : '' }}{{ $kpisMes['delta'] }}%
-                                </p>
-                            @endif
-                        </div>
-                    </div>
-                    <div class="bg-card rounded-xl p-3 flex flex-col gap-2">
-                        <x-lucide-package class="size-8 text-primary p-1.5 bg-primary/10 rounded-lg" />
-                        <div>
-                            <p class="text-overline">Toneladas</p>
-                            <p class="text-2xl font-bold leading-tight">
-                                {{ number_format($kpisMes['toneladas'], 1, ',', '.') }}
-                                <span class="text-sm font-normal text-muted-foreground">t</span>
-                            </p>
-                        </div>
-                    </div>
-                    <div class="bg-card rounded-xl p-3 flex flex-col gap-2">
-                        <x-lucide-calendar-days class="size-8 text-primary p-1.5 bg-primary/10 rounded-lg" />
-                        <div>
-                            <p class="text-overline">Días op.</p>
-                            <p class="text-2xl font-bold leading-tight">{{ $kpisMes['dias_op'] }}</p>
-                            <p class="text-xs mt-0.5 text-muted-foreground">de {{ now()->day }}</p>
-                        </div>
-                    </div>
+            <div x-show="active === 'mes'" class="space-y-4">
+                <p class="text-label text-base">KPIs del mes</p>
+                <div class="grid grid-cols-1 gap-3">
+                    <x-ui.kpi title="Pesajes del mes" icon="calendar-check" variant="primary">
+                        <span x-text="fmt(kpisMes.total)"></span>
+                        <p :class="deltaClass(kpisMes.delta)" x-text="deltaText(kpisMes.delta, 'vs mes ant.')"></p>
+                    </x-ui.kpi>
+                    <x-ui.kpi title="Toneladas del mes" icon="package" variant="success">
+                        <span x-text="fmt(kpisMes.toneladas, 1) + ' t'"></span>
+                        <p :class="deltaClass(kpisMes.delta_toneladas)" x-text="deltaText(kpisMes.delta_toneladas, 'vs mes ant.')"></p>
+                    </x-ui.kpi>
+                    <x-ui.kpi title="Días operativos" icon="calendar-days" variant="primary">
+                        <span x-text="kpisMes.dias_op"></span>
+                        <p class="text-xs font-normal mt-0.5 text-muted-foreground" x-text="'de ' + kpisMes.dias_transcurridos + ' días'"></p>
+                    </x-ui.kpi>
                 </div>
             </div>
+
+            {{-- Período personalizado --}}
+            <template x-if="active === 'personalizado' && kpisRango">
+                <div class="space-y-4">
+                    <p class="text-label text-base" x-text="'KPIs · ' + rangoLabel()"></p>
+                    <div class="grid grid-cols-1 gap-3">
+                        <x-ui.kpi title="Pesajes" icon="scale" variant="primary">
+                            <span x-text="fmt(kpisRango.total)"></span>
+                            <p class="text-xs font-normal mt-0.5 text-muted-foreground">en el período</p>
+                        </x-ui.kpi>
+                        <x-ui.kpi title="Toneladas netas" icon="weight" variant="success">
+                            <span x-text="fmt(kpisRango.toneladas, 1) + ' t'"></span>
+                            <p class="text-xs font-normal mt-0.5 text-muted-foreground">en el período</p>
+                        </x-ui.kpi>
+                        <x-ui.kpi title="Días operativos" icon="calendar-days" variant="primary">
+                            <span x-text="kpisRango.dias_op"></span>
+                            <p class="text-xs font-normal mt-0.5 text-muted-foreground" x-text="'de ' + kpisRango.dias_rango + ' días'"></p>
+                        </x-ui.kpi>
+                        <x-ui.kpi title="Promedio / día" icon="trending-up" variant="success">
+                            <span x-text="fmt(kpisRango.promedio_dia, 2) + ' t'"></span>
+                            <p class="text-xs font-normal mt-0.5 text-muted-foreground">por día operativo</p>
+                        </x-ui.kpi>
+                    </div>
+                </div>
+            </template>
 
         </div>
     </x-ui.sheet>

@@ -8,7 +8,31 @@
     <x-ui.card.content class="pt-0">
         <div class="grid grid-cols-1 xl:grid-cols-12 gap-4 items-start">
             <div class="xl:col-span-9 min-w-0">
-                <x-ui.table variant="flat">
+
+                {{-- Mobile: cards --}}
+                <div class="sm:hidden space-y-1.5">
+                    <template x-for="fila in {{ $source }}" :key="fila.nombre">
+                        <div class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg border border-border bg-background">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="w-2 h-2 rounded-full shrink-0 bg-muted-foreground/30" :style="desgloseColor('{{ $source }}', fila.nombre) ? { backgroundColor: desgloseColor('{{ $source }}', fila.nombre) } : {}"></span>
+                                <div class="flex flex-col gap-0.5 min-w-0">
+                                    <span class="font-medium text-sm truncate" x-text="fila.nombre"></span>
+                                    <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                        <span><span class="tabular-nums" x-text="fila.pesajes"></span> viajes</span>
+                                        <span>·</span>
+                                        <span><span class="tabular-nums" x-text="fmt(fila.toneladas, 2)"></span> ton</span>
+                                        <span>·</span>
+                                        <span><span class="tabular-nums" x-text="fila.kg_por_viaje"></span> kg/v</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="text-sm font-semibold tabular-nums shrink-0 text-muted-foreground" x-text="fila.porcentaje + '%'"></span>
+                        </div>
+                    </template>
+                </div>
+
+                {{-- Desktop: tabla --}}
+                <x-ui.table variant="flat" class="hidden sm:block">
                     <x-ui.table.header>
                         <x-ui.table.row>
                             <x-ui.table.head>Tipo</x-ui.table.head>
@@ -21,7 +45,12 @@
                     <x-ui.table.body>
                         <template x-for="fila in {{ $source }}" :key="fila.nombre">
                             <x-ui.table.row>
-                                <x-ui.table.cell data-label="Tipo" class="font-medium" x-text="fila.nombre"></x-ui.table.cell>
+                                <x-ui.table.cell data-label="Tipo" class="font-medium">
+                                    <span class="flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full shrink-0 bg-muted-foreground/30" :style="desgloseColor('{{ $source }}', fila.nombre) ? { backgroundColor: desgloseColor('{{ $source }}', fila.nombre) } : {}"></span>
+                                        <span x-text="fila.nombre"></span>
+                                    </span>
+                                </x-ui.table.cell>
                                 <x-ui.table.cell data-label="Viajes" class="tabular-nums" x-text="fila.pesajes"></x-ui.table.cell>
                                 <x-ui.table.cell data-label="Toneladas" class="tabular-nums" x-text="fmt(fila.toneladas, 2)"></x-ui.table.cell>
                                 <x-ui.table.cell data-label="KG/viaje" class="tabular-nums text-muted-foreground" x-text="fila.kg_por_viaje"></x-ui.table.cell>

@@ -191,6 +191,55 @@ class DashboardService
             ->values();
     }
 
+    public function evolucionDelRango(Carbon $desde, Carbon $hasta): array
+    {
+        $diasRango = (int) ($desde->diffInDays($hasta) + 1);
+        $formato   = $diasRango <= 15 ? 'D d/m' : 'd/m';
+
+        $pesajesPorDia = Pesaje::whereDate('created_at', '>=', $desde)
+            ->whereDate('created_at', '<=', $hasta)
+            ->where('estado', '!=', 'Cancelado')
+            ->get(['peso_neto_kg', 'created_at'])
+            ->groupBy(fn ($p) => $p->created_at->toDateString())
+            ->map(fn ($grupo) => round($grupo->sum('peso_neto_kg') / 1000, 2));
+
+        $promedio = $pesajesPorDia->isNotEmpty()
+            ? round($pesajesPorDia->avg(), 1)
+            : 0;
+
+        $datos = collect(CarbonPeriod::create($desde, $hasta))
+            ->map(fn (Carbon $dia) => [
+                'fecha'     => $dia->translatedFormat($formato),
+                'toneladas' => $pesajesPorDia[$dia->toDateString()] ?? 0,
+            ])
+            ->values()
+            ->all();
+
+        return ['datos' => $datos, 'promedio' => $promedio];
+    }
+
+    public function kpisDelRango(Carbon $desde, Carbon $hasta): array
+    {
+        $pesajes = Pesaje::whereDate('created_at', '>=', $desde)
+            ->whereDate('created_at', '<=', $hasta)
+            ->where('estado', '!=', 'Cancelado')
+            ->get(['peso_neto_kg', 'created_at']);
+
+        $total      = $pesajes->count();
+        $toneladas  = round($pesajes->sum('peso_neto_kg') / 1000, 2);
+        $diasOp     = $pesajes->groupBy(fn ($p) => $p->created_at->toDateString())->count();
+        $diasRango  = (int) ($desde->diffInDays($hasta) + 1);
+        $promedioDia = $diasOp > 0 ? round(($pesajes->sum('peso_neto_kg') / $diasOp) / 1000, 2) : 0;
+
+        return [
+            'total'        => $total,
+            'toneladas'    => $toneladas,
+            'dias_op'      => $diasOp,
+            'dias_rango'   => $diasRango,
+            'promedio_dia' => $promedioDia,
+        ];
+    }
+
     public function alertasActivas(): int
     {
         // Sprint 6: módulo de alarmas. Por ahora siempre 0.

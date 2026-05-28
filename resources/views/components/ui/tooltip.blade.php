@@ -84,7 +84,7 @@
             x-transition:leave-start="opacity-100 scale-100"
             x-transition:leave-end="opacity-0 scale-95"
             role="tooltip"
-            class="pointer-events-none fixed z-(--z-tooltip) w-max max-w-[200px] rounded-md bg-foreground px-2.5 py-1.5 text-xs font-medium text-background shadow-md"
+            class="pointer-events-none fixed z-(--z-tooltip) w-max max-w-50 rounded-md bg-foreground px-2.5 py-1.5 text-xs font-medium text-background shadow-md"
         >
             {{ $content }}
             <span :class="_arrow()" :style="_arrowStyle()" class="absolute size-2.5 rotate-45 bg-foreground"></span>

@@ -68,7 +68,9 @@ $triggerSize = match($size) {
         onPick(iso) {
             this.value = iso;
             this._close();
-            this.$dispatch('change', { value: iso });
+            this.$refs.trigger.dispatchEvent(
+                new CustomEvent('date-picked', { detail: { value: iso }, bubbles: true, composed: true })
+            );
         },
 
         _place() {
@@ -120,6 +122,7 @@ $triggerSize = match($size) {
             x-transition:leave="transition ease-in duration-75 origin-top"
             x-transition:leave-start="opacity-100 scale-100"
             x-transition:leave-end="opacity-0 scale-95"
+            @click.stop
             @change="onPick($event.detail.value)"
             class="fixed z-(--z-popover)"
         >

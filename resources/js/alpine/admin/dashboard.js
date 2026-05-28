@@ -1,3 +1,5 @@
+import { PALETTE } from './desglose-chart.js';
+
 export default function dashboardData() {
     const init = window.__dashboardData ?? {};
 
@@ -15,6 +17,22 @@ export default function dashboardData() {
         desgloseVehiculoMes: init.desgloseVehiculoMes  ?? [],
         desgloseZonaMes:     init.desgloseZonaMes      ?? [],
         alertas:             init.alertas              ?? 0,
+
+        // Rango personalizado
+        tmpDesde:              null,
+        tmpHasta:              null,
+        desdeRango:            null,
+        hastaRango:            null,
+        kpisRango:             null,
+        evolucionRango:        null,
+        desgloseVehiculoRango: [],
+        desgloseZonaRango:     [],
+
+        desgloseColor(source, nombre) {
+            const valid = (this[source] ?? []).filter(d => d.toneladas > 0);
+            const idx = valid.findIndex(d => d.nombre === nombre);
+            return idx >= 0 ? PALETTE[idx % PALETTE.length] : null;
+        },
 
         fmt(n, d = 0) {
             return Number(n).toLocaleString('es-AR', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -35,16 +53,73 @@ export default function dashboardData() {
         },
         ultimoClass(min) {
             if (min === null) return 'text-muted-foreground';
-            if (min < 15) return 'text-success';
-            if (min < 60) return 'text-warning';
+            if (min < 180) return 'text-success';
+            if (min < 480) return 'text-warning';
             return 'text-destructive';
+        },
+        ultimoVariant(min) {
+            if (min === null || min < 180) return 'primary';
+            if (min < 480) return 'warning';
+            return 'destructive';
+        },
+        rangoLabel() {
+            if (!this.desdeRango || !this.hastaRango) return '';
+            const fmt = d => new Date(d + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
+            return this.desdeRango === this.hastaRango
+                ? fmt(this.desdeRango)
+                : fmt(this.desdeRango) + ' – ' + fmt(this.hastaRango);
+        },
+
+        async applyRango(desde = null, hasta = null) {
+            desde = desde || this.tmpDesde;
+            hasta = hasta || this.tmpHasta;
+            if (!desde || !hasta) return;
+            if (desde > hasta) [desde, hasta] = [hasta, desde];
+
+            this.desdeRango = desde;
+            this.hastaRango = hasta;
+            this.refreshing = true;
+            try {
+                const url = new URL(init.refreshUrl, window.location.origin);
+                url.searchParams.set('desde', desde);
+                url.searchParams.set('hasta', hasta);
+                const res = await fetch(url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                });
+                if (!res.ok) return;
+                const data = await res.json();
+                Object.assign(this, data);
+                this.lastRefresh = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+                this.$dispatch('activate-tab', 'personalizado');
+                await this.$nextTick();
+                this.$dispatch('dashboard-refreshed', data);
+            } finally {
+                this.refreshing = false;
+            }
+        },
+
+        clearRango() {
+            this.desdeRango = null;
+            this.hastaRango = null;
+            this.tmpDesde   = null;
+            this.tmpHasta   = null;
+            this.kpisRango             = null;
+            this.evolucionRango        = null;
+            this.desgloseVehiculoRango = [];
+            this.desgloseZonaRango     = [];
+            this.$dispatch('activate-tab', 'hoy');
         },
 
         async refresh() {
             if (this.refreshing) return;
             this.refreshing = true;
             try {
-                const res = await fetch(init.refreshUrl, {
+                const url = new URL(init.refreshUrl, window.location.origin);
+                if (this.desdeRango && this.hastaRango) {
+                    url.searchParams.set('desde', this.desdeRango);
+                    url.searchParams.set('hasta', this.hastaRango);
+                }
+                const res = await fetch(url, {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 });
                 if (!res.ok) return;
@@ -58,7 +133,7 @@ export default function dashboardData() {
         },
 
         init() {
-            setInterval(() => this.refresh(), 60000);
+            setInterval(() => this.refresh(), 600000);
         },
     };
 }
