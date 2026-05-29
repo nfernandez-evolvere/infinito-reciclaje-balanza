@@ -5,8 +5,8 @@
 
     $operacionItems = [
         ['route' => 'admin.dashboard',     'icon' => 'layout-dashboard', 'label' => 'Dashboard'],
-        ['route' => 'admin.pesajes.index',  'icon' => 'scale',            'label' => 'Pesajes'],
-        ['route' => 'admin.reportes.index', 'icon' => 'file-bar-chart',   'label' => 'Reportes'],
+        ['route' => 'admin.pesajes.index', 'icon' => 'scale',            'label' => 'Pesajes'],
+        ['route' => 'admin.reportes.index','icon' => 'file-bar-chart',   'label' => 'Reportes',  'match' => 'admin.reportes.*'],
     ];
     $padronItems = [
         ['route' => 'admin.zonas.index',          'icon' => 'map-pin',        'label' => 'Zonas'],
@@ -34,9 +34,10 @@
     };
 
     $section = match(true) {
-        request()->routeIs('admin.pesajes.*', 'admin.reportes.*')          => 'Operación',
-        request()->routeIs('admin.zonas.*', 'admin.tipos-servicio.*', 'admin.vehiculos.*') => 'Padrón',
-        request()->routeIs('admin.usuarios.*') => 'Sistema',
+        request()->routeIs('admin.pesajes.*')                                                => 'Operación',
+        request()->routeIs('admin.reportes.*')                                               => 'Reportes',
+        request()->routeIs('admin.zonas.*', 'admin.tipos-servicio.*', 'admin.vehiculos.*')  => 'Padrón',
+        request()->routeIs('admin.usuarios.*')                                               => 'Sistema',
         default => null,
     };
 @endphp
@@ -101,13 +102,14 @@
                     <x-ui.sidebar.group-content>
                         <x-ui.sidebar.menu>
                             @foreach($operacionItems as $item)
+                                @php $isActive = request()->routeIs($item['match'] ?? $item['route']); @endphp
                                 <x-ui.sidebar.menu-item>
                                     <x-ui.sidebar.menu-button
                                         :href="route($item['route'])"
-                                        :active="request()->routeIs($item['route'])"
+                                        :active="$isActive"
                                         :tooltip="$item['label']"
                                     >
-                                        <span class="{{ request()->routeIs($item['route']) ? 'bg-primary/20 text-primary' : '' }} inline-flex size-8 items-center justify-center rounded-full shrink-0 transition-colors group-hover:bg-primary/20 group-hover:text-primary">
+                                        <span class="{{ $isActive ? 'bg-primary/20 text-primary' : '' }} inline-flex size-8 items-center justify-center rounded-full shrink-0 transition-colors group-hover:bg-primary/20 group-hover:text-primary">
                                             <x-dynamic-component :component="'lucide-' . $item['icon']" />
                                         </span>
                                         <span>{{ $item['label'] }}</span>
@@ -213,7 +215,7 @@
 
                 <x-ui.button type="button" x-ref="trigger" @click="toggle()"
                     x-bind:aria-expanded="open.toString()" variant="ghost"
-                    x-bind:class="isCollapsed ? 'justify-center px-0 w-full' : 'w-full px-2'"
+                    x-bind:class="isCollapsed ? 'justify-center px-0 w-full bg-transparent! hover:bg-transparent!' : 'w-full px-2'"
                     class="flex items-center gap-2.5 rounded-md py-2 text-left h-auto">
                     <x-ui.avatar :fallback="substr($user->name, 0, 2)" class="h-8 w-8 shrink-0" />
                     <div x-show="!isCollapsed" x-cloak class="flex-1 min-w-0">
@@ -389,6 +391,7 @@
     });
 </script>
 @endif
+
 
 @stack('scripts')
 </body>

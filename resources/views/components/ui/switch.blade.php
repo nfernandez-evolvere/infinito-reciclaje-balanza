@@ -35,6 +35,7 @@ $ringClass = match($state) {
     type="button"
     role="switch"
     x-data="{ checked: @js((bool) $checked) }"
+    x-modelable="checked"
     :aria-checked="checked.toString()"
     :data-state="checked ? 'checked' : 'unchecked'"
     @click="checked = !checked"

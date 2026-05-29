@@ -1,0 +1,20 @@
+<x-mail::message>
+# Informe de Pesajes — {{ $periodo }}
+
+Estimados,
+
+Se adjunta el informe de pesajes correspondiente a **{{ $periodo }}**, generado por **{{ $municipalidad }}**.
+
+El documento incluye el resumen de actividad del período, evolución diaria, desglose por zona y por tipo de vehículo.
+
+<x-mail::panel>
+Período: **{{ $periodo }}**
+Adjunto: {{ $filename }}
+</x-mail::panel>
+
+Infinito Reciclaje — Gestión Integral de Residuos
+
+<x-mail::subcopy>
+Este es un mensaje automático generado por el Sistema de Balanza.
+</x-mail::subcopy>
+</x-mail::message>

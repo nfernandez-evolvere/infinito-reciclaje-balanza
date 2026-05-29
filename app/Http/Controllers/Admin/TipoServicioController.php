@@ -56,7 +56,7 @@ class TipoServicioController extends Controller
             return redirect()->route('admin.tipos-servicio.index')
                 ->with('toast', [
                     'message'     => 'Cambios guardados.',
-                    'description' => "\"{$validated['nombre']}\" fue actualizado correctamente.",
+                    'description' => "\"{$validated['nombre']}\" fue actualizado.",
                     'variant'     => 'success',
                 ]);
         } catch (\Throwable) {

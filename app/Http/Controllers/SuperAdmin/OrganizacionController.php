@@ -54,7 +54,7 @@ class OrganizacionController extends Controller
             return redirect()->route('super.organizaciones.index')
                 ->with('toast', [
                     'message'     => 'Organización creada.',
-                    'description' => "\"{$org->nombre}\" fue creada con el admin {$adminEmail}.",
+                    'description' => "El acceso inicial fue enviado a {$adminEmail}.",
                     'variant'     => 'success',
                 ]);
         } catch (\Throwable) {
@@ -69,8 +69,9 @@ class OrganizacionController extends Controller
 
             return redirect()->route('super.organizaciones.index')
                 ->with('toast', [
-                    'message' => 'Cambios guardados.',
-                    'variant' => 'success',
+                    'message'     => 'Cambios guardados.',
+                    'description' => "\"{$organizacion->nombre}\" fue actualizada.",
+                    'variant'     => 'success',
                 ]);
         } catch (\Throwable) {
             return $this->toastError('super.organizaciones.index');

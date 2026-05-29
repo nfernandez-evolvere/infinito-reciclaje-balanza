@@ -1,4 +1,6 @@
 *.log
+/storage/app/mpdf-tmp/*
+!/storage/app/mpdf-tmp/.gitkeep
 .DS_Store
 .env
 .env.backup

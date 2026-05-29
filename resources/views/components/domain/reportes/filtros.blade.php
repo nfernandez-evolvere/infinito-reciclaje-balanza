@@ -1,105 +1,106 @@
-@props(['zonas', 'tiposServicio', 'tiposVehiculo'])
+@props(['zonas', 'tiposServicio', 'tiposVehiculo', 'filters' => []])
 
-<x-ui.card>
-    <x-ui.card.content class="pt-6">
-        <form method="GET" action="{{ route('admin.reportes.index') }}"
-              x-data="{
-                  desde: '{{ request('desde', '') }}',
-                  hasta: '{{ request('hasta', '') }}',
-                  setMesActual() {
-                      const now = new Date();
-                      const y = now.getFullYear();
-                      const m = String(now.getMonth() + 1).padStart(2, '0');
-                      const d = String(now.getDate()).padStart(2, '0');
-                      const lastDay = new Date(y, now.getMonth() + 1, 0).getDate();
-                      this.desde = `${y}-${m}-01`;
-                      this.hasta = `${y}-${m}-${String(lastDay).padStart(2, '0')}`;
-                  },
-                  setMesAnterior() {
-                      const now = new Date();
-                      const d = new Date(now.getFullYear(), now.getMonth(), 0);
-                      const y = d.getFullYear();
-                      const m = String(d.getMonth() + 1).padStart(2, '0');
-                      const last = d.getDate();
-                      this.desde = `${y}-${m}-01`;
-                      this.hasta = `${y}-${m}-${last}`;
-                  }
-              }">
+<x-ui.filter-sheet
+    controlledBy="filterOpen"
+    action="{{ route('admin.reportes.index') }}"
+    resetUrl="{{ route('admin.reportes.index') }}"
+>
+    {{-- Período rápido --}}
+    <div
+        x-data="{
+            setMes(offset) {
+                const d = new Date();
+                d.setMonth(d.getMonth() - offset);
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const last = new Date(y, d.getMonth() + 1, 0).getDate();
+                $dispatch('set-desde', { date: `${y}-${m}-01` });
+                $dispatch('set-hasta', { date: `${y}-${m}-${String(last).padStart(2, '0')}` });
+            }
+        }"
+        class="space-y-1.5"
+    >
+        <x-ui.label>Período rápido</x-ui.label>
+        <div class="grid grid-cols-2 gap-2">
+            <x-ui.button type="button" variant="outline" size="sm" @click="setMes(0)">
+                Mes actual
+            </x-ui.button>
+            <x-ui.button type="button" variant="outline" size="sm" @click="setMes(1)">
+                Mes anterior
+            </x-ui.button>
+        </div>
+    </div>
 
-            <div class="flex flex-col gap-4">
-                {{-- Fila 1: período --}}
-                <div class="flex flex-wrap items-end gap-3">
-                    <div class="flex items-center gap-2">
-                        <x-ui.button type="button" variant="outline" size="sm" @click="setMesActual()">
-                            Mes actual
-                        </x-ui.button>
-                        <x-ui.button type="button" variant="outline" size="sm" @click="setMesAnterior()">
-                            Mes anterior
-                        </x-ui.button>
-                    </div>
+    <x-ui.form-field for="filter-desde">
+        <x-ui.label for="filter-desde">Desde</x-ui.label>
+        <x-ui.date-picker
+            id="filter-desde"
+            name="desde"
+            placeholder="Seleccioná una fecha"
+            :value="$filters['desde'] ?? ''"
+            @set-desde.window="value = $event.detail.date"
+        />
+    </x-ui.form-field>
 
-                    <div class="flex items-center gap-2">
-                        <div class="space-y-1">
-                            <x-ui.label for="desde" class="text-xs">Desde</x-ui.label>
-                            <x-ui.input id="desde" name="desde" type="date"
-                                        x-model="desde"
-                                        :value="request('desde')"
-                                        class="w-36" />
-                        </div>
-                        <div class="space-y-1">
-                            <x-ui.label for="hasta" class="text-xs">Hasta</x-ui.label>
-                            <x-ui.input id="hasta" name="hasta" type="date"
-                                        x-model="hasta"
-                                        :value="request('hasta')"
-                                        class="w-36" />
-                        </div>
-                    </div>
-                </div>
+    <x-ui.form-field for="filter-hasta">
+        <x-ui.label for="filter-hasta">Hasta</x-ui.label>
+        <x-ui.date-picker
+            id="filter-hasta"
+            name="hasta"
+            placeholder="Seleccioná una fecha"
+            :value="$filters['hasta'] ?? ''"
+            @set-hasta.window="value = $event.detail.date"
+        />
+    </x-ui.form-field>
 
-                {{-- Fila 2: filtros opcionales --}}
-                <div class="flex flex-wrap items-end gap-3">
-                    <div class="space-y-1">
-                        <x-ui.label for="zona_id" class="text-xs">Zona</x-ui.label>
-                        <x-ui.select id="zona_id" name="zona_id" class="w-44">
-                            <option value="">Todas las zonas</option>
-                            @foreach($zonas as $zona)
-                                <option value="{{ $zona->id }}" @selected(request('zona_id') == $zona->id)>
-                                    {{ $zona->nombre }}
-                                </option>
-                            @endforeach
-                        </x-ui.select>
-                    </div>
+    <x-ui.separator />
 
-                    <div class="space-y-1">
-                        <x-ui.label for="tipo_servicio_id" class="text-xs">Servicio</x-ui.label>
-                        <x-ui.select id="tipo_servicio_id" name="tipo_servicio_id" class="w-44">
-                            <option value="">Todos los servicios</option>
-                            @foreach($tiposServicio as $ts)
-                                <option value="{{ $ts->id }}" @selected(request('tipo_servicio_id') == $ts->id)>
-                                    {{ $ts->nombre }}
-                                </option>
-                            @endforeach
-                        </x-ui.select>
-                    </div>
+    {{-- Zona --}}
+    <x-ui.form-field for="filter-zona">
+        <x-ui.label for="filter-zona">Zona</x-ui.label>
+        <x-ui.select name="zona_id" :value="$filters['zona_id'] ?? ''">
+            <x-ui.select.trigger id="filter-zona">
+                <x-ui.select.value placeholder="Todas las zonas" />
+            </x-ui.select.trigger>
+            <x-ui.select.content>
+                <x-ui.select.item value="">Todas las zonas</x-ui.select.item>
+                @foreach($zonas as $zona)
+                    <x-ui.select.item value="{{ $zona->id }}">{{ $zona->nombre }}</x-ui.select.item>
+                @endforeach
+            </x-ui.select.content>
+        </x-ui.select>
+    </x-ui.form-field>
 
-                    <div class="space-y-1">
-                        <x-ui.label for="tipo_vehiculo_id" class="text-xs">Vehículo</x-ui.label>
-                        <x-ui.select id="tipo_vehiculo_id" name="tipo_vehiculo_id" class="w-44">
-                            <option value="">Todos los tipos</option>
-                            @foreach($tiposVehiculo as $tv)
-                                <option value="{{ $tv->id }}" @selected(request('tipo_vehiculo_id') == $tv->id)>
-                                    {{ $tv->nombre }}
-                                </option>
-                            @endforeach
-                        </x-ui.select>
-                    </div>
+    {{-- Tipo de servicio --}}
+    <x-ui.form-field for="filter-servicio">
+        <x-ui.label for="filter-servicio">Tipo de servicio</x-ui.label>
+        <x-ui.select name="tipo_servicio_id" :value="$filters['tipo_servicio_id'] ?? ''">
+            <x-ui.select.trigger id="filter-servicio">
+                <x-ui.select.value placeholder="Todos los servicios" />
+            </x-ui.select.trigger>
+            <x-ui.select.content>
+                <x-ui.select.item value="">Todos los servicios</x-ui.select.item>
+                @foreach($tiposServicio as $ts)
+                    <x-ui.select.item value="{{ $ts->id }}">{{ $ts->nombre }}</x-ui.select.item>
+                @endforeach
+            </x-ui.select.content>
+        </x-ui.select>
+    </x-ui.form-field>
 
-                    <x-ui.button type="submit">
-                        <x-lucide-bar-chart-2 class="size-4 mr-2" />
-                        Generar reporte
-                    </x-ui.button>
-                </div>
-            </div>
-        </form>
-    </x-ui.card.content>
-</x-ui.card>
+    {{-- Tipo de vehículo --}}
+    <x-ui.form-field for="filter-vehiculo">
+        <x-ui.label for="filter-vehiculo">Tipo de vehículo</x-ui.label>
+        <x-ui.select name="tipo_vehiculo_id" :value="$filters['tipo_vehiculo_id'] ?? ''">
+            <x-ui.select.trigger id="filter-vehiculo">
+                <x-ui.select.value placeholder="Todos los tipos" />
+            </x-ui.select.trigger>
+            <x-ui.select.content>
+                <x-ui.select.item value="">Todos los tipos</x-ui.select.item>
+                @foreach($tiposVehiculo as $tv)
+                    <x-ui.select.item value="{{ $tv->id }}">{{ $tv->nombre }}</x-ui.select.item>
+                @endforeach
+            </x-ui.select.content>
+        </x-ui.select>
+    </x-ui.form-field>
+
+</x-ui.filter-sheet>

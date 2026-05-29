@@ -40,7 +40,8 @@ $posClass = match($position) {
     }"
     @mouseenter="hovered = true"
     @mouseleave="hovered = false"
-    class="fixed {{ $posClass }} z-(--z-toast) flex flex-col-reverse gap-2 w-full max-w-[420px] pointer-events-none px-4 sm:px-0"
+    class="fixed {{ $posClass }} z-(--z-toast) flex flex-col-reverse gap-2 w-full max-w-[420px] pointer-events-none px-4 sm:px-0
+           max-sm:!top-4 max-sm:!bottom-auto max-sm:!left-1/2 max-sm:!right-auto max-sm:!-translate-x-1/2"
     aria-live="polite"
     aria-atomic="false"
 >
@@ -48,33 +49,39 @@ $posClass = match($position) {
         <div
             x-show="toast.visible"
             :style="toastStyle(i)"
-            :class="toast.variantClass"
+            :class="[toast.toastClass, toast.accentClass]"
             x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 translate-y-2 scale-95"
             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
             x-transition:leave="transition ease-in duration-200"
             x-transition:leave-start="opacity-100 scale-100"
             x-transition:leave-end="opacity-0 scale-95"
-            class="pointer-events-auto flex w-full items-start gap-3 rounded-lg border p-4 shadow-lg transition-all duration-300"
+            class="pointer-events-auto flex w-full items-start gap-3 rounded-lg border border-l-4 p-4 shadow-lg transition-all duration-300"
             role="status"
         >
-            <span class="mt-0.5 shrink-0 size-4" aria-hidden="true">
-                <x-lucide-check x-show="toast.variant === 'success'"     class="size-4 text-success-foreground"     stroke-width="2.5" />
-                <x-lucide-x x-show="toast.variant === 'destructive'" class="size-4 text-destructive-foreground" stroke-width="2.5" />
-                <x-lucide-triangle-alert x-show="toast.variant === 'warning'"     class="size-4 text-warning-foreground" />
-                <x-lucide-info x-show="toast.variant === 'info'"        class="size-4 text-info-foreground" />
+            {{-- Ícono con badge circular de color --}}
+            <span
+                class="shrink-0 flex items-center justify-center size-8 rounded-full mt-0.5"
+                :class="toast.iconClass"
+                aria-hidden="true"
+            >
+                <x-lucide-check          x-show="toast.variant === 'success'"     class="size-4" stroke-width="2.5" />
+                <x-lucide-circle-x       x-show="toast.variant === 'destructive'" class="size-4" stroke-width="2" />
+                <x-lucide-triangle-alert x-show="toast.variant === 'warning'"     class="size-4" stroke-width="2" />
+                <x-lucide-info           x-show="toast.variant === 'info'"        class="size-4" stroke-width="2" />
+                <x-lucide-bell           x-show="toast.variant === 'default'"     class="size-4" stroke-width="2" />
                 <svg x-show="toast.variant === 'loading'"
                     xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                    class="size-4 animate-spin text-muted-foreground"
+                    class="size-4 animate-spin"
                     fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
                 </svg>
             </span>
 
-            <div class="flex-1 min-w-0 space-y-1">
-                <x-ui.typography as="small" class="font-semibold" x-text="toast.message"></x-ui.typography>
-                <p class="text-sm opacity-80" x-show="toast.description" x-text="toast.description"></p>
+            <div class="flex-1 min-w-0 space-y-0.5 pt-1">
+                <p class="text-sm font-semibold leading-snug" x-text="toast.message"></p>
+                <p class="text-sm text-foreground/70 leading-snug" x-show="toast.description" x-text="toast.description"></p>
                 <button
                     x-show="toast.action"
                     @click="toast.action?.onClick?.(); $store.toast.dismiss(toast.id)"
@@ -83,14 +90,33 @@ $posClass = match($position) {
                 ></button>
             </div>
 
-            <button
-                x-show="toast.variant !== 'loading'"
-                @click="$store.toast.dismiss(toast.id)"
-                class="shrink-0 rounded-md p-0.5 opacity-60 hover:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                aria-label="Cerrar"
-            >
-                <x-lucide-x class="size-4" />
-            </button>
+            <div x-show="toast.variant !== 'loading'" class="shrink-0 mt-0.5">
+                <template x-if="toast.variant === 'success'">
+                    <x-ui.button variant="ghost" state="success" size="icon" class="h-7! w-7! [&_svg]:size-3.5" @click="$store.toast.dismiss(toast.id)" aria-label="Cerrar">
+                        <x-lucide-x />
+                    </x-ui.button>
+                </template>
+                <template x-if="toast.variant === 'destructive'">
+                    <x-ui.button variant="ghost" state="destructive" size="icon" class="h-7! w-7! [&_svg]:size-3.5" @click="$store.toast.dismiss(toast.id)" aria-label="Cerrar">
+                        <x-lucide-x />
+                    </x-ui.button>
+                </template>
+                <template x-if="toast.variant === 'warning'">
+                    <x-ui.button variant="ghost" state="warning" size="icon" class="h-7! w-7! [&_svg]:size-3.5" @click="$store.toast.dismiss(toast.id)" aria-label="Cerrar">
+                        <x-lucide-x />
+                    </x-ui.button>
+                </template>
+                <template x-if="toast.variant === 'info'">
+                    <x-ui.button variant="ghost" state="info" size="icon" class="h-7! w-7! [&_svg]:size-3.5" @click="$store.toast.dismiss(toast.id)" aria-label="Cerrar">
+                        <x-lucide-x />
+                    </x-ui.button>
+                </template>
+                <template x-if="!['success','destructive','warning','info'].includes(toast.variant)">
+                    <x-ui.button variant="ghost" size="icon" class="h-7! w-7! [&_svg]:size-3.5" @click="$store.toast.dismiss(toast.id)" aria-label="Cerrar">
+                        <x-lucide-x />
+                    </x-ui.button>
+                </template>
+            </div>
         </div>
     </template>
 </div>

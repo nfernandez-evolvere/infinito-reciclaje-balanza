@@ -52,7 +52,7 @@ class TipoVehiculoController extends Controller
             return redirect()->route('admin.vehiculos.index', ['tab' => 'tipos'])
                 ->with('toast', [
                     'message'     => 'Cambios guardados.',
-                    'description' => "\"{$validated['nombre']}\" fue actualizado correctamente.",
+                    'description' => "\"{$validated['nombre']}\" fue actualizado.",
                     'variant'     => 'success',
                 ]);
         } catch (\Throwable) {

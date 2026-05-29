@@ -11,8 +11,21 @@
         if (theme === 'dark' || (!theme && prefersDark)) {
             document.documentElement.classList.add('dark');
         }
+        // Sidebar: leer cookie antes de que Alpine inicialice para evitar el flash
+        const collapsed = (document.cookie.match(/sidebar_collapsed=([^;]+)/) || [, 'false'])[1] !== 'false';
+        if (collapsed) document.documentElement.setAttribute('data-sidebar-collapsed', '');
     })();
 </script>
+<style>
+    /* Estado inicial del sidebar antes de que Alpine inicialice — evita el flash */
+    @media (min-width: 1024px) {
+        [data-sidebar]:not([data-initialized]) { width: 16rem; }
+        [data-sidebar-collapsed] [data-sidebar]:not([data-initialized]) { width: 3rem; }
+    }
+    @media (max-width: 1023px) {
+        [data-sidebar]:not([data-initialized]) { transform: translateX(-100%); }
+    }
+</style>
 <link rel="preconnect" href="https://fonts.bunny.net">
 <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet">
 @vite(['resources/css/app.css', 'resources/js/app.js'])

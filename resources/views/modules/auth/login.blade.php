@@ -134,7 +134,12 @@
                         x-bind:type="showPassword ? 'text' : 'password'"
                         autocomplete="current-password"
                     />
-                    <x-ui.input-group.button type="button" @click="showPassword = !showPassword" tabindex="-1" aria-label="Mostrar u ocultar contraseña">
+                    <x-ui.input-group.button 
+                        type="button" @click="showPassword = !showPassword" 
+                        tabindex="-1" aria-label="Mostrar u ocultar contraseña"
+                        class="rounded-full h-8 w-8"
+                        size="icon"
+                    >
                         <x-lucide-eye     x-show="!showPassword"        class="size-4" />
                         <x-lucide-eye-off x-show="showPassword" x-cloak class="size-4" />
                     </x-ui.input-group.button>

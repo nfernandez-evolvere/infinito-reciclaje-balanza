@@ -72,7 +72,7 @@ class VehiculoController extends Controller
             return redirect()->route('admin.vehiculos.index')
                 ->with('toast', [
                     'message'     => 'Cambios guardados.',
-                    'description' => "\"{$validated['patente']}\" fue actualizado correctamente.",
+                    'description' => "\"{$validated['patente']}\" fue actualizado.",
                     'variant'     => 'success',
                 ]);
         } catch (\Throwable) {
