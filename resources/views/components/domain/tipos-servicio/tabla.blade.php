@@ -64,7 +64,6 @@
                                 Activar
                             @endif
                         </x-ui.dropdown-menu.item>
-                        <x-ui.dropdown-menu.separator />
                         <x-ui.dropdown-menu.item
                             variant="destructive"
                             :closeOnClick="false"
@@ -163,7 +162,6 @@
                                             Activar
                                         @endif
                                     </x-ui.dropdown-menu.item>
-                                    <x-ui.dropdown-menu.separator />
                                     <x-ui.dropdown-menu.item
                                         variant="destructive"
                                         :closeOnClick="false"

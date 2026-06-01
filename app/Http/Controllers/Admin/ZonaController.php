@@ -56,7 +56,7 @@ class ZonaController extends Controller
             return redirect()->route('admin.zonas.index')
                 ->with('toast', [
                     'message'     => 'Cambios guardados.',
-                    'description' => "\"{$validated['nombre']}\" fue actualizada correctamente.",
+                    'description' => "\"{$validated['nombre']}\" fue actualizada.",
                     'variant'     => 'success',
                 ]);
         } catch (\Throwable) {

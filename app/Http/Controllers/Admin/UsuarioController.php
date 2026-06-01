@@ -70,7 +70,7 @@ class UsuarioController extends Controller
             return redirect()->route('admin.usuarios.index')
                 ->with('toast', [
                     'message'     => 'Cambios guardados.',
-                    'description' => "\"{$validated['name']}\" fue actualizado correctamente.",
+                    'description' => "\"{$validated['name']}\" fue actualizado.",
                     'variant'     => 'success',
                 ]);
         } catch (\Throwable) {

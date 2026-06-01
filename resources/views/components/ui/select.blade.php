@@ -7,6 +7,7 @@
 
 <div
     {{ $attributes->twMerge('inline-block w-full') }}
+    x-modelable="value"
     x-data="{
         open: false,
         value: @js($value),

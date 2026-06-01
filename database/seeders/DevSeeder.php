@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Organizacion;
+use App\Models\ReporteConfiguracion;
 use App\Models\TipoServicio;
 use App\Models\TipoVehiculo;
 use App\Models\User;
@@ -170,6 +171,24 @@ class DevSeeder extends Seeder
                 ],
             ],
         ];
+
+        // ── Configuración de reportes ─────────────────────────────────────────
+        ReporteConfiguracion::create([
+            'organizacion_id'             => $org->id,
+            'municipalidad_nombre'        => "Municipalidad de {$org->nombre}",
+            'intro_empresa'               => 'Infinito Reciclaje es una empresa dedicada a la gestión integral de residuos urbanos, brindando servicios de recolección, barrido y disposición final con estándares de calidad y cuidado ambiental.',
+            'servicios'                   => [
+                ['titulo' => 'Recolección domiciliaria',  'descripcion' => 'Servicio de recolección puerta a puerta en zonas residenciales y comerciales.'],
+                ['titulo' => 'Barrido de calles',         'descripcion' => 'Limpieza manual y mecánica de vías públicas y espacios comunes.'],
+                ['titulo' => 'Recolección de voluminosos','descripcion' => 'Retiro de muebles, electrodomésticos y residuos de gran tamaño.'],
+            ],
+            'ai_enabled'                  => true,
+            'ai_proveedor'                => 'gemini',
+            'ai_modelo'                   => 'gemini-2.5-flash',
+            'ai_prompt'                   => "Sos analista operativo de Infinito Reciclaje redactando la sección 'Oportunidades Estratégicas' del informe mensual para el municipio. Período: {periodo}.\n\nDatos del período:\n- Viajes realizados: {total_viajes}\n- Toneladas netas recolectadas: {toneladas} t\n- Días operativos: {dias_op} de {dias_rango}\n- Productividad promedio: {promedio_ton_dia} t/día\n- Top 3 zonas por volumen: {top3_zonas}\n- Zonas de mayor densidad (kg/ha): {densidad_zonas}\n\nReferencias para evaluación:\n- Productividad alta: > 80 t/día | Media: 40–80 t/día | Baja: < 40 t/día\n- Tasa de actividad óptima: > 85 % de los días del período\n- Zona crítica: concentra más del 35 % del volumen total\n\nRedactá exactamente 2 párrafos:\nPárrafo 1 — Diagnóstico: usá los datos y las referencias para evaluar si la productividad fue alta, media o baja; calculá la tasa de actividad e indicá si es óptima o deficitaria; nombrá la zona más crítica y si su concentración exige ajuste de frecuencia.\nPárrafo 2 — Oportunidades: planteá 2 acciones específicas y accionables para el próximo período, derivadas directamente de los datos (no genéricas). Cada acción debe nombrar la zona o métrica concreta que la justifica.\n\nEspañol formal. Sin encabezados, sin viñetas, sin saludos. Solo los dos párrafos.",
+            'tipo_informe_mensual_activo' => true,
+            'tipo_alertas_activo'         => false,
+        ]);
 
         foreach ($zonasData as $data) {
             $zona = Zona::create([

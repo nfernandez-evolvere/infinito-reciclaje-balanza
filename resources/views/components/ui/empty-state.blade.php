@@ -4,10 +4,10 @@
     'icon'        => null,    // nombre de ícono de x-ui.icon (opcional)
 ])
 
-<div {{ $attributes->twMerge('flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-muted/30 p-10 text-center') }}>
+<x-ui.card {{ $attributes->twMerge('flex flex-col items-center justify-center gap-3 p-10 text-center') }}>
     @if($icon)
-        <div class="flex size-12 items-center justify-center rounded-full bg-muted">
-            <x-dynamic-component :component="'lucide-' . $icon" class="size-6 text-muted-foreground" />
+        <div class="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <x-dynamic-component :component="'lucide-' . $icon" class="size-6" />
         </div>
     @endif
 
@@ -21,4 +21,4 @@
     @if($slot->isNotEmpty())
         <div class="mt-1">{{ $slot }}</div>
     @endif
-</div>
+</x-ui.card>

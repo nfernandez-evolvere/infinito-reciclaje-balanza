@@ -120,6 +120,22 @@ class PesajeRepository
         return Pesaje::with('vehiculo')->delTurno()->where('estado', '!=', 'Cancelado')->latest()->first();
     }
 
+    public function paraReporte(Carbon $desde, Carbon $hasta, array $filtros = []): Collection
+    {
+        return Pesaje::with(['zona', 'vehiculo.tipoVehiculo', 'tipoServicio', 'operador'])
+            ->whereDate('created_at', '>=', $desde)
+            ->whereDate('created_at', '<=', $hasta)
+            ->where('estado', '!=', 'Cancelado')
+            ->when($filtros['zona_id'] ?? null, fn ($q, $id) => $q->where('zona_id', $id))
+            ->when($filtros['tipo_servicio_id'] ?? null, fn ($q, $id) => $q->where('tipo_servicio_id', $id))
+            ->when(
+                $filtros['tipo_vehiculo_id'] ?? null,
+                fn ($q, $id) => $q->whereHas('vehiculo', fn ($v) => $v->where('tipo_vehiculo_id', $id))
+            )
+            ->orderBy('created_at')
+            ->get();
+    }
+
     private function buildQuery(array $filtros): Builder
     {
         return Pesaje::query()

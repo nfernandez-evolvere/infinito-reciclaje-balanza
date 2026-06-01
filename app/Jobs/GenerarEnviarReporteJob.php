@@ -1,0 +1,90 @@
+<?php
+
+namespace App\Jobs;
+
+use App\Mail\ReporteMensualMail;
+use App\Models\ReporteConfiguracion;
+use App\Models\ReporteProgramado;
+use App\Services\ConclusionesAIService;
+use App\Services\PdfService;
+use App\Services\ReporteService;
+use Carbon\Carbon;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Mail;
+
+class GenerarEnviarReporteJob implements ShouldQueue
+{
+    use Queueable;
+
+    public int $tries = 3;
+    public int $timeout = 120;
+
+    public function __construct(
+        public readonly int $programadoId,
+    ) {}
+
+    public function handle(ReporteService $reporteService, PdfService $pdfService): void
+    {
+        $programado = ReporteProgramado::withoutGlobalScopes()->findOrFail($this->programadoId);
+        $config     = ReporteConfiguracion::withoutGlobalScopes()
+            ->where('organizacion_id', $programado->organizacion_id)
+            ->first();
+
+        [$desde, $hasta] = $this->calcularPeriodo($programado->opciones['periodo'] ?? 'mes_anterior');
+
+        $reporte = $reporteService->generar($desde, $hasta);
+
+        $conclusiones = [];
+        if ($config?->ai_enabled && $config?->ai_api_key) {
+            $ai = new ConclusionesAIService($config->ai_api_key, $config->ai_modelo ?? 'gemini-2.5-flash', $config->ai_prompt ?? '');
+            $conclusiones = [
+                'analisis' => $ai->generarAnalisis($reporte['kpis'], $reporte['zonas'], $desde->translatedFormat('F Y')),
+            ];
+        }
+
+        $reporte['config']       = $config;
+        $reporte['conclusiones'] = $conclusiones;
+
+        $filename   = 'informe_' . $desde->format('Y-m') . '.pdf';
+        $pdfContent = $pdfService->fromView('modules.admin.reportes.pdf-presentacion', compact('reporte'));
+
+        // Enviar email
+        $mailable = new ReporteMensualMail(
+            periodo: ucfirst($desde->translatedFormat('F Y')),
+            municipalidad: $config?->municipalidad_nombre ?? 'Municipalidad',
+            pdfContent: $pdfContent,
+            filename: $filename,
+        );
+
+        foreach ($programado->destinatarios as $email) {
+            Mail::to($email)->send($mailable);
+        }
+
+        // Actualizar timestamps
+        $programado->update([
+            'ultimo_envio_at' => now(),
+            'proximo_envio_at' => $this->calcularProximoEnvio($programado->cron_expresion),
+        ]);
+    }
+
+    private function calcularPeriodo(string $periodo): array
+    {
+        return match($periodo) {
+            'mes_actual'   => [now()->startOfMonth(), now()->endOfMonth()],
+            'semana_actual' => [now()->startOfWeek(), now()->endOfWeek()],
+            default        => [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()],
+        };
+    }
+
+    private function calcularProximoEnvio(string $cron): Carbon
+    {
+        // Parseo básico de cron: "0 8 1 * *" = día 1 de cada mes a las 8am
+        $parts = explode(' ', $cron);
+        try {
+            return Carbon::parse(now()->addMonth()->startOfMonth()->setTime((int) ($parts[1] ?? 8), 0));
+        } catch (\Throwable) {
+            return now()->addMonth();
+        }
+    }
+}

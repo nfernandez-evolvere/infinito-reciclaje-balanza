@@ -12,6 +12,9 @@ import historial from './alpine/operador/historial.js';
 import dashboard from './alpine/admin/dashboard.js';
 import evolucionChart, { evolucionRangoChart } from './alpine/admin/evolucion-chart.js';
 import desgloseChart from './alpine/admin/desglose-chart.js';
+import reportesProgramados from './alpine/admin/reportes-programados.js';
+import reportesConfiguracion from './alpine/admin/reportes-configuracion.js';
+import tagsInput from './alpine/tags-input.js';
 import { apexChart } from './charts.js';
 
 Alpine.plugin(Collapse);
@@ -43,6 +46,9 @@ Alpine.data('dashboardData', dashboard);
 Alpine.data('evolucionChart', evolucionChart);
 Alpine.data('evolucionRangoChart', evolucionRangoChart);
 Alpine.data('desgloseChart', desgloseChart);
+Alpine.data('reportesProgramados', reportesProgramados);
+Alpine.data('reportesConfiguracion', reportesConfiguracion);
+Alpine.data('tagsInput', tagsInput);
 Alpine.data('apexChart', apexChart);
 
 // — Alpine store: toast ———————————————————————————————————————
@@ -50,10 +56,10 @@ Alpine.store('toast', {
     toasts: [],
     _counter: 0,
 
-    add({ message, description = null, variant = 'default', duration = 4000, action = null }) {
+    add({ message, description = null, variant = 'default', duration = 6000, action = null }) {
         const id = ++this._counter;
-        this.toasts.push({ id, message, description, variant, action, visible: true,
-            variantClass: this._variantClass(variant) });
+        const classes = this._variantClasses(variant);
+        this.toasts.push({ id, message, description, variant, action, visible: true, ...classes });
 
         if (duration > 0) {
             setTimeout(() => this.dismiss(id), duration);
@@ -67,14 +73,15 @@ Alpine.store('toast', {
         setTimeout(() => { this.toasts = this.toasts.filter(t => t.id !== id); }, 300);
     },
 
-    _variantClass(variant) {
-        return {
-            success:     'bg-success text-success-foreground border-success/30',
-            destructive: 'bg-destructive text-destructive-foreground border-destructive/30',
-            warning:     'bg-warning text-warning-foreground border-warning/30',
-            info:        'bg-info text-info-foreground border-info/30',
-            loading:     'bg-card text-card-foreground border-border',
-        }[variant] ?? 'bg-card text-card-foreground border-border';
+    _variantClasses(variant) {
+        const map = {
+            success:     { toastClass: 'bg-card text-card-foreground border-success/40',     iconClass: 'bg-success/20 text-success',         accentClass: 'border-l-success' },
+            destructive: { toastClass: 'bg-card text-card-foreground border-destructive/40', iconClass: 'bg-destructive/15 text-destructive', accentClass: 'border-l-destructive' },
+            warning:     { toastClass: 'bg-card text-card-foreground border-warning/40',     iconClass: 'bg-warning/20 text-warning',         accentClass: 'border-l-warning' },
+            info:        { toastClass: 'bg-card text-card-foreground border-info/40',        iconClass: 'bg-info/15 text-info',               accentClass: 'border-l-info' },
+            loading:     { toastClass: 'bg-card text-card-foreground border-border',         iconClass: 'bg-muted text-muted-foreground',     accentClass: '' },
+        };
+        return map[variant] ?? { toastClass: 'bg-card text-card-foreground border-border', iconClass: 'bg-muted text-muted-foreground', accentClass: '' };
     },
 });
 

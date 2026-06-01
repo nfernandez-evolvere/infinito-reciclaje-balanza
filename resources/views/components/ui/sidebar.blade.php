@@ -21,7 +21,13 @@
 
 {{-- Sidebar wrapper --}}
 <aside
-    x-init="$el.dataset.initialized = 'true'"
+    x-init="
+        $el.dataset.initialized = 'true';
+        setTimeout(() => {
+            $el.classList.add('transition-all', 'duration-200', 'ease-in-out');
+            document.documentElement.removeAttribute('data-sidebar-collapsed');
+        }, 0);
+    "
     :data-collapsed="isCollapsed.toString()"
     :class="{
         @if($side === 'left')
@@ -40,7 +46,7 @@
     data-variant="{{ $variant }}"
     data-collapsible="{{ $collapsible }}"
     {{ $attributes->twMerge(
-        'group/sidebar flex flex-col shrink-0 overflow-hidden transition-all duration-200 ease-in-out',
+        'group/sidebar flex flex-col shrink-0 overflow-hidden',
         // Mobile: fixed overlay panel, desktop: in-flow
         'fixed inset-y-0 lg:relative lg:inset-auto',
         $side === 'left' ? 'left-0' : 'right-0',
