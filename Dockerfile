@@ -4,7 +4,7 @@ FROM php:8.4-cli-bookworm
 RUN apt-get update && apt-get install -y \
     git curl zip unzip \
     libzip-dev libgd-dev libpng-dev libjpeg-dev \
-    chromium fonts-liberation \
+    chromium fonts-liberation supervisor \
     && docker-php-ext-configure gd --with-jpeg \
     && docker-php-ext-install gd zip opcache pdo pdo_mysql \
     && rm -rf /var/lib/apt/lists/*

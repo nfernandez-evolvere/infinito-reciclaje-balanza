@@ -17,5 +17,6 @@ else
     echo "Base de datos ya tiene datos — omitiendo seeds."
 fi
 
-# Iniciar servidor
-php artisan serve --host=0.0.0.0 --port="${PORT:-8000}"
+# Iniciar servidor + queue worker
+export PORT="${PORT:-8000}"
+exec supervisord -c supervisord.conf
