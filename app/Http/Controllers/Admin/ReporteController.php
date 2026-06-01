@@ -13,6 +13,7 @@ use App\Repositories\ReporteConfiguracionRepository;
 use App\Repositories\ReporteDestinatarioRepository;
 use App\Repositories\ReporteProgramadoRepository;
 use App\Services\ConclusionesAIService;
+use App\Services\PdfService;
 use App\Services\ReporteConfiguracionService;
 use App\Services\ReporteProgramadoService;
 use App\Services\ReporteService;
@@ -26,7 +27,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
-use Mpdf\Mpdf;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReporteController extends Controller
@@ -36,6 +36,7 @@ class ReporteController extends Controller
         protected ZonaRepository $zonaRepository,
         protected TipoVehiculoRepository $tipoVehiculoRepository,
         protected SvgChartService $svgChartService,
+        protected PdfService $pdfService,
         protected ReporteProgramadoRepository $programadoRepository,
         protected ReporteProgramadoService $programadoService,
         protected ReporteConfiguracionRepository $configuracionRepository,
@@ -134,41 +135,12 @@ class ReporteController extends Controller
         $reporte['config']       = $config;
         $reporte['conclusiones'] = $conclusiones;
 
-        $svgEvolucion    = $this->svgChartService->barVertical($reporte['evolucion']['datos'], 720, 200);
-        $svgVehiculosData = $reporte['vehiculos']->map(fn ($v) => [
-            'nombre' => $v['nombre'],
-            'valor'  => $v['viajes'],
-            'color'  => '#1e3a5f',
-        ])->all();
-        $svgVehiculos = $this->svgChartService->barHorizontal($svgVehiculosData, 240, 180);
+        $filename   = 'informe_' . $desde->format('Y-m') . '.pdf';
+        $pdfContent = $this->pdfService->fromView('modules.admin.reportes.pdf-presentacion', compact('reporte'));
 
-        $svgDensidadData = $reporte['zonas']
-            ->filter(fn ($z) => $z['kg_ha'] !== null)
-            ->sortByDesc('kg_ha')
-            ->take(20)
-            ->map(fn ($z) => ['nombre' => $z['nombre'] . ($z['turno'] ? ' ' . substr($z['turno'], 0, 1) : ''), 'valor' => $z['kg_ha']])
-            ->values()
-            ->all();
-        $svgDensidad = $this->svgChartService->barHorizontal($svgDensidadData, 240, 320);
-
-        $html = view('modules.admin.reportes.pdf-presentacion', compact(
-            'reporte', 'svgEvolucion', 'svgVehiculos', 'svgDensidad'
-        ))->render();
-
-        $mpdf = new Mpdf([
-            'format'        => 'A4-L',
-            'margin_top'    => 0,
-            'margin_bottom' => 0,
-            'margin_left'   => 0,
-            'margin_right'  => 0,
-            'default_font'  => 'dejavusans',
-            'tempDir'       => storage_path('app/mpdf-tmp'),
-        ]);
-        $mpdf->WriteHTML($html);
-
-        return response($mpdf->Output('informe_' . $desde->format('Y-m') . '.pdf', 'S'), 200, [
+        return response($pdfContent, 200, [
             'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="informe_' . $desde->format('Y-m') . '.pdf"',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
     }
 
@@ -262,22 +234,5 @@ class ReporteController extends Controller
         );
     }
 
-    private function pdfResponse(string $html, string $filename): Response
-    {
-        $mpdf = new Mpdf([
-            'format'        => 'A4',
-            'margin_top'    => 10,
-            'margin_bottom' => 10,
-            'margin_left'   => 15,
-            'margin_right'  => 15,
-            'default_font'  => 'dejavusans',
-            'tempDir'       => storage_path('app/mpdf-tmp'),
-        ]);
-        $mpdf->WriteHTML($html);
 
-        return response($mpdf->Output($filename, 'S'), 200, [
-            'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-        ]);
-    }
 }

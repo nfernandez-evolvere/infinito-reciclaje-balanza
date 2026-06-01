@@ -23,60 +23,33 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/reportes/preview-pdf', function () {
         abort_unless(app()->isLocal(), 404);
 
-        $svgChartService = app(\App\Services\SvgChartService::class);
-
-        $evolucionDatos = array_map(fn($d) => [
-            'fecha'     => now()->startOfMonth()->addDays($d)->format('d/m'),
-            'viajes'    => 10 + ($d % 7) * 3,
-            'toneladas' => round(15 + ($d % 5) * 6 + 5, 1),
-        ], range(0, 21));
-
-        $vehiculos = collect([
-            ['nombre' => 'Camión compactador', 'viajes' => 210, 'toneladas' => 420.5, 'kg_viaje' => 2002, 'porcentaje' => 56],
-            ['nombre' => 'Camión volcador',    'viajes' => 120, 'toneladas' => 210.3, 'kg_viaje' => 1752, 'porcentaje' => 28],
-            ['nombre' => 'Utilitario',         'viajes' => 60,  'toneladas' => 114.1, 'kg_viaje' => 1901, 'porcentaje' => 16],
-        ]);
-        $zonas = collect([
-            ['nombre' => 'Zona Norte',  'turno' => 'Mañana', 'viajes' => 142, 'toneladas' => 284.5, 'kg_viaje' => 2003, 'porcentaje' => 38, 'kg_ha' => 1240.5],
-            ['nombre' => 'Zona Sur',    'turno' => 'Tarde',  'viajes' => 98,  'toneladas' => 178.2, 'kg_viaje' => 1818, 'porcentaje' => 24, 'kg_ha' => 980.0],
-            ['nombre' => 'Zona Centro', 'turno' => null,     'viajes' => 76,  'toneladas' => 145.8, 'kg_viaje' => 1918, 'porcentaje' => 20, 'kg_ha' => null],
-            ['nombre' => 'Zona Oeste',  'turno' => 'Mañana', 'viajes' => 54,  'toneladas' => 98.3,  'kg_viaje' => 1820, 'porcentaje' => 13, 'kg_ha' => 620.0],
-            ['nombre' => 'Zona Este',   'turno' => 'Tarde',  'viajes' => 20,  'toneladas' => 38.1,  'kg_viaje' => 1905, 'porcentaje' => 5,  'kg_ha' => 310.0],
-        ]);
-
         $reporte = [
             'kpis'        => ['total' => 390, 'toneladas' => 744.9, 'dias_op' => 22, 'dias_rango' => 31, 'promedio_ton_dia' => 33.86, 'promedio_kg_viaje' => 1909],
-            'evolucion'   => ['datos' => $evolucionDatos, 'promedio' => 33.9, 'maximo' => 48.2, 'minimo' => 12.5],
-            'zonas'       => $zonas,
-            'vehiculos'   => $vehiculos,
+            'evolucion'   => [
+                'datos'   => array_map(fn ($d) => ['fecha' => now()->startOfMonth()->addDays($d)->format('d/m'), 'viajes' => 10 + ($d % 7) * 3, 'toneladas' => round(15 + ($d % 5) * 6 + 5, 1)], range(0, 21)),
+                'promedio' => 33.9, 'maximo' => 48.2, 'minimo' => 12.5,
+            ],
+            'zonas'       => collect([
+                ['nombre' => 'Zona Norte',  'turno' => 'Mañana', 'viajes' => 142, 'toneladas' => 284.5, 'kg_viaje' => 2003, 'porcentaje' => 38, 'kg_ha' => 1240.5, 'kg_hab' => 1.2],
+                ['nombre' => 'Zona Sur',    'turno' => 'Tarde',  'viajes' => 98,  'toneladas' => 178.2, 'kg_viaje' => 1818, 'porcentaje' => 24, 'kg_ha' => 980.0,  'kg_hab' => 0.9],
+                ['nombre' => 'Zona Centro', 'turno' => null,     'viajes' => 76,  'toneladas' => 145.8, 'kg_viaje' => 1918, 'porcentaje' => 20, 'kg_ha' => null,   'kg_hab' => null],
+                ['nombre' => 'Zona Oeste',  'turno' => 'Mañana', 'viajes' => 54,  'toneladas' => 98.3,  'kg_viaje' => 1820, 'porcentaje' => 13, 'kg_ha' => 620.0,  'kg_hab' => 0.6],
+                ['nombre' => 'Zona Este',   'turno' => 'Tarde',  'viajes' => 20,  'toneladas' => 38.1,  'kg_viaje' => 1905, 'porcentaje' => 5,  'kg_ha' => 310.0,  'kg_hab' => 0.4],
+            ]),
+            'vehiculos'   => collect([
+                ['nombre' => 'Camión compactador', 'viajes' => 210, 'toneladas' => 420.5, 'kg_viaje' => 2002, 'porcentaje' => 56],
+                ['nombre' => 'Camión volcador',    'viajes' => 120, 'toneladas' => 210.3, 'kg_viaje' => 1752, 'porcentaje' => 28],
+                ['nombre' => 'Utilitario',         'viajes' => 60,  'toneladas' => 114.1, 'kg_viaje' => 1901, 'porcentaje' => 16],
+            ]),
             'desde'       => now()->startOfMonth(),
             'hasta'       => now()->endOfMonth(),
             'config'      => null,
             'conclusiones' => [],
         ];
 
-        $svgEvolucion     = $svgChartService->barVertical($reporte['evolucion']['datos'], 720, 200);
-        $svgVehiculosData = $vehiculos->map(fn($v) => ['nombre' => $v['nombre'], 'valor' => $v['viajes'], 'color' => '#1e3a5f'])->all();
-        $svgVehiculos     = $svgChartService->barHorizontal($svgVehiculosData, 240, 180);
-        $svgDensidadData  = $zonas->filter(fn($z) => $z['kg_ha'] !== null)->sortByDesc('kg_ha')
-            ->map(fn($z) => ['nombre' => $z['nombre'] . ($z['turno'] ? ' ' . substr($z['turno'], 0, 1) : ''), 'valor' => $z['kg_ha']])
-            ->values()->all();
-        $svgDensidad      = $svgChartService->barHorizontal($svgDensidadData, 240, 320);
+        $pdf = app(\App\Services\PdfService::class)->fromView('modules.admin.reportes.pdf-presentacion', compact('reporte'));
 
-        $html = view('modules.admin.reportes.pdf-presentacion', compact('reporte', 'svgEvolucion', 'svgVehiculos', 'svgDensidad'))->render();
-
-        $mpdf = new \Mpdf\Mpdf([
-            'format'        => 'A4-L',
-            'margin_top'    => 0,
-            'margin_bottom' => 0,
-            'margin_left'   => 0,
-            'margin_right'  => 0,
-            'default_font'  => 'dejavusans',
-            'tempDir'       => storage_path('app/mpdf-tmp'),
-        ]);
-        $mpdf->WriteHTML($html);
-
-        return response($mpdf->Output('preview.pdf', 'S'), 200, [
+        return response($pdf, 200, [
             'Content-Type'        => 'application/pdf',
             'Content-Disposition' => 'inline; filename="preview.pdf"',
         ]);
