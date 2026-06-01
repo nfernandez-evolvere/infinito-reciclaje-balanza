@@ -12,6 +12,7 @@ use App\Services\ReporteService;
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class GenerarEnviarReporteJob implements ShouldQueue
@@ -27,6 +28,8 @@ class GenerarEnviarReporteJob implements ShouldQueue
 
     public function handle(ReporteService $reporteService, PdfService $pdfService): void
     {
+        Log::info('GenerarEnviarReporteJob: iniciando', ['programado_id' => $this->programadoId]);
+
         $programado = ReporteProgramado::withoutGlobalScopes()->findOrFail($this->programadoId);
         $config     = ReporteConfiguracion::withoutGlobalScopes()
             ->where('organizacion_id', $programado->organizacion_id)
@@ -51,9 +54,9 @@ class GenerarEnviarReporteJob implements ShouldQueue
         $reporte['conclusiones'] = $conclusiones;
 
         $periodo = ucfirst($desde->translatedFormat('F Y'));
+        $tipo    = $programado->tipo;
 
-        $tipo = $programado->tipo;
-
+        Log::info('GenerarEnviarReporteJob: generando PDF');
         if ($esAlertas) {
             $filename   = 'alertas_' . $desde->format('Y-m') . '.pdf';
             $pdfContent = $pdfService->fromView('modules.admin.reportes.pdf-presentacion', compact('reporte', 'tipo'));
@@ -75,6 +78,7 @@ class GenerarEnviarReporteJob implements ShouldQueue
             );
         }
 
+        Log::info('GenerarEnviarReporteJob: enviando email', ['destinatarios' => $programado->destinatarios]);
         foreach ($programado->destinatarios as $email) {
             Mail::to($email)->send($mailable);
         }
@@ -84,6 +88,8 @@ class GenerarEnviarReporteJob implements ShouldQueue
             'ultimo_envio_at' => now(),
             'proximo_envio_at' => $this->calcularProximoEnvio($programado->cron_expresion),
         ]);
+
+        Log::info('GenerarEnviarReporteJob: completado', ['programado_id' => $this->programadoId]);
     }
 
     private function calcularPeriodo(string $periodo): array
