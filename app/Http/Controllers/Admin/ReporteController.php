@@ -49,7 +49,7 @@ class ReporteController extends Controller
 
     public function index(Request $request): View
     {
-        $tab = $request->input('tab', 'generar');
+        $tab = $request->input('tab', 'programados');
 
         $zonas         = $this->zonaRepository->activos();
         $tiposServicio = $this->tipoServicioRepository->activos();

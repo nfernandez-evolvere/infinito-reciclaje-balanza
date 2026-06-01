@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Mail\ReporteAlertaMail;
 use App\Mail\ReporteMensualMail;
 use App\Models\ReporteConfiguracion;
 use App\Models\ReporteProgramado;
@@ -33,10 +34,13 @@ class GenerarEnviarReporteJob implements ShouldQueue
 
         [$desde, $hasta] = $this->calcularPeriodo($programado->opciones['periodo'] ?? 'mes_anterior');
 
-        $reporte = $reporteService->generar($desde, $hasta);
+        $esAlertas = $programado->tipo === 'alertas';
+        $filtros   = $esAlertas ? ['solo_alerta' => true] : [];
+
+        $reporte = $reporteService->generar($desde, $hasta, $filtros);
 
         $conclusiones = [];
-        if ($config?->ai_enabled && $config?->ai_api_key) {
+        if (!$esAlertas && $config?->ai_enabled && $config?->ai_api_key) {
             $ai = new ConclusionesAIService($config->ai_api_key, $config->ai_modelo ?? 'gemini-2.5-flash', $config->ai_prompt ?? '');
             $conclusiones = [
                 'analisis' => $ai->generarAnalisis($reporte['kpis'], $reporte['zonas'], $desde->translatedFormat('F Y')),
@@ -46,16 +50,30 @@ class GenerarEnviarReporteJob implements ShouldQueue
         $reporte['config']       = $config;
         $reporte['conclusiones'] = $conclusiones;
 
-        $filename   = 'informe_' . $desde->format('Y-m') . '.pdf';
-        $pdfContent = $pdfService->fromView('modules.admin.reportes.pdf-presentacion', compact('reporte'));
+        $periodo = ucfirst($desde->translatedFormat('F Y'));
 
-        // Enviar email
-        $mailable = new ReporteMensualMail(
-            periodo: ucfirst($desde->translatedFormat('F Y')),
-            municipalidad: $config?->municipalidad_nombre ?? 'Municipalidad',
-            pdfContent: $pdfContent,
-            filename: $filename,
-        );
+        $tipo = $programado->tipo;
+
+        if ($esAlertas) {
+            $filename   = 'alertas_' . $desde->format('Y-m') . '.pdf';
+            $pdfContent = $pdfService->fromView('modules.admin.reportes.pdf-presentacion', compact('reporte', 'tipo'));
+            $mailable   = new ReporteAlertaMail(
+                periodo: $periodo,
+                municipalidad: $config?->municipalidad_nombre ?? 'Municipalidad',
+                pdfContent: $pdfContent,
+                filename: $filename,
+                totalAlertas: $reporte['kpis']['total'],
+            );
+        } else {
+            $filename   = 'informe_' . $desde->format('Y-m') . '.pdf';
+            $pdfContent = $pdfService->fromView('modules.admin.reportes.pdf-presentacion', compact('reporte', 'tipo'));
+            $mailable   = new ReporteMensualMail(
+                periodo: $periodo,
+                municipalidad: $config?->municipalidad_nombre ?? 'Municipalidad',
+                pdfContent: $pdfContent,
+                filename: $filename,
+            );
+        }
 
         foreach ($programado->destinatarios as $email) {
             Mail::to($email)->send($mailable);

@@ -33,15 +33,15 @@
     </div>
 
     <x-ui.tabs.list class="flex w-full sm:w-fit">
-        <x-ui.tabs.trigger value="generar" class="flex-1 sm:flex-none">
-            <x-lucide-file-bar-chart class="size-4" />
-            <span x-show="active === 'generar'" x-cloak class="sm:inline">Generar</span>
-            <span class="hidden sm:inline" x-show="active !== 'generar'">Generar</span>
-        </x-ui.tabs.trigger>
         <x-ui.tabs.trigger value="programados" class="flex-1 sm:flex-none">
             <x-lucide-clock class="size-4" />
             <span x-show="active === 'programados'" x-cloak class="sm:inline">Programados</span>
             <span class="hidden sm:inline" x-show="active !== 'programados'">Programados</span>
+        </x-ui.tabs.trigger>
+        <x-ui.tabs.trigger value="generar" class="flex-1 sm:flex-none">
+            <x-lucide-file-bar-chart class="size-4" />
+            <span x-show="active === 'generar'" x-cloak class="sm:inline">Generar</span>
+            <span class="hidden sm:inline" x-show="active !== 'generar'">Generar</span>
         </x-ui.tabs.trigger>
         <x-ui.tabs.trigger value="configuracion" class="flex-1 sm:flex-none">
             <x-lucide-settings-2 class="size-4" />

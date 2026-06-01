@@ -785,6 +785,8 @@
     $config    = $reporte['config'] ?? null;
     $ai        = $reporte['conclusiones'] ?? [];
 
+    $esAlerta  = ($tipo ?? 'informe_mensual') === 'alertas';
+
     $periodo      = ucfirst($desde->translatedFormat('F Y'));
     $periodoLargo = $desde->translatedFormat('d \d\e F') . ' al ' . $hasta->translatedFormat('d \d\e F \d\e Y');
     $organizacion = $config?->municipalidad_nombre ?? 'la organización';
@@ -836,9 +838,13 @@
             <div class="cover-brand-dot"></div>
             Infinito Reciclaje
         </div>
-        <div class="cover-label">Informe mensual de gestión</div>
+        <div class="cover-label">{{ $esAlerta ? 'Reporte de alertas de peso' : 'Informe mensual de gestión' }}</div>
         <div class="cover-title">
-            Informe<br>de <span>Pesajes</span><br>{{ $periodo }}
+            @if ($esAlerta)
+                Reporte<br>de <span>Alertas</span><br>{{ $periodo }}
+            @else
+                Informe<br>de <span>Pesajes</span><br>{{ $periodo }}
+            @endif
         </div>
         <div class="cover-period">{{ $periodoLargo }}</div>
     </div>

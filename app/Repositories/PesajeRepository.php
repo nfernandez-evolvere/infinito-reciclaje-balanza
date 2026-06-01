@@ -132,6 +132,7 @@ class PesajeRepository
                 $filtros['tipo_vehiculo_id'] ?? null,
                 fn ($q, $id) => $q->whereHas('vehiculo', fn ($v) => $v->where('tipo_vehiculo_id', $id))
             )
+            ->when($filtros['solo_alerta'] ?? false, fn ($q) => $q->where('alerta_peso', true))
             ->orderBy('created_at')
             ->get();
     }
