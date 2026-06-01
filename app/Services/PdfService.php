@@ -20,11 +20,17 @@ class PdfService
             ->landscape()
             ->margins(0, 0, 0, 0)
             ->showBackground()
-            ->waitUntilNetworkIdle();
+            ->waitUntilNetworkIdle()
+            ->noSandbox();
 
         $chromePath = $this->resolveChromePath();
         if ($chromePath) {
             $browsershot->setChromePath($chromePath);
+        }
+
+        $nodePath = $this->resolveNodePath();
+        if ($nodePath) {
+            $browsershot->setNodeBinary($nodePath);
         }
 
         return $browsershot->pdf();
@@ -33,9 +39,10 @@ class PdfService
     private function resolveChromePath(): ?string
     {
         $candidates = [
-            // Linux / VPS
-            '/usr/bin/chromium-browser',
+            // Docker / Railway (Debian Bookworm)
             '/usr/bin/chromium',
+            '/usr/bin/chromium-browser',
+            // Linux VPS
             '/usr/bin/google-chrome',
             '/usr/bin/google-chrome-stable',
             // macOS
@@ -43,6 +50,22 @@ class PdfService
             // Windows
             'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
             'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+        ];
+
+        foreach ($candidates as $path) {
+            if (file_exists($path)) {
+                return $path;
+            }
+        }
+
+        return null;
+    }
+
+    private function resolveNodePath(): ?string
+    {
+        $candidates = [
+            '/usr/bin/node',
+            '/usr/local/bin/node',
         ];
 
         foreach ($candidates as $path) {

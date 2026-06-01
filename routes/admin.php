@@ -3,7 +3,6 @@
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ReporteController;
 use App\Http\Controllers\Shared\PesajeController;
-use App\Http\Controllers\Admin\ServicioController;
 use App\Http\Controllers\Admin\TipoServicioController;
 use App\Http\Controllers\Admin\TipoVehiculoController;
 use App\Http\Controllers\Admin\UsuarioController;
@@ -99,7 +98,6 @@ Route::get('/reportes/pdf-presentacion', [ReporteController::class, 'exportPdfPr
         ->name('zonas.servicios.destroy');
 
     // Tipos de servicio ——————————————————————————————————————————————
-    Route::get('/servicios', [ServicioController::class, 'index'])->name('servicios.index');
     Route::resource('tipos-servicio', TipoServicioController::class)
         ->only(['index', 'store', 'update', 'destroy']);
     Route::patch('tipos-servicio/{tiposServicio}/toggle', [TipoServicioController::class, 'toggle'])
