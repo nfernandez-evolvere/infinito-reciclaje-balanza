@@ -15,6 +15,7 @@
         "mallardduck/blade-lucide-icons": "^1.26",
         "mpdf/mpdf": "^8.3",
         "phpoffice/phpspreadsheet": "3.3",
+        "resend/resend-laravel": "^1.4",
         "spatie/browsershot": "^5.4"
     },
     "require-dev": {
