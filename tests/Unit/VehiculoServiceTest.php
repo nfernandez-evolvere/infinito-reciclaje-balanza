@@ -2,8 +2,12 @@
 
 namespace Tests\Unit;
 
+use App\Models\Pesaje;
 use App\Models\TipoVehiculo;
+use App\Models\User;
 use App\Models\Vehiculo;
+use App\Repositories\PesajeRepository;
+use App\Repositories\VehiculoLogRepository;
 use App\Repositories\VehiculoRepository;
 use App\Services\VehiculoService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -20,8 +24,12 @@ class VehiculoServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new VehiculoService(new VehiculoRepository());
-        $this->tipo    = TipoVehiculo::factory()->create();
+        $this->service = new VehiculoService(
+            new VehiculoRepository(),
+            new VehiculoLogRepository(),
+            new PesajeRepository(),
+        );
+        $this->tipo = TipoVehiculo::factory()->create();
     }
 
     #[Test]
@@ -94,13 +102,13 @@ class VehiculoServiceTest extends TestCase
             'tara_kg' => 3000,
         ]);
 
-        $this->service->actualizar($vehiculo, [
+        $this->service->update($vehiculo, [
             'patente'          => 'BBB111',
             'numero_interno'   => $vehiculo->numero_interno,
             'tara_kg'          => 6000,
             'tipo_vehiculo_id' => $vehiculo->tipo_vehiculo_id,
             'titular'          => $vehiculo->titular,
-        ]);
+        ], User::factory()->create());
 
         $this->assertDatabaseHas('vehiculos', [
             'id'      => $vehiculo->id,
@@ -108,6 +116,166 @@ class VehiculoServiceTest extends TestCase
             'tara_kg' => 6000,
         ]);
         $this->assertDatabaseMissing('vehiculos', ['patente' => 'AAA000']);
+    }
+
+    // — Corrección de tara: recálculo y auditoría ————————————————
+
+    #[Test]
+    public function test_update_corregir_dato_recalculates_pesajes(): void
+    {
+        $vehiculo = Vehiculo::factory()->create(['tara_kg' => 8000, 'tipo_vehiculo_id' => $this->tipo->id]);
+        $usuario  = User::factory()->create();
+
+        $pesaje = Pesaje::factory()->create([
+            'vehiculo_id'   => $vehiculo->id,
+            'peso_bruto_kg' => 20000,
+            'peso_tara_kg'  => 8000,
+            'peso_neto_kg'  => 12000,
+            'estado'        => 'Cerrado',
+            'editado'       => false,
+        ]);
+
+        $this->service->update($vehiculo, [
+            'tara_kg'         => 18000,
+            '_intencion_tara' => 'corregir_dato',
+            '_motivo_tara'    => 'Se había cargado 8.000 en vez de 18.000.',
+        ], $usuario);
+
+        $pesaje->refresh();
+        $this->assertSame(18000, $pesaje->peso_tara_kg);
+        $this->assertSame(2000, $pesaje->peso_neto_kg);
+        $this->assertTrue($pesaje->editado);
+
+        $this->assertDatabaseHas('pesajes_log', [
+            'pesaje_id'      => $pesaje->id,
+            'campo'          => 'peso_tara_kg',
+            'valor_anterior' => '8000',
+            'valor_nuevo'    => '18000',
+        ]);
+        $this->assertDatabaseHas('pesajes_log', [
+            'pesaje_id'   => $pesaje->id,
+            'campo'       => 'peso_neto_kg',
+            'valor_nuevo' => '2000',
+        ]);
+        $this->assertDatabaseHas('vehiculos_log', [
+            'vehiculo_id'    => $vehiculo->id,
+            'campo'          => 'tara_kg',
+            'valor_anterior' => '8000',
+            'valor_nuevo'    => '18000',
+        ]);
+    }
+
+    #[Test]
+    public function test_update_corregir_dato_audita_tara_sin_neto_cuando_el_neto_no_cambia(): void
+    {
+        // Bruto menor que ambas taras: el neto queda clampeado a 0 antes y después,
+        // así que cambia la tara pero NO el neto → solo debe auditarse la tara.
+        $vehiculo = Vehiculo::factory()->create(['tara_kg' => 8000, 'tipo_vehiculo_id' => $this->tipo->id]);
+        $usuario  = User::factory()->create();
+
+        $pesaje = Pesaje::factory()->create([
+            'vehiculo_id'   => $vehiculo->id,
+            'peso_bruto_kg' => 5000,
+            'peso_tara_kg'  => 8000,
+            'peso_neto_kg'  => 0,
+            'estado'        => 'Cerrado',
+            'editado'       => false,
+        ]);
+
+        $this->service->update($vehiculo, [
+            'tara_kg'         => 9000,
+            '_intencion_tara' => 'corregir_dato',
+            '_motivo_tara'    => 'Ajuste de tara.',
+        ], $usuario);
+
+        $pesaje->refresh();
+        $this->assertSame(9000, $pesaje->peso_tara_kg);
+        $this->assertSame(0, $pesaje->peso_neto_kg);
+        $this->assertTrue($pesaje->editado);
+
+        $this->assertDatabaseHas('pesajes_log', [
+            'pesaje_id' => $pesaje->id,
+            'campo'     => 'peso_tara_kg',
+        ]);
+        $this->assertDatabaseMissing('pesajes_log', [
+            'pesaje_id' => $pesaje->id,
+            'campo'     => 'peso_neto_kg',
+        ]);
+    }
+
+    #[Test]
+    public function test_update_cambio_real_keeps_pesajes_but_audits(): void
+    {
+        $vehiculo = Vehiculo::factory()->create(['tara_kg' => 8000, 'tipo_vehiculo_id' => $this->tipo->id]);
+        $usuario  = User::factory()->create();
+
+        $pesaje = Pesaje::factory()->create([
+            'vehiculo_id'   => $vehiculo->id,
+            'peso_bruto_kg' => 20000,
+            'peso_tara_kg'  => 8000,
+            'peso_neto_kg'  => 12000,
+            'estado'        => 'Cerrado',
+            'editado'       => false,
+        ]);
+
+        $this->service->update($vehiculo, [
+            'tara_kg'         => 18000,
+            '_intencion_tara' => 'cambio_real',
+            '_motivo_tara'    => 'Se le agregó una caja compactadora.',
+        ], $usuario);
+
+        $pesaje->refresh();
+        $this->assertSame(8000, $pesaje->peso_tara_kg);
+        $this->assertSame(12000, $pesaje->peso_neto_kg);
+        $this->assertFalse($pesaje->editado);
+
+        $this->assertDatabaseMissing('pesajes_log', ['pesaje_id' => $pesaje->id]);
+        $this->assertDatabaseHas('vehiculos_log', [
+            'vehiculo_id' => $vehiculo->id,
+            'campo'       => 'tara_kg',
+            'valor_nuevo' => '18000',
+        ]);
+    }
+
+    #[Test]
+    public function test_update_corregir_dato_excludes_cancelados(): void
+    {
+        $vehiculo = Vehiculo::factory()->create(['tara_kg' => 8000, 'tipo_vehiculo_id' => $this->tipo->id]);
+        $usuario  = User::factory()->create();
+
+        $cancelado = Pesaje::factory()->cancelado()->create([
+            'vehiculo_id'   => $vehiculo->id,
+            'peso_bruto_kg' => 20000,
+            'peso_tara_kg'  => 8000,
+            'peso_neto_kg'  => 12000,
+        ]);
+
+        $this->service->update($vehiculo, [
+            'tara_kg'         => 18000,
+            '_intencion_tara' => 'corregir_dato',
+            '_motivo_tara'    => 'Corrección de carga.',
+        ], $usuario);
+
+        $cancelado->refresh();
+        $this->assertSame(8000, $cancelado->peso_tara_kg);
+        $this->assertSame(12000, $cancelado->peso_neto_kg);
+        $this->assertDatabaseMissing('pesajes_log', ['pesaje_id' => $cancelado->id]);
+    }
+
+    #[Test]
+    public function test_update_without_tara_change_does_not_audit(): void
+    {
+        $vehiculo = Vehiculo::factory()->create(['tara_kg' => 8000, 'tipo_vehiculo_id' => $this->tipo->id]);
+
+        $this->service->update($vehiculo, [
+            'patente'          => $vehiculo->patente,
+            'numero_interno'   => $vehiculo->numero_interno,
+            'tara_kg'          => 8000,
+            'tipo_vehiculo_id' => $vehiculo->tipo_vehiculo_id,
+            'titular'          => 'Nuevo titular',
+        ], User::factory()->create());
+
+        $this->assertDatabaseCount('vehiculos_log', 0);
     }
 
     #[Test]

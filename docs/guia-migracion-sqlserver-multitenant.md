@@ -1,4 +1,6 @@
-# Guía de migración — SQL Server + Multi-tenant por subdominio
+# Guía de setup — SQL Server + Multi-tenant
+
+Multi-tenant con aislamiento por columna `organizacion_id` y selección de organización en el login (sin subdominios). Esta guía cubre el setup de SQL Server, los prefijos de tabla por ambiente y el despliegue.
 
 ## Índice
 
@@ -7,9 +9,9 @@
 3. [Ejecutar los scripts SQL](#3-ejecutar-los-scripts-sql)
 4. [Configurar Laravel (.env)](#4-configurar-laravel-env)
 5. [Verificar la conexión](#5-verificar-la-conexión)
-6. [Configurar subdominios en local (Windows + Herd)](#6-configurar-subdominios-en-local-windows--herd)
-7. [Configurar subdominios en producción (VPS + nginx)](#7-configurar-subdominios-en-producción-vps--nginx)
-8. [Crear la primera organización y el super admin](#8-crear-la-primera-organización-y-el-super-admin)
+6. [Servidor local (Windows + Laragon + nginx)](#6-servidor-local-windows--laragon--nginx)
+7. [Configurar el dominio en producción (VPS + nginx)](#7-configurar-el-dominio-en-producción-vps--nginx)
+8. [Crear el super admin y la primera organización](#8-crear-el-super-admin-y-la-primera-organización)
 9. [Agregar una nueva organización](#9-agregar-una-nueva-organización)
 10. [Agregar ambiente stg o prod](#10-agregar-ambiente-stg-o-prod)
 11. [Despliegue en servidor con Docker](#11-despliegue-en-servidor-con-docker)
@@ -149,7 +151,7 @@ DB_USERNAME=balanza_app
 DB_PASSWORD=TuPasswordSegura123!
 DB_TABLE_PREFIX=dev_
 
-# URL base de la app (sin subdominio)
+# URL base de la app
 APP_URL=http://balanza.test
 ```
 
@@ -189,13 +191,14 @@ Si hay error de conexión, verificar:
 
 ---
 
-## 6. Configurar subdominios en local (Windows + Laragon + nginx)
+## 6. Servidor local (Windows + Laragon + nginx)
 
-El sistema resuelve el tenant desde el subdominio: `{slug}.balanza.test`.
-El subdominio `super.balanza.test` es exclusivo del super admin.
+La app corre en un **único dominio** (no hay subdominios por organización): basta con `balanza.test`.
 
 El stack local usa **Laragon** como servidor nginx y **PHP 8.5** desde `C:\php\` vía CGI.
-Laragon no soporta wildcard DNS, así que cada subdominio se agrega al archivo `hosts`.
+
+> Si usás [Herd Lite](https://herd.laravel.com/) o `php artisan serve`, esta sección no aplica:
+> la app queda disponible directamente en el dominio/puerto que provea esa herramienta.
 
 ### 6.1 Instalar Laragon y activar nginx
 
@@ -203,14 +206,14 @@ Laragon no soporta wildcard DNS, así que cada subdominio se agrega al archivo `
 2. En el panel de Laragon: **Menu → Preferences → Server → Use nginx** (desactivar Apache si está activo).
 3. Hacer clic en **Start All**.
 
-### 6.2 Virtual host para `*.balanza.test`
+### 6.2 Virtual host para `balanza.test`
 
 Crear `C:\laragon\etc\nginx\sites-enabled\balanza.test.conf`:
 
 ```nginx
 server {
     listen 8080;
-    server_name balanza.test *.balanza.test;
+    server_name balanza.test;
 
     root "C:/ruta/al/proyecto/public";
     index index.php;
@@ -253,18 +256,16 @@ Para automatizarlo, crear una tarea en el Programador de tareas de Windows:
 - Argumentos: `-b 127.0.0.1:10988`
 - Disparador: Al iniciar sesión
 
-### 6.4 Agregar subdominios al archivo hosts
+### 6.4 Agregar `balanza.test` al archivo hosts
 
-Cada subdominio se agrega una sola vez. Abrir PowerShell **como Administrador**:
+Una sola vez. Abrir PowerShell **como Administrador**:
 
 ```powershell
-# Subdominios de dev (ya configurados)
-Add-Content "C:\Windows\System32\drivers\etc\hosts" "127.0.0.1`tsuper.balanza.test"
-Add-Content "C:\Windows\System32\drivers\etc\hosts" "127.0.0.1`tcorrientes.balanza.test"
-Add-Content "C:\Windows\System32\drivers\etc\hosts" "127.0.0.1`tresistencia.balanza.test"
+Add-Content "C:\Windows\System32\drivers\etc\hosts" "127.0.0.1`tbalanza.test"
 ```
 
-Cada vez que se crea una nueva organización, agregar su subdominio con el mismo comando.
+> No se necesita una entrada por organización: todas las orgs comparten el mismo dominio.
+> La organización activa se elige en el login, no en la URL.
 
 ### 6.5 Verificar
 
@@ -274,38 +275,35 @@ Recargar la configuración de nginx:
 & "C:\laragon\bin\nginx\nginx-1.28.2\nginx.exe" -s reload
 ```
 
-Abrir en el navegador: `http://super.balanza.test:8080/login`
+Abrir en el navegador: `http://balanza.test:8080/login`
 
 > Las URLs locales llevan `:8080` porque nginx no puede usar el puerto 80 sin privilegios de admin.
 
 ---
 
-## 7. Configurar subdominios en producción (VPS + nginx)
+## 7. Configurar el dominio en producción (VPS + nginx)
 
-### 7.1 DNS wildcard
+Al no haber subdominios, alcanza con un registro DNS simple y un virtual host para el dominio.
 
-En el panel de DNS del dominio `inf-bal.com`, agregar un registro A wildcard:
+### 7.1 DNS
+
+En el panel de DNS del dominio, apuntar el host a la IP del VPS:
 
 ```
 Tipo : A
-Nombre: *
+Nombre: @            (o el host que corresponda, ej: app)
 Valor : IP_DEL_VPS
 TTL  : 3600
 ```
 
-Esto hace que `cualquier-cosa.inf-bal.com` resuelva a la IP del VPS.
-
-### 7.2 nginx — virtual host wildcard
-
-Editar o crear el archivo de configuración de nginx para el proyecto:
+### 7.2 nginx — virtual host
 
 ```nginx
 server {
     listen 80;
     listen [::]:80;
 
-    # Captura cualquier subdominio de inf-bal.com
-    server_name ~^(?<subdomain>[^.]+)\.inf-bal\.com$;
+    server_name inf-bal.com;
 
     root /var/www/infinito-reciclaje-balanza/public;
     index index.php;
@@ -344,26 +342,13 @@ sudo nginx -t && sudo systemctl reload nginx
 
 ### 7.3 .env por ambiente
 
-El sistema resuelve el tenant extrayendo el primer segmento del host y luego strippeando el prefijo
-configurado en `APP_SUBDOMAIN_PREFIX`. Esto permite usar un único dominio wildcard para todos los
-ambientes.
-
-**Esquema de subdominios:**
-
-| Ambiente   | `APP_SUBDOMAIN_PREFIX` | Super admin URL              | Org URL ejemplo                    |
-|------------|------------------------|------------------------------|------------------------------------|
-| Local      | *(vacío)*              | `super.balanza.test`         | `corrientes.balanza.test`          |
-| Staging    | `staging-`             | `staging-super.inf-bal.com`  | `staging-corrientes.inf-bal.com`   |
-| Producción | *(vacío)*              | `super.inf-bal.com`          | `corrientes.inf-bal.com`           |
-
-El registro DNS wildcard `*.inf-bal.com` cubre tanto staging como producción sin configuración extra.
+Lo único que cambia entre ambientes es el prefijo de tablas (`DB_TABLE_PREFIX`) y la URL.
 
 **.env producción:**
 ```env
 APP_URL=https://inf-bal.com
 APP_ENV=production
 APP_DEBUG=false
-APP_SUBDOMAIN_PREFIX=
 
 DB_CONNECTION=sqlsrv
 DB_TABLE_PREFIX=prod_
@@ -372,10 +357,9 @@ DB_TABLE_PREFIX=prod_
 
 **.env staging:**
 ```env
-APP_URL=https://inf-bal.com
+APP_URL=https://staging.inf-bal.com
 APP_ENV=staging
 APP_DEBUG=false
-APP_SUBDOMAIN_PREFIX=staging-
 
 DB_CONNECTION=sqlsrv
 DB_TABLE_PREFIX=stg_
@@ -384,36 +368,35 @@ DB_TABLE_PREFIX=stg_
 
 ---
 
-## 8. Crear la primera organización y el super admin
+## 8. Crear el super admin y la primera organización
 
-Con la base de datos lista y la conexión funcionando, insertar el super admin y la primera organización directamente en SQL:
-
-```sql
-USE [NombreDeTuBaseDeDatos];
-
--- Super admin (organizacion_id = NULL)
-INSERT INTO [infinito_balanza].[dev_users]
-    (organizacion_id, name, email, password, role, onboarding_visto, activo, created_at, updated_at)
-VALUES
-    (NULL, 'Super Admin', 'super@inf-bal.com',
-     -- Generar el hash con: php artisan tinker → bcrypt('tu-password')
-     '$2y$12$HASH_GENERADO_CON_ARTISAN',
-     'super_admin', 1, 1, GETDATE(), GETDATE());
-
--- Primera organización
-INSERT INTO [infinito_balanza].[dev_organizaciones]
-    (nombre, slug, activo, created_at, updated_at)
-VALUES
-    ('Municipio Ejemplo', 'municipio-ejemplo', 1, GETDATE(), GETDATE());
-```
-
-Para generar el hash de la contraseña:
+El `super_admin` no pertenece a ninguna organización y administra el sistema globalmente.
+La forma más simple de crear el bootstrap es vía tinker (usa los modelos, válido para cualquier schema):
 
 ```powershell
 php artisan tinker
-# >>> bcrypt('tu-password-segura')
-# => "$2y$12$..."
 ```
+
+```php
+// Super admin (no pertenece a ninguna org)
+\App\Models\User::create([
+    'name'     => 'Super Admin',
+    'email'    => 'super@inf-bal.com',
+    'password' => 'tu-password-segura',   // se hashea automáticamente
+    'role'     => 'super_admin',
+    'activo'   => true,
+]);
+
+// Primera organización
+\App\Models\Organizacion::create([
+    'nombre' => 'Municipio Ejemplo',
+    'activo' => true,
+]);
+```
+
+A partir de acá, el resto se hace desde la UI: iniciar sesión con el super admin en
+`/login` (contexto **"Administración del sistema"**) y administrar las organizaciones y sus
+usuarios desde el panel.
 
 ---
 
@@ -421,36 +404,28 @@ php artisan tinker
 
 ### 9.1 Vía super admin (flujo normal)
 
-1. Ir a `super.balanza.test` (local) o `super.inf-bal.com` (producción)
-2. Login con el super admin
-3. Ir a Organizaciones → Nueva organización
-4. Completar nombre y slug (el slug se genera automáticamente desde el nombre si se deja vacío)
+1. Ir a `/login` e ingresar como super admin (contexto "Administración del sistema").
+2. Ir a **Organizaciones → Nueva organización**.
+3. Completar el **nombre** y asignar el **email del administrador** inicial.
+   - Si el email no existe, se crea la cuenta y se envía un email de invitación para que
+     defina su contraseña.
+   - Si ya existe, se lo vincula a la organización y se le notifica.
 
-### 9.2 En local — agregar el subdominio al hosts
+El admin de la organización podrá luego, desde su panel, dar de alta operadores y más admins.
 
-Después de crear la organización con slug `nueva-org`:
+### 9.2 Vincular un usuario existente a una organización (manual)
 
-```powershell
-# Ejecutar PowerShell como Administrador
-Add-Content -Path "C:\Windows\System32\drivers\etc\hosts" -Value "127.0.0.1`tnueva-org.balanza.test"
+El vínculo usuario–organización vive en el pivot `organizacion_user`. Si necesitás hacerlo a mano:
+
+```php
+// php artisan tinker
+$org  = \App\Models\Organizacion::where('nombre', 'Municipio Ejemplo')->first();
+$user = \App\Models\User::where('email', 'admin@municipio.gob.ar')->first();
+
+$org->users()->syncWithoutDetaching([$user->id]);
 ```
 
-### 9.3 Crear el primer admin de la organización
-
-Vía super admin panel o directamente en SQL:
-
-```sql
--- Obtener el id de la organización
-SELECT id FROM [infinito_balanza].[dev_organizaciones] WHERE slug = 'nueva-org';
-
--- Insertar admin de la org (reemplazar organizacion_id con el id obtenido)
-INSERT INTO [infinito_balanza].[dev_users]
-    (organizacion_id, name, email, password, role, onboarding_visto, activo, created_at, updated_at)
-VALUES
-    (1, 'Admin Municipio', 'admin@municipio.gob.ar',
-     '$2y$12$HASH_GENERADO_CON_ARTISAN',
-     'admin', 0, 1, GETDATE(), GETDATE());
-```
+Un mismo usuario puede pertenecer a varias organizaciones y elegir con cuál ingresar en el login.
 
 ---
 
@@ -476,11 +451,11 @@ Repetir para `prod` cambiando `stg_` por `prod_`.
 
 Solo cambiar `DB_TABLE_PREFIX` en el `.env` del servidor correspondiente:
 
-| Ambiente   | `DB_TABLE_PREFIX` | `APP_SUBDOMAIN_PREFIX` | `APP_URL`                    |
-|------------|-------------------|------------------------|------------------------------|
-| Local      | `dev_`            | *(vacío)*              | `http://balanza.test`        |
-| Staging    | `stg_`            | `staging-`             | `https://inf-bal.com`        |
-| Producción | `prod_`           | *(vacío)*              | `https://inf-bal.com`        |
+| Ambiente   | `DB_TABLE_PREFIX` | `APP_URL`                      |
+|------------|-------------------|--------------------------------|
+| Local      | `dev_`            | `http://balanza.test`          |
+| Staging    | `stg_`            | `https://staging.inf-bal.com`  |
+| Producción | `prod_`           | `https://inf-bal.com`          |
 
 ---
 
@@ -536,7 +511,7 @@ CMD ["php-fpm"]
 ```nginx
 server {
     listen 80;
-    server_name ~^(?<subdomain>[^.]+)\.inf-bal\.com$;
+    server_name inf-bal.com;
 
     root /var/www/html/public;
     index index.php;
@@ -598,7 +573,6 @@ Crear `.env.production` en el servidor (nunca comitear):
 APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://inf-bal.com
-APP_SUBDOMAIN_PREFIX=
 
 DB_CONNECTION=sqlsrv
 DB_HOST=IP_SERVIDOR_SQL

@@ -99,7 +99,7 @@ class PesajeSeeder extends Seeder
             /** @var Carbon $dia */
             if ($dia->isSunday()) continue;
 
-            $volumen = $this->volumenDia($dia, $org->slug);
+            $volumen = $this->volumenDia($dia, $org->nombre);
 
             for ($i = 0; $i < $volumen; $i++) {
                 $hora = $this->horaAleatoria($dia);
@@ -287,9 +287,9 @@ class PesajeSeeder extends Seeder
      * - Organización (corrientes tiene mayor volumen)
      * - Varianza aleatoria diaria ±20%
      */
-    private function volumenDia(Carbon $dia, string $orgSlug): int
+    private function volumenDia(Carbon $dia, string $orgNombre): int
     {
-        $base = $orgSlug === 'corrientes' ? 48 : 32;
+        $base = $orgNombre === 'Corrientes' ? 48 : 32;
 
         $factorDia = match (true) {
             $dia->isSaturday() => 0.50,

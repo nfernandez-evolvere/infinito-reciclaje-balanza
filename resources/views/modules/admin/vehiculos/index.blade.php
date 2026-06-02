@@ -6,6 +6,9 @@
     $vInitial = $vHasErrors ? [
         'modalOpen' => true,
         'modalMode' => old('_mode') === 'edit' ? 'edit' : 'create',
+        // Tras un error de validación, mostrar campos + resumen (decisión ya confirmada)
+        // para que los errores de los campos generales queden visibles.
+        'taraDecisionConfirmada' => true,
         'form'      => [
             'id'               => (int) old('_editing_id', 0) ?: null,
             'patente'          => old('patente', ''),
@@ -15,6 +18,10 @@
             'titular'          => old('titular', ''),
             'capacidad_kg'     => old('capacidad_kg', ''),
             'observaciones'    => old('observaciones', ''),
+            '_tara_original'   => old('_tara_original', ''),
+            'pesajes_count'    => (int) old('_pesajes_count', 0),
+            '_intencion_tara'  => old('_intencion_tara', ''),
+            '_motivo_tara'     => old('_motivo_tara', ''),
         ],
     ] : [];
 

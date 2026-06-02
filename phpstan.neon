@@ -1,0 +1,18 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - phpstan-baseline.neon
+
+parameters:
+    # Nivel de rigor: 0 (laxo) a 10 (estricto). Subir de a uno cuando esté limpio.
+    level: 5
+
+    paths:
+        - app
+
+    # No se analizan, pero se cargan sus símbolos (clases IdeHelper* de los modelos)
+    scanFiles:
+        - _ide_helper_models.php
+
+    # Carpetas que no se analizan
+    excludePaths:
+        - app/helpers.php

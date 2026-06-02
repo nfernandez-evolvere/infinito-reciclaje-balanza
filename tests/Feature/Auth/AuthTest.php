@@ -20,10 +20,14 @@ class AuthTest extends TestCase
     #[Test]
     public function test_operador_redirected_to_balanza_after_login(): void
     {
+        // El factory ya adjunta el usuario a la organización activa del test.
         $user = User::factory()->create(['role' => 'operador']);
 
-        $this->post('/login', ['email' => $user->email, 'password' => 'password'])
-            ->assertRedirect('/balanza');
+        $this->post('/login', [
+            'email'           => $user->email,
+            'password'        => 'password',
+            'organizacion_id' => app('organizacion')->id,
+        ])->assertRedirect('/balanza');
     }
 
     #[Test]
@@ -31,8 +35,11 @@ class AuthTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'admin']);
 
-        $this->post('/login', ['email' => $user->email, 'password' => 'password'])
-            ->assertRedirect('/admin/dashboard');
+        $this->post('/login', [
+            'email'           => $user->email,
+            'password'        => 'password',
+            'organizacion_id' => app('organizacion')->id,
+        ])->assertRedirect('/admin/dashboard');
     }
 
     #[Test]

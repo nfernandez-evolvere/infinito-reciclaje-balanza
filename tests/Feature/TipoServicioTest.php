@@ -26,8 +26,8 @@ class TipoServicioTest extends TestCase
     private function payload(array $overrides = []): array
     {
         return array_merge([
-            'nombre'                    => 'Domiciliario',
-            'tipo_vehiculo_sugerido_id' => null,
+            'nombre'            => 'Domiciliario',
+            'tipo_vehiculo_ids' => [],
         ], $overrides);
     }
 
@@ -49,8 +49,9 @@ class TipoServicioTest extends TestCase
     #[Test]
     public function test_index_shows_tipo_vehiculo_nombre(): void
     {
-        $tv = TipoVehiculo::factory()->create(['nombre' => 'Compactador']);
-        TipoServicio::factory()->create(['tipo_vehiculo_sugerido_id' => $tv->id]);
+        $tv   = TipoVehiculo::factory()->create(['nombre' => 'Compactador']);
+        $tipo = TipoServicio::factory()->create();
+        $tipo->tiposVehiculo()->attach($tv->id);
 
         $this->actingAs($this->admin())
             ->get(route('admin.tipos-servicio.index'))
@@ -61,7 +62,7 @@ class TipoServicioTest extends TestCase
     #[Test]
     public function test_index_shows_guion_when_no_tipo_vehiculo(): void
     {
-        TipoServicio::factory()->create(['tipo_vehiculo_sugerido_id' => null]);
+        TipoServicio::factory()->create();
 
         $this->actingAs($this->admin())
             ->get(route('admin.tipos-servicio.index'))
@@ -100,8 +101,8 @@ class TipoServicioTest extends TestCase
     {
         $tvA = TipoVehiculo::factory()->create(['nombre' => 'Compactador']);
         $tvB = TipoVehiculo::factory()->create(['nombre' => 'Volcador']);
-        TipoServicio::factory()->create(['nombre' => 'Domiciliario', 'tipo_vehiculo_sugerido_id' => $tvA->id]);
-        TipoServicio::factory()->create(['nombre' => 'Barrido',      'tipo_vehiculo_sugerido_id' => $tvB->id]);
+        TipoServicio::factory()->create(['nombre' => 'Domiciliario'])->tiposVehiculo()->attach($tvA->id);
+        TipoServicio::factory()->create(['nombre' => 'Barrido'])->tiposVehiculo()->attach($tvB->id);
 
         $this->actingAs($this->admin())
             ->get(route('admin.tipos-servicio.index', ['tipo_vehiculo_id' => $tvA->id]))
@@ -134,56 +135,53 @@ class TipoServicioTest extends TestCase
     // — Store ——————————————————————————————————————————————————
 
     #[Test]
-    public function test_admin_can_create_with_tipo_vehiculo(): void
+    public function test_admin_can_create_with_tipos_vehiculo(): void
     {
         $tv = TipoVehiculo::factory()->create();
 
         $this->actingAs($this->admin())
             ->post(route('admin.tipos-servicio.store'), $this->payload([
-                'nombre'                    => 'Domiciliario',
-                'tipo_vehiculo_sugerido_id' => $tv->id,
+                'nombre'            => 'Domiciliario',
+                'tipo_vehiculo_ids' => [$tv->id],
             ]))
             ->assertRedirect(route('admin.tipos-servicio.index'));
 
         $this->assertDatabaseHas('tipos_servicio', [
-            'nombre'                    => 'Domiciliario',
-            'tipo_vehiculo_sugerido_id' => $tv->id,
-            'activo'                    => true,
+            'nombre' => 'Domiciliario',
+            'activo' => true,
+        ]);
+        $tipo = TipoServicio::where('nombre', 'Domiciliario')->first();
+        $this->assertDatabaseHas('tipo_servicio_tipo_vehiculo', [
+            'tipo_servicio_id' => $tipo->id,
+            'tipo_vehiculo_id' => $tv->id,
         ]);
     }
 
     #[Test]
-    public function test_admin_can_create_without_tipo_vehiculo(): void
+    public function test_admin_can_create_without_tipos_vehiculo(): void
     {
         $this->actingAs($this->admin())
             ->post(route('admin.tipos-servicio.store'), $this->payload([
-                'tipo_vehiculo_sugerido_id' => null,
+                'tipo_vehiculo_ids' => [],
             ]))
             ->assertRedirect(route('admin.tipos-servicio.index'))
             ->assertSessionHasNoErrors();
 
-        $this->assertDatabaseHas('tipos_servicio', [
-            'nombre'                    => 'Domiciliario',
-            'tipo_vehiculo_sugerido_id' => null,
-        ]);
+        $this->assertDatabaseHas('tipos_servicio', ['nombre' => 'Domiciliario']);
+        $this->assertDatabaseCount('tipo_servicio_tipo_vehiculo', 0);
     }
 
     #[Test]
-    public function test_store_trata_tipo_vehiculo_vacio_como_null(): void
+    public function test_store_acepta_seleccion_de_vehiculos_vacia(): void
     {
-        // El select envía '' cuando el usuario elige "Sin asignar"
-        // ConvertEmptyStringsToNull lo convierte a null antes de validar
+        // El multi-select no envía la clave cuando no hay vehículos elegidos.
         $this->actingAs($this->admin())
-            ->post(route('admin.tipos-servicio.store'), $this->payload([
-                'tipo_vehiculo_sugerido_id' => '',
-            ]))
+            ->post(route('admin.tipos-servicio.store'), ['nombre' => 'Domiciliario'])
             ->assertRedirect(route('admin.tipos-servicio.index'))
             ->assertSessionHasNoErrors();
 
-        $this->assertDatabaseHas('tipos_servicio', [
-            'nombre'                    => 'Domiciliario',
-            'tipo_vehiculo_sugerido_id' => null,
-        ]);
+        $this->assertDatabaseHas('tipos_servicio', ['nombre' => 'Domiciliario']);
+        $this->assertDatabaseCount('tipo_servicio_tipo_vehiculo', 0);
     }
 
     #[Test]
@@ -217,9 +215,9 @@ class TipoServicioTest extends TestCase
     {
         $this->actingAs($this->admin())
             ->post(route('admin.tipos-servicio.store'), $this->payload([
-                'tipo_vehiculo_sugerido_id' => 99999,
+                'tipo_vehiculo_ids' => [99999],
             ]))
-            ->assertSessionHasErrors('tipo_vehiculo_sugerido_id');
+            ->assertSessionHasErrors('tipo_vehiculo_ids.0');
     }
 
     // — Update ——————————————————————————————————————————————————
@@ -232,15 +230,18 @@ class TipoServicioTest extends TestCase
 
         $this->actingAs($this->admin())
             ->put(route('admin.tipos-servicio.update', $tipo), [
-                'nombre'                    => 'Nuevo',
-                'tipo_vehiculo_sugerido_id' => $tv->id,
+                'nombre'            => 'Nuevo',
+                'tipo_vehiculo_ids' => [$tv->id],
             ])
             ->assertRedirect(route('admin.tipos-servicio.index'));
 
         $this->assertDatabaseHas('tipos_servicio', [
-            'id'                        => $tipo->id,
-            'nombre'                    => 'Nuevo',
-            'tipo_vehiculo_sugerido_id' => $tv->id,
+            'id'     => $tipo->id,
+            'nombre' => 'Nuevo',
+        ]);
+        $this->assertDatabaseHas('tipo_servicio_tipo_vehiculo', [
+            'tipo_servicio_id' => $tipo->id,
+            'tipo_vehiculo_id' => $tv->id,
         ]);
     }
 
@@ -252,8 +253,8 @@ class TipoServicioTest extends TestCase
 
         $this->actingAs($this->admin())
             ->put(route('admin.tipos-servicio.update', $tipo), [
-                'nombre'                    => 'Barrido',
-                'tipo_vehiculo_sugerido_id' => null,
+                'nombre'            => 'Barrido',
+                'tipo_vehiculo_ids' => [],
             ])
             ->assertRedirect(route('admin.tipos-servicio.index'));
 
@@ -273,21 +274,21 @@ class TipoServicioTest extends TestCase
     }
 
     #[Test]
-    public function test_update_puede_limpiar_tipo_vehiculo(): void
+    public function test_update_puede_limpiar_tipos_vehiculo(): void
     {
         $tv   = TipoVehiculo::factory()->create();
-        $tipo = TipoServicio::factory()->create(['tipo_vehiculo_sugerido_id' => $tv->id]);
+        $tipo = TipoServicio::factory()->create();
+        $tipo->tiposVehiculo()->attach($tv->id);
 
         $this->actingAs($this->admin())
             ->put(route('admin.tipos-servicio.update', $tipo), [
-                'nombre'                    => $tipo->nombre,
-                'tipo_vehiculo_sugerido_id' => null,
+                'nombre'            => $tipo->nombre,
+                'tipo_vehiculo_ids' => [],
             ])
             ->assertRedirect(route('admin.tipos-servicio.index'));
 
-        $this->assertDatabaseHas('tipos_servicio', [
-            'id'                        => $tipo->id,
-            'tipo_vehiculo_sugerido_id' => null,
+        $this->assertDatabaseMissing('tipo_servicio_tipo_vehiculo', [
+            'tipo_servicio_id' => $tipo->id,
         ]);
     }
 
@@ -410,19 +411,21 @@ class TipoServicioTest extends TestCase
     }
 
     #[Test]
-    public function test_eliminar_tipo_vehiculo_pone_sugerido_en_null(): void
+    public function test_eliminar_tipo_vehiculo_lo_quita_del_pivot(): void
     {
-        // ON DELETE SET NULL: al eliminar el tipo de vehículo, el FK del servicio debe quedar null
+        // El pivot tiene ON DELETE CASCADE: al eliminar el tipo de vehículo,
+        // su vínculo con el servicio se borra (el servicio sigue existiendo).
         $tv   = TipoVehiculo::factory()->create();
-        $tipo = TipoServicio::factory()->create(['tipo_vehiculo_sugerido_id' => $tv->id]);
+        $tipo = TipoServicio::factory()->create();
+        $tipo->tiposVehiculo()->attach($tv->id);
 
         $this->actingAs($this->admin())
             ->delete(route('admin.tipos-vehiculo.destroy', $tv))
-            ->assertRedirect(route('admin.tipos-vehiculo.index'));
+            ->assertRedirect(route('admin.vehiculos.index', ['tab' => 'tipos']));
 
-        $this->assertDatabaseHas('tipos_servicio', [
-            'id'                        => $tipo->id,
-            'tipo_vehiculo_sugerido_id' => null,
+        $this->assertDatabaseHas('tipos_servicio', ['id' => $tipo->id]);
+        $this->assertDatabaseMissing('tipo_servicio_tipo_vehiculo', [
+            'tipo_vehiculo_id' => $tv->id,
         ]);
     }
 
@@ -430,19 +433,17 @@ class TipoServicioTest extends TestCase
     public function test_desactivar_tipo_vehiculo_no_afecta_tipo_servicio(): void
     {
         $tv   = TipoVehiculo::factory()->create(['activo' => true]);
-        $tipo = TipoServicio::factory()->create([
-            'tipo_vehiculo_sugerido_id' => $tv->id,
-            'activo'                    => true,
-        ]);
+        $tipo = TipoServicio::factory()->create(['activo' => true]);
+        $tipo->tiposVehiculo()->attach($tv->id);
 
         $this->actingAs($this->admin())
             ->patch(route('admin.tipos-vehiculo.toggle', $tv));
 
-        // El tipo de servicio conserva su estado y su FK
-        $this->assertDatabaseHas('tipos_servicio', [
-            'id'                        => $tipo->id,
-            'activo'                    => true,
-            'tipo_vehiculo_sugerido_id' => $tv->id,
+        // El tipo de servicio conserva su estado y su vínculo en el pivot
+        $this->assertDatabaseHas('tipos_servicio', ['id' => $tipo->id, 'activo' => true]);
+        $this->assertDatabaseHas('tipo_servicio_tipo_vehiculo', [
+            'tipo_servicio_id' => $tipo->id,
+            'tipo_vehiculo_id' => $tv->id,
         ]);
     }
 

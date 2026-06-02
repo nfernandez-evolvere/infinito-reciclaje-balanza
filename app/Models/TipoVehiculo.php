@@ -6,6 +6,10 @@ use App\Models\Concerns\BelongsToOrganizacion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @mixin \Eloquent
+ * @mixin IdeHelperTipoVehiculo
+ */
 class TipoVehiculo extends Model
 {
     use HasFactory, BelongsToOrganizacion;

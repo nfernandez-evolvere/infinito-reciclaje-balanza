@@ -4,6 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @mixin \Eloquent
+ * @mixin IdeHelperZonaServicioHorario
+ */
 class ZonaServicioHorario extends Model
 {
     protected $table = 'zona_servicio_horarios';

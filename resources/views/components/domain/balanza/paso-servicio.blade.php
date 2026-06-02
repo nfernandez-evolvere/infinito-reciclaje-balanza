@@ -89,10 +89,11 @@
         </div>
     </div>
 
-    {{-- Badge tipo habitual --}}
-    <div x-show="tipoSugerido" x-cloak class="flex flex-wrap items-center gap-2 mt-3">
+    {{-- Badge tipos habituales --}}
+    <div x-show="tiposSugeridos.length" x-cloak class="flex flex-wrap items-center gap-2 mt-3">
         <span class="inline-flex items-baseline gap-1.5 bg-info-subtle border border-info-border rounded-md px-2.5 py-1.5 text-xs text-info-subtle-foreground">
-            Tipo habitual: <b class="font-semibold" x-text="tipoSugerido"></b>
+            <span x-text="tiposSugeridos.length === 1 ? 'Tipo habitual:' : 'Tipos habituales:'"></span>
+            <b class="font-semibold" x-text="tiposSugeridos.join(', ')"></b>
         </span>
     </div>
 
@@ -102,8 +103,10 @@
     >
         <x-lucide-triangle-alert class="size-4 shrink-0 mt-0.5 text-warning" />
         <div>
-            <b>No es el tipo habitual para este servicio.</b><br>
-            Para <b x-text="servicioNombre"></b> se espera un <b x-text="tipoSugerido"></b>; este vehículo es <b x-text="vehiculo?.tipo"></b>. El pesaje se guarda igual.
+            <b>No es un tipo habitual para este servicio.</b><br>
+            Para <b x-text="servicioNombre"></b> se espera
+            <span x-text="tiposSugeridos.length === 1 ? 'un' : 'uno de'"></span>
+            <b x-text="tiposSugeridos.join(', ')"></b>; este vehículo es <b x-text="vehiculo?.tipo"></b>. El pesaje se guarda igual.
         </div>
     </div>
 

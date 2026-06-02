@@ -11,12 +11,7 @@
             @forelse($organizaciones as $org)
             <x-ui.table.row>
                 <x-ui.table.cell data-label="Organización">
-                    <div class="text-left">
-                        <p class="font-medium leading-tight">{{ $org->nombre }}</p>
-                        @if($org->slug)
-                            <p class="text-xs text-muted-foreground font-mono">{{ $org->slug }}</p>
-                        @endif
-                    </div>
+                    <p class="font-medium leading-tight text-left">{{ $org->nombre }}</p>
                 </x-ui.table.cell>
                 <x-ui.table.cell data-label="Estado">
                     @if($org->activo)

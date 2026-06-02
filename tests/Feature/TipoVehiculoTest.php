@@ -28,8 +28,9 @@ class TipoVehiculoTest extends TestCase
         TipoVehiculo::factory()->create(['nombre' => 'Compactador']);
         TipoVehiculo::factory()->create(['nombre' => 'Volcador']);
 
+        // El índice de tipos-vehículo se fusionó como tab dentro de la pantalla de vehículos.
         $this->actingAs($this->admin())
-            ->get(route('admin.tipos-vehiculo.index'))
+            ->get(route('admin.vehiculos.index', ['tab' => 'tipos']))
             ->assertStatus(200)
             ->assertSee('Compactador')
             ->assertSee('Volcador');
@@ -44,7 +45,7 @@ class TipoVehiculoTest extends TestCase
                 'peso_min_kg' => 500,
                 'peso_max_kg' => 3500,
             ])
-            ->assertRedirect(route('admin.tipos-vehiculo.index'));
+            ->assertRedirect(route('admin.vehiculos.index', ['tab' => 'tipos']));
 
         $this->assertDatabaseHas('tipos_vehiculo', ['nombre' => 'Particular']);
     }
@@ -69,7 +70,7 @@ class TipoVehiculoTest extends TestCase
 
         $this->actingAs($this->admin())
             ->patch(route('admin.tipos-vehiculo.toggle', $tipo))
-            ->assertRedirect(route('admin.tipos-vehiculo.index'));
+            ->assertRedirect(route('admin.vehiculos.index', ['tab' => 'tipos']));
 
         $this->assertDatabaseHas('tipos_vehiculo', ['id' => $tipo->id, 'activo' => false]);
     }
@@ -81,7 +82,7 @@ class TipoVehiculoTest extends TestCase
 
         $this->actingAs($this->admin())
             ->patch(route('admin.tipos-vehiculo.toggle', $tipo))
-            ->assertRedirect(route('admin.tipos-vehiculo.index'));
+            ->assertRedirect(route('admin.vehiculos.index', ['tab' => 'tipos']));
 
         $this->assertDatabaseHas('tipos_vehiculo', ['id' => $tipo->id, 'activo' => true]);
     }
@@ -93,7 +94,7 @@ class TipoVehiculoTest extends TestCase
 
         $this->actingAs($this->admin())
             ->delete(route('admin.tipos-vehiculo.destroy', $tipo))
-            ->assertRedirect(route('admin.tipos-vehiculo.index'));
+            ->assertRedirect(route('admin.vehiculos.index', ['tab' => 'tipos']));
 
         $this->assertDatabaseMissing('tipos_vehiculo', ['id' => $tipo->id]);
     }

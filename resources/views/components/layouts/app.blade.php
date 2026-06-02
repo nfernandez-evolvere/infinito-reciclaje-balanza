@@ -17,7 +17,7 @@
         ['route' => 'admin.usuarios.index', 'icon' => 'users', 'label' => 'Usuarios'],
     ];
     $operadorItems = [
-        ['route' => 'balanza',   'icon' => 'scale', 'label' => 'Pesaje'],
+        ['route' => 'balanza',   'icon' => 'scale', 'label' => 'Pesaje', 'match' => ['balanza', 'pesajes.*']],
         ['route' => 'historial', 'icon' => 'list',  'label' => 'Historial'],
     ];
 
@@ -176,13 +176,14 @@
                     <x-ui.sidebar.group-content>
                         <x-ui.sidebar.menu>
                             @foreach($operadorItems as $item)
+                                @php $isActive = request()->routeIs(...(array) ($item['match'] ?? $item['route'])); @endphp
                                 <x-ui.sidebar.menu-item>
                                     <x-ui.sidebar.menu-button
                                         :href="route($item['route'])"
-                                        :active="request()->routeIs($item['route'])"
+                                        :active="$isActive"
                                         :tooltip="$item['label']"
                                     >
-                                        <span class="{{ request()->routeIs($item['route']) ? 'bg-primary/20 text-primary' : '' }} inline-flex size-8 items-center justify-center rounded-full shrink-0 transition-colors group-hover:bg-primary/20 group-hover:text-primary">
+                                        <span class="{{ $isActive ? 'bg-primary/20 text-primary' : '' }} inline-flex size-8 items-center justify-center rounded-full shrink-0 transition-colors group-hover:bg-primary/20 group-hover:text-primary">
                                             <x-dynamic-component :component="'lucide-' . $item['icon']" />
                                         </span>
                                         <span>{{ $item['label'] }}</span>

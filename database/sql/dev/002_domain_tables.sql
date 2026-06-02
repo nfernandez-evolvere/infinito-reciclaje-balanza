@@ -16,12 +16,10 @@ IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(N'[infinito
 CREATE TABLE [infinito_balanza].[dev_organizaciones] (
     [id]         BIGINT IDENTITY(1,1) NOT NULL,
     [nombre]     NVARCHAR(150)        NOT NULL,
-    [slug]       NVARCHAR(100)        NOT NULL,
     [activo]     BIT                  NOT NULL DEFAULT 1,
     [created_at] DATETIME2(0)         NULL,
     [updated_at] DATETIME2(0)         NULL,
-    CONSTRAINT [PK_dev_organizaciones]        PRIMARY KEY ([id]),
-    CONSTRAINT [UQ_dev_organizaciones_slug]   UNIQUE ([slug])
+    CONSTRAINT [PK_dev_organizaciones]        PRIMARY KEY ([id])
 );
 GO
 
@@ -31,7 +29,6 @@ GO
 IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(N'[infinito_balanza].[dev_users]') AND type = 'U')
 CREATE TABLE [infinito_balanza].[dev_users] (
     [id]                BIGINT IDENTITY(1,1) NOT NULL,
-    [organizacion_id]   BIGINT               NULL,
     [name]              NVARCHAR(255)        NOT NULL,
     [email]             NVARCHAR(255)        NOT NULL,
     [email_verified_at] DATETIME2(0)         NULL,
@@ -42,16 +39,28 @@ CREATE TABLE [infinito_balanza].[dev_users] (
     [remember_token]    NVARCHAR(100)        NULL,
     [created_at]        DATETIME2(0)         NULL,
     [updated_at]        DATETIME2(0)         NULL,
-    CONSTRAINT [PK_dev_users]              PRIMARY KEY ([id]),
-    CONSTRAINT [UQ_dev_users_email_org]    UNIQUE ([organizacion_id], [email]),
-    CONSTRAINT [CK_dev_users_role]         CHECK ([role] IN ('super_admin', 'admin', 'operador')),
-    -- super_admin no pertenece a ninguna org; admin/operador siempre pertenecen a una
-    CONSTRAINT [CK_dev_users_org_role]     CHECK (
-        ([role] = 'super_admin' AND [organizacion_id] IS NULL)
-        OR ([role] != 'super_admin' AND [organizacion_id] IS NOT NULL)
-    ),
-    CONSTRAINT [FK_dev_users_organizacion] FOREIGN KEY ([organizacion_id])
-        REFERENCES [infinito_balanza].[dev_organizaciones] ([id]) ON DELETE SET NULL
+    CONSTRAINT [PK_dev_users]       PRIMARY KEY ([id]),
+    CONSTRAINT [UQ_dev_users_email] UNIQUE ([email]),
+    CONSTRAINT [CK_dev_users_role]  CHECK ([role] IN ('super_admin', 'admin', 'operador'))
+);
+GO
+
+-- ---------------------------------------------------------------------
+-- dev_organizacion_user  (pivot: pertenencia usuario ↔ organización, N:N)
+-- ---------------------------------------------------------------------
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(N'[infinito_balanza].[dev_organizacion_user]') AND type = 'U')
+CREATE TABLE [infinito_balanza].[dev_organizacion_user] (
+    [id]              BIGINT IDENTITY(1,1) NOT NULL,
+    [organizacion_id] BIGINT               NOT NULL,
+    [user_id]         BIGINT               NOT NULL,
+    [created_at]      DATETIME2(0)         NULL,
+    [updated_at]      DATETIME2(0)         NULL,
+    CONSTRAINT [PK_dev_organizacion_user]      PRIMARY KEY ([id]),
+    CONSTRAINT [UQ_dev_organizacion_user_pair] UNIQUE ([organizacion_id], [user_id]),
+    CONSTRAINT [FK_dev_organizacion_user_org]  FOREIGN KEY ([organizacion_id])
+        REFERENCES [infinito_balanza].[dev_organizaciones] ([id]) ON DELETE CASCADE,
+    CONSTRAINT [FK_dev_organizacion_user_user] FOREIGN KEY ([user_id])
+        REFERENCES [infinito_balanza].[dev_users] ([id]) ON DELETE CASCADE
 );
 GO
 

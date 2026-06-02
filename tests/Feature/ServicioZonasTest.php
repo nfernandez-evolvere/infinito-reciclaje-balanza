@@ -21,7 +21,9 @@ class ServicioZonasTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->org = Organizacion::create(['nombre' => 'Test', 'slug' => 'test', 'activo' => true]);
+        // El TestCase base ya crea y bindea la organización de prueba. Reutilizarla
+        // mantiene el global scope alineado y evita crear orgs duplicadas.
+        $this->org = app('organizacion');
     }
 
     private function usuario(): User
@@ -172,32 +174,33 @@ class ServicioZonasTest extends TestCase
             ->getJson(route('servicios.zonas', $servicio))
             ->assertOk()
             ->assertJsonStructure([
-                'tipo_vehiculo_sugerido',
+                'tipos_vehiculo_sugeridos',
                 'zonas' => [['id', 'nombre', 'turnos']],
             ]);
     }
 
     #[Test]
-    public function retorna_tipo_vehiculo_sugerido(): void
+    public function retorna_tipos_vehiculo_sugeridos(): void
     {
         $tv       = \App\Models\TipoVehiculo::factory()->create(['nombre' => 'Compactador', 'organizacion_id' => $this->org->id]);
-        $servicio = $this->servicio(['tipo_vehiculo_sugerido_id' => $tv->id]);
+        $servicio = $this->servicio();
+        $servicio->tiposVehiculo()->attach($tv->id);
 
         $this->actingAs($this->usuario())
             ->getJson(route('servicios.zonas', $servicio))
             ->assertOk()
-            ->assertJsonPath('tipo_vehiculo_sugerido', 'Compactador');
+            ->assertJsonPath('tipos_vehiculo_sugeridos', ['Compactador']);
     }
 
     #[Test]
-    public function tipo_vehiculo_sugerido_es_null_cuando_no_tiene(): void
+    public function tipos_vehiculo_sugeridos_vacio_cuando_no_tiene(): void
     {
-        $servicio = $this->servicio(['tipo_vehiculo_sugerido_id' => null]);
+        $servicio = $this->servicio();
 
         $this->actingAs($this->usuario())
             ->getJson(route('servicios.zonas', $servicio))
             ->assertOk()
-            ->assertJsonPath('tipo_vehiculo_sugerido', null);
+            ->assertJsonPath('tipos_vehiculo_sugeridos', []);
     }
 
     // — Acceso ——————————————————————————————————————————————————

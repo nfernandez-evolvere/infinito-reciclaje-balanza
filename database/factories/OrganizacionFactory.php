@@ -14,11 +14,8 @@ class OrganizacionFactory extends Factory
 
     public function definition(): array
     {
-        $nombre = $this->faker->unique()->company();
-
         return [
-            'nombre' => $nombre,
-            'slug'   => str($nombre)->slug()->toString(),
+            'nombre' => $this->faker->unique()->company(),
             'activo' => true,
         ];
     }

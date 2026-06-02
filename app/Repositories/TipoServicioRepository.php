@@ -13,9 +13,9 @@ class TipoServicioRepository
         return TipoServicio::activos()->orderBy('nombre')->get();
     }
 
-    public function activosConVehiculoSugerido(): Collection
+    public function activosConTiposVehiculo(): Collection
     {
-        return TipoServicio::activos()->with('tipoVehiculoSugerido')->get();
+        return TipoServicio::activos()->with('tiposVehiculo')->get();
     }
 
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator

@@ -12,6 +12,9 @@ class PesajeLogRepository
         return PesajeLog::create($data);
     }
 
+    /**
+     * @return Collection<int, PesajeLog>
+     */
     public function porPesaje(int $pesajeId): Collection
     {
         return PesajeLog::with('usuario')
