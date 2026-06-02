@@ -8,6 +8,9 @@
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
         </testsuite>
+        <testsuite name="Integration">
+            <directory>tests/Integration</directory>
+        </testsuite>
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
         </testsuite>
@@ -17,6 +20,13 @@
             <directory>app</directory>
         </include>
     </source>
+    <!--
+        La cobertura se genera por CLI en CI con las flags de coverage de artisan test.
+        No se declara el bloque coverage/report en el XML porque PHPUnit 12 auto-activa la
+        recoleccion al detectar reports y aborta si no hay driver (pcov/xdebug). En Windows
+        local no hay driver, asi que dejarlo aca romperia `php artisan test`.
+        El bloque source de arriba acota que se mide.
+    -->
     <php>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>

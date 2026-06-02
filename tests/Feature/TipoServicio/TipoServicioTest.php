@@ -1,10 +1,9 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\TipoServicio;
 
 use App\Models\TipoServicio;
 use App\Models\TipoVehiculo;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -12,16 +11,6 @@ use Tests\TestCase;
 class TipoServicioTest extends TestCase
 {
     use RefreshDatabase;
-
-    private function admin(): User
-    {
-        return User::factory()->create(['role' => 'admin']);
-    }
-
-    private function operador(): User
-    {
-        return User::factory()->create(['role' => 'operador']);
-    }
 
     private function payload(array $overrides = []): array
     {

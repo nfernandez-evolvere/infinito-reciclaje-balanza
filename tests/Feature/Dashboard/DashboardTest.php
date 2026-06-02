@@ -1,10 +1,9 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Dashboard;
 
 use App\Models\Pesaje;
 use App\Models\TipoVehiculo;
-use App\Models\User;
 use App\Models\Vehiculo;
 use App\Models\Zona;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -14,16 +13,6 @@ use Tests\TestCase;
 class DashboardTest extends TestCase
 {
     use RefreshDatabase;
-
-    private function admin(): User
-    {
-        return User::factory()->admin()->create();
-    }
-
-    private function operador(): User
-    {
-        return User::factory()->create();
-    }
 
     // ── Protección de rutas ───────────────────────────────────────────
 

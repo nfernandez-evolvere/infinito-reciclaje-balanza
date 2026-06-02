@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Usuario;
 
 use App\Mail\WelcomeMail;
 use App\Models\User;
@@ -13,16 +13,6 @@ use Tests\TestCase;
 class UsuarioTest extends TestCase
 {
     use RefreshDatabase;
-
-    private function admin(): User
-    {
-        return User::factory()->admin()->create();
-    }
-
-    private function operador(): User
-    {
-        return User::factory()->create(['role' => 'operador']);
-    }
 
     private function payload(array $overrides = []): array
     {

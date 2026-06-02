@@ -1,10 +1,9 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Vehiculo;
 
 use App\Models\Pesaje;
 use App\Models\TipoVehiculo;
-use App\Models\User;
 use App\Models\Vehiculo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -13,16 +12,6 @@ use Tests\TestCase;
 class VehiculoTest extends TestCase
 {
     use RefreshDatabase;
-
-    private function admin(): User
-    {
-        return User::factory()->create(['role' => 'admin']);
-    }
-
-    private function operador(): User
-    {
-        return User::factory()->create(['role' => 'operador']);
-    }
 
     private function payload(array $overrides = []): array
     {

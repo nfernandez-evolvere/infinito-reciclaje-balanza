@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Zona;
 
 use App\Models\Organizacion;
 use App\Models\TipoServicio;
