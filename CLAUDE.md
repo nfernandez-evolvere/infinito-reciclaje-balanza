@@ -18,6 +18,32 @@
 
 ---
 
+## ⚠️ Base de datos — comandos PROHIBIDOS
+
+La base de datos de producción es **compartida entre múltiples proyectos**. Cada proyecto usa un prefijo de tabla para separar sus datos. Ejecutar comandos destructivos sobre la base **elimina las tablas de todos los proyectos**, no solo de este.
+
+**Nunca ejecutar bajo ninguna circunstancia:**
+
+```bash
+php artisan migrate:fresh          # elimina TODAS las tablas y vuelve a migrar
+php artisan migrate:fresh --seed   # ídem + seeders
+php artisan migrate:reset          # revierte TODAS las migraciones (drop de tablas)
+php artisan db:wipe                # elimina TODAS las tablas, vistas y tipos
+```
+
+**Permitido:**
+
+```bash
+php artisan migrate                # solo aplica migraciones pendientes (seguro)
+php artisan migrate --force        # ídem, sin prompt de confirmación (para scripts de deploy)
+php artisan migrate:rollback       # revierte solo el último batch (usar con criterio)
+php artisan migrate:status         # consulta el estado (solo lectura, siempre seguro)
+```
+
+> Si necesitás limpiar el entorno local usá una base SQLite local (`DB_CONNECTION=sqlite`) donde no hay riesgo de afectar datos de otros proyectos.
+
+---
+
 # Laravel Design System — shadcn/ui en Blade
 
 Stack: **Laravel 13 + Tailwind CSS v4 + Alpine.js + Blade components**
@@ -1278,3 +1304,4 @@ public function update(UpdateUserRequest $request, User $user): RedirectResponse
 - Crear un método nuevo (en Controller, Service o Repository) sin antes revisar si ya existe uno reutilizable en ese dominio
 - Lógica de negocio en Models (solo scopes, relaciones, accessors)
 - Lógica en Blade (solo presentación)
+- Ejecutar `migrate:fresh`, `migrate:reset` o `db:wipe` — la BD es compartida entre proyectos y estos comandos eliminan tablas de todos ellos (ver sección ⚠️ Base de datos arriba)
