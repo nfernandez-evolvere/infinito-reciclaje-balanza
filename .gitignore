@@ -3,8 +3,8 @@
 !/storage/app/mpdf-tmp/.gitkeep
 .DS_Store
 .env
-.env.backup
-.env.production
+.env.*
+!.env.example
 .phpactor.json
 .phpunit.result.cache
 /.codex

@@ -144,10 +144,15 @@ class PesajeController extends Controller
     {
         $this->pesajeService->marcarEgreso($pesaje, $request->validated());
 
+        $pesaje->loadMissing('vehiculo');
         $route = auth()->user()->isAdmin() ? 'admin.pesajes.index' : 'historial';
 
         return redirect()->route($route)
-            ->with('toast', ['message' => 'Egreso registrado.', 'variant' => 'success']);
+            ->with('toast', [
+                'message'     => 'Egreso registrado.',
+                'description' => 'El egreso de ' . $pesaje->vehiculo->patente . ' fue registrado.',
+                'variant'     => 'success',
+            ]);
     }
 
     public function cancelar(CancelarPesajeRequest $request, Pesaje $pesaje): RedirectResponse
@@ -161,7 +166,7 @@ class PesajeController extends Controller
             ->with('toast', [
                 'message'     => 'Pesaje cancelado.',
                 'description' => 'El pesaje de ' . $pesaje->vehiculo->patente . ' fue removido del turno.',
-                'variant'     => 'default',
+                'variant'     => 'destructive',
             ]);
     }
 

@@ -91,15 +91,16 @@ class ZonaController extends Controller
 
     public function destroy(Zona $zona): RedirectResponse
     {
+        $nombre = $zona->nombre;
+
         try {
-            $nombre = $zona->nombre;
             $this->service->eliminar($zona);
 
             return redirect()->route('admin.zonas.index')
                 ->with('toast', [
                     'message'     => 'Zona eliminada.',
                     'description' => 'Los pesajes históricos no se ven afectados.',
-                    'variant'     => 'success',
+                    'variant'     => 'destructive',
                 ]);
         } catch (QueryException $e) {
             $isConstraint = in_array($e->getCode(), ['23000', '23503']);

@@ -12,12 +12,32 @@ use App\Models\Zona;
 use App\Models\ZonaServicio;
 use App\Models\ZonaServicioTurno;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class DevSeeder extends Seeder
 {
     public function run(): void
     {
+        // Limpia datos previos en orden correcto (hijos antes que padres)
+        DB::table('pesajes_log')->delete();
+        DB::table('pesajes')->delete();
+        DB::table('vehiculos_log')->delete();
+        DB::table('zona_servicio_horarios')->delete();
+        DB::table('zona_servicio_turnos')->delete();
+        DB::table('zona_servicios')->delete();
+        DB::table('tipo_servicio_tipo_vehiculo')->delete();
+        DB::table('vehiculos')->delete();
+        DB::table('tipos_servicio')->delete();
+        DB::table('tipos_vehiculo')->delete();
+        DB::table('zonas')->delete();
+        DB::table('reportes_programados')->delete();
+        DB::table('reporte_destinatarios')->delete();
+        DB::table('reporte_configuraciones')->delete();
+        DB::table('organizacion_user')->delete();
+        DB::table('users')->delete();
+        DB::table('organizaciones')->delete();
+
         $corrientes  = Organizacion::create(['nombre' => 'Corrientes',  'activo' => true]);
         $resistencia = Organizacion::create(['nombre' => 'Resistencia', 'activo' => true]);
 

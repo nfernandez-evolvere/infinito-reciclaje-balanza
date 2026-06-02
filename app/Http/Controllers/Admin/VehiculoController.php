@@ -108,14 +108,13 @@ class VehiculoController extends Controller
     public function destroy(Vehiculo $vehiculo): RedirectResponse
     {
         try {
-            $patente = $vehiculo->patente;
             $this->service->eliminar($vehiculo);
 
             return redirect()->route('admin.vehiculos.index')
                 ->with('toast', [
                     'message'     => 'Vehículo eliminado.',
                     'description' => 'Los pesajes históricos de este vehículo no se ven afectados.',
-                    'variant'     => 'success',
+                    'variant'     => 'destructive',
                 ]);
         } catch (QueryException $e) {
             $isConstraint = in_array($e->getCode(), ['23000', '23503']);

@@ -26,18 +26,33 @@ class ReporteDestinatarioRepository
             return;
         }
 
-        $rows = array_map(fn ($email) => [
-            'organizacion_id' => $orgId,
-            'email'           => strtolower($email),
-            'uso_count'       => 1,
-            'created_at'      => now(),
-            'updated_at'      => now(),
-        ], $emails);
+        $emails = array_values(array_map('strtolower', $emails));
+        $table  = (new ReporteDestinatario)->getTable();
+        $now    = now()->format('Y-m-d\TH:i:s');
 
-        ReporteDestinatario::upsert(
-            $rows,
-            ['organizacion_id', 'email'],
-            ['uso_count' => DB::raw('uso_count + 1'), 'updated_at' => now()]
-        );
+        // UPDATE en tabla única — uso_count no es ambiguo (sin MERGE)
+        DB::table($table)
+            ->where('organizacion_id', $orgId)
+            ->whereIn('email', $emails)
+            ->update(['uso_count' => DB::raw('uso_count + 1'), 'updated_at' => $now]);
+
+        $existing = DB::table($table)
+            ->where('organizacion_id', $orgId)
+            ->whereIn('email', $emails)
+            ->pluck('email')
+            ->map(fn ($e) => strtolower($e))
+            ->toArray();
+
+        $toInsert = array_values(array_diff($emails, $existing));
+
+        foreach (array_chunk($toInsert, 100) as $chunk) {
+            DB::table($table)->insert(array_map(fn ($email) => [
+                'organizacion_id' => $orgId,
+                'email'           => $email,
+                'uso_count'       => 1,
+                'created_at'      => $now,
+                'updated_at'      => $now,
+            ], $chunk));
+        }
     }
 }
