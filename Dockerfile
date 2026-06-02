@@ -4,9 +4,9 @@ FROM php:8.4-cli-bookworm
 RUN apt-get update && apt-get install -y \
     git curl zip unzip \
     libzip-dev libgd-dev libpng-dev libjpeg-dev \
-    chromium fonts-liberation supervisor \
+    libpq-dev chromium fonts-liberation supervisor \
     && docker-php-ext-configure gd --with-jpeg \
-    && docker-php-ext-install gd zip opcache pdo pdo_mysql \
+    && docker-php-ext-install gd zip opcache pdo pdo_mysql pdo_pgsql \
     && rm -rf /var/lib/apt/lists/*
 
 # Node.js 20
