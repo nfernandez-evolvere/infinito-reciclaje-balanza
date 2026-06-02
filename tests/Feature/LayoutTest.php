@@ -19,8 +19,8 @@ class LayoutTest extends TestCase
         $response = $this->actingAs($user)->get('/balanza');
 
         $response->assertStatus(200)
-                 ->assertSee('Pesaje')
-                 ->assertSee('Historial');
+            ->assertSee('Pesaje')
+            ->assertSee('Historial');
     }
 
     #[Test]
@@ -31,7 +31,7 @@ class LayoutTest extends TestCase
         $response = $this->actingAs($user)->get('/admin/dashboard');
 
         $response->assertStatus(200)
-                 ->assertSee('Dashboard')
-                 ->assertSee('Pesajes');
+            ->assertSee('Dashboard')
+            ->assertSee('Pesajes');
     }
 }

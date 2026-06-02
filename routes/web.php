@@ -12,7 +12,8 @@ Route::get('/', function () {
         return view('modules.landing');
     }
     $user = auth()->user();
-    return redirect(match(true) {
+
+    return redirect(match (true) {
         $user->isSuperAdmin() => route('super.dashboard'),
         $user->isAdmin()      => route('admin.dashboard'),
         default               => route('balanza'),
@@ -22,7 +23,7 @@ Route::get('/', function () {
 Route::fallback(function () {
     $user = auth()->user();
     if ($user) {
-        $home = match(true) {
+        $home = match (true) {
             $user->isSuperAdmin() => route('super.dashboard'),
             $user->isAdmin()      => route('admin.dashboard'),
             default               => route('balanza'),
@@ -30,6 +31,7 @@ Route::fallback(function () {
     } else {
         $home = route('login');
     }
+
     return response()->view('errors.404', [
         'home'          => $home,
         'showAppLayout' => $user !== null,

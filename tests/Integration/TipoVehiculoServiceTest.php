@@ -18,7 +18,7 @@ class TipoVehiculoServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new TipoVehiculoService(new TipoVehiculoRepository());
+        $this->service = new TipoVehiculoService(new TipoVehiculoRepository);
     }
 
     #[Test]

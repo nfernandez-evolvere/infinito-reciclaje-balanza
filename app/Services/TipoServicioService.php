@@ -21,6 +21,7 @@ class TipoServicioService
     {
         $ids = array_map('intval', $data['tipo_vehiculo_ids'] ?? []);
         unset($data['tipo_vehiculo_ids']);
+
         return $this->repository->create($data, $ids);
     }
 
@@ -28,6 +29,7 @@ class TipoServicioService
     {
         $ids = array_map('intval', $data['tipo_vehiculo_ids'] ?? []);
         unset($data['tipo_vehiculo_ids']);
+
         return $this->repository->update($tipoServicio, $data, $ids);
     }
 

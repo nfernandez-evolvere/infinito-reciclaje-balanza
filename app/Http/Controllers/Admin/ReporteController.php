@@ -5,22 +5,23 @@ namespace App\Http\Controllers\Admin;
 use App\Exports\ReporteExcelExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreReporteProgramadoRequest;
-use App\Http\Requests\Admin\UpdateReporteProgramadoRequest;
 use App\Http\Requests\Admin\UpdateReporteConfiguracionRequest;
+use App\Http\Requests\Admin\UpdateReporteProgramadoRequest;
 use App\Jobs\GenerarEnviarReporteJob;
+use App\Models\ReporteConfiguracion;
 use App\Models\ReporteProgramado;
 use App\Repositories\ReporteConfiguracionRepository;
 use App\Repositories\ReporteDestinatarioRepository;
 use App\Repositories\ReporteProgramadoRepository;
+use App\Repositories\TipoServicioRepository;
+use App\Repositories\TipoVehiculoRepository;
+use App\Repositories\ZonaRepository;
 use App\Services\ConclusionesAIService;
 use App\Services\PdfService;
 use App\Services\ReporteConfiguracionService;
 use App\Services\ReporteProgramadoService;
 use App\Services\ReporteService;
 use App\Services\SvgChartService;
-use App\Repositories\TipoServicioRepository;
-use App\Repositories\TipoVehiculoRepository;
-use App\Repositories\ZonaRepository;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -51,11 +52,11 @@ class ReporteController extends Controller
     {
         $tab = $request->input('tab', 'programados');
 
-        $zonas         = $this->zonaRepository->activos();
+        $zonas = $this->zonaRepository->activos();
         $tiposServicio = $this->tipoServicioRepository->activos();
         $tiposVehiculo = $this->tipoVehiculoRepository->activos();
-        $programados   = $this->programadoRepository->allOrdered();
-        $config        = $this->configuracionRepository->first() ?? new \App\Models\ReporteConfiguracion();
+        $programados = $this->programadoRepository->allOrdered();
+        $config = $this->configuracionRepository->first() ?? new ReporteConfiguracion;
 
         $filters = [
             'desde'            => $request->input('desde'),
@@ -101,8 +102,8 @@ class ReporteController extends Controller
             'hasta' => ['required', 'date', 'after_or_equal:desde'],
         ]);
 
-        $reporte  = $this->generarReporte($request);
-        $filename = 'reporte_' . $request->desde . '_' . $request->hasta . '.xlsx';
+        $reporte = $this->generarReporte($request);
+        $filename = 'reporte_'.$request->desde.'_'.$request->hasta.'.xlsx';
 
         return (new ReporteExcelExport($reporte))->download($filename);
     }
@@ -114,8 +115,8 @@ class ReporteController extends Controller
             'hasta' => ['required', 'date', 'after_or_equal:desde'],
         ]);
 
-        $desde  = Carbon::parse($request->input('desde'));
-        $hasta  = Carbon::parse($request->input('hasta'));
+        $desde = Carbon::parse($request->input('desde'));
+        $hasta = Carbon::parse($request->input('hasta'));
         $reporte = $this->reporteService->generar(
             $desde,
             $hasta,
@@ -132,15 +133,15 @@ class ReporteController extends Controller
             ];
         }
 
-        $reporte['config']       = $config;
+        $reporte['config'] = $config;
         $reporte['conclusiones'] = $conclusiones;
 
-        $filename   = 'informe_' . $desde->format('Y-m') . '.pdf';
+        $filename = 'informe_'.$desde->format('Y-m').'.pdf';
         $pdfContent = $this->pdfService->fromView('modules.admin.reportes.pdf-presentacion', compact('reporte'));
 
         return response($pdfContent, 200, [
             'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ]);
     }
 
@@ -233,6 +234,4 @@ class ReporteController extends Controller
             array_filter($request->only(['zona_id', 'tipo_servicio_id', 'tipo_vehiculo_id']))
         );
     }
-
-
 }

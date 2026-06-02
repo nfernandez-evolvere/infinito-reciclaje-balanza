@@ -1,8 +1,13 @@
 <?php
 
+use App\Http\Middleware\EnsureRole;
+use App\Http\Middleware\ResolveOrganizacion;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -13,26 +18,27 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
         $middleware->web(append: [
-            \App\Http\Middleware\ResolveOrganizacion::class,
+            ResolveOrganizacion::class,
         ]);
         $middleware->alias([
-            'role' => \App\Http\Middleware\EnsureRole::class,
+            'role' => EnsureRole::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (
-            \Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e,
-            \Illuminate\Http\Request $request
+            NotFoundHttpException $e,
+            Request $request
         ) {
             try {
-                $store     = app('session.store');
+                $store = app('session.store');
                 $encrypted = $request->cookies->get(config('session.cookie'));
                 if ($encrypted) {
-                    $store->setId(\Illuminate\Support\Facades\Crypt::decrypt($encrypted, false));
+                    $store->setId(Crypt::decrypt($encrypted, false));
                     $store->start();
                     $request->setLaravelSession($store);
                 }
-            } catch (\Throwable) {}
+            } catch (Throwable) {
+            }
 
             $user = auth()->user();
             $home = $user

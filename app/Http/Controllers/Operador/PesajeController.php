@@ -30,6 +30,7 @@ class PesajeController extends Controller
     public function store(StorePesajeRequest $request): RedirectResponse
     {
         $pesaje = $this->pesajeService->crear($request->validated(), $request->user());
+
         return redirect()->route('pesajes.show', $pesaje);
     }
 }

@@ -15,7 +15,7 @@ use Illuminate\Support\Str;
  */
 class Pesaje extends Model
 {
-    use HasFactory, BelongsToOrganizacion;
+    use BelongsToOrganizacion, HasFactory;
 
     protected $table = 'pesajes';
 

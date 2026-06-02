@@ -13,7 +13,7 @@ class TipoServicioFactory extends Factory
     public function definition(): array
     {
         return [
-            'nombre' => $this->faker->unique()->word() . ' ' . $this->faker->unique()->numberBetween(1, 9999),
+            'nombre' => $this->faker->unique()->word().' '.$this->faker->unique()->numberBetween(1, 9999),
             'activo' => true,
         ];
     }

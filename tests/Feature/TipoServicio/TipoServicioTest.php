@@ -38,7 +38,7 @@ class TipoServicioTest extends TestCase
     #[Test]
     public function test_index_shows_tipo_vehiculo_nombre(): void
     {
-        $tv   = TipoVehiculo::factory()->create(['nombre' => 'Compactador']);
+        $tv = TipoVehiculo::factory()->create(['nombre' => 'Compactador']);
         $tipo = TipoServicio::factory()->create();
         $tipo->tiposVehiculo()->attach($tv->id);
 
@@ -214,7 +214,7 @@ class TipoServicioTest extends TestCase
     #[Test]
     public function test_admin_can_update(): void
     {
-        $tv   = TipoVehiculo::factory()->create();
+        $tv = TipoVehiculo::factory()->create();
         $tipo = TipoServicio::factory()->create(['nombre' => 'Antiguo']);
 
         $this->actingAs($this->admin())
@@ -265,7 +265,7 @@ class TipoServicioTest extends TestCase
     #[Test]
     public function test_update_puede_limpiar_tipos_vehiculo(): void
     {
-        $tv   = TipoVehiculo::factory()->create();
+        $tv = TipoVehiculo::factory()->create();
         $tipo = TipoServicio::factory()->create();
         $tipo->tiposVehiculo()->attach($tv->id);
 
@@ -404,7 +404,7 @@ class TipoServicioTest extends TestCase
     {
         // El pivot tiene ON DELETE CASCADE: al eliminar el tipo de vehículo,
         // su vínculo con el servicio se borra (el servicio sigue existiendo).
-        $tv   = TipoVehiculo::factory()->create();
+        $tv = TipoVehiculo::factory()->create();
         $tipo = TipoServicio::factory()->create();
         $tipo->tiposVehiculo()->attach($tv->id);
 
@@ -421,7 +421,7 @@ class TipoServicioTest extends TestCase
     #[Test]
     public function test_desactivar_tipo_vehiculo_no_afecta_tipo_servicio(): void
     {
-        $tv   = TipoVehiculo::factory()->create(['activo' => true]);
+        $tv = TipoVehiculo::factory()->create(['activo' => true]);
         $tipo = TipoServicio::factory()->create(['activo' => true]);
         $tipo->tiposVehiculo()->attach($tv->id);
 

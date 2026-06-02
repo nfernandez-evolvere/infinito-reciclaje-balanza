@@ -39,7 +39,7 @@ class OrganizacionController extends Controller
 
     public function index(Request $request): View
     {
-        $filters        = $request->only(['nombre', 'activo']);
+        $filters = $request->only(['nombre', 'activo']);
         $organizaciones = $this->service->paginate();
 
         return view('modules.super_admin.organizaciones.index', compact('organizaciones', 'filters'));
@@ -82,7 +82,7 @@ class OrganizacionController extends Controller
     {
         try {
             $eraActivo = $organizacion->activo;
-            $nombre    = $organizacion->nombre;
+            $nombre = $organizacion->nombre;
             $this->service->toggleActivo($organizacion);
 
             $toast = $eraActivo
@@ -130,6 +130,7 @@ class OrganizacionController extends Controller
                 $request->validated('email'),
                 $request->validated('name'),
             );
+
             return response()->json(['user' => $user]);
         } catch (\RuntimeException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
@@ -142,6 +143,7 @@ class OrganizacionController extends Controller
     {
         try {
             $this->service->removeUser($organizacion, $user);
+
             return response()->json(['success' => true]);
         } catch (\RuntimeException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
@@ -152,6 +154,7 @@ class OrganizacionController extends Controller
     {
         try {
             $this->service->resetUserPassword($organizacion, $user);
+
             return response()->json(['success' => true]);
         } catch (\RuntimeException $e) {
             return response()->json(['message' => $e->getMessage()], 422);

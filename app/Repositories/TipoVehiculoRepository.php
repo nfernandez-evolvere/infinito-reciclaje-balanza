@@ -23,8 +23,8 @@ class TipoVehiculoRepository
     {
         return TipoVehiculo::query()
             ->when(
-                !empty($filters['nombre']),
-                fn ($q) => $q->where('nombre', 'like', '%' . $filters['nombre'] . '%')
+                ! empty($filters['nombre']),
+                fn ($q) => $q->where('nombre', 'like', '%'.$filters['nombre'].'%')
             )
             ->when(
                 isset($filters['peso_min']) && $filters['peso_min'] !== '',
@@ -56,6 +56,7 @@ class TipoVehiculoRepository
     public function update(TipoVehiculo $tipoVehiculo, array $data): TipoVehiculo
     {
         $tipoVehiculo->update($data);
+
         return $tipoVehiculo;
     }
 

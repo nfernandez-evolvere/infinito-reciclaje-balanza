@@ -20,8 +20,8 @@ class PesajeFactory extends Factory
     public function definition(): array
     {
         $bruto = $this->faker->numberBetween(5000, 20000);
-        $tara  = $this->faker->numberBetween(2000, $bruto - 500);
-        $neto  = $bruto - $tara;
+        $tara = $this->faker->numberBetween(2000, $bruto - 500);
+        $neto = $bruto - $tara;
 
         return [
             'uuid'               => (string) Str::uuid(),

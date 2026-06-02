@@ -18,6 +18,7 @@ class ReporteProgramadoService
         $data = $this->prepareData($validated);
         $programado = $this->programadoRepository->create($data);
         $this->syncDestinatarios($data['destinatarios']);
+
         return $programado;
     }
 
@@ -26,6 +27,7 @@ class ReporteProgramadoService
         $data = $this->prepareData($validated);
         $programado = $this->programadoRepository->update($programado, $data);
         $this->syncDestinatarios($data['destinatarios']);
+
         return $programado;
     }
 
@@ -41,7 +43,7 @@ class ReporteProgramadoService
         ));
 
         return array_merge($validated, [
-            'destinatarios'   => $destinatarios,
+            'destinatarios'    => $destinatarios,
             'proximo_envio_at' => now()->addMinute(),
         ]);
     }
@@ -49,7 +51,7 @@ class ReporteProgramadoService
     private function syncDestinatarios(array $emails): void
     {
         $orgId = app()->bound('organizacion') ? app('organizacion')?->id : null;
-        if (!$orgId) {
+        if (! $orgId) {
             return;
         }
         $this->destinatarioRepository->upsert($orgId, $emails);

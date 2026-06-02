@@ -29,11 +29,11 @@ class ReporteProgramado extends Model
     ];
 
     protected $casts = [
-        'destinatarios'   => 'array',
-        'opciones'        => 'array',
-        'activo'          => 'boolean',
-        'ultimo_envio_at' => 'datetime',
-        'proximo_envio_at'=> 'datetime',
+        'destinatarios'    => 'array',
+        'opciones'         => 'array',
+        'activo'           => 'boolean',
+        'ultimo_envio_at'  => 'datetime',
+        'proximo_envio_at' => 'datetime',
     ];
 
     public function scopeActivos($query)

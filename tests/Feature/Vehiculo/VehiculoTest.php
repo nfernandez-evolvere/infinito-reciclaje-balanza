@@ -172,7 +172,7 @@ class VehiculoTest extends TestCase
     #[Test]
     public function test_admin_can_update(): void
     {
-        $tipo     = TipoVehiculo::factory()->create();
+        $tipo = TipoVehiculo::factory()->create();
         $vehiculo = Vehiculo::factory()->create(['patente' => 'OLD001', 'tipo_vehiculo_id' => $tipo->id]);
 
         $this->actingAs($this->admin())
@@ -225,7 +225,7 @@ class VehiculoTest extends TestCase
     #[Test]
     public function test_update_rejects_patente_of_another_vehiculo(): void
     {
-        $tipo     = TipoVehiculo::factory()->create();
+        $tipo = TipoVehiculo::factory()->create();
         Vehiculo::factory()->create(['patente' => 'OTRO01', 'tipo_vehiculo_id' => $tipo->id]);
         $vehiculo = Vehiculo::factory()->create(['tipo_vehiculo_id' => $tipo->id]);
 
@@ -245,7 +245,7 @@ class VehiculoTest extends TestCase
     #[Test]
     public function test_update_requires_decision_when_tara_changes_with_pesajes(): void
     {
-        $tipo     = TipoVehiculo::factory()->create();
+        $tipo = TipoVehiculo::factory()->create();
         $vehiculo = Vehiculo::factory()->create(['tara_kg' => 8000, 'tipo_vehiculo_id' => $tipo->id]);
         Pesaje::factory()->create(['vehiculo_id' => $vehiculo->id]);
 
@@ -263,9 +263,9 @@ class VehiculoTest extends TestCase
     #[Test]
     public function test_update_corregir_dato_recalculates_pesajes(): void
     {
-        $tipo     = TipoVehiculo::factory()->create();
+        $tipo = TipoVehiculo::factory()->create();
         $vehiculo = Vehiculo::factory()->create(['tara_kg' => 8000, 'tipo_vehiculo_id' => $tipo->id]);
-        $pesaje   = Pesaje::factory()->create([
+        $pesaje = Pesaje::factory()->create([
             'vehiculo_id'   => $vehiculo->id,
             'peso_bruto_kg' => 20000,
             'peso_tara_kg'  => 8000,
@@ -299,9 +299,9 @@ class VehiculoTest extends TestCase
     #[Test]
     public function test_update_cambio_real_keeps_history(): void
     {
-        $tipo     = TipoVehiculo::factory()->create();
+        $tipo = TipoVehiculo::factory()->create();
         $vehiculo = Vehiculo::factory()->create(['tara_kg' => 8000, 'tipo_vehiculo_id' => $tipo->id]);
-        $pesaje   = Pesaje::factory()->create([
+        $pesaje = Pesaje::factory()->create([
             'vehiculo_id'   => $vehiculo->id,
             'peso_bruto_kg' => 20000,
             'peso_tara_kg'  => 8000,
@@ -334,7 +334,7 @@ class VehiculoTest extends TestCase
     #[Test]
     public function test_update_tara_without_pesajes_needs_no_decision(): void
     {
-        $tipo     = TipoVehiculo::factory()->create();
+        $tipo = TipoVehiculo::factory()->create();
         $vehiculo = Vehiculo::factory()->create(['tara_kg' => 8000, 'tipo_vehiculo_id' => $tipo->id]);
 
         $this->actingAs($this->admin())
@@ -433,7 +433,7 @@ class VehiculoTest extends TestCase
     #[Test]
     public function test_inactivating_tipo_vehiculo_does_not_cascade_to_vehiculos(): void
     {
-        $tipo     = TipoVehiculo::factory()->create(['activo' => true]);
+        $tipo = TipoVehiculo::factory()->create(['activo' => true]);
         $vehiculo = Vehiculo::factory()->create(['tipo_vehiculo_id' => $tipo->id, 'activo' => true]);
 
         // Desactivar el tipo no debe desactivar ni eliminar los vehículos asignados

@@ -18,6 +18,7 @@ class SqlServerSchemaGrammar extends SqlServerGrammar
     public function setSchema(string $schema): static
     {
         $this->dbSchema = $schema;
+
         return $this;
     }
 
@@ -36,7 +37,7 @@ class SqlServerSchemaGrammar extends SqlServerGrammar
         $tablePrefix = $prefix ?? $this->connection->getTablePrefix();
 
         return $this->wrapValue($this->dbSchema)
-            . '.'
-            . $this->wrapValue($tablePrefix . $table);
+            .'.'
+            .$this->wrapValue($tablePrefix.$table);
     }
 }

@@ -433,7 +433,7 @@ class UsuarioTest extends TestCase
     #[Test]
     public function test_update_does_not_change_password(): void
     {
-        $usuario          = User::factory()->create();
+        $usuario = User::factory()->create();
         $originalPassword = $usuario->password;
 
         $this->actingAs($this->admin())
@@ -523,7 +523,7 @@ class UsuarioTest extends TestCase
     public function test_toggle_does_not_affect_other_users(): void
     {
         $objetivo = User::factory()->create(['activo' => true]);
-        $otro     = User::factory()->create(['activo' => true]);
+        $otro = User::factory()->create(['activo' => true]);
 
         $this->actingAs($this->admin())
             ->patch(route('admin.usuarios.toggle', $objetivo));
@@ -593,7 +593,7 @@ class UsuarioTest extends TestCase
     #[Test]
     public function test_reset_password_does_not_change_other_fields(): void
     {
-        $usuario    = User::factory()->create(['name' => 'Nombre Fijo', 'role' => 'operador']);
+        $usuario = User::factory()->create(['name' => 'Nombre Fijo', 'role' => 'operador']);
         $originalId = $usuario->id;
 
         $this->actingAs($this->admin())

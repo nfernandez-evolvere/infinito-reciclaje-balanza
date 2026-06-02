@@ -59,6 +59,7 @@ class ZonaServicio extends Model
                 'fin'    => substr($h->hora_fin, 0, 5),
             ];
         }
+
         return $result;
     }
 }

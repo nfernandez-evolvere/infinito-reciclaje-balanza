@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Repositories\UsuarioRepository;
 use App\Services\UsuarioService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -19,7 +20,7 @@ class UsuarioServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new UsuarioService(new UsuarioRepository());
+        $this->service = new UsuarioService(new UsuarioRepository);
     }
 
     // — Crear ——————————————————————————————————————————————————
@@ -98,7 +99,7 @@ class UsuarioServiceTest extends TestCase
     #[Test]
     public function test_actualizar_does_not_change_password(): void
     {
-        $usuario          = User::factory()->create();
+        $usuario = User::factory()->create();
         $originalPassword = $usuario->password;
 
         $this->service->actualizar($usuario, [
@@ -139,7 +140,7 @@ class UsuarioServiceTest extends TestCase
     public function test_desactivar_does_not_affect_other_users(): void
     {
         $objetivo = User::factory()->create(['activo' => true]);
-        $otro     = User::factory()->create(['activo' => true]);
+        $otro = User::factory()->create(['activo' => true]);
 
         $this->service->desactivar($objetivo);
 
@@ -163,7 +164,7 @@ class UsuarioServiceTest extends TestCase
     #[Test]
     public function test_resetear_password_replaces_old_hash(): void
     {
-        $usuario          = User::factory()->create();
+        $usuario = User::factory()->create();
         $originalPassword = $usuario->password;
 
         $this->service->resetearPassword($usuario, 'nuevaPassword123');
@@ -227,7 +228,7 @@ class UsuarioServiceTest extends TestCase
         User::factory()->create(['role' => 'admin']);
 
         $operadores = $this->service->listar(['role' => 'operador']);
-        $admins     = $this->service->listar(['role' => 'admin']);
+        $admins = $this->service->listar(['role' => 'admin']);
 
         $this->assertCount(2, $operadores);
         $this->assertCount(1, $admins);
@@ -239,7 +240,7 @@ class UsuarioServiceTest extends TestCase
         User::factory()->count(2)->create(['activo' => true]);
         User::factory()->inactive()->create();
 
-        $activos   = $this->service->listar(['activo' => '1']);
+        $activos = $this->service->listar(['activo' => '1']);
         $inactivos = $this->service->listar(['activo' => '0']);
 
         $this->assertCount(2, $activos);
@@ -265,6 +266,6 @@ class UsuarioServiceTest extends TestCase
 
         $resultado = $this->service->listar([]);
 
-        $this->assertInstanceOf(\Illuminate\Pagination\LengthAwarePaginator::class, $resultado);
+        $this->assertInstanceOf(LengthAwarePaginator::class, $resultado);
     }
 }

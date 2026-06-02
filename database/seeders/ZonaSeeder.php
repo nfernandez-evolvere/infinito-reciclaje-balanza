@@ -13,8 +13,8 @@ class ZonaSeeder extends Seeder
     public function run(): void
     {
         $domiciliario = TipoServicio::where('nombre', 'Domiciliario')->value('id');
-        $barrido      = TipoServicio::where('nombre', 'Barrido')->value('id');
-        $voluminoso   = TipoServicio::where('nombre', 'Voluminoso')->value('id');
+        $barrido = TipoServicio::where('nombre', 'Barrido')->value('id');
+        $voluminoso = TipoServicio::where('nombre', 'Voluminoso')->value('id');
 
         $zonas = [
             [
@@ -72,7 +72,7 @@ class ZonaSeeder extends Seeder
             );
 
             foreach ($data['servicios'] as $servicio) {
-                if (!$servicio['id']) {
+                if (! $servicio['id']) {
                     continue;
                 }
 

@@ -2,14 +2,14 @@
 
 /**
  * Reduce el docblock que ide-helper escribe en cada modelo a solo las líneas
+ *
  * @mixin. Las anotaciones completas (@property/@method) quedan en
  * _ide_helper_models.php (clases IdeHelper*), referenciado vía @mixin.
  *
  * Se ejecuta automáticamente después de `ide-helper:models` mediante el
  * script de composer `ide-helper`. Ver composer.json.
  */
-
-$models = glob(__DIR__ . '/../app/Models/*.php');
+$models = glob(__DIR__.'/../app/Models/*.php');
 $changed = [];
 
 foreach ($models as $file) {
@@ -21,6 +21,7 @@ foreach ($models as $file) {
         if (preg_match('/@mixin\s+IdeHelper(\w+)/', $m[0], $mm)) {
             return "/**\n * @mixin \\Eloquent\n * @mixin IdeHelper{$mm[1]}\n */";
         }
+
         return $m[0];
     }, $code, 1);
 
@@ -30,4 +31,4 @@ foreach ($models as $file) {
     }
 }
 
-echo 'Modelos limpiados: ' . count($changed) . PHP_EOL;
+echo 'Modelos limpiados: '.count($changed).PHP_EOL;

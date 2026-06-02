@@ -76,5 +76,4 @@ class PdfService
 
         return null;
     }
-
 }

@@ -26,6 +26,7 @@ use Illuminate\Support\Str;
 class PesajeSeeder extends Seeder
 {
     private const DESDE = [2026, 1, 1];
+
     private const BATCH_SIZE = 100; // SQL Server: máx 2100 params; 18 cols × 100 rows = 1800
 
     // Mensajes de motivo para pesajes editados
@@ -58,15 +59,17 @@ class PesajeSeeder extends Seeder
             $combinaciones = $this->buildCombinaciones($org);
 
             if ($combinaciones->isEmpty()) {
-                $this->command->warn("     Sin combinaciones zona+servicio. Saltando.");
+                $this->command->warn('     Sin combinaciones zona+servicio. Saltando.');
+
                 continue;
             }
 
-            $vehiculos  = $org->vehiculos;
+            $vehiculos = $org->vehiculos;
             $operadores = $org->users;
 
             if ($vehiculos->isEmpty() || $operadores->isEmpty()) {
-                $this->command->warn("     Sin vehículos u operadores. Saltando.");
+                $this->command->warn('     Sin vehículos u operadores. Saltando.');
+
                 continue;
             }
 
@@ -97,7 +100,9 @@ class PesajeSeeder extends Seeder
 
         foreach (CarbonPeriod::create($desde, $hasta) as $dia) {
             /** @var Carbon $dia */
-            if ($dia->isSunday()) continue;
+            if ($dia->isSunday()) {
+                continue;
+            }
 
             $volumen = $this->volumenDia($dia, $org->nombre);
 
@@ -105,13 +110,15 @@ class PesajeSeeder extends Seeder
                 $hora = $this->horaAleatoria($dia);
 
                 // Hoy: no generar pesajes futuros
-                if ($dia->isToday() && $hora->gt(now())) continue;
+                if ($dia->isToday() && $hora->gt(now())) {
+                    continue;
+                }
 
                 $combinacion = $combinaciones->random();
-                $vehiculo    = $flotaPonderada->random();
-                $operador    = $operadores->random();
+                $vehiculo = $flotaPonderada->random();
+                $operador = $operadores->random();
 
-                $neto  = $this->generarNeto($vehiculo->tipoVehiculo->nombre);
+                $neto = $this->generarNeto($vehiculo->tipoVehiculo->nombre);
                 $bruto = $vehiculo->tara_kg + $neto;
 
                 $alerta = $bruto < $vehiculo->tipoVehiculo->peso_min_kg
@@ -137,14 +144,14 @@ class PesajeSeeder extends Seeder
                     'observaciones'    => rand(1, 20) === 1
                         ? self::OBSERVACIONES[array_rand(self::OBSERVACIONES)]
                         : null,
-                    'estado'           => $enPredio ? 'En predio' : 'Cerrado',
-                    'hora_salida'      => $enPredio
+                    'estado'      => $enPredio ? 'En predio' : 'Cerrado',
+                    'hora_salida' => $enPredio
                         ? null
                         : $hora->copy()->addMinutes(rand(15, 90))->format('Y-m-d\TH:i:s'),
-                    'bruto_salida_kg'  => null,
-                    'editado'          => 0,
-                    'created_at'       => $hora->format('Y-m-d\TH:i:s'),
-                    'updated_at'       => $hora->format('Y-m-d\TH:i:s'),
+                    'bruto_salida_kg' => null,
+                    'editado'         => 0,
+                    'created_at'      => $hora->format('Y-m-d\TH:i:s'),
+                    'updated_at'      => $hora->format('Y-m-d\TH:i:s'),
                 ];
 
                 $total++;
@@ -156,7 +163,7 @@ class PesajeSeeder extends Seeder
             }
         }
 
-        if (!empty($batch)) {
+        if (! empty($batch)) {
             DB::table('pesajes')->insert($batch);
         }
 
@@ -168,7 +175,9 @@ class PesajeSeeder extends Seeder
     private function agregarEdiciones(Organizacion $org): void
     {
         $admins = $org->users()->where('role', 'admin')->get();
-        if ($admins->isEmpty()) return;
+        if ($admins->isEmpty()) {
+            return;
+        }
 
         // Tomar ~2% del total como editados (máx. 80 por org)
         $pesajes = DB::table('pesajes')
@@ -179,15 +188,17 @@ class PesajeSeeder extends Seeder
             ->limit(min(80, (int) (DB::table('pesajes')->where('organizacion_id', $org->id)->count() * 0.02)))
             ->get(['id', 'peso_bruto_kg', 'peso_tara_kg', 'created_at']);
 
-        if ($pesajes->isEmpty()) return;
+        if ($pesajes->isEmpty()) {
+            return;
+        }
 
         $logBatch = [];
 
         foreach ($pesajes as $p) {
             $originalBruto = $p->peso_bruto_kg;
-            $delta         = rand(-600, 600);
-            $nuevoBruto    = max(1000, $originalBruto + $delta);
-            $nuevoNeto     = $nuevoBruto - $p->peso_tara_kg;
+            $delta = rand(-600, 600);
+            $nuevoBruto = max(1000, $originalBruto + $delta);
+            $nuevoNeto = $nuevoBruto - $p->peso_tara_kg;
 
             $timestampEdicion = Carbon::parse($p->created_at)->addHours(rand(1, 48))->format('Y-m-d\TH:i:s');
 
@@ -209,7 +220,7 @@ class PesajeSeeder extends Seeder
             ];
         }
 
-        if (!empty($logBatch)) {
+        if (! empty($logBatch)) {
             DB::table('pesajes_log')->insert($logBatch);
         }
     }
@@ -265,7 +276,7 @@ class PesajeSeeder extends Seeder
 
         foreach ($vehiculos as $v) {
             $nombre = $v->tipoVehiculo->nombre ?? '';
-            $peso   = match (true) {
+            $peso = match (true) {
                 str_contains($nombre, 'Compactador') => 4,
                 str_contains($nombre, 'Volcador')    => 4,
                 str_contains($nombre, 'Volquete')    => 2,
@@ -301,20 +312,20 @@ class PesajeSeeder extends Seeder
         };
 
         $factorMes = match ($dia->month) {
-            1  => 0.72,
-            2  => 0.82,
-            3  => 1.05,
-            4  => 1.00,
-            5  => 0.93,
+            1       => 0.72,
+            2       => 0.82,
+            3       => 1.05,
+            4       => 1.00,
+            5       => 0.93,
             default => 1.00,
         };
 
         // Hoy: proporcional al % del día transcurrido en horario operativo (6–18 h)
         $factorHoy = 1.0;
         if ($dia->isToday()) {
-            $minutosOp    = 12 * 60; // ventana operativa
+            $minutosOp = 12 * 60; // ventana operativa
             $minutosTransc = max(0, now()->diffInMinutes(Carbon::today()->setHour(6)));
-            $factorHoy     = min(1.0, $minutosTransc / $minutosOp);
+            $factorHoy = min(1.0, $minutosTransc / $minutosOp);
         }
 
         $varianza = rand(80, 120) / 100.0;
@@ -339,7 +350,7 @@ class PesajeSeeder extends Seeder
         // Suma de 3 uniformes → distribución triangular, buen proxy de normal
         $u = (rand(0, 10000) + rand(0, 10000) + rand(0, 10000)) / 30000.0;
         // Escalar: [0,1] → [-1, 1] con stddev ≈ 1/√3 ≈ 0.577
-        $z    = ($u - 0.5) * 2;
+        $z = ($u - 0.5) * 2;
         $neto = (int) round($media + $z * $desvio * 1.732);
 
         return max(200, $neto);
@@ -353,15 +364,15 @@ class PesajeSeeder extends Seeder
     {
         if (rand(1, 10) <= 7) {
             // Pico
-            $hora   = rand(7, 13);
+            $hora = rand(7, 13);
             $minuto = rand(0, 59);
         } elseif (rand(0, 1) === 0) {
             // Madrugada operativa
-            $hora   = rand(6, 6);
+            $hora = rand(6, 6);
             $minuto = rand(0, 59);
         } else {
             // Tarde
-            $hora   = rand(14, 17);
+            $hora = rand(14, 17);
             $minuto = rand(0, 59);
         }
 

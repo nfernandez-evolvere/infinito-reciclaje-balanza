@@ -38,7 +38,7 @@ class DevSeeder extends Seeder
         DB::table('users')->delete();
         DB::table('organizaciones')->delete();
 
-        $corrientes  = Organizacion::create(['nombre' => 'Corrientes',  'activo' => true]);
+        $corrientes = Organizacion::create(['nombre' => 'Corrientes',  'activo' => true]);
         $resistencia = Organizacion::create(['nombre' => 'Resistencia', 'activo' => true]);
 
         User::create([
@@ -48,7 +48,7 @@ class DevSeeder extends Seeder
             'role'     => 'super_admin',
         ]);
 
-        $this->seedOrganizacion($corrientes,  'COR');
+        $this->seedOrganizacion($corrientes, 'COR');
         $this->seedOrganizacion($resistencia, 'RES');
 
         // Admin con acceso a ambas orgs — para probar el selector de organización en el login
@@ -165,14 +165,14 @@ class DevSeeder extends Seeder
         // ── Zonas ─────────────────────────────────────────────────────────────
         $zonasData = [
             [
-                'nombre' => "Zona Norte $suffix", 'hectareas' => 1850.50, 'barrios' => 12, 'habitantes' => 48000,
+                'nombre'    => "Zona Norte $suffix", 'hectareas' => 1850.50, 'barrios' => 12, 'habitantes' => 48000,
                 'servicios' => [
                     ['id' => $domiciliario->id, 'turnos' => ['Diurna', 'Nocturna']],
                     ['id' => $barrido->id,      'turnos' => ['Diurna']],
                 ],
             ],
             [
-                'nombre' => "Zona Sur $suffix", 'hectareas' => 2200.00, 'barrios' => 15, 'habitantes' => 62000,
+                'nombre'    => "Zona Sur $suffix", 'hectareas' => 2200.00, 'barrios' => 15, 'habitantes' => 62000,
                 'servicios' => [
                     ['id' => $domiciliario->id, 'turnos' => ['Diurna', 'Nocturna']],
                     ['id' => $barrido->id,      'turnos' => ['Diurna']],
@@ -180,7 +180,7 @@ class DevSeeder extends Seeder
                 ],
             ],
             [
-                'nombre' => "Zona Centro $suffix", 'hectareas' => 620.00, 'barrios' => 6, 'habitantes' => 35000,
+                'nombre'    => "Zona Centro $suffix", 'hectareas' => 620.00, 'barrios' => 6, 'habitantes' => 35000,
                 'servicios' => [
                     ['id' => $domiciliario->id, 'turnos' => ['Diurna']],
                     ['id' => $barrido->id,      'turnos' => ['Diurna']],
@@ -188,7 +188,7 @@ class DevSeeder extends Seeder
                 ],
             ],
             [
-                'nombre' => "Zona Industrial $suffix", 'hectareas' => 3400.00, 'barrios' => 3, 'habitantes' => 8000,
+                'nombre'    => "Zona Industrial $suffix", 'hectareas' => 3400.00, 'barrios' => 3, 'habitantes' => 8000,
                 'servicios' => [
                     ['id' => $domiciliario->id, 'turnos' => []],
                 ],
@@ -197,13 +197,13 @@ class DevSeeder extends Seeder
 
         // ── Configuración de reportes ─────────────────────────────────────────
         ReporteConfiguracion::create([
-            'organizacion_id'             => $org->id,
-            'municipalidad_nombre'        => "Municipalidad de {$org->nombre}",
-            'intro_empresa'               => 'Infinito Reciclaje es una empresa dedicada a la gestión integral de residuos urbanos, brindando servicios de recolección, barrido y disposición final con estándares de calidad y cuidado ambiental.',
-            'servicios'                   => [
+            'organizacion_id'      => $org->id,
+            'municipalidad_nombre' => "Municipalidad de {$org->nombre}",
+            'intro_empresa'        => 'Infinito Reciclaje es una empresa dedicada a la gestión integral de residuos urbanos, brindando servicios de recolección, barrido y disposición final con estándares de calidad y cuidado ambiental.',
+            'servicios'            => [
                 ['titulo' => 'Recolección domiciliaria',  'descripcion' => 'Servicio de recolección puerta a puerta en zonas residenciales y comerciales.'],
                 ['titulo' => 'Barrido de calles',         'descripcion' => 'Limpieza manual y mecánica de vías públicas y espacios comunes.'],
-                ['titulo' => 'Recolección de voluminosos','descripcion' => 'Retiro de muebles, electrodomésticos y residuos de gran tamaño.'],
+                ['titulo' => 'Recolección de voluminosos', 'descripcion' => 'Retiro de muebles, electrodomésticos y residuos de gran tamaño.'],
             ],
             'ai_enabled'                  => true,
             'ai_proveedor'                => 'gemini',

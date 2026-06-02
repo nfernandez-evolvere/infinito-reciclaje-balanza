@@ -15,7 +15,7 @@ class DashboardController extends Controller
     public function index(): View
     {
         return view('modules.super_admin.dashboard', [
-            'stats'    => $this->dashboardService->stats(),
+            'stats'     => $this->dashboardService->stats(),
             'recientes' => $this->dashboardService->recientes(),
         ]);
     }

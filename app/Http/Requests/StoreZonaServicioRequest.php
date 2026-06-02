@@ -14,14 +14,14 @@ class StoreZonaServicioRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'tipo_servicio_id'                => ['required', 'integer', 'exists:tipos_servicio,id'],
-            'turnos'                          => ['nullable', 'array'],
-            'turnos.*'                        => ['string', 'in:Diurna,Nocturna'],
-            'horarios'                        => ['nullable', 'array'],
-            'horarios.*'                      => ['nullable', 'array'],
-            'horarios.*.*'                    => ['nullable', 'array'],
-            'horarios.*.*.inicio'             => ['nullable', 'string', 'date_format:H:i'],
-            'horarios.*.*.fin'                => ['nullable', 'string', 'date_format:H:i'],
+            'tipo_servicio_id'    => ['required', 'integer', 'exists:tipos_servicio,id'],
+            'turnos'              => ['nullable', 'array'],
+            'turnos.*'            => ['string', 'in:Diurna,Nocturna'],
+            'horarios'            => ['nullable', 'array'],
+            'horarios.*'          => ['nullable', 'array'],
+            'horarios.*.*'        => ['nullable', 'array'],
+            'horarios.*.*.inicio' => ['nullable', 'string', 'date_format:H:i'],
+            'horarios.*.*.fin'    => ['nullable', 'string', 'date_format:H:i'],
         ];
     }
 

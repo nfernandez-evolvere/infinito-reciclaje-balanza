@@ -32,7 +32,7 @@ class UpdateReporteConfiguracionRequest extends FormRequest
             'tipo_alertas_activo'         => $this->boolean('tipo_alertas_activo'),
             'servicios'                   => array_values(array_filter(
                 $this->input('servicios', []),
-                fn($s) => !empty($s['titulo'])
+                fn ($s) => ! empty($s['titulo'])
             )),
         ]);
     }

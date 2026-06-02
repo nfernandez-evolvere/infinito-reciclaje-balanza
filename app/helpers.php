@@ -11,14 +11,14 @@ use TailwindMerge\Laravel\Facades\TailwindMerge;
  *   tw('rounded-md', 'rounded-full')      → 'rounded-full'
  *   tw($base, $sizeClass, $colorClass)    → merged without conflicts
  */
-if (!function_exists('tw')) {
+if (! function_exists('tw')) {
     function tw(string ...$classes): string
     {
         // Single array in memory for the lifetime of the process.
         // On first call: populated from the persistent cache (one read).
         // New entries are appended; the whole array is flushed on shutdown (one write).
-        static $mem     = null;
-        static $dirty   = false;
+        static $mem = null;
+        static $dirty = false;
 
         if ($mem === null) {
             $mem = cache()->get('tw_cache', []);
@@ -32,7 +32,7 @@ if (!function_exists('tw')) {
 
         $key = implode("\x00", $classes);
 
-        if (!array_key_exists($key, $mem)) {
+        if (! array_key_exists($key, $mem)) {
             $mem[$key] = TailwindMerge::merge(...$classes);
             $dirty = true;
         }

@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Vehiculo extends Model
 {
-    use HasFactory, BelongsToOrganizacion;
+    use BelongsToOrganizacion, HasFactory;
 
     protected $table = 'vehiculos';
 

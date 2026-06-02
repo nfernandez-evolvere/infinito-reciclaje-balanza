@@ -17,6 +17,7 @@ use Illuminate\View\View;
 class TipoServicioController extends Controller
 {
     use WithToastFlash;
+
     public function __construct(
         protected TipoServicioService $service,
         protected TipoVehiculoRepository $tipoVehiculoRepository,
@@ -24,8 +25,8 @@ class TipoServicioController extends Controller
 
     public function index(Request $request): View
     {
-        $filters       = $request->only(['nombre', 'activo', 'tipo_vehiculo_id']);
-        $tipos         = $this->service->listar($filters);
+        $filters = $request->only(['nombre', 'activo', 'tipo_vehiculo_id']);
+        $tipos = $this->service->listar($filters);
         $tiposVehiculo = $this->tipoVehiculoRepository->todos();
 
         return view('modules.admin.tipos-servicio.index', compact('tipos', 'filters', 'tiposVehiculo'));
@@ -115,5 +116,4 @@ class TipoServicioController extends Controller
             return $this->toastError('admin.tipos-servicio.index');
         }
     }
-
 }

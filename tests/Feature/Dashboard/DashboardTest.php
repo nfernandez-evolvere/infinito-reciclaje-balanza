@@ -48,9 +48,9 @@ class DashboardTest extends TestCase
             ->getJson(route('admin.dashboard.data'))
             ->assertOk()
             ->assertJsonStructure([
-                'kpisDia'  => ['total', 'toneladas', 'promedio', 'ultimo_hace_min',
-                               'delta', 'delta_base', 'delta_toneladas'],
-                'kpisMes'  => ['total', 'toneladas', 'dias_op', 'delta', 'delta_base'],
+                'kpisDia' => ['total', 'toneladas', 'promedio', 'ultimo_hace_min',
+                    'delta', 'delta_base', 'delta_toneladas'],
+                'kpisMes'     => ['total', 'toneladas', 'dias_op', 'delta', 'delta_base'],
                 'evolucion7'  => ['datos', 'promedio'],
                 'evolucion15' => ['datos', 'promedio'],
                 'evolucion90' => ['datos', 'promedio'],
@@ -72,8 +72,8 @@ class DashboardTest extends TestCase
             ->getJson(route('admin.dashboard.data', compact('desde', 'hasta')))
             ->assertOk()
             ->assertJsonStructure([
-                'kpisRango'             => ['total', 'toneladas', 'dias_rango', 'dias_op'],
-                'evolucionRango'        => ['datos', 'promedio'],
+                'kpisRango'      => ['total', 'toneladas', 'dias_rango', 'dias_op'],
+                'evolucionRango' => ['datos', 'promedio'],
                 'desgloseVehiculoRango',
                 'desgloseZonaRango',
             ]);
@@ -139,10 +139,10 @@ class DashboardTest extends TestCase
             ->assertOk()
             ->json();
 
-        $this->assertEquals(4,     $json['kpisMes']['total']);
-        $this->assertEquals(2,     $json['kpisMes']['delta_base']);
+        $this->assertEquals(4, $json['kpisMes']['total']);
+        $this->assertEquals(2, $json['kpisMes']['delta_base']);
         $this->assertEquals(100.0, $json['kpisMes']['delta']);
-        $this->assertEquals(8.0,   $json['kpisMes']['toneladas']);
+        $this->assertEquals(8.0, $json['kpisMes']['toneladas']);
         $this->assertEquals(100.0, $json['kpisMes']['delta_toneladas']);
     }
 
@@ -162,7 +162,7 @@ class DashboardTest extends TestCase
             ->json();
 
         $this->assertEquals(10.0, $json['kpisDia']['kg_por_ha']);
-        $this->assertEquals(0.5,  $json['kpisDia']['kg_por_persona']);
+        $this->assertEquals(0.5, $json['kpisDia']['kg_por_persona']);
     }
 
     #[Test]
@@ -205,7 +205,7 @@ class DashboardTest extends TestCase
 
         $this->assertNotNull($entrada);
         $this->assertEquals(100.0, $entrada['kg_por_ha']);
-        $this->assertEquals(2.0,   $entrada['kg_por_hab']);
+        $this->assertEquals(2.0, $entrada['kg_por_hab']);
     }
 
     #[Test]
@@ -248,8 +248,8 @@ class DashboardTest extends TestCase
     public function data_desglose_viene_ordenado_descendente_por_toneladas(): void
     {
         $tipo = TipoVehiculo::factory()->create();
-        $v1   = Vehiculo::factory()->create(['tipo_vehiculo_id' => $tipo->id]);
-        $v2   = Vehiculo::factory()->create(['tipo_vehiculo_id' => $tipo->id]);
+        $v1 = Vehiculo::factory()->create(['tipo_vehiculo_id' => $tipo->id]);
+        $v2 = Vehiculo::factory()->create(['tipo_vehiculo_id' => $tipo->id]);
 
         $zona1 = Zona::factory()->create();
         $zona2 = Zona::factory()->create();

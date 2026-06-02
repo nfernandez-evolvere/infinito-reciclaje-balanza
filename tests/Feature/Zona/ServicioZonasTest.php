@@ -4,6 +4,7 @@ namespace Tests\Feature\Zona;
 
 use App\Models\Organizacion;
 use App\Models\TipoServicio;
+use App\Models\TipoVehiculo;
 use App\Models\User;
 use App\Models\Zona;
 use App\Models\ZonaServicio;
@@ -66,7 +67,7 @@ class ServicioZonasTest extends TestCase
     public function retorna_turnos_de_la_zona(): void
     {
         $servicio = $this->servicio();
-        $zona     = $this->zona('Zona Norte');
+        $zona = $this->zona('Zona Norte');
         $this->vincular($zona, $servicio, ['Diurna', 'Nocturna']);
 
         $this->actingAs($this->usuario())
@@ -79,7 +80,7 @@ class ServicioZonasTest extends TestCase
     public function retorna_arreglo_vacio_cuando_zona_no_tiene_turnos(): void
     {
         $servicio = $this->servicio();
-        $zona     = $this->zona('Zona Industrial');
+        $zona = $this->zona('Zona Industrial');
         $this->vincular($zona, $servicio, []);
 
         $this->actingAs($this->usuario())
@@ -93,7 +94,7 @@ class ServicioZonasTest extends TestCase
     {
         $servicio1 = $this->servicio();
         $servicio2 = $this->servicio();
-        $zona      = $this->zona('Zona Norte');
+        $zona = $this->zona('Zona Norte');
 
         $this->vincular($zona, $servicio1, ['Diurna']);
         $this->vincular($zona, $servicio2, ['Nocturna']);
@@ -108,12 +109,12 @@ class ServicioZonasTest extends TestCase
     public function multiples_zonas_reciben_sus_turnos_correctamente(): void
     {
         $servicio = $this->servicio();
-        $norte    = $this->zona('Norte');
-        $sur      = $this->zona('Sur');
+        $norte = $this->zona('Norte');
+        $sur = $this->zona('Sur');
         $industrial = $this->zona('Industrial');
 
-        $this->vincular($norte,      $servicio, ['Diurna', 'Nocturna']);
-        $this->vincular($sur,        $servicio, ['Diurna']);
+        $this->vincular($norte, $servicio, ['Diurna', 'Nocturna']);
+        $this->vincular($sur, $servicio, ['Diurna']);
         $this->vincular($industrial, $servicio, []);
 
         $response = $this->actingAs($this->usuario())
@@ -123,8 +124,8 @@ class ServicioZonasTest extends TestCase
 
         $zonas = collect($response->json('zonas'))->keyBy('nombre');
         $this->assertEquals(['Diurna', 'Nocturna'], $zonas['Norte']['turnos']);
-        $this->assertEquals(['Diurna'],             $zonas['Sur']['turnos']);
-        $this->assertEquals([],                     $zonas['Industrial']['turnos']);
+        $this->assertEquals(['Diurna'], $zonas['Sur']['turnos']);
+        $this->assertEquals([], $zonas['Industrial']['turnos']);
     }
 
     // — Filtros de zona ————————————————————————————————————————
@@ -132,11 +133,11 @@ class ServicioZonasTest extends TestCase
     #[Test]
     public function excluye_zonas_inactivas(): void
     {
-        $servicio     = $this->servicio();
-        $zonaActiva   = $this->zona('Activa',   true);
+        $servicio = $this->servicio();
+        $zonaActiva = $this->zona('Activa', true);
         $zonaInactiva = $this->zona('Inactiva', false);
 
-        $this->vincular($zonaActiva,   $servicio, ['Diurna']);
+        $this->vincular($zonaActiva, $servicio, ['Diurna']);
         $this->vincular($zonaInactiva, $servicio, ['Nocturna']);
 
         $this->actingAs($this->usuario())
@@ -182,7 +183,7 @@ class ServicioZonasTest extends TestCase
     #[Test]
     public function retorna_tipos_vehiculo_sugeridos(): void
     {
-        $tv       = \App\Models\TipoVehiculo::factory()->create(['nombre' => 'Compactador', 'organizacion_id' => $this->org->id]);
+        $tv = TipoVehiculo::factory()->create(['nombre' => 'Compactador', 'organizacion_id' => $this->org->id]);
         $servicio = $this->servicio();
         $servicio->tiposVehiculo()->attach($tv->id);
 

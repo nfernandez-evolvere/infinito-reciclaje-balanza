@@ -11,8 +11,8 @@ class TipoServicioSeeder extends Seeder
     public function run(): void
     {
         $compactador = TipoVehiculo::where('nombre', 'Compactador')->value('id');
-        $volcador    = TipoVehiculo::where('nombre', 'Volcador')->value('id');
-        $volquete    = TipoVehiculo::where('nombre', 'Volquete')->value('id');
+        $volcador = TipoVehiculo::where('nombre', 'Volcador')->value('id');
+        $volquete = TipoVehiculo::where('nombre', 'Volquete')->value('id');
 
         $servicios = [
             ['nombre' => 'Domiciliario',            'vehiculos' => [$compactador]],

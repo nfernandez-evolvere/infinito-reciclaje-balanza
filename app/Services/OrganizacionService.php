@@ -25,7 +25,7 @@ class OrganizacionService
     public function create(array $data): Organizacion
     {
         $adminEmail = $data['admin_email'];
-        $adminName  = $data['admin_name'] ?? null;
+        $adminName = $data['admin_name'] ?? null;
 
         $org = $this->organizacionRepository->create(
             array_diff_key($data, array_flip(['admin_email', 'admin_name']))

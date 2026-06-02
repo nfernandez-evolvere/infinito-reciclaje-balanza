@@ -18,13 +18,14 @@ use Illuminate\View\View;
 class UsuarioController extends Controller
 {
     use WithToastFlash;
+
     public function __construct(
         protected UsuarioService $service,
     ) {}
 
     public function index(Request $request): View
     {
-        $filters  = $request->only(['buscar', 'role', 'activo']);
+        $filters = $request->only(['buscar', 'role', 'activo']);
         $usuarios = $this->service->listar($filters);
 
         return view('modules.admin.usuarios.index', compact('usuarios', 'filters'));
@@ -33,10 +34,10 @@ class UsuarioController extends Controller
     public function store(StoreUsuarioRequest $request): RedirectResponse
     {
         try {
-            $data           = $request->validated();
-            $plainPassword  = $data['password'];
+            $data = $request->validated();
+            $plainPassword = $data['password'];
             $data['activo'] = true;
-            $usuario        = $this->service->crear($data);
+            $usuario = $this->service->crear($data);
 
             Mail::to($usuario)->send(new WelcomeMail($usuario, $plainPassword, app('organizacion')));
 
@@ -127,5 +128,4 @@ class UsuarioController extends Controller
             return $this->toastError('admin.usuarios.index');
         }
     }
-
 }

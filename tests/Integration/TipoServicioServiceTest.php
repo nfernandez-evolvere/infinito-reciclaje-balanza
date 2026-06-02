@@ -19,7 +19,7 @@ class TipoServicioServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new TipoServicioService(new TipoServicioRepository());
+        $this->service = new TipoServicioService(new TipoServicioRepository);
     }
 
     // — Crear ——————————————————————————————————————————————————
@@ -27,7 +27,7 @@ class TipoServicioServiceTest extends TestCase
     #[Test]
     public function test_crear_almacena_con_tipos_vehiculo(): void
     {
-        $tv   = TipoVehiculo::factory()->create();
+        $tv = TipoVehiculo::factory()->create();
         $tipo = $this->service->crear([
             'nombre'            => 'Domiciliario',
             'tipo_vehiculo_ids' => [$tv->id],
@@ -95,8 +95,8 @@ class TipoServicioServiceTest extends TestCase
     #[Test]
     public function test_actualizar_cambia_tipos_vehiculo(): void
     {
-        $tvA  = TipoVehiculo::factory()->create();
-        $tvB  = TipoVehiculo::factory()->create();
+        $tvA = TipoVehiculo::factory()->create();
+        $tvB = TipoVehiculo::factory()->create();
         $tipo = TipoServicio::factory()->create();
         $tipo->tiposVehiculo()->attach($tvA->id);
 
@@ -118,7 +118,7 @@ class TipoServicioServiceTest extends TestCase
     #[Test]
     public function test_actualizar_limpia_tipos_vehiculo(): void
     {
-        $tv   = TipoVehiculo::factory()->create();
+        $tv = TipoVehiculo::factory()->create();
         $tipo = TipoServicio::factory()->create();
         $tipo->tiposVehiculo()->attach($tv->id);
 
@@ -175,7 +175,7 @@ class TipoServicioServiceTest extends TestCase
         TipoServicio::factory()->count(3)->create(['activo' => true]);
         TipoServicio::factory()->count(2)->create(['activo' => false]);
 
-        $activos   = $this->service->listar(['activo' => '1']);
+        $activos = $this->service->listar(['activo' => '1']);
         $inactivos = $this->service->listar(['activo' => '0']);
 
         $this->assertCount(3, $activos);
@@ -205,7 +205,7 @@ class TipoServicioServiceTest extends TestCase
     #[Test]
     public function test_listar_eager_loads_tipos_vehiculo(): void
     {
-        $tv   = TipoVehiculo::factory()->create(['nombre' => 'Compactador']);
+        $tv = TipoVehiculo::factory()->create(['nombre' => 'Compactador']);
         $tipo = TipoServicio::factory()->create();
         $tipo->tiposVehiculo()->attach($tv->id);
 

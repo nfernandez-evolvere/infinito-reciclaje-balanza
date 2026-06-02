@@ -20,6 +20,7 @@ class ReporteProgramadoRepository
     public function update(ReporteProgramado $programado, array $data): ReporteProgramado
     {
         $programado->update($data);
+
         return $programado;
     }
 
