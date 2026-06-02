@@ -23,13 +23,16 @@ return new class extends Migration
             $table->boolean('alerta_peso')->default(false);
             $table->string('observaciones', 500)->nullable();
             $table->string('estado', 20)->default('En predio');
-            $table->timestamp('hora_salida')->nullable();
+            // datetime2(3): SQL Server `datetime` redondea .999 al segundo siguiente
+            // (desvía la atribución por fecha de dashboard/reportes) y parsea YYYY-MM-DD
+            // según DATEFORMAT. datetime2 guarda el ms exacto y siempre interpreta ISO.
+            $table->timestamp('hora_salida', 3)->nullable();
             $table->integer('bruto_salida_kg')->nullable();
             $table->boolean('editado')->default(false);
             $table->string('motivo_cancelacion', 500)->nullable();
             $table->foreignId('cancelado_por_id')->nullable()->constrained('users')->noActionOnDelete();
-            $table->datetime('cancelado_at')->nullable();
-            $table->timestamps();
+            $table->dateTime('cancelado_at', 3)->nullable();
+            $table->timestamps(3);
         });
     }
 
