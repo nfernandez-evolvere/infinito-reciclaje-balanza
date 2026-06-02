@@ -87,6 +87,7 @@ class PesajeRepository
     {
         $stats = $this->buildQuery($filtros)
             ->where('estado', '!=', 'Cancelado')
+            ->reorder()
             ->selectRaw('COUNT(*) as total, SUM(peso_neto_kg) as total_neto, AVG(peso_neto_kg) as avg_neto')
             ->first();
 
