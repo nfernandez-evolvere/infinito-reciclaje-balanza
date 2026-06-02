@@ -383,9 +383,11 @@ class DashboardServiceTest extends TestCase
         $this->service->kpisDelDia();
         $this->service->kpisDelMes();
 
+        // Cada motor cita la tabla distinto ("zonas", `zonas`, [dbo].[test_zonas]);
+        // solo las queries a la tabla zonas contienen el substring 'zonas'
+        // (las de pesajes usan 'zona_id', que no lo contiene).
         $zonaQueries = collect(DB::getQueryLog())
-            ->filter(fn ($q) => str_contains(strtolower($q['query']), 'from "zonas"')
-                             || str_contains(strtolower($q['query']), 'from `zonas`'));
+            ->filter(fn ($q) => str_contains(strtolower($q['query']), 'zonas'));
 
         DB::disableQueryLog();
 
