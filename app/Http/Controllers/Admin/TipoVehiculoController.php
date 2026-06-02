@@ -9,7 +9,6 @@ use App\Models\TipoVehiculo;
 use App\Services\TipoVehiculoService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 
 class TipoVehiculoController extends Controller
 {
@@ -104,7 +103,7 @@ class TipoVehiculoController extends Controller
                 ->with('toast', [
                     'message'     => 'Tipo de vehículo eliminado.',
                     'description' => 'Los vehículos y pesajes asociados no se ven afectados.',
-                    'variant'     => 'success',
+                    'variant'     => 'destructive',
                 ]);
         } catch (QueryException $e) {
             $isConstraint = in_array($e->getCode(), ['23000', '23503']);

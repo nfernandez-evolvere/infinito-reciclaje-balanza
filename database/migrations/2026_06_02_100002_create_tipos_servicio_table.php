@@ -20,7 +20,7 @@ return new class extends Migration
 
         Schema::create('tipo_servicio_tipo_vehiculo', function (Blueprint $table) {
             $table->foreignId('tipo_servicio_id')->constrained('tipos_servicio')->cascadeOnDelete();
-            $table->foreignId('tipo_vehiculo_id')->constrained('tipos_vehiculo')->cascadeOnDelete();
+            $table->foreignId('tipo_vehiculo_id')->constrained('tipos_vehiculo')->noActionOnDelete();
             $table->primary(['tipo_servicio_id', 'tipo_vehiculo_id']);
         });
     }

@@ -26,7 +26,7 @@ use Illuminate\Support\Str;
 class PesajeSeeder extends Seeder
 {
     private const DESDE = [2026, 1, 1];
-    private const BATCH_SIZE = 500;
+    private const BATCH_SIZE = 100; // SQL Server: máx 2100 params; 18 cols × 100 rows = 1800
 
     // Mensajes de motivo para pesajes editados
     private const MOTIVOS = [
@@ -140,11 +140,11 @@ class PesajeSeeder extends Seeder
                     'estado'           => $enPredio ? 'En predio' : 'Cerrado',
                     'hora_salida'      => $enPredio
                         ? null
-                        : $hora->copy()->addMinutes(rand(15, 90))->format('Y-m-d H:i:s'),
+                        : $hora->copy()->addMinutes(rand(15, 90))->format('Y-m-d\TH:i:s'),
                     'bruto_salida_kg'  => null,
                     'editado'          => 0,
-                    'created_at'       => $hora->format('Y-m-d H:i:s'),
-                    'updated_at'       => $hora->format('Y-m-d H:i:s'),
+                    'created_at'       => $hora->format('Y-m-d\TH:i:s'),
+                    'updated_at'       => $hora->format('Y-m-d\TH:i:s'),
                 ];
 
                 $total++;
@@ -189,11 +189,13 @@ class PesajeSeeder extends Seeder
             $nuevoBruto    = max(1000, $originalBruto + $delta);
             $nuevoNeto     = $nuevoBruto - $p->peso_tara_kg;
 
+            $timestampEdicion = Carbon::parse($p->created_at)->addHours(rand(1, 48))->format('Y-m-d\TH:i:s');
+
             DB::table('pesajes')->where('id', $p->id)->update([
                 'peso_bruto_kg' => $nuevoBruto,
                 'peso_neto_kg'  => $nuevoNeto,
                 'editado'       => 1,
-                'updated_at'    => Carbon::parse($p->created_at)->addHours(rand(1, 48))->format('Y-m-d H:i:s'),
+                'updated_at'    => $timestampEdicion,
             ]);
 
             $logBatch[] = [
@@ -203,7 +205,7 @@ class PesajeSeeder extends Seeder
                 'valor_nuevo'    => (string) $nuevoBruto,
                 'motivo'         => self::MOTIVOS[array_rand(self::MOTIVOS)],
                 'usuario_id'     => $admins->random()->id,
-                'created_at'     => Carbon::parse($p->created_at)->addHours(rand(1, 48))->format('Y-m-d H:i:s'),
+                'created_at'     => $timestampEdicion,
             ];
         }
 

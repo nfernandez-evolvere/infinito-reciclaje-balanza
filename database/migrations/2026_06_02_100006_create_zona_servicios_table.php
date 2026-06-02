@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('zona_servicios', function (Blueprint $table) {
             $table->foreignId('zona_id')->constrained('zonas')->cascadeOnDelete();
-            $table->foreignId('tipo_servicio_id')->constrained('tipos_servicio')->cascadeOnDelete();
+            $table->foreignId('tipo_servicio_id')->constrained('tipos_servicio')->noActionOnDelete();
             $table->primary(['zona_id', 'tipo_servicio_id']);
             $table->timestamps();
         });

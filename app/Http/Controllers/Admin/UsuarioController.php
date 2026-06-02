@@ -94,14 +94,14 @@ class UsuarioController extends Controller
                 $this->service->desactivar($usuario);
                 $toast = [
                     'message'     => 'Usuario desactivado.',
-                    'description' => "\"{$usuario->name}\" no podrá iniciar sesión hasta que sea reactivado.",
+                    'description' => "\"{$usuario->name}\" no podrá iniciar sesión.",
                     'variant'     => 'success',
                 ];
             } else {
                 $this->service->activar($usuario);
                 $toast = [
                     'message'     => 'Usuario activado.',
-                    'description' => "\"{$usuario->name}\" ya puede volver a iniciar sesión.",
+                    'description' => "\"{$usuario->name}\" volvió a tener acceso al sistema.",
                     'variant'     => 'success',
                 ];
             }

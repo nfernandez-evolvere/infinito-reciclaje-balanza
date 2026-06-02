@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Models\TipoVehiculo;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 
 class TipoVehiculoRepository
 {
@@ -70,6 +71,11 @@ class TipoVehiculoRepository
 
     public function delete(TipoVehiculo $tipoVehiculo): void
     {
+        // noActionOnDelete en el pivot requiere limpieza manual antes de eliminar
+        DB::table('tipo_servicio_tipo_vehiculo')
+            ->where('tipo_vehiculo_id', $tipoVehiculo->id)
+            ->delete();
+
         $tipoVehiculo->delete();
     }
 }

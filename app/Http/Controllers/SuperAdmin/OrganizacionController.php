@@ -48,7 +48,7 @@ class OrganizacionController extends Controller
     public function store(StoreOrganizacionRequest $request): RedirectResponse
     {
         try {
-            $org        = $this->service->create($request->validated());
+            $this->service->create($request->validated());
             $adminEmail = $request->validated()['admin_email'];
 
             return redirect()->route('super.organizaciones.index')
@@ -85,12 +85,12 @@ class OrganizacionController extends Controller
             $nombre    = $organizacion->nombre;
             $this->service->toggleActivo($organizacion);
 
-            $msg = $eraActivo
-                ? ['message' => 'Organización desactivada.', 'description' => "\"{$nombre}\" ya no puede operar."]
-                : ['message' => 'Organización activada.',   'description' => "\"{$nombre}\" volvió a estar disponible."];
+            $toast = $eraActivo
+                ? ['message' => 'Organización desactivada.', 'description' => "\"{$nombre}\" ya no puede operar.",          'variant' => 'success']
+                : ['message' => 'Organización activada.',   'description' => "\"{$nombre}\" volvió a estar disponible.", 'variant' => 'success'];
 
             return redirect()->route('super.organizaciones.index')
-                ->with('toast', array_merge($msg, ['variant' => 'success']));
+                ->with('toast', $toast);
         } catch (\Throwable) {
             return $this->toastError('super.organizaciones.index');
         }
@@ -106,7 +106,7 @@ class OrganizacionController extends Controller
                 ->with('toast', [
                     'message'     => 'Organización eliminada.',
                     'description' => "\"{$nombre}\" fue removida del sistema.",
-                    'variant'     => 'success',
+                    'variant'     => 'destructive',
                 ]);
         } catch (QueryException $e) {
             $isConstraint = in_array($e->getCode(), ['23000', '23503']);

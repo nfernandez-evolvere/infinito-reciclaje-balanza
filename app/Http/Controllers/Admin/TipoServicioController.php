@@ -91,15 +91,16 @@ class TipoServicioController extends Controller
 
     public function destroy(TipoServicio $tiposServicio): RedirectResponse
     {
+        $nombre = $tiposServicio->nombre;
+
         try {
-            $nombre = $tiposServicio->nombre;
             $this->service->eliminar($tiposServicio);
 
             return redirect()->route('admin.tipos-servicio.index')
                 ->with('toast', [
                     'message'     => 'Tipo de servicio eliminado.',
                     'description' => 'Los pesajes asociados no se ven afectados.',
-                    'variant'     => 'success',
+                    'variant'     => 'destructive',
                 ]);
         } catch (QueryException $e) {
             $isConstraint = in_array($e->getCode(), ['23000', '23503']);

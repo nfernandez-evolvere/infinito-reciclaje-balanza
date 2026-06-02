@@ -152,7 +152,7 @@ class ReporteController extends Controller
 
         session()->flash('toast', [
             'message'     => 'Reporte programado creado.',
-            'description' => "\"{$programado->nombre}\" está activo y listo para enviar.",
+            'description' => "\"{$programado->nombre}\" quedó activo.",
             'variant'     => 'success',
         ]);
 
@@ -180,7 +180,7 @@ class ReporteController extends Controller
         session()->flash('toast', [
             'message'     => 'Reporte programado eliminado.',
             'description' => "\"{$nombre}\" fue removido. Los reportes históricos no se ven afectados.",
-            'variant'     => 'default',
+            'variant'     => 'destructive',
         ]);
 
         return redirect()->route('admin.reportes.index', ['tab' => 'programados']);

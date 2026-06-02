@@ -24,7 +24,7 @@ if (!function_exists('tw')) {
             $mem = cache()->get('tw_cache', []);
 
             register_shutdown_function(function () use (&$mem, &$dirty): void {
-                if ($dirty) {
+                if ($dirty && app()->bound('cache')) {
                     cache()->forever('tw_cache', $mem);
                 }
             });

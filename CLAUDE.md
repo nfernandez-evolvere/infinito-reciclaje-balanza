@@ -44,6 +44,116 @@ php artisan migrate:status         # consulta el estado (solo lectura, siempre s
 
 ---
 
+## ⚠️ SQL Server — Reglas de migración
+
+El proyecto usa **SQL Server Express** como motor de base de datos. SQL Server tiene restricciones que MySQL/PostgreSQL no tienen. Aplicar siempre estas reglas al escribir migraciones.
+
+### Variables de entorno requeridas
+
+```dotenv
+DB_PORT=            # dejar VACÍO para instancias nombradas (ej: localhost\SQLEXPRESS)
+DB_SCHEMA=dbo       # nunca dejar vacío — genera "".tabla que es SQL inválido
+```
+
+### `noActionOnDelete()` en lugar de `restrictOnDelete()`
+
+SQL Server **no soporta** `ON DELETE RESTRICT`. Usar siempre `noActionOnDelete()`:
+
+```php
+// ❌ SQL Server lanza syntax error
+$table->foreignId('tipo_vehiculo_id')->constrained('tipos_vehiculo')->restrictOnDelete();
+
+// ✅ Correcto en SQL Server
+$table->foreignId('tipo_vehiculo_id')->constrained('tipos_vehiculo')->noActionOnDelete();
+```
+
+### Cascadas múltiples — el error más frecuente
+
+SQL Server **rechaza** `ON DELETE CASCADE` en una FK si ya existe otro camino de cascada desde el mismo ancestro hasta esa tabla (directa o transitivamente). Esto aplica a tablas pivote y a cualquier tabla con dos FKs.
+
+**Regla práctica:** si una tabla tiene dos FKs y ambas (directa o transitivamente) llegan al mismo ancestro con CASCADE, la FK "secundaria" debe usar `noActionOnDelete()`.
+
+**Ejemplo — `vehiculos`:**
+```
+organizaciones ──cascade──► tipos_vehiculo ──cascade──► vehiculos   ← dos caminos a organizaciones
+organizaciones ──cascade──────────────────────────────► vehiculos
+```
+```php
+// ✅ organizacion_id cascadea (path directo, suficiente para limpiar al eliminar org)
+$table->foreignId('organizacion_id')->constrained('organizaciones')->cascadeOnDelete();
+// ✅ tipo_vehiculo_id NO cascadea (evita el segundo camino)
+$table->foreignId('tipo_vehiculo_id')->constrained('tipos_vehiculo')->noActionOnDelete();
+```
+
+**Patrón que siempre lo dispara — tabla pivote con dos FKs que comparten ancestro:**
+```php
+// ❌ Ambas cascadean y convergen en organizaciones → SQL Server lo rechaza
+$table->foreignId('zona_id')->constrained('zonas')->cascadeOnDelete();           // zonas → org
+$table->foreignId('tipo_servicio_id')->constrained('tipos_servicio')->cascadeOnDelete(); // servicios → org
+
+// ✅ Solo la FK primaria cascadea
+$table->foreignId('zona_id')->constrained('zonas')->cascadeOnDelete();
+$table->foreignId('tipo_servicio_id')->constrained('tipos_servicio')->noActionOnDelete();
+```
+
+**Checklist antes de crear una migración con FKs:**
+1. ¿Alguna de las FKs apunta a una tabla que ya cascadea de `organizaciones`? (`tipos_vehiculo`, `tipos_servicio`, `zonas`, `vehiculos`, …)
+2. ¿Hay otra FK en la misma tabla que también (directa o transitivamente) llega a `organizaciones`?
+3. Si ambas respuestas son sí → la FK secundaria debe ser `noActionOnDelete()`.
+
+### Límite de 2100 parámetros por query — bulk inserts
+
+SQL Server acepta **máximo 2100 parámetros** por sentencia SQL. En inserciones masivas (`DB::table()->insert($batch)`), cada columna de cada fila cuenta como un parámetro.
+
+```
+máx_filas_por_batch = floor(2100 / cantidad_de_columnas)
+```
+
+| Columnas | Máx. filas seguras |
+|----------|--------------------|
+| 10       | 210                |
+| 15       | 140                |
+| 18       | 116 → usar **100** |
+| 20       | 105 → usar **100** |
+
+```php
+// ❌ Con 18 cols y 500 filas → 9000 params → SQL Server lanza error
+DB::table('pesajes')->insert($batch); // $batch con 500 elementos
+
+// ✅ Cortar el batch a ≤ floor(2100 / n_cols) antes de insertar
+foreach (array_chunk($batch, 100) as $chunk) {
+    DB::table('pesajes')->insert($chunk);
+}
+```
+
+Regla práctica: usar **BATCH_SIZE = 100** en seeders de tablas con muchas columnas. Para tablas simples (≤10 cols) se puede usar 200.
+
+### Fechas en inserciones y updates raw — usar ISO 8601 con `T`
+
+SQL Server interpreta las fechas según el `SET DATEFORMAT` del servidor (puede ser `dmy` en servidores con locale en español). El formato `Y-m-d H:i:s` (`2026-01-13 08:23:06`) **es ambiguo** y puede fallar. El formato ISO 8601 con separador `T` es **siempre** aceptado sin importar el DATEFORMAT.
+
+```php
+// ❌ Ambiguo — SQL Server con DATEFORMAT=dmy interpreta 2026 como día → error
+'created_at' => $carbon->format('Y-m-d H:i:s'),
+
+// ✅ ISO 8601 con T — siempre unambiguo en SQL Server
+'created_at' => $carbon->format('Y-m-d\TH:i:s'),
+```
+
+Aplica a todos los `DB::table()->insert()`, `DB::table()->update()`, y queries raw con fechas como strings.
+Eloquent no tiene este problema — usa objetos Carbon/DateTime que el driver SQLSRV envía en formato nativo.
+
+### Otras restricciones SQL Server en queries raw
+
+Si alguna vez se necesita SQL raw, tener en cuenta:
+- No existe `LIMIT` — usar query builder (`.limit()`, `.take()`) que genera `TOP`/`OFFSET FETCH` correcto
+- No existe `DATE_FORMAT()` — usar Carbon o métodos del query builder
+- No existe `GROUP_CONCAT()` — usar `STRING_AGG(columna, separador)`
+- Booleanos en raw: usar `1`/`0`, no `true`/`false`
+- `ISNULL()` en lugar de `IFNULL()`
+
+---
+
 # Laravel Design System — shadcn/ui en Blade
 
 Stack: **Laravel 13 + Tailwind CSS v4 + Alpine.js + Blade components**

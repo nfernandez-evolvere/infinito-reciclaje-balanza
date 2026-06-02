@@ -18,6 +18,7 @@
                 placeholder="Describí por qué se cancela este pesaje…"
                 rows="3"
                 required
+                state="destructive"
             />
         </form>
 
