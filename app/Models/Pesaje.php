@@ -54,13 +54,22 @@ class Pesaje extends Model
     }
 
     protected $casts = [
-        'alerta_peso'   => 'boolean',
-        'editado'       => 'boolean',
-        'hora_salida'   => 'datetime',
-        'cancelado_at'  => 'datetime',
-        'peso_bruto_kg' => 'integer',
-        'peso_tara_kg'  => 'integer',
-        'peso_neto_kg'  => 'integer',
+        'alerta_peso'     => 'boolean',
+        'editado'         => 'boolean',
+        'hora_salida'     => 'datetime',
+        'cancelado_at'    => 'datetime',
+        'peso_bruto_kg'   => 'integer',
+        'peso_tara_kg'    => 'integer',
+        'peso_neto_kg'    => 'integer',
+        'bruto_salida_kg' => 'integer',
+        // FKs casteados a int: el driver sqlsrv los devuelve como string y rompe
+        // comparaciones estrictas (===) y agrupaciones que asumen int (SQLite los da int).
+        'organizacion_id'  => 'integer',
+        'vehiculo_id'      => 'integer',
+        'operador_id'      => 'integer',
+        'tipo_servicio_id' => 'integer',
+        'zona_id'          => 'integer',
+        'cancelado_por_id' => 'integer',
     ];
 
     public function vehiculo(): BelongsTo
