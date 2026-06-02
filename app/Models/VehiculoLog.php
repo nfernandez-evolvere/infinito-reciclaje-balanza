@@ -7,14 +7,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @mixin \Eloquent
- * @mixin IdeHelperPesajeLog
+ * @mixin IdeHelperVehiculoLog
  */
-class PesajeLog extends Model
+class VehiculoLog extends Model
 {
-    protected $table = 'pesajes_log';
+    protected $table = 'vehiculos_log';
 
     protected $fillable = [
-        'pesaje_id',
+        'vehiculo_id',
         'campo',
         'valor_anterior',
         'valor_nuevo',
@@ -22,9 +22,9 @@ class PesajeLog extends Model
         'usuario_id',
     ];
 
-    public function pesaje(): BelongsTo
+    public function vehiculo(): BelongsTo
     {
-        return $this->belongsTo(Pesaje::class);
+        return $this->belongsTo(Vehiculo::class);
     }
 
     public function usuario(): BelongsTo

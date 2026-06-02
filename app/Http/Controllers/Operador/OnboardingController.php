@@ -10,7 +10,7 @@ class OnboardingController extends Controller
 {
     public function __construct(protected UsuarioRepository $usuarioRepository) {}
 
-    public function __invoke(): JsonResponse
+    public function store(): JsonResponse
     {
         $this->usuarioRepository->marcarOnboardingVisto(auth()->user());
 

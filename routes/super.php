@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:super_admin'])->name('super.')->group(function () {
 
-    Route::get('/dashboard', SuperDashboardController::class)->name('dashboard');
+    Route::get('/dashboard', [SuperDashboardController::class, 'index'])->name('dashboard');
 
     // Organizaciones ——————————————————————————————————————————————
     Route::resource('organizaciones', OrganizacionController::class)

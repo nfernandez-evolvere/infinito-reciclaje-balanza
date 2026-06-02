@@ -92,27 +92,41 @@ IX   activo     -- autocomplete y selects del ABM
 
 ### `tipos_servicio`
 
-Tipos de recolección disponibles. Cada servicio tiene un tipo de vehículo sugerido. La relación con orígenes y turnos se modela en `zona_servicios` y `zona_servicio_turnos` (relación N:M).
+Tipos de recolección disponibles. Cada servicio puede tener **varios tipos de vehículo sugeridos** (relación N:M vía `tipo_servicio_tipo_vehiculo`). La relación con orígenes y turnos se modela en `zona_servicios` y `zona_servicio_turnos` (también N:M).
 
 | Columna | Tipo | Nullable | Default | Constraints | Descripción |
 |---------|------|----------|---------|-------------|-------------|
 | `id` | `bigint` | NO | IDENTITY | PK | — |
 | `nombre` | `nvarchar(100)` | NO | — | UNIQUE | Ej: `'Domiciliario'` |
-| `tipo_vehiculo_sugerido_id` | `bigint` | SÍ | NULL | FK → `tipos_vehiculo.id` | Sugerencia en el formulario de pesaje. Nullable. |
 | `activo` | `bit` | NO | `1` | — | — |
 | `created_at` | `datetime2(0)` | SÍ | NULL | — | — |
 | `updated_at` | `datetime2(0)` | SÍ | NULL | — | — |
-
-**FK behavior:**
-- `tipo_vehiculo_sugerido_id`: `ON DELETE SET NULL` — si se desactiva un tipo de vehículo, el servicio pierde la sugerencia pero sigue activo.
 
 **Índices:**
 ```sql
 PK   id
 UQ   nombre
 IX   activo
-IX   tipo_vehiculo_sugerido_id   -- JOIN al recuperar la sugerencia en el formulario
 ```
+
+> **Histórico:** existió una FK única `tipo_vehiculo_sugerido_id` (un solo vehículo sugerido por servicio). Se dio de baja al migrar a N:M — un servicio sugiere varios tipos de vehículo. Ver `tipo_servicio_tipo_vehiculo`.
+
+---
+
+### `tipo_servicio_tipo_vehiculo`
+
+Tabla junction entre tipos de servicio y tipos de vehículo. Define qué tipos de vehículo se sugieren para cada servicio (hint en la balanza: si el vehículo elegido no es uno de los sugeridos, se muestra una advertencia suave, no bloqueante).
+
+| Columna | Tipo | Nullable | Default | Constraints | Descripción |
+|---------|------|----------|---------|-------------|-------------|
+| `tipo_servicio_id` | `bigint` | NO | — | PK compuesta, FK → `tipos_servicio.id` | — |
+| `tipo_vehiculo_id` | `bigint` | NO | — | PK compuesta, FK → `tipos_vehiculo.id` | — |
+
+**PK compuesta:** `(tipo_servicio_id, tipo_vehiculo_id)`.
+
+**FK behavior:**
+- `tipo_servicio_id`: `ON DELETE CASCADE` — al eliminar un servicio, se eliminan sus vínculos.
+- `tipo_vehiculo_id`: `ON DELETE CASCADE` — al eliminar un tipo de vehículo, se elimina del set de sugeridos de cada servicio (el servicio sigue existiendo).
 
 **Decisión — relación N:M vía `zona_servicios`:**
 Un origen puede operar bajo varios servicios y un servicio puede operar en varios orígenes. La asociación se modela en `zona_servicios`. Al registrar un pesaje, el formulario filtra los orígenes disponibles según el servicio elegido — el operador selecciona el origen de la lista filtrada. Los turnos aplicables se determinan por la combinación origen+servicio en `zona_servicio_turnos`.
@@ -266,6 +280,42 @@ Busca con `LIKE '%q%'` en `patente` y `numero_interno` donde `activo = 1`. Máxi
 
 ---
 
+### `vehiculos_log`
+
+Audit trail de cambios del padrón de vehículos. Una fila por campo modificado. Hoy solo registra cambios de `tara_kg` (campo crítico), pero la tabla es genérica y admite auditar cualquier campo en el futuro. Append-only, como `pesajes_log`.
+
+| Columna | Tipo | Nullable | Default | Constraints | Descripción |
+|---------|------|----------|---------|-------------|-------------|
+| `id` | `bigint` | NO | IDENTITY | PK | — |
+| `vehiculo_id` | `bigint` | NO | — | FK → `vehiculos.id` | — |
+| `campo` | `nvarchar(100)` | NO | — | — | Nombre del campo modificado. Ej: `'tara_kg'` |
+| `valor_anterior` | `nvarchar(500)` | SÍ | NULL | — | Valor antes de la edición. |
+| `valor_nuevo` | `nvarchar(500)` | SÍ | NULL | — | Valor después de la edición. |
+| `motivo` | `nvarchar(500)` | NO | — | — | Motivo del cambio. Para `tara_kg` lleva el prefijo de intención: `'Corrección de dato mal cargado — …'` o `'Cambio real de tara — …'`. |
+| `usuario_id` | `bigint` | NO | — | FK → `users.id` | Admin que hizo el cambio |
+| `created_at` / `updated_at` | `datetime2(0)` | SÍ | NULL | — | — |
+
+**Semántica de la intención (corrección de tara):**
+Al editar la tara de un vehículo que ya tiene pesajes, el admin elige entre:
+- **Corrección de dato mal cargado** → se recalcula `peso_tara_kg` y `peso_neto_kg` en todos los pesajes **no cancelados** del vehículo, con una entrada en `pesajes_log` por campo modificado. Marca `pesajes.editado = 1`.
+- **Cambio real de tara** → los pesajes anteriores no se modifican; solo los nuevos usan la tara nueva.
+
+En ambos casos se registra la fila en `vehiculos_log`. La operación corre dentro de una transacción y es exclusiva de admins.
+
+**Limitación conocida (Etapa 1):** una corrección retroactiva recalcula los netos históricos, pero **no** reemite ni ajusta reportes ya enviados por mail. Los PDF entregados quedan como snapshot del momento del envío; la discrepancia con los datos corregidos no se resuelve automáticamente.
+
+**FK behavior:**
+- `vehiculo_id`: `ON DELETE CASCADE`.
+- `usuario_id`: `ON DELETE RESTRICT` — el log conserva la referencia al admin que actuó.
+
+**Índices:**
+```sql
+PK   id
+IX   vehiculo_id, created_at DESC    -- historial de cambios de un vehículo
+```
+
+---
+
 ### `pesajes`
 
 Tabla operacional central. Cada fila es un camión que entró al predio. Se escribe una vez (al registrar el ingreso) y puede modificarse con auditoría.
@@ -279,7 +329,7 @@ Tabla operacional central. Cada fila es un camión que entró al predio. Se escr
 | `zona_id` | `bigint` | NO | — | FK → `zonas.id` | — |
 | `turno` | `nvarchar(10)` | SÍ | NULL | CHECK IN (`'Diurna'`, `'Nocturna'`) | NULL cuando la combinación origen+servicio no tiene turnos. Obligatorio (validado en app) cuando `zona_servicio_turnos` tiene filas para esa combinación. |
 | `peso_bruto_kg` | `int` | NO | — | CHECK > 0 | Peso que muestra la balanza al ingreso |
-| `peso_tara_kg` | `int` | NO | — | CHECK > 0 | Copiado de `vehiculos.tara_kg` al crear. **No se recalcula si el padrón cambia.** |
+| `peso_tara_kg` | `int` | NO | — | CHECK > 0 | Copiado de `vehiculos.tara_kg` al crear. No se recalcula ante un cambio normal del padrón. **Excepción:** si el admin edita la tara del vehículo y declara que corrige un dato mal cargado, se recalcula retroactivamente en todos los pesajes no cancelados del vehículo (ver `vehiculos_log`). |
 | `peso_neto_kg` | `int` | NO | — | — | Calculado en la capa de servicio: `peso_bruto_kg - peso_tara_kg`. Se actualiza si se edita `peso_bruto_kg`. |
 | `alerta_peso` | `bit` | NO | `0` | — | `1` si `peso_bruto_kg` estaba fuera del rango de `tipos_vehiculo` al registrar |
 | `observaciones` | `nvarchar(500)` | SÍ | NULL | — | Autocompleta del padrón, editable por el operador |

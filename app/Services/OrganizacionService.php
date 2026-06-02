@@ -27,8 +27,6 @@ class OrganizacionService
         $adminEmail = $data['admin_email'];
         $adminName  = $data['admin_name'] ?? null;
 
-        $data['slug'] = $this->generateSlug($data['nombre']);
-
         $org = $this->organizacionRepository->create(
             array_diff_key($data, array_flip(['admin_email', 'admin_name']))
         );
@@ -78,7 +76,6 @@ class OrganizacionService
 
     public function update(Organizacion $organizacion, array $data): Organizacion
     {
-        $data['slug'] = $this->generateSlug($data['nombre'], $organizacion->id);
         return $this->organizacionRepository->update($organizacion, $data);
     }
 
@@ -112,23 +109,5 @@ class OrganizacionService
         }
 
         $this->sendPasswordReset($user, $org->nombre);
-    }
-
-    private function generateSlug(string $nombre, ?int $excludeId = null): string
-    {
-        $base = Str::slug($nombre);
-
-        $slug = $base;
-        $i = 1;
-        while (
-            Organizacion::where('slug', $slug)
-                ->when($excludeId, fn ($q) => $q->where('id', '!=', $excludeId))
-                ->exists()
-        ) {
-            $slug = "{$base}-{$i}";
-            $i++;
-        }
-
-        return $slug;
     }
 }

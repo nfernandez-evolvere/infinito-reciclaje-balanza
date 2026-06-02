@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Pesaje;
 use App\Models\TipoVehiculo;
 use App\Models\User;
 use App\Models\Vehiculo;
@@ -248,6 +249,118 @@ class VehiculoTest extends TestCase
                 'titular'          => $vehiculo->titular,
             ])
             ->assertSessionHasErrors('patente');
+    }
+
+    // — Update: corrección de tara ————————————————————————————————
+
+    #[Test]
+    public function test_update_requires_decision_when_tara_changes_with_pesajes(): void
+    {
+        $tipo     = TipoVehiculo::factory()->create();
+        $vehiculo = Vehiculo::factory()->create(['tara_kg' => 8000, 'tipo_vehiculo_id' => $tipo->id]);
+        Pesaje::factory()->create(['vehiculo_id' => $vehiculo->id]);
+
+        $this->actingAs($this->admin())
+            ->put(route('admin.vehiculos.update', $vehiculo), [
+                'patente'          => $vehiculo->patente,
+                'numero_interno'   => $vehiculo->numero_interno,
+                'tara_kg'          => 18000,
+                'tipo_vehiculo_id' => $tipo->id,
+                'titular'          => $vehiculo->titular,
+            ])
+            ->assertSessionHasErrors('_intencion_tara');
+    }
+
+    #[Test]
+    public function test_update_corregir_dato_recalculates_pesajes(): void
+    {
+        $tipo     = TipoVehiculo::factory()->create();
+        $vehiculo = Vehiculo::factory()->create(['tara_kg' => 8000, 'tipo_vehiculo_id' => $tipo->id]);
+        $pesaje   = Pesaje::factory()->create([
+            'vehiculo_id'   => $vehiculo->id,
+            'peso_bruto_kg' => 20000,
+            'peso_tara_kg'  => 8000,
+            'peso_neto_kg'  => 12000,
+            'estado'        => 'Cerrado',
+            'editado'       => false,
+        ]);
+
+        $this->actingAs($this->admin())
+            ->put(route('admin.vehiculos.update', $vehiculo), [
+                'patente'          => $vehiculo->patente,
+                'numero_interno'   => $vehiculo->numero_interno,
+                'tara_kg'          => 18000,
+                'tipo_vehiculo_id' => $tipo->id,
+                'titular'          => $vehiculo->titular,
+                '_intencion_tara'  => 'corregir_dato',
+                '_motivo_tara'     => 'Se había cargado 8.000 en vez de 18.000.',
+            ])
+            ->assertRedirect(route('admin.vehiculos.index'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('pesajes', [
+            'id'           => $pesaje->id,
+            'peso_tara_kg' => 18000,
+            'peso_neto_kg' => 2000,
+            'editado'      => true,
+        ]);
+        $this->assertDatabaseHas('vehiculos_log', ['vehiculo_id' => $vehiculo->id, 'campo' => 'tara_kg']);
+    }
+
+    #[Test]
+    public function test_update_cambio_real_keeps_history(): void
+    {
+        $tipo     = TipoVehiculo::factory()->create();
+        $vehiculo = Vehiculo::factory()->create(['tara_kg' => 8000, 'tipo_vehiculo_id' => $tipo->id]);
+        $pesaje   = Pesaje::factory()->create([
+            'vehiculo_id'   => $vehiculo->id,
+            'peso_bruto_kg' => 20000,
+            'peso_tara_kg'  => 8000,
+            'peso_neto_kg'  => 12000,
+            'estado'        => 'Cerrado',
+        ]);
+
+        $this->actingAs($this->admin())
+            ->put(route('admin.vehiculos.update', $vehiculo), [
+                'patente'          => $vehiculo->patente,
+                'numero_interno'   => $vehiculo->numero_interno,
+                'tara_kg'          => 18000,
+                'tipo_vehiculo_id' => $tipo->id,
+                'titular'          => $vehiculo->titular,
+                '_intencion_tara'  => 'cambio_real',
+                '_motivo_tara'     => 'Se le agregó una caja compactadora.',
+            ])
+            ->assertRedirect(route('admin.vehiculos.index'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('pesajes', [
+            'id'           => $pesaje->id,
+            'peso_tara_kg' => 8000,
+            'peso_neto_kg' => 12000,
+        ]);
+        $this->assertDatabaseMissing('pesajes_log', ['pesaje_id' => $pesaje->id]);
+        $this->assertDatabaseHas('vehiculos_log', ['vehiculo_id' => $vehiculo->id, 'campo' => 'tara_kg']);
+    }
+
+    #[Test]
+    public function test_update_tara_without_pesajes_needs_no_decision(): void
+    {
+        $tipo     = TipoVehiculo::factory()->create();
+        $vehiculo = Vehiculo::factory()->create(['tara_kg' => 8000, 'tipo_vehiculo_id' => $tipo->id]);
+
+        $this->actingAs($this->admin())
+            ->put(route('admin.vehiculos.update', $vehiculo), [
+                'patente'          => $vehiculo->patente,
+                'numero_interno'   => $vehiculo->numero_interno,
+                'tara_kg'          => 18000,
+                'tipo_vehiculo_id' => $tipo->id,
+                'titular'          => $vehiculo->titular,
+            ])
+            ->assertRedirect(route('admin.vehiculos.index'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('vehiculos', ['id' => $vehiculo->id, 'tara_kg' => 18000]);
+        $this->assertDatabaseHas('vehiculos_log', ['vehiculo_id' => $vehiculo->id, 'campo' => 'tara_kg']);
     }
 
     // — Toggle ——————————————————————————————————————————————————

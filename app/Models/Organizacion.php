@@ -6,11 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @mixin \Eloquent
+ * @mixin IdeHelperOrganizacion
+ */
 class Organizacion extends Model
 {
     protected $table = 'organizaciones';
 
-    protected $fillable = ['nombre', 'slug', 'activo'];
+    protected $fillable = ['nombre', 'activo'];
 
     protected function casts(): array
     {

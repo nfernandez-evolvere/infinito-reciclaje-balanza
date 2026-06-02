@@ -25,32 +25,35 @@ class TipoServicioServiceTest extends TestCase
     // — Crear ——————————————————————————————————————————————————
 
     #[Test]
-    public function test_crear_almacena_con_tipo_vehiculo(): void
+    public function test_crear_almacena_con_tipos_vehiculo(): void
     {
         $tv   = TipoVehiculo::factory()->create();
         $tipo = $this->service->crear([
-            'nombre'                    => 'Domiciliario',
-            'tipo_vehiculo_sugerido_id' => $tv->id,
+            'nombre'            => 'Domiciliario',
+            'tipo_vehiculo_ids' => [$tv->id],
         ]);
 
         $this->assertInstanceOf(TipoServicio::class, $tipo);
         $this->assertDatabaseHas('tipos_servicio', [
-            'nombre'                    => 'Domiciliario',
-            'tipo_vehiculo_sugerido_id' => $tv->id,
-            'activo'                    => true,
+            'nombre' => 'Domiciliario',
+            'activo' => true,
+        ]);
+        $this->assertDatabaseHas('tipo_servicio_tipo_vehiculo', [
+            'tipo_servicio_id' => $tipo->id,
+            'tipo_vehiculo_id' => $tv->id,
         ]);
     }
 
     #[Test]
-    public function test_crear_sin_tipo_vehiculo_sugerido(): void
+    public function test_crear_sin_tipos_vehiculo(): void
     {
         $tipo = $this->service->crear(['nombre' => 'Barrido']);
 
         $this->assertDatabaseHas('tipos_servicio', [
-            'nombre'                    => 'Barrido',
-            'tipo_vehiculo_sugerido_id' => null,
-            'activo'                    => true,
+            'nombre' => 'Barrido',
+            'activo' => true,
         ]);
+        $this->assertSame(0, $tipo->tiposVehiculo()->count());
         $this->assertInstanceOf(TipoServicio::class, $tipo);
     }
 
@@ -90,37 +93,42 @@ class TipoServicioServiceTest extends TestCase
     }
 
     #[Test]
-    public function test_actualizar_cambia_tipo_vehiculo_sugerido(): void
+    public function test_actualizar_cambia_tipos_vehiculo(): void
     {
         $tvA  = TipoVehiculo::factory()->create();
         $tvB  = TipoVehiculo::factory()->create();
-        $tipo = TipoServicio::factory()->create(['tipo_vehiculo_sugerido_id' => $tvA->id]);
+        $tipo = TipoServicio::factory()->create();
+        $tipo->tiposVehiculo()->attach($tvA->id);
 
         $this->service->actualizar($tipo, [
-            'nombre'                    => $tipo->nombre,
-            'tipo_vehiculo_sugerido_id' => $tvB->id,
+            'nombre'            => $tipo->nombre,
+            'tipo_vehiculo_ids' => [$tvB->id],
         ]);
 
-        $this->assertDatabaseHas('tipos_servicio', [
-            'id'                        => $tipo->id,
-            'tipo_vehiculo_sugerido_id' => $tvB->id,
+        $this->assertDatabaseHas('tipo_servicio_tipo_vehiculo', [
+            'tipo_servicio_id' => $tipo->id,
+            'tipo_vehiculo_id' => $tvB->id,
+        ]);
+        $this->assertDatabaseMissing('tipo_servicio_tipo_vehiculo', [
+            'tipo_servicio_id' => $tipo->id,
+            'tipo_vehiculo_id' => $tvA->id,
         ]);
     }
 
     #[Test]
-    public function test_actualizar_limpia_tipo_vehiculo_sugerido(): void
+    public function test_actualizar_limpia_tipos_vehiculo(): void
     {
         $tv   = TipoVehiculo::factory()->create();
-        $tipo = TipoServicio::factory()->create(['tipo_vehiculo_sugerido_id' => $tv->id]);
+        $tipo = TipoServicio::factory()->create();
+        $tipo->tiposVehiculo()->attach($tv->id);
 
         $this->service->actualizar($tipo, [
-            'nombre'                    => $tipo->nombre,
-            'tipo_vehiculo_sugerido_id' => null,
+            'nombre'            => $tipo->nombre,
+            'tipo_vehiculo_ids' => [],
         ]);
 
-        $this->assertDatabaseHas('tipos_servicio', [
-            'id'                        => $tipo->id,
-            'tipo_vehiculo_sugerido_id' => null,
+        $this->assertDatabaseMissing('tipo_servicio_tipo_vehiculo', [
+            'tipo_servicio_id' => $tipo->id,
         ]);
     }
 
@@ -179,37 +187,43 @@ class TipoServicioServiceTest extends TestCase
     {
         $tvA = TipoVehiculo::factory()->create();
         $tvB = TipoVehiculo::factory()->create();
-        TipoServicio::factory()->count(2)->create(['tipo_vehiculo_sugerido_id' => $tvA->id]);
-        TipoServicio::factory()->create(['tipo_vehiculo_sugerido_id' => $tvB->id]);
-        TipoServicio::factory()->create(['tipo_vehiculo_sugerido_id' => null]);
+
+        $s1 = TipoServicio::factory()->create();
+        $s2 = TipoServicio::factory()->create();
+        $s3 = TipoServicio::factory()->create();
+        $s1->tiposVehiculo()->attach($tvA->id);
+        $s2->tiposVehiculo()->attach($tvA->id);
+        $s3->tiposVehiculo()->attach($tvB->id);
+        TipoServicio::factory()->create(); // sin vehículos
 
         $resultado = $this->service->listar(['tipo_vehiculo_id' => $tvA->id]);
 
         $this->assertCount(2, $resultado);
-        $resultado->each(fn ($t) => $this->assertEquals($tvA->id, $t->tipo_vehiculo_sugerido_id));
+        $resultado->each(fn ($t) => $this->assertTrue($t->tiposVehiculo->contains('id', $tvA->id)));
     }
 
     #[Test]
-    public function test_listar_eager_loads_tipo_vehiculo_cuando_asignado(): void
+    public function test_listar_eager_loads_tipos_vehiculo(): void
     {
         $tv   = TipoVehiculo::factory()->create(['nombre' => 'Compactador']);
-        TipoServicio::factory()->create(['tipo_vehiculo_sugerido_id' => $tv->id]);
+        $tipo = TipoServicio::factory()->create();
+        $tipo->tiposVehiculo()->attach($tv->id);
 
         $resultado = $this->service->listar([]);
 
-        $this->assertTrue($resultado->first()->relationLoaded('tipoVehiculo'));
-        $this->assertEquals('Compactador', $resultado->first()->tipoVehiculo->nombre);
+        $this->assertTrue($resultado->first()->relationLoaded('tiposVehiculo'));
+        $this->assertTrue($resultado->first()->tiposVehiculo->contains('nombre', 'Compactador'));
     }
 
     #[Test]
-    public function test_listar_tipo_vehiculo_es_null_cuando_no_asignado(): void
+    public function test_listar_tipos_vehiculo_vacio_cuando_no_asignado(): void
     {
-        TipoServicio::factory()->create(['tipo_vehiculo_sugerido_id' => null]);
+        TipoServicio::factory()->create();
 
         $resultado = $this->service->listar([]);
 
-        $this->assertTrue($resultado->first()->relationLoaded('tipoVehiculo'));
-        $this->assertNull($resultado->first()->tipoVehiculo);
+        $this->assertTrue($resultado->first()->relationLoaded('tiposVehiculo'));
+        $this->assertCount(0, $resultado->first()->tiposVehiculo);
     }
 
     #[Test]

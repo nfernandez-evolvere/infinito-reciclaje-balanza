@@ -15,7 +15,7 @@ class DashboardController extends Controller
         protected DashboardService $dashboardService,
     ) {}
 
-    public function __invoke(): View
+    public function index(): View
     {
         return view('modules.admin.dashboard', $this->buildDashboardData());
     }

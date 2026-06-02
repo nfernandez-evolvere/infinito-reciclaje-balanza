@@ -10,14 +10,14 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'role:operador'])->group(function () {
 
     // Vistas
-    Route::get('/balanza', OperadorPesajeController::class)->name('balanza');
+    Route::get('/balanza', [OperadorPesajeController::class, 'create'])->name('balanza');
     Route::get('/historial', [PesajeController::class, 'index'])->name('historial');
 
     // Pesajes — solo operador puede crear
     Route::post('/pesajes', [OperadorPesajeController::class, 'store'])->name('pesajes.store');
 
     // Onboarding
-    Route::post('/onboarding/visto', OnboardingController::class)->name('onboarding.visto');
+    Route::post('/onboarding/visto', [OnboardingController::class, 'store'])->name('onboarding.visto');
 });
 
 // Rutas accesibles a cualquier usuario autenticado

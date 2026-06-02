@@ -6,7 +6,12 @@ use App\Models\Concerns\BelongsToOrganizacion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @mixin \Eloquent
+ * @mixin IdeHelperVehiculo
+ */
 class Vehiculo extends Model
 {
     use HasFactory, BelongsToOrganizacion;
@@ -34,6 +39,16 @@ class Vehiculo extends Model
     public function tipoVehiculo(): BelongsTo
     {
         return $this->belongsTo(TipoVehiculo::class);
+    }
+
+    public function pesajes(): HasMany
+    {
+        return $this->hasMany(Pesaje::class);
+    }
+
+    public function logs(): HasMany
+    {
+        return $this->hasMany(VehiculoLog::class);
     }
 
     public function scopeActivos($query)

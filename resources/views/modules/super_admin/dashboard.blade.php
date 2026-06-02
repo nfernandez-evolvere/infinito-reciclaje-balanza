@@ -88,7 +88,6 @@
                         <x-ui.table.header>
                             <x-ui.table.row>
                                 <x-ui.table.head>Nombre</x-ui.table.head>
-                                <x-ui.table.head>Slug</x-ui.table.head>
                                 <x-ui.table.head class="text-center">Usuarios</x-ui.table.head>
                                 <x-ui.table.head class="text-right">Estado</x-ui.table.head>
                             </x-ui.table.row>
@@ -97,7 +96,6 @@
                             @foreach($recientes as $org)
                                 <x-ui.table.row>
                                     <x-ui.table.cell class="font-medium">{{ $org->nombre }}</x-ui.table.cell>
-                                    <x-ui.table.cell class="text-muted-foreground font-mono text-xs">{{ $org->slug }}</x-ui.table.cell>
                                     <x-ui.table.cell class="text-center">{{ $org->users_count }}</x-ui.table.cell>
                                     <x-ui.table.cell class="text-right">
                                         @if($org->activo)

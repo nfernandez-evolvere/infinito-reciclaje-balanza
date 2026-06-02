@@ -5,6 +5,10 @@ namespace App\Models;
 use App\Models\Concerns\BelongsToOrganizacion;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @mixin \Eloquent
+ * @mixin IdeHelperReporteConfiguracion
+ */
 class ReporteConfiguracion extends Model
 {
     use BelongsToOrganizacion;

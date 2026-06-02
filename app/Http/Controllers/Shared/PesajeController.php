@@ -7,6 +7,7 @@ use App\Http\Requests\CancelarPesajeRequest;
 use App\Http\Requests\EgresoPesajeRequest;
 use App\Http\Requests\UpdatePesajeRequest;
 use App\Models\Pesaje;
+use App\Models\PesajeLog;
 use App\Models\TipoServicio;
 use App\Models\Zona;
 use App\Repositories\PesajeLogRepository;
@@ -28,6 +29,8 @@ class PesajeController extends Controller
         'tipo_servicio_id' => 'Tipo de servicio',
         'zona_id'          => 'Origen',
         'peso_bruto_kg'    => 'Peso bruto',
+        'peso_tara_kg'     => 'Tara',
+        'peso_neto_kg'     => 'Peso neto',
         'observaciones'    => 'Observaciones',
         'turno'            => 'Turno',
         'estado'           => 'Estado',
@@ -84,9 +87,9 @@ class PesajeController extends Controller
 
     public function edit(Pesaje $pesaje): View
     {
-        $pesaje->load(['vehiculo.tipoVehiculo', 'tipoServicio', 'zona']);
+        $pesaje->load(['vehiculo.tipoVehiculo', 'tipoServicio.tiposVehiculo', 'zona']);
 
-        $servicios = $this->tipoServicioRepository->activosConVehiculoSugerido();
+        $servicios = $this->tipoServicioRepository->activosConTiposVehiculo();
 
         $v = $pesaje->vehiculo;
         $vehiculoJs = [
@@ -108,7 +111,7 @@ class PesajeController extends Controller
             'vehiculo'          => $vehiculoJs,
             'servicioId'        => $servicio->id,
             'servicioNombre'    => $servicio->nombre,
-            'tipoSugerido'      => $servicio->tipoVehiculoSugerido?->nombre,
+            'tiposSugeridos'    => $servicio->tiposVehiculo->pluck('nombre')->values(),
             'zonasDisponibles'  => $zonasDisponibles->toArray(),
             'zonaId'            => $pesaje->zona_id,
             'zonaNombre'        => $pesaje->zona->nombre,
@@ -210,6 +213,10 @@ class PesajeController extends Controller
         ];
     }
 
+    /**
+     * @param  Collection<int, PesajeLog>  $entradas
+     * @return array{0: \Illuminate\Support\Collection<int, string>, 1: \Illuminate\Support\Collection<int, string>}
+     */
     private function resolveLogLabels(Collection $entradas): array
     {
         $ids = fn (string $campo) => $entradas
@@ -231,10 +238,12 @@ class PesajeController extends Controller
         }
 
         return match ($campo) {
-            'tipo_servicio_id' => $servicios[$valor] ?? $valor,
-            'zona_id'          => $zonas[$valor] ?? $valor,
-            'peso_bruto_kg'    => number_format((int) $valor, 0, ',', '.') . ' kg',
-            default            => $valor,
+            'tipo_servicio_id'           => $servicios[$valor] ?? $valor,
+            'zona_id'                    => $zonas[$valor] ?? $valor,
+            'peso_bruto_kg',
+            'peso_tara_kg',
+            'peso_neto_kg'               => number_format((int) $valor, 0, ',', '.') . ' kg',
+            default                      => $valor,
         };
     }
 }

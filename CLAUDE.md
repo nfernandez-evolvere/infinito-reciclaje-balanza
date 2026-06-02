@@ -11,6 +11,7 @@
 | [`docs/knowledge/README.md`](docs/knowledge/README.md) | Base de conocimiento de usuario: onboarding, configuración inicial y referencia de cada módulo (preparada para RAG) |
 | [`docs/data-model.md`](docs/data-model.md) | Modelo de datos completo: tipos, constraints, índices, cardinalidades, patrones de consulta y decisiones de diseño |
 | [`docs/sprints/`](docs/sprints/) | Plan detallado por sprint: sub-sprints, tareas granulares, tests unitarios, de integración y manuales |
+| [`docs/testing-strategy.md`](docs/testing-strategy.md) | Estrategia y convenciones de testing: taxonomía de suites, naming, roadmap de cobertura, CI |
 
 > **Al escribir cualquier texto en vistas Blade, consultar `docs/ux-writing.md`.**
 > Las reglas de escritura para el operador y el admin son distintas — aplicarlas según el perfil de la pantalla.
@@ -1138,6 +1139,44 @@ public function store(Request $request): RedirectResponse
 }
 ```
 
+**Controllers por dominio — nunca single-action (`__invoke`)**
+
+**Prohibido crear controllers de acción única (`__invoke`).** Toda la lógica de un dominio vive en un único controller por dominio (`PesajeController`, `VehiculoController`, etc.) con métodos con nombre del vocabulario resource (`index`, `create`, `store`, `show`, `edit`, `update`, `destroy`) o un verbo claro para acciones fuera del CRUD (`toggle`, `export`, `data`). Las rutas siempre referencian el método de forma declarativa.
+
+```php
+// CORRECTO — método con nombre, ruta declarativa
+public function index(): View { ... }
+```
+```php
+// routes/*.php
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+```
+```php
+// INCORRECTO — acción única invocable
+public function __invoke(): View { ... }
+Route::get('/dashboard', DashboardController::class)->name('dashboard');
+```
+
+**Por qué un controller por dominio (y no muchos single-action):**
+
+- Concentrar el dominio en un solo controller hace que toda la superficie del dominio sea visible de un vistazo. Antes de agregar un método, se ve qué ya existe y se evita **duplicar lógica o crear un método que ya estaba** — un fallo típico cuando se trabaja con asistentes de IA y la lógica está dispersa en muchos archivos chicos.
+- El nombre del método documenta la acción y encaja con el resto de rutas resource.
+- Evita el falso "0 references" que muestran los analizadores estáticos (el IDE no detecta la invocación mágica de `__invoke`).
+
+> **Decisión de etapa:** por ahora todo va en controllers por dominio. Cuando el proyecto crezca, se desacoplarán los controllers grandes (ej: extraer acciones a controllers más específicos). No anticipar ese desacople todavía.
+
+**Antes de agregar un método a un controller, service o repository — analizar primero el dominio**
+
+Es **obligatorio**, antes de escribir un método nuevo en cualquier capa, revisar lo que ya existe en ese dominio para reutilizar en lugar de duplicar:
+
+1. **Identificar el dominio** que se está trabajando (pesaje, vehículo, tipo de servicio, etc.).
+2. **Leer el controller del dominio** completo y verificar si ya hay un método que cubre (total o parcialmente) lo que se necesita.
+3. **Leer el service del dominio** (`app/Services/[Dominio]Service.php`) — la lógica de negocio puede ya estar implementada ahí.
+4. **Leer el repository del dominio** (`app/Repositories/[Dominio]Repository.php`) — la consulta o acceso a datos puede ya existir.
+5. Reutilizar o extender lo existente. Solo crear un método nuevo si no hay nada reaprovechable; si hay algo parecido pero no idéntico, preferir generalizar el método existente antes que duplicar.
+
+Esto aplica a las tres capas: **Controller → Service → Repository**. Nunca crear un método sin antes confirmar que no existe ya uno equivalente en su capa.
+
 **Form Requests — siempre, sin excepción**
 ```bash
 php artisan make:request StoreUserRequest
@@ -1201,6 +1240,9 @@ class UserRepository
 | Policy | `UserPolicy` | `make:policy UserPolicy --model=User` |
 | Model | `User` (singular) | `make:model User -m` |
 | Migration | `create_users_table` | auto con `-m` |
+| Test | `UserTest`, `UserServiceTest` | `make:test UserTest`, `make:test UserServiceTest --unit` |
+
+> **Tests — nombres siempre en inglés.** Las clases y métodos de test se escriben en inglés, sin prefijo `test_` (se usa el atributo `#[Test]`). Los nombres de dominio que son clases reales del código (`Pesaje`, `Vehiculo`, `Organizacion`, `Zona`, `TipoServicio`, etc.) se mantienen tal cual — son nombres propios, no se traducen. Ej: `public function admin_can_create_pesaje(): void`. Ver [`docs/testing-strategy.md`](docs/testing-strategy.md) para la estrategia completa.
 
 ### Inyección de dependencias en Controllers
 
@@ -1232,5 +1274,7 @@ public function update(UpdateUserRequest $request, User $user): RedirectResponse
 - Lógica de negocio en Controllers (solo coordinación)
 - `validate()` directo en Controllers (usar Form Requests)
 - Queries Eloquent en Controllers (usar Repositories)
+- Controllers de acción única (`__invoke`) — siempre controller por dominio con métodos con nombre
+- Crear un método nuevo (en Controller, Service o Repository) sin antes revisar si ya existe uno reutilizable en ese dominio
 - Lógica de negocio en Models (solo scopes, relaciones, accessors)
 - Lógica en Blade (solo presentación)

@@ -12,6 +12,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * @mixin \Eloquent
+ * @mixin IdeHelperUser
+ */
 #[Fillable(['name', 'email', 'password', 'role', 'onboarding_visto', 'activo'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable

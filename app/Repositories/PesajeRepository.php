@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 class PesajeRepository
 {
@@ -135,6 +136,62 @@ class PesajeRepository
             ->when($filtros['solo_alerta'] ?? false, fn ($q) => $q->where('alerta_peso', true))
             ->orderBy('created_at')
             ->get();
+    }
+
+    /**
+     * Recalcula en bloque la tara y el neto de los pesajes no cancelados de un vehículo,
+     * registrando una entrada de auditoría por cada campo modificado.
+     *
+     * Set-based: tres sentencias independientes del volumen de pesajes
+     * (dos INSERT ... SELECT de auditoría y un UPDATE masivo), en lugar de
+     * iterar y emitir queries por fila. Portable entre SQLite (tests) y SQL Server (prod).
+     *
+     * @return int Cantidad de pesajes actualizados.
+     */
+    public function recalcularPorCambioDeTara(int $vehiculoId, int $taraNueva, string $motivo, int $usuarioId): int
+    {
+        $tara = (int) $taraNueva;
+        $uid  = (int) $usuarioId;
+        $now  = now()->toDateTimeString();
+
+        // Nuevo neto: max(0, bruto - tara). $tara es entero, seguro de interpolar.
+        $netoNuevo = "(CASE WHEN peso_bruto_kg - {$tara} < 0 THEN 0 ELSE peso_bruto_kg - {$tara} END)";
+
+        // Filtro común: pesajes del vehículo, no cancelados, cuya tara realmente cambia.
+        $afectados = fn () => DB::table('pesajes')
+            ->where('vehiculo_id', $vehiculoId)
+            ->where('estado', '!=', 'Cancelado')
+            ->where('peso_tara_kg', '!=', $tara);
+
+        $columnasLog = ['pesaje_id', 'campo', 'valor_anterior', 'valor_nuevo', 'motivo', 'usuario_id', 'created_at', 'updated_at'];
+
+        // 1) Auditoría de la tara — captura el valor anterior antes del UPDATE.
+        DB::table('pesajes_log')->insertUsing(
+            $columnasLog,
+            $afectados()->selectRaw(
+                "id, 'peso_tara_kg', peso_tara_kg, ?, ?, ?, ?, ?",
+                [$tara, $motivo, $uid, $now, $now],
+            ),
+        );
+
+        // 2) Auditoría del neto — solo donde el neto efectivamente cambia.
+        DB::table('pesajes_log')->insertUsing(
+            $columnasLog,
+            $afectados()
+                ->whereRaw("peso_neto_kg != {$netoNuevo}")
+                ->selectRaw(
+                    "id, 'peso_neto_kg', peso_neto_kg, {$netoNuevo}, ?, ?, ?, ?",
+                    [$motivo, $uid, $now, $now],
+                ),
+        );
+
+        // 3) UPDATE masivo: aplica la nueva tara y el neto recalculado.
+        return $afectados()->update([
+            'peso_tara_kg' => $tara,
+            'peso_neto_kg' => DB::raw($netoNuevo),
+            'editado'      => true,
+            'updated_at'   => $now,
+        ]);
     }
 
     private function buildQuery(array $filtros): Builder

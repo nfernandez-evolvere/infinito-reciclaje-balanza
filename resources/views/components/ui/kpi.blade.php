@@ -19,7 +19,7 @@ $colors = $colorMap[$variant] ?? $colorMap['primary'];
 <x-ui.card variant="elevated" class="flex-row items-center gap-3 sm:gap-4 p-3 sm:p-5">
     @if($icon)
         @if($variantExpr)
-        <div class="shrink-0 flex items-center justify-center rounded-lg p-2"
+        <div class="shrink-0 self-stretch aspect-square flex items-center justify-center rounded-lg p-2"
              x-bind:class="{
                  'bg-primary/10': ({{ $variantExpr }}) === 'primary',
                  'bg-warning/10': ({{ $variantExpr }}) === 'warning',
@@ -27,7 +27,7 @@ $colors = $colorMap[$variant] ?? $colorMap['primary'];
                  'bg-success/10': ({{ $variantExpr }}) === 'success',
              }">
             <x-dynamic-component :component="'lucide-' . $icon"
-                class="size-8"
+                class="h-full w-auto"
                 x-bind:class="{
                     'text-primary': ({{ $variantExpr }}) === 'primary',
                     'text-warning': ({{ $variantExpr }}) === 'warning',
@@ -36,8 +36,8 @@ $colors = $colorMap[$variant] ?? $colorMap['primary'];
                 }" />
         </div>
         @else
-        <div class="shrink-0 flex items-center justify-center rounded-lg p-2 {{ $colors['bg'] }}">
-            <x-dynamic-component :component="'lucide-' . $icon" class="size-8 {{ $colors['icon'] }}" />
+        <div class="shrink-0 self-stretch aspect-square flex items-center justify-center rounded-lg p-2 {{ $colors['bg'] }}">
+            <x-dynamic-component :component="'lucide-' . $icon" class="h-full w-auto {{ $colors['icon'] }}" />
         </div>
         @endif
     @endif

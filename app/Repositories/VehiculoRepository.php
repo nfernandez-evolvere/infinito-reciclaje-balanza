@@ -11,6 +11,7 @@ class VehiculoRepository
     {
         return Vehiculo::query()
             ->with('tipoVehiculo')
+            ->withCount('pesajes')
             ->when(
                 !empty($filters['patente']),
                 fn ($q) => $q->where('patente', 'like', '%' . $filters['patente'] . '%')

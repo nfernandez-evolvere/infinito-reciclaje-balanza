@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
 
     // Vistas generales
-    Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/data', [DashboardController::class, 'data'])->name('dashboard.data');
     Route::get('/pesajes', [PesajeController::class, 'index'])->name('pesajes.index');
     Route::get('/pesajes/export', [PesajeController::class, 'export'])->name('pesajes.export');

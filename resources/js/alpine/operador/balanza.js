@@ -7,7 +7,7 @@ export default function balanza(initial = null, opts = {}) {
         matches:             [],
         servicioId:          initial ? String(initial.servicioId) : '',
         servicioNombre:      initial ? initial.servicioNombre : '',
-        tipoSugerido:        initial?.tipoSugerido ?? '',
+        tiposSugeridos:      initial?.tiposSugeridos ?? [],
         zonasDisponibles:    initial ? initial.zonasDisponibles : [],
         zonaId:              initial ? String(initial.zonaId) : '',
         zonaNombre:          initial ? initial.zonaNombre : '',
@@ -39,7 +39,7 @@ export default function balanza(initial = null, opts = {}) {
             return !this.inRange;
         },
         get tipoMismatch() {
-            return this.vehiculo && this.tipoSugerido && this.tipoSugerido !== this.vehiculo.tipo;
+            return this.vehiculo && this.tiposSugeridos.length > 0 && !this.tiposSugeridos.includes(this.vehiculo.tipo);
         },
         get servicioCompleto() {
             return !!(this.servicioId && this.zonaId && (!this.requiereTurno || this.turno));
@@ -150,7 +150,7 @@ export default function balanza(initial = null, opts = {}) {
             this.servicioId = value;
             this.servicioNombre = label ?? '';
             this.zonaId = ''; this.zonaNombre = ''; this.turno = '';
-            this.turnosDisponibles = []; this.zonasDisponibles = []; this.tipoSugerido = '';
+            this.turnosDisponibles = []; this.zonasDisponibles = []; this.tiposSugeridos = [];
             this._selectEl('wrapOrigen')?.dispatchEvent(new CustomEvent('select-sync', { detail: { value: '' } }));
             this._selectEl('wrapOrigen')?.dispatchEvent(new CustomEvent('select-items-clear'));
             this._selectEl('wrapTurno')?.dispatchEvent(new CustomEvent('select-sync',  { detail: { value: '' } }));
@@ -159,7 +159,7 @@ export default function balanza(initial = null, opts = {}) {
             fetch(`/servicios/${value}/zonas`)
                 .then(r => r.json())
                 .then(data => {
-                    this.tipoSugerido     = data.tipo_vehiculo_sugerido ?? '';
+                    this.tiposSugeridos   = data.tipos_vehiculo_sugeridos ?? [];
                     this.zonasDisponibles = data.zonas ?? [];
                     this.$nextTick(() => this.$refs.wrapOrigen?.querySelector('button')?.focus());
                 });
@@ -186,7 +186,7 @@ export default function balanza(initial = null, opts = {}) {
                 return;
             }
             this.query = ''; this.vehiculo = null; this.showSugg = false; this.matches = [];
-            this.servicioId = ''; this.servicioNombre = ''; this.tipoSugerido = '';
+            this.servicioId = ''; this.servicioNombre = ''; this.tiposSugeridos = [];
             this.zonasDisponibles = []; this.zonaId = ''; this.zonaNombre = '';
             this.turnosDisponibles = []; this.turno = ''; this.bruto = ''; this.brutoN = 0;
             this.paso1Editando = false; this.paso2Editando = false; this.paso3Editando = false;

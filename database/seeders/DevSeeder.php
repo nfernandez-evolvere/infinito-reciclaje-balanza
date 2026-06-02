@@ -12,13 +12,14 @@ use App\Models\Zona;
 use App\Models\ZonaServicio;
 use App\Models\ZonaServicioTurno;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class DevSeeder extends Seeder
 {
     public function run(): void
     {
-        $corrientes  = Organizacion::create(['nombre' => 'Corrientes',  'slug' => 'corrientes',  'activo' => true]);
-        $resistencia = Organizacion::create(['nombre' => 'Resistencia', 'slug' => 'resistencia', 'activo' => true]);
+        $corrientes  = Organizacion::create(['nombre' => 'Corrientes',  'activo' => true]);
+        $resistencia = Organizacion::create(['nombre' => 'Resistencia', 'activo' => true]);
 
         User::create([
             'name'     => 'Nicolás Fernández',
@@ -46,9 +47,11 @@ class DevSeeder extends Seeder
     private function seedOrganizacion(Organizacion $org, string $suffix): void
     {
         // ── Usuarios ──────────────────────────────────────────────────────────
+        $orgSlug = Str::slug($org->nombre);
+
         $admin = User::create([
             'name'     => "Admin $suffix",
-            'email'    => "admin@{$org->slug}.com",
+            'email'    => "admin@{$orgSlug}.com",
             'password' => '1234',
             'role'     => 'admin',
         ]);
@@ -56,7 +59,7 @@ class DevSeeder extends Seeder
 
         $operario = User::create([
             'name'     => "Operario $suffix",
-            'email'    => "operario@{$org->slug}.com",
+            'email'    => "operario@{$orgSlug}.com",
             'password' => '1234',
             'role'     => 'operador',
         ]);

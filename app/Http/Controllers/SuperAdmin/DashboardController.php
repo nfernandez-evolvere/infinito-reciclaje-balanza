@@ -12,7 +12,7 @@ class DashboardController extends Controller
         protected SuperAdminDashboardService $dashboardService,
     ) {}
 
-    public function __invoke(): View
+    public function index(): View
     {
         return view('modules.super_admin.dashboard', [
             'stats'    => $this->dashboardService->stats(),

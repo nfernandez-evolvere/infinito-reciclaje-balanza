@@ -16,9 +16,9 @@ class PesajeController extends Controller
         protected TipoServicioRepository $tipoServicioRepository,
     ) {}
 
-    public function __invoke(): View
+    public function create(): View
     {
-        $servicios = $this->tipoServicioRepository->activosConVehiculoSugerido();
+        $servicios = $this->tipoServicioRepository->activosConTiposVehiculo();
 
         return view('modules.operador.balanza', [
             'servicios'  => $servicios,
@@ -29,7 +29,7 @@ class PesajeController extends Controller
 
     public function store(StorePesajeRequest $request): RedirectResponse
     {
-        $pesaje = $this->pesajeService->crear($request->validated(), auth()->user());
+        $pesaje = $this->pesajeService->crear($request->validated(), $request->user());
         return redirect()->route('pesajes.show', $pesaje);
     }
 }

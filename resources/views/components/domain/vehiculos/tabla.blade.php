@@ -59,7 +59,8 @@
                                 {{ $vehiculo->tipo_vehiculo_id }},
                                 {{ Js::from($vehiculo->titular) }},
                                 {{ $vehiculo->capacidad_kg ?? 'null' }},
-                                {{ Js::from($vehiculo->observaciones ?? '') }}
+                                {{ Js::from($vehiculo->observaciones ?? '') }},
+                                {{ $vehiculo->pesajes_count ?? 0 }}
                             )"
                         >
                             <x-lucide-pencil class="size-4" />
@@ -180,7 +181,8 @@
                                             {{ $vehiculo->tipo_vehiculo_id }},
                                             {{ Js::from($vehiculo->titular) }},
                                             {{ $vehiculo->capacidad_kg ?? 'null' }},
-                                            {{ Js::from($vehiculo->observaciones ?? '') }}
+                                            {{ Js::from($vehiculo->observaciones ?? '') }},
+                                            {{ $vehiculo->pesajes_count ?? 0 }}
                                         )"
                                     >
                                         <x-lucide-pencil class="size-4" />

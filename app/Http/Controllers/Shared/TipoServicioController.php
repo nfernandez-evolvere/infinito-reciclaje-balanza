@@ -14,8 +14,8 @@ class TipoServicioController extends Controller
     public function zonas(TipoServicio $servicio): JsonResponse
     {
         return response()->json([
-            'tipo_vehiculo_sugerido' => $servicio->tipoVehiculoSugerido?->nombre,
-            'zonas'                  => $this->zonaRepository->zonasConTurnosPara($servicio),
+            'tipos_vehiculo_sugeridos' => $servicio->tiposVehiculo->pluck('nombre')->values(),
+            'zonas'                    => $this->zonaRepository->zonasConTurnosPara($servicio),
         ]);
     }
 }

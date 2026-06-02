@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
+/**
+ * @mixin \Eloquent
+ * @mixin IdeHelperPesaje
+ */
 class Pesaje extends Model
 {
     use HasFactory, BelongsToOrganizacion;

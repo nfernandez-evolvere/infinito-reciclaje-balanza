@@ -6,6 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @mixin \Eloquent
+ * @mixin IdeHelperZonaServicio
+ */
 class ZonaServicio extends Model
 {
     protected $table = 'zona_servicios';

@@ -11,7 +11,6 @@ return new class extends Migration
         Schema::create('organizaciones', function (Blueprint $table) {
             $table->id();
             $table->string('nombre', 150);
-            $table->string('slug', 100)->unique();
             $table->boolean('activo')->default(true);
             $table->timestamps();
         });

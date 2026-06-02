@@ -1,6 +1,6 @@
 # Infinito Reciclaje — Sistema de Gestión de Balanza
 
-Sistema web para el registro y control de pesajes de residuos urbanos. Arquitectura **multi-tenant por subdominio**: cada municipio u organización opera en su propio subdominio con datos completamente aislados.
+Sistema web para el registro y control de pesajes de residuos urbanos. Arquitectura **multi-tenant con aislamiento por organización**: cada municipio u organización opera con sus datos completamente aislados, y los usuarios eligen con qué organización ingresar al iniciar sesión.
 
 ---
 
@@ -15,39 +15,40 @@ Sistema web para el registro y control de pesajes de residuos urbanos. Arquitect
 
 ## Arquitectura multi-tenant
 
-El aislamiento de datos es **por columna**: todas las tablas de dominio tienen una FK `organizacion_id`. El tenant se resuelve a partir del subdominio del request en el middleware `ResolveOrganizacion`.
+El aislamiento de datos es **por columna**: todas las tablas de dominio tienen una FK `organizacion_id`. La organización activa se resuelve **desde la sesión** en el middleware `ResolveOrganizacion` y se selecciona en el login.
 
 ### Resolución de tenant
 
+No hay subdominios: la app vive en un único dominio. El flujo es:
+
 ```
-{slug}.balanza.test        →  organización "slug"
-super.balanza.test         →  contexto super admin (sin org)
-balanza.test               →  sin tenant (redirige a login)
+1. El usuario ingresa su email en /login.
+2. La pantalla consulta a qué organizaciones pertenece ese email
+   (GET login/organizaciones) y muestra un selector.
+3. El usuario elige la organización y envía email + password + organizacion_id.
+4. Al autenticar, se guarda organizacion_id en la sesión.
+5. En cada request, ResolveOrganizacion lee session('organizacion_id'),
+   valida que el usuario pertenezca a esa org activa, y la bindea como
+   app('organizacion').
 ```
 
-El subdominio bruto se extrae del host y se le stripea el prefijo configurado en `APP_SUBDOMAIN_PREFIX`:
-
-| Ambiente   | `APP_SUBDOMAIN_PREFIX` | Ejemplo org                       | Super admin                  |
-|------------|------------------------|-----------------------------------|------------------------------|
-| Local      | *(vacío)*              | `corrientes.balanza.test`         | `super.balanza.test`         |
-| Staging    | `staging-`             | `staging-corrientes.inf-bal.com`  | `staging-super.inf-bal.com`  |
-| Producción | *(vacío)*              | `corrientes.inf-bal.com`          | `super.inf-bal.com`          |
-
-Un único wildcard DNS `*.inf-bal.com` cubre staging y producción.
+El `super_admin` no pertenece a ninguna organización: ingresa desde el contexto **"Administración del sistema"** (sin `organizacion_id`) y administra las organizaciones globalmente.
 
 ### Roles
 
-| Rol | `organizacion_id` | Acceso |
+| Rol | Pertenencia a org | Acceso |
 |-----|-------------------|--------|
-| `super_admin` | `NULL` | CRUD de organizaciones, acceso desde subdominio `super` |
-| `admin` | org FK | Panel de administración de su organización |
-| `operador` | org FK | Registro de pesajes |
+| `super_admin` | ninguna (cross-org) | CRUD de organizaciones, ingreso desde "Administración del sistema" |
+| `admin` | una o varias orgs | Panel de administración de la org seleccionada |
+| `operador` | una o varias orgs | Registro de pesajes de la org seleccionada |
+
+> La relación usuario–organización es **muchos-a-muchos** (`organizacion_user`): un mismo `admin`/`operador` puede pertenecer a varias organizaciones y elegir cuál al ingresar.
 
 ### Tablas de dominio con `organizacion_id`
 
 | Tabla | Unique constraints por org |
 |-------|---------------------------|
-| `users` | `(organizacion_id, email)` |
+| `users` | vínculo vía pivot `organizacion_user` |
 | `tipos_vehiculo` | — |
 | `tipos_servicio` | `(organizacion_id, nombre)` |
 | `vehiculos` | `(organizacion_id, patente)`, `(organizacion_id, numero_interno)` |
@@ -100,18 +101,7 @@ php artisan db:seed       # solo en local (APP_ENV=local)
 npm run dev
 ```
 
-### Subdominios en local (Windows + Herd Lite)
-
-Herd Lite no soporta wildcard DNS. Agregar una entrada por subdominio en
-`C:\Windows\System32\drivers\etc\hosts` (PowerShell como Administrador):
-
-```powershell
-Add-Content -Path "C:\Windows\System32\drivers\etc\hosts" -Value "127.0.0.1`tsuper.balanza.test"
-Add-Content -Path "C:\Windows\System32\drivers\etc\hosts" -Value "127.0.0.1`tcorrientes.balanza.test"
-Add-Content -Path "C:\Windows\System32\drivers\etc\hosts" -Value "127.0.0.1`tresistencia.balanza.test"
-```
-
-Al crear una nueva organización desde el panel, agregar su subdominio con el mismo comando.
+La app corre en un único dominio (ej: `http://balanza.test` con Herd, o `http://127.0.0.1:8000` con `php artisan serve`). No se requieren entradas de subdominio en el archivo `hosts`.
 
 ---
 
@@ -120,7 +110,6 @@ Al crear una nueva organización desde el panel, agregar su subdominio con el mi
 ```env
 # Aplicación
 APP_URL=http://balanza.test
-APP_SUBDOMAIN_PREFIX=          # vacío en local y prod; "staging-" en staging
 
 # Base de datos
 DB_CONNECTION=sqlsrv
@@ -141,19 +130,20 @@ Los seeds están segmentados por ambiente. `DatabaseSeeder` despacha el seeder c
 
 | Ambiente | Seeder | Contenido |
 |----------|--------|-----------|
-| `local` | `DevSeeder` | 2 orgs (Corrientes, Resistencia), super admin, 2 usuarios por org, tipos de vehículo/servicio, vehículos y zonas |
+| `local` | `DevSeeder` | 2 orgs (Corrientes, Resistencia), super admin, 2 usuarios por org, un admin con acceso a ambas orgs, tipos de vehículo/servicio, vehículos y zonas |
 | `staging` | `StagingSeeder` *(pendiente)* | — |
 | `production` | `ProductionSeeder` *(pendiente)* | — |
 
-Usuarios de dev:
+Usuarios de dev (contraseña `1234`):
 
-| Email | Contraseña | Rol | Subdominio |
-|-------|-----------|-----|------------|
-| nfernandez@evolvere.com.ar | 1234 | super_admin | `super.balanza.test` |
-| admin@corrientes.com | 1234 | admin | `corrientes.balanza.test` |
-| operario@corrientes.com | 1234 | operador | `corrientes.balanza.test` |
-| admin@resistencia.com | 1234 | admin | `resistencia.balanza.test` |
-| operario@resistencia.com | 1234 | operador | `resistencia.balanza.test` |
+| Email | Rol | Organización |
+|-------|-----|--------------|
+| nfernandez@evolvere.com.ar | super_admin | — (Administración del sistema) |
+| admin@corrientes.com | admin | Corrientes |
+| operario@corrientes.com | operador | Corrientes |
+| admin@resistencia.com | admin | Resistencia |
+| operario@resistencia.com | operador | Resistencia |
+| admin.doble@test.com | admin | Corrientes + Resistencia (prueba el selector de org) |
 
 ---
 
@@ -165,7 +155,7 @@ Usuarios de dev:
 | [`docs/data-model.md`](docs/data-model.md) | Modelo de datos completo: tipos, constraints, índices, decisiones de diseño |
 | [`docs/design-system.md`](docs/design-system.md) | Componentes Blade (`x-ui.*`), tokens, tipografía, espaciado |
 | [`docs/ux-writing.md`](docs/ux-writing.md) | Voz y tono, reglas de escritura por rol |
-| [`docs/guia-migracion-sqlserver-multitenant.md`](docs/guia-migracion-sqlserver-multitenant.md) | Guía completa de setup SQL Server + subdominios por ambiente |
+| [`docs/guia-migracion-sqlserver-multitenant.md`](docs/guia-migracion-sqlserver-multitenant.md) | Guía de setup SQL Server + prefijos de tabla por ambiente |
 | [`docs/Brief_Producto_Etapa1.md`](docs/Brief_Producto_Etapa1.md) | Requerimientos funcionales y no funcionales |
 
 ---
@@ -180,7 +170,7 @@ app/
 │   │   ├── Admin/          # Panel de administración por org
 │   │   └── SuperAdmin/     # CRUD de organizaciones
 │   ├── Middleware/
-│   │   ├── ResolveOrganizacion.php   # Resolución de tenant por subdominio
+│   │   ├── ResolveOrganizacion.php   # Resolución de la org activa desde la sesión
 │   │   └── EnsureRole.php            # Control de acceso por rol
 │   └── Requests/           # Form Requests (validación)
 ├── Models/

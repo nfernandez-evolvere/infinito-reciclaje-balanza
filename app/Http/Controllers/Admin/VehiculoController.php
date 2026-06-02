@@ -67,7 +67,7 @@ class VehiculoController extends Controller
     {
         try {
             $validated = $request->validated();
-            $this->service->actualizar($vehiculo, $validated);
+            $this->service->update($vehiculo, $validated, $request->user());
 
             return redirect()->route('admin.vehiculos.index')
                 ->with('toast', [
