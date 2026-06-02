@@ -10,6 +10,8 @@ return new class extends Migration
     {
         Schema::create('pesajes', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->unique();
+            $table->foreignId('organizacion_id')->constrained('organizaciones')->noActionOnDelete();
             $table->foreignId('vehiculo_id')->constrained('vehiculos')->noActionOnDelete();
             $table->foreignId('operador_id')->constrained('users')->noActionOnDelete();
             $table->foreignId('tipo_servicio_id')->constrained('tipos_servicio')->noActionOnDelete();
@@ -24,6 +26,9 @@ return new class extends Migration
             $table->timestamp('hora_salida')->nullable();
             $table->integer('bruto_salida_kg')->nullable();
             $table->boolean('editado')->default(false);
+            $table->string('motivo_cancelacion', 500)->nullable();
+            $table->foreignId('cancelado_por_id')->nullable()->constrained('users')->noActionOnDelete();
+            $table->datetime('cancelado_at')->nullable();
             $table->timestamps();
         });
     }

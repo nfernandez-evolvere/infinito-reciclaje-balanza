@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('patente', 20);
             $table->string('numero_interno', 20);
             $table->integer('tara_kg');
-            $table->foreignId('tipo_vehiculo_id')->constrained('tipos_vehiculo')->noActionOnDelete();
+            $table->foreignId('tipo_vehiculo_id')->constrained('tipos_vehiculo')->cascadeOnDelete();
             $table->string('titular', 200);
             $table->integer('capacidad_kg')->nullable();
             $table->string('observaciones', 500)->nullable();

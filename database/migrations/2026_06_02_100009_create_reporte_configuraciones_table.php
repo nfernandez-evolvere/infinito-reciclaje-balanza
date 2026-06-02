@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('ai_proveedor', 50)->default('gemini');
             $table->text('ai_api_key')->nullable();
             $table->string('ai_modelo', 100)->default('gemini-2.0-flash-lite');
+            $table->text('ai_prompt')->nullable();
             $table->boolean('tipo_informe_mensual_activo')->default(true);
             $table->boolean('tipo_alertas_activo')->default(false);
             $table->timestamps();
