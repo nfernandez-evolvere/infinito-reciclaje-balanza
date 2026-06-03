@@ -4,6 +4,7 @@ namespace Tests\Feature\SuperAdmin;
 
 use App\Models\Organizacion;
 use App\Models\User;
+use App\Notifications\AdminInvitacionNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use PHPUnit\Framework\Attributes\Test;
@@ -106,6 +107,9 @@ class OrganizacionCrudTest extends TestCase
 
         $org = Organizacion::where('nombre', 'Municipalidad de Corrientes')->first();
         $this->assertTrue($org->users()->whereKey($admin->id)->exists());
+
+        // El admin nuevo (usuario sin cuenta previa) recibe la invitación con el link de reset.
+        Notification::assertSentTo($admin, AdminInvitacionNotification::class);
     }
 
     #[Test]

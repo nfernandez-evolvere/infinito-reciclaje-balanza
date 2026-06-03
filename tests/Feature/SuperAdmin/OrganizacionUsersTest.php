@@ -4,6 +4,8 @@ namespace Tests\Feature\SuperAdmin;
 
 use App\Models\Organizacion;
 use App\Models\User;
+use App\Notifications\AdminInvitacionNotification;
+use App\Notifications\AdminNuevaOrganizacionNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use PHPUnit\Framework\Attributes\Test;
@@ -32,6 +34,9 @@ class OrganizacionUsersTest extends TestCase
         $user = User::where('email', 'nuevo@municipio.gob.ar')->first();
         $this->assertNotNull($user);
         $this->assertTrue($org->users()->whereKey($user->id)->exists());
+
+        // Usuario nuevo → recibe invitación con link de reset de contraseña.
+        Notification::assertSentTo($user, AdminInvitacionNotification::class);
     }
 
     #[Test]
@@ -50,6 +55,10 @@ class OrganizacionUsersTest extends TestCase
         // Debe adjuntarse, no crearse un segundo usuario.
         $this->assertSame(1, User::where('email', 'existente@test.com')->count());
         $this->assertTrue($org->users()->whereKey($existente->id)->exists());
+
+        // Usuario existente → recibe notificación de nueva organización (no reset de contraseña).
+        Notification::assertSentTo($existente, AdminNuevaOrganizacionNotification::class);
+        Notification::assertNotSentTo($existente, AdminInvitacionNotification::class);
     }
 
     #[Test]
@@ -152,6 +161,9 @@ class OrganizacionUsersTest extends TestCase
             ->postJson(route('super.organizaciones.resetUserPassword', [$org, $user]))
             ->assertOk()
             ->assertJsonPath('success', true);
+
+        // Debe haber enviado el link de reset al usuario.
+        Notification::assertSentTo($user, AdminInvitacionNotification::class);
     }
 
     #[Test]

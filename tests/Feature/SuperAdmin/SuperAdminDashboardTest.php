@@ -38,51 +38,47 @@ class SuperAdminDashboardTest extends TestCase
     }
 
     // ── Stats cross-organizacion ──────────────────────────────────────
+    //
+    // assertViewHas en lugar de assertSee: verifica los datos exactos que el servicio
+    // pasa a la vista, sin depender del HTML renderizado (donde un '5' puede matchear
+    // cualquier número, año, ID o clase CSS que contenga ese dígito).
+    //
+    // setUp de TestCase crea siempre 'Organización Test' (activo: true). Todos los
+    // conteos incluyen esa org base; los tests lo expresan explícitamente.
 
     #[Test]
-    public function dashboard_muestra_total_de_organizaciones(): void
+    public function stats_cuentan_total_activas_e_inactivas_correctamente(): void
     {
-        Organizacion::factory()->count(3)->create(['activo' => true]);
-        Organizacion::factory()->count(2)->create(['activo' => false]);
+        // setUp ya tiene 1 org activa. Creamos 2 activas + 1 inactiva → total 4.
+        Organizacion::factory()->count(2)->create(['activo' => true]);
+        Organizacion::factory()->count(1)->create(['activo' => false]);
 
         $this->actingAs($this->superAdmin())
             ->get(route('super.dashboard'))
             ->assertOk()
-            ->assertSee('5');   // total orgs
+            ->assertViewHas('stats', function (array $stats): bool {
+                return $stats['total'] === 4     // 1 setUp + 2 activas + 1 inactiva
+                    && $stats['activas'] === 3   // 1 setUp + 2 activas
+                    && $stats['inactivas'] === 1;
+            });
     }
 
     #[Test]
-    public function dashboard_cuenta_orgs_activas_e_inactivas_por_separado(): void
+    public function stats_cuentan_usuarios_no_super_admin(): void
     {
-        Organizacion::factory()->count(4)->create(['activo' => true]);
-        Organizacion::factory()->count(1)->create(['activo' => false]);
-
-        $response = $this->actingAs($this->superAdmin())
-            ->get(route('super.dashboard'))
-            ->assertOk();
-
-        // Ambos valores deben aparecer en la vista.
-        $response->assertSee('4');
-        $response->assertSee('1');
-    }
-
-    #[Test]
-    public function dashboard_muestra_total_de_usuarios_no_super_admin(): void
-    {
-        // superAdmin() del trait ya existe; creamos otros 3 no-super.
+        // No hay usuarios no-super en setUp. Creamos 2 admins + 1 operador.
         User::factory()->count(2)->create(['role' => 'admin']);
         User::factory()->count(1)->create(['role' => 'operador']);
-
-        $superAdmin = $this->superAdmin();
+        $superAdmin = $this->superAdmin(); // este NO se cuenta (role = super_admin)
 
         $this->actingAs($superAdmin)
             ->get(route('super.dashboard'))
             ->assertOk()
-            ->assertSee('3');   // solo los no-super
+            ->assertViewHas('stats', fn (array $stats) => $stats['usuarios'] === 3);
     }
 
     #[Test]
-    public function dashboard_lista_las_organizaciones_mas_recientes(): void
+    public function recientes_incluye_las_organizaciones_mas_nuevas(): void
     {
         Organizacion::factory()->create(['nombre' => 'Org Antigua']);
         Organizacion::factory()->create(['nombre' => 'Org Reciente']);
@@ -90,6 +86,8 @@ class SuperAdminDashboardTest extends TestCase
         $this->actingAs($this->superAdmin())
             ->get(route('super.dashboard'))
             ->assertOk()
-            ->assertSee('Org Reciente');
+            ->assertViewHas('recientes', function ($recientes): bool {
+                return $recientes->contains('nombre', 'Org Reciente');
+            });
     }
 }
