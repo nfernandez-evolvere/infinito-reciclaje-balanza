@@ -1,6 +1,6 @@
 @props(['kpis'])
 
-<div class="hidden sm:grid sm:grid-cols-4 gap-4">
+<div class="hidden xl:grid xl:grid-cols-4 gap-4">
     <x-ui.kpi title="Pesajes" icon="scale" variant="primary" help="Total de pesajes registrados en el turno actual.">
         {{ $kpis['total'] }}
     </x-ui.kpi>

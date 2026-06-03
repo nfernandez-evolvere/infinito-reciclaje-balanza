@@ -13,7 +13,7 @@
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
             <p class="text-overline">Informe de recolección</p>
-            <h2 class="text-h2 mt-1">
+            <h2 class="text-h3 mt-1">
                 {{ $reporte['desde']->translatedFormat('d M') }} — {{ $reporte['hasta']->translatedFormat('d M Y') }}
             </h2>
             @if(!empty($pills))
@@ -25,10 +25,12 @@
             @endif
         </div>
 
-        <div class="flex items-center gap-2 shrink-0">
-            <x-ui.button variant="ghost" size="sm" @click="filterOpen = true" class="relative">
+        <div class="flex items-center justify-end gap-2 sm:shrink-0">
+            {{-- KPIs (mobile/tablet) + cambiar período: ghost solo-ícono, estilo dashboard --}}
+            <x-domain.reportes.mobile-kpis :kpis="$reporte['kpis']" />
+
+            <x-ui.button variant="ghost" size="icon" @click="filterOpen = true" class="relative" aria-label="Cambiar período">
                 <x-lucide-calendar-days class="size-4" />
-                <span>Cambiar período</span>
                 @if($activeFilters > 0)
                     <span class="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground leading-none">
                         {{ $activeFilters }}
@@ -36,14 +38,15 @@
                 @endif
             </x-ui.button>
 
-            <x-ui.button variant="outline" size="sm" href="{{ route('admin.reportes.excel', $exportParams) }}">
+            {{-- Exportar: con label --}}
+            <x-ui.button variant="outline" href="{{ route('admin.reportes.excel', $exportParams) }}">
                 <x-lucide-table class="size-4" />
-                <span class="hidden sm:inline">Excel</span>
+                <span>Excel</span>
             </x-ui.button>
 
-            <x-ui.button size="sm" href="{{ route('admin.reportes.pdf-presentacion', $exportParams) }}">
-                <x-lucide-presentation class="size-4" />
-                <span class="hidden sm:inline">PDF</span>
+            <x-ui.button href="{{ route('admin.reportes.pdf-presentacion', $exportParams) }}">
+                <x-lucide-file-text class="size-4" />
+                <span>PDF</span>
             </x-ui.button>
         </div>
     </div>

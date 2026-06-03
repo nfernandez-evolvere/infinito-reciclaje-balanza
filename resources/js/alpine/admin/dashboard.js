@@ -63,13 +63,13 @@ export default function dashboardData() {
                 : base + ' bg-destructive/10 text-destructive border-destructive/30';
         },
         ultimoLabel(min) {
-            if (min === null) return '—';
+            if (min === null) return 'Sin pesaje';
             if (min < 60) return min + ' min';
             const h = Math.floor(min / 60), m = min % 60;
             return h + 'h' + (m > 0 ? ' ' + m + 'min' : '');
         },
         ultimoClass(min) {
-            if (min === null) return 'text-muted-foreground';
+            if (min === null) return '';
             if (min < 180) return 'text-success';
             if (min < 480) return 'text-warning';
             return 'text-destructive';

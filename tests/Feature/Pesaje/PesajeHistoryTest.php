@@ -55,6 +55,38 @@ class PesajeHistoryTest extends TestCase
         $this->get(route('historial'))->assertRedirect(route('login'));
     }
 
+    // ── Detalle (show) ────────────────────────────────────────────────
+
+    #[Test]
+    public function admin_detail_view_links_historial_to_admin_index(): void
+    {
+        // El botón "Ver historial" debe llevar al índice del admin, no a la ruta
+        // 'historial' (role:operador) — esa daba 403 al admin de organización.
+        $pesaje = $this->pesajeConPatente('DET001');
+
+        $this->actingAs($this->admin())
+            ->get(route('pesajes.show', $pesaje))
+            ->assertOk()
+            ->assertSee('Ver historial')
+            // El layout del admin nunca renderiza la ruta operador: si aparece,
+            // es por el botón apuntando a la ruta equivocada.
+            ->assertDontSee(route('historial'))
+            // El admin no puede crear pesajes (/balanza es role:operador): se oculta.
+            ->assertDontSee('Registrar otro pesaje');
+    }
+
+    #[Test]
+    public function operador_detail_view_shows_both_actions(): void
+    {
+        $pesaje = $this->pesajeConPatente('DET002');
+
+        $this->actingAs($this->operador())
+            ->get(route('pesajes.show', $pesaje))
+            ->assertOk()
+            ->assertSee('Ver historial')
+            ->assertSee('Registrar otro pesaje');
+    }
+
     // ── Filtros ───────────────────────────────────────────────────────
 
     #[Test]

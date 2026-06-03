@@ -83,7 +83,10 @@ class PesajeController extends Controller
     {
         $pesaje->load(['vehiculo.tipoVehiculo', 'tipoServicio', 'zona', 'operador']);
 
-        return view('modules.operador.pesaje-detalle', compact('pesaje'));
+        $isAdmin = auth()->user()->isAdmin();
+        $routeHistorial = $isAdmin ? route('admin.pesajes.index') : route('historial');
+
+        return view('modules.operador.pesaje-detalle', compact('pesaje', 'isAdmin', 'routeHistorial'));
     }
 
     public function edit(Pesaje $pesaje): View

@@ -1,7 +1,6 @@
 @props([
     'action',
     'resetUrl',
-    'side' => 'right',       // 'right' (desktop, controlled) | 'bottom' (mobile, self-contained)
     'controlledBy' => null,  // nombre de la variable Alpine del padre que controla open/close
 ])
 
@@ -9,13 +8,10 @@
 $isControlled = !is_null($controlledBy);
 $showExpr  = $controlledBy ?? 'open';
 $closeExpr = $isControlled ? "$controlledBy = false" : 'open = false';
-$isBottom  = $side === 'bottom';
 
-$panelClass = $isBottom
-    ? 'inset-x-0 bottom-0 max-h-[80vh] w-full rounded-t-2xl border-t'
-    : 'inset-y-0 right-0 w-80 rounded-l-xl border-l';
-
-$enterStart = $isBottom ? 'opacity-0 translate-y-4' : 'opacity-0 translate-x-4';
+// Bottom sheet en mobile · panel lateral derecho en sm+
+$panelClass = 'inset-x-0 bottom-0 max-h-[80vh] w-full rounded-t-2xl border-t '
+    . 'sm:inset-x-auto sm:inset-y-0 sm:right-0 sm:max-h-none sm:w-80 sm:rounded-t-none sm:rounded-l-xl sm:border-t-0 sm:border-l';
 @endphp
 
 @unless($isControlled)
@@ -49,19 +45,18 @@ $enterStart = $isBottom ? 'opacity-0 translate-y-4' : 'opacity-0 translate-x-4';
         <div
             x-show="{{ $showExpr }}"
             x-transition:enter="transition ease-out duration-300"
-            x-transition:enter-start="opacity-0 {{ $enterStart }}"
+            x-transition:enter-start="opacity-0 translate-y-4"
             x-transition:enter-end="opacity-100 translate-x-0 translate-y-0"
             x-transition:leave="transition ease-in duration-200"
             x-transition:leave-start="opacity-100 translate-x-0 translate-y-0"
-            x-transition:leave-end="opacity-0 {{ $enterStart }}"
+            x-transition:leave-end="opacity-0 translate-y-4"
             class="absolute flex flex-col border-border bg-background shadow-xl {{ $panelClass }}"
         >
-            @if($isBottom)
-                <button type="button" @click="{{ $closeExpr }}" aria-label="Cerrar"
-                    class="flex w-full justify-center py-3 shrink-0 focus-visible:outline-none">
-                    <div class="h-1.5 w-12 rounded-full bg-muted-foreground/30 hover:bg-muted-foreground/60 transition-colors"></div>
-                </button>
-            @endif
+            {{-- Drag handle: solo mobile (bottom sheet) --}}
+            <button type="button" @click="{{ $closeExpr }}" aria-label="Cerrar"
+                class="flex w-full justify-center py-3 shrink-0 focus-visible:outline-none sm:hidden">
+                <div class="h-1.5 w-12 rounded-full bg-muted-foreground/30 hover:bg-muted-foreground/60 transition-colors"></div>
+            </button>
 
             {{-- Header --}}
             <div class="flex items-center justify-between border-b border-border px-5 py-4 shrink-0">
@@ -75,20 +70,21 @@ $enterStart = $isBottom ? 'opacity-0 translate-y-4' : 'opacity-0 translate-x-4';
             </div>
 
             {{-- Campos + footer --}}
-            <form method="GET" action="{{ $action }}" class="flex flex-col flex-1 min-h-0">
+            <form method="GET" action="{{ $action }}" x-data="{ submitting: false }" @submit="submitting = true" class="flex flex-col flex-1 min-h-0">
                 <div class="flex-1 overflow-y-auto px-5 py-5 space-y-4">
                     {{ $slot }}
                 </div>
                 <div class="border-t border-border px-5 py-4 flex gap-2 shrink-0">
-                    <a href="{{ $resetUrl }}" class="flex-1">
+                    <a href="{{ $resetUrl }}" class="flex-1" x-bind:class="submitting && 'pointer-events-none opacity-50'">
                         <x-ui.button type="button" variant="secondary" class="w-full">
                             <x-lucide-x class="size-4" />
                             Limpiar
                         </x-ui.button>
                     </a>
-                    <x-ui.button type="submit" class="flex-1">
-                        <x-lucide-search class="size-4" />
-                        Aplicar
+                    <x-ui.button type="submit" class="flex-1" x-bind:disabled="submitting">
+                        <x-ui.spinner size="sm" class="text-current" x-show="submitting" x-cloak />
+                        <x-lucide-search class="size-4" x-show="!submitting" />
+                        <span x-text="submitting ? 'Aplicando…' : 'Aplicar'"></span>
                     </x-ui.button>
                 </div>
             </form>

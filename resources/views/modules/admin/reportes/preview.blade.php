@@ -24,7 +24,7 @@
                 <span class="hidden sm:inline">Excel</span>
             </x-ui.button>
             <x-ui.button size="sm" href="{{ route('admin.reportes.preview-pdf') }}" target="_blank">
-                <x-lucide-presentation class="size-4" />
+                <x-lucide-file-text class="size-4" />
                 <span class="hidden sm:inline">PDF</span>
             </x-ui.button>
         </div>

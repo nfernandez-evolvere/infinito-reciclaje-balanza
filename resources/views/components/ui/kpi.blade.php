@@ -16,7 +16,7 @@ $colorMap = [
 $colors = $colorMap[$variant] ?? $colorMap['primary'];
 @endphp
 
-<x-ui.card variant="elevated" class="flex-row items-center gap-3 sm:gap-4 p-3 sm:p-5">
+<x-ui.card variant="elevated" class="flex-row items-center gap-3 sm:gap-4 p-3 sm:p-5 min-h-24 sm:min-h-30">
     @if($icon)
         @if($variantExpr)
         <div class="shrink-0 self-stretch aspect-square flex items-center justify-center rounded-lg p-2"

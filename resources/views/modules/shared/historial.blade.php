@@ -55,7 +55,7 @@
             <x-ui.typography as="muted" class="mt-1 truncate">{{ $subtitulo }}</x-ui.typography>
         </div>
         <div class="flex items-center justify-end gap-1 w-full lg:w-auto shrink-0">
-            <div class="sm:hidden">
+            <div class="xl:hidden">
                 <x-ui.tooltip content="Métricas">
                     <x-ui.button variant="ghost" size="icon" @click="metricasOpen = true">
                         <x-lucide-chart-bar class="size-4" />
