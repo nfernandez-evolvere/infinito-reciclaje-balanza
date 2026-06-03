@@ -56,8 +56,10 @@
 
     <div class="grid grid-cols-2 gap-4">
         <x-ui.kpi title="kg / hectárea" icon="land-plot" variant="primary" help="Kilogramos netos acumulados en el mes por hectárea de zona de servicio.">
-            <span x-text="kpisMes.kg_por_ha !== null ? fmt(kpisMes.kg_por_ha, 1) + ' kg/ha' : '—'"></span>
-            <span x-show="kpisMes.kg_por_ha !== null" class="text-base font-normal text-muted-foreground ml-1.5" x-text="fmt(kpisMes.kg_por_ha / 1000, 2) + ' t/ha'"></span>
+            <span class="inline-flex items-baseline gap-1.5">
+                <span x-text="kpisMes.kg_por_ha !== null ? fmt(kpisMes.kg_por_ha, 1) + ' kg/ha' : '—'"></span>
+                <span x-show="kpisMes.kg_por_ha !== null" class="text-base font-normal text-muted-foreground text-nowrap" x-text="fmt(kpisMes.kg_por_ha / 1000, 2) + ' t/ha'"></span>
+            </span>
             <x-ui.popover side="top" align="start" width="w-56" class="mt-1.5 block">
                 <x-slot:trigger>
                     <span x-bind:class="deltaBadgeClass(kpisMes.delta_kg_por_ha)">
@@ -74,8 +76,10 @@
         </x-ui.kpi>
 
         <x-ui.kpi title="kg / persona" icon="users" variant="primary" help="Kilogramos netos acumulados en el mes por habitante de la zona de servicio.">
-            <span x-text="kpisMes.kg_por_persona !== null ? fmt(kpisMes.kg_por_persona, 2) + ' kg' : '—'"></span>
-            <span x-show="kpisMes.kg_por_persona !== null" class="text-base font-normal text-muted-foreground ml-1.5" x-text="fmt(kpisMes.kg_por_persona / 1000, 3) + ' t'"></span>
+            <span class="inline-flex items-baseline gap-1.5">
+                <span x-text="kpisMes.kg_por_persona !== null ? fmt(kpisMes.kg_por_persona, 2) + ' kg' : '—'"></span>
+                <span x-show="kpisMes.kg_por_persona !== null" class="text-base font-normal text-muted-foreground" x-text="fmt(kpisMes.kg_por_persona / 1000, 3) + ' t'"></span>
+            </span>
             <x-ui.popover side="top" align="start" width="w-56" class="mt-1.5 block">
                 <x-slot:trigger>
                     <span x-bind:class="deltaBadgeClass(kpisMes.delta_kg_por_persona)">

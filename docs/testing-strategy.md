@@ -72,6 +72,47 @@ public function admin_can_create_pesaje(): void
 - Nombre del test = comportamiento esperado, no implementación.
 - Datos mínimos: crear solo lo que el test necesita.
 
+### 2.5 Estándar de calidad — todo test debe ser "A"
+
+Todo test nuevo (y toda mejora a tests existentes) debe cumplir el estándar de calidad **A**. No se mergea código que no lo cumpla.
+
+| Criterio | ✅ Cumple (A) | ❌ No cumple (B o menos) |
+|----------|--------------|------------------------|
+| **Borde exacto** | Testea el valor exacto en los límites de la condición (`<`, `>`, `>=`, `<=`) | Solo prueba "claramente dentro" y "claramente fuera" |
+| **Assert completo** | Verifica **todos** los campos relevantes del resultado (valor_anterior + motivo + usuario_id en logs; estado + metadatos en cancelar/egreso) | Solo verifica uno o dos campos del resultado |
+| **Excepción con clave** | Al esperar `ValidationException`, verifica la **clave** del error — `assertArrayHasKey('campo', $e->errors())` en Integration o `assertSessionHasErrors('campo')` en Feature | Solo `expectException(ValidationException::class)` sin verificar qué campo falló |
+| **End-to-end en Feature** | Los tests Feature verifican que los **datos persisten correctamente** (neto, estado, log) además del redirect | Solo verifican redirect + count |
+| **Datos controlados** | Usa factories con valores **explícitos** para todo campo que el test afirma | Usa valores aleatorios del factory y asume el resultado |
+
+```php
+// ❌ B: solo verifica que lanza, no QUÉ falla
+$this->expectException(ValidationException::class);
+$this->service->marcarEgreso($pesaje, []);
+
+// ✅ A: verifica la clave del error
+try {
+    $this->service->marcarEgreso($pesaje, []);
+    $this->fail('Expected ValidationException');
+} catch (ValidationException $e) {
+    $this->assertArrayHasKey('estado', $e->errors());
+}
+
+// ❌ B: assert parcial del log
+$this->assertDatabaseHas('pesajes_log', ['campo' => 'zona_id', 'valor_nuevo' => $id]);
+
+// ✅ A: assert completo del log
+$this->assertDatabaseHas('pesajes_log', [
+    'pesaje_id'      => $pesaje->id,
+    'campo'          => 'zona_id',
+    'valor_anterior' => (string) $pesaje->zona_id,
+    'valor_nuevo'    => (string) $nuevaZona->id,
+    'motivo'         => 'Zona mal cargada',
+    'usuario_id'     => $operador->id,
+]);
+```
+
+> Este estándar aplica desde **Fase 2** en adelante. Los tests de Fase 0–1 (restructuración) se mejoran oportunistamente.
+
 ---
 
 ## 3. Nueva estructura de carpetas

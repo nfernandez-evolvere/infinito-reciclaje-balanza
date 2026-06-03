@@ -23,8 +23,8 @@ class TipoServicioRepository
         return TipoServicio::query()
             ->with('tiposVehiculo')
             ->when(
-                !empty($filters['nombre']),
-                fn ($q) => $q->where('nombre', 'like', '%' . $filters['nombre'] . '%')
+                ! empty($filters['nombre']),
+                fn ($q) => $q->where('nombre', 'like', '%'.$filters['nombre'].'%')
             )
             ->when(
                 isset($filters['tipo_vehiculo_id']) && $filters['tipo_vehiculo_id'] !== '',
@@ -46,6 +46,7 @@ class TipoServicioRepository
     {
         $tipoServicio = TipoServicio::create($data);
         $tipoServicio->tiposVehiculo()->sync($tipoVehiculoIds);
+
         return $tipoServicio;
     }
 
@@ -53,6 +54,7 @@ class TipoServicioRepository
     {
         $tipoServicio->update($data);
         $tipoServicio->tiposVehiculo()->sync($tipoVehiculoIds);
+
         return $tipoServicio;
     }
 

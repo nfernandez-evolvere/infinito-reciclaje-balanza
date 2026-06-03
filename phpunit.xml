@@ -8,6 +8,9 @@
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
         </testsuite>
+        <testsuite name="Integration">
+            <directory>tests/Integration</directory>
+        </testsuite>
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
         </testsuite>
@@ -17,15 +20,25 @@
             <directory>app</directory>
         </include>
     </source>
+    <!--
+        La cobertura se genera por CLI en CI con las flags de coverage de artisan test.
+        No se declara el bloque coverage/report en el XML porque PHPUnit 12 auto-activa la
+        recoleccion al detectar reports y aborta si no hay driver (pcov/xdebug). En Windows
+        local no hay driver, asi que dejarlo aca romperia `php artisan test`.
+        El bloque source de arriba acota que se mide.
+    -->
     <php>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>
-        <env name="DB_CONNECTION" value="sqlite"/>
-        <env name="DB_DATABASE" value=":memory:"/>
-        <env name="DB_URL" value=""/>
+        <!--
+            La conexion de tests (sqlsrv, base dedicada) la define .env.testing,
+            que Laravel carga porque APP_ENV=testing. NO se hardcodea DB_* aca:
+            PHPUnit pisaria a .env.testing y volveriamos a SQLite. La guardia en
+            TestCase aborta si la base no parece de test (red de seguridad).
+        -->
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>

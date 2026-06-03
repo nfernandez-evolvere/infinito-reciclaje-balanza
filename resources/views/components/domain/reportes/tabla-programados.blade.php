@@ -107,9 +107,9 @@
             <x-ui.table.body>
                 @foreach($programados as $p)
                 <x-ui.table.row>
-                    <x-ui.table.cell class="font-medium">{{ $p->nombre }}</x-ui.table.cell>
+                    <x-ui.table.cell class="font-medium text-nowrap">{{ $p->nombre }}</x-ui.table.cell>
                     <x-ui.table.cell>
-                        <x-ui.badge variant="{{ $p->tipo === 'informe_mensual' ? 'default' : 'warning' }}">
+                        <x-ui.badge class="text-nowrap" variant="{{ $p->tipo === 'informe_mensual' ? 'default' : 'warning' }}">
                             {{ $tiposLabel[$p->tipo] ?? $p->tipo }}
                         </x-ui.badge>
                     </x-ui.table.cell>
@@ -118,10 +118,10 @@
                         <span class="text-caption">{{ implode(', ', $p->destinatarios) }}</span>
                     </x-ui.table.cell>
                     <x-ui.table.cell>
-                        <span class="text-caption">{{ $p->ultimo_envio_at?->format('d/m/Y H:i') ?? '—' }}</span>
+                        <span class="text-caption text-nowrap">{{ $p->ultimo_envio_at?->format('d/m/Y H:i') ?? '—' }}</span>
                     </x-ui.table.cell>
                     <x-ui.table.cell>
-                        <span class="text-caption">{{ $p->proximo_envio_at?->format('d/m/Y H:i') ?? '—' }}</span>
+                        <span class="text-caption text-nowrap">{{ $p->proximo_envio_at?->format('d/m/Y H:i') ?? '—' }}</span>
                     </x-ui.table.cell>
                     <x-ui.table.cell>
                         @if($p->activo)

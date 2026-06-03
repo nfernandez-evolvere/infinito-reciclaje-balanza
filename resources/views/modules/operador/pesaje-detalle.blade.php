@@ -14,14 +14,16 @@
 
     {{-- Acciones --}}
     <div class="flex items-center gap-3 flex-1 justify-end">
-        <x-ui.button variant="secondary" href="{{ route('historial') }}" class="w-full md:w-auto">
+        <x-ui.button variant="secondary" href="{{ $routeHistorial }}" class="w-full md:w-auto">
             <x-lucide-list />
             <span>Ver historial</span>
         </x-ui.button>
-        <x-ui.button href="{{ route('balanza') }}" class="w-full md:w-auto">
-            <x-lucide-plus />
-            <span>Registrar otro pesaje</span>
-        </x-ui.button>
+        @unless($isAdmin)
+            <x-ui.button href="{{ route('balanza') }}" class="w-full md:w-auto">
+                <x-lucide-plus />
+                <span>Registrar otro pesaje</span>
+            </x-ui.button>
+        @endunless
     </div>
 
     {{-- Alerta de peso fuera de rango --}}

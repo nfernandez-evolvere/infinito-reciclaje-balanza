@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\Vehiculo;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 
 class VehiculoRepository
 {
@@ -13,15 +14,15 @@ class VehiculoRepository
             ->with('tipoVehiculo')
             ->withCount('pesajes')
             ->when(
-                !empty($filters['patente']),
-                fn ($q) => $q->where('patente', 'like', '%' . $filters['patente'] . '%')
+                ! empty($filters['patente']),
+                fn ($q) => $q->where('patente', 'like', '%'.$filters['patente'].'%')
             )
             ->when(
-                !empty($filters['numero_interno']),
-                fn ($q) => $q->where('numero_interno', 'like', '%' . $filters['numero_interno'] . '%')
+                ! empty($filters['numero_interno']),
+                fn ($q) => $q->where('numero_interno', 'like', '%'.$filters['numero_interno'].'%')
             )
             ->when(
-                !empty($filters['tipo_vehiculo_id']),
+                ! empty($filters['tipo_vehiculo_id']),
                 fn ($q) => $q->where('tipo_vehiculo_id', $filters['tipo_vehiculo_id'])
             )
             ->when(
@@ -33,14 +34,14 @@ class VehiculoRepository
             ->appends(array_filter($filters, fn ($v) => $v !== '' && $v !== null));
     }
 
-    public function buscar(string $q, int $limit = 6): \Illuminate\Database\Eloquent\Collection
+    public function buscar(string $q, int $limit = 6): Collection
     {
         return Vehiculo::query()
             ->with('tipoVehiculo')
             ->where('activo', true)
             ->where(fn ($query) => $query
-                ->where('patente', 'like', '%' . $q . '%')
-                ->orWhere('numero_interno', 'like', '%' . $q . '%')
+                ->where('patente', 'like', '%'.$q.'%')
+                ->orWhere('numero_interno', 'like', '%'.$q.'%')
             )
             ->limit($limit)
             ->get();
@@ -54,6 +55,7 @@ class VehiculoRepository
     public function update(Vehiculo $vehiculo, array $data): Vehiculo
     {
         $vehiculo->update($data);
+
         return $vehiculo;
     }
 

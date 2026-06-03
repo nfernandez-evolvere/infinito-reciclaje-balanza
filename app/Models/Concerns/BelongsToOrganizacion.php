@@ -13,7 +13,7 @@ trait BelongsToOrganizacion
             $org = app()->bound('organizacion') ? app('organizacion') : null;
             if ($org) {
                 $query->where(
-                    $query->getModel()->getTable() . '.organizacion_id',
+                    $query->getModel()->getTable().'.organizacion_id',
                     $org->id
                 );
             }

@@ -1,9 +1,8 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\TipoVehiculo;
 
 use App\Models\TipoVehiculo;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -11,16 +10,6 @@ use Tests\TestCase;
 class TipoVehiculoTest extends TestCase
 {
     use RefreshDatabase;
-
-    private function admin(): User
-    {
-        return User::factory()->create(['role' => 'admin']);
-    }
-
-    private function operador(): User
-    {
-        return User::factory()->create(['role' => 'operador']);
-    }
 
     #[Test]
     public function test_index_renders_list(): void

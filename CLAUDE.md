@@ -1380,6 +1380,8 @@ class UserRepository
 
 > **Tests — nombres siempre en inglés.** Las clases y métodos de test se escriben en inglés, sin prefijo `test_` (se usa el atributo `#[Test]`). Los nombres de dominio que son clases reales del código (`Pesaje`, `Vehiculo`, `Organizacion`, `Zona`, `TipoServicio`, etc.) se mantienen tal cual — son nombres propios, no se traducen. Ej: `public function admin_can_create_pesaje(): void`. Ver [`docs/testing-strategy.md`](docs/testing-strategy.md) para la estrategia completa.
 
+> **Tests — estándar de calidad A (obligatorio).** Todo test nuevo debe cumplir el estándar definido en [`docs/testing-strategy.md §2.5`](docs/testing-strategy.md). En resumen: (1) probar el **borde exacto** de cada condición (`<`, `>`, `>=`, `<=`); (2) **assert completo** de todos los campos relevantes del resultado (valor_anterior, motivo, usuario_id en logs; metadatos en cancelar/egreso); (3) excepción con **clave de error validada** (no solo `expectException`, también `assertArrayHasKey` en `$e->errors()` o `assertSessionHasErrors('campo')`); (4) **datos controlados** — factories con valores explícitos para todo campo que el test afirma; (5) tests Feature verifican que los **datos persisten correctamente** además del redirect. No se mergea un test que solo verifica redirect + count.
+
 ### Inyección de dependencias en Controllers
 
 ```php

@@ -142,7 +142,7 @@
             </x-ui.card.header>
             <x-ui.card.content>
                 <div class="space-y-4">
-                    <div class="flex items-center justify-between">
+                    <div class="flex items-center justify-between gap-2">
                         <div>
                             <p class="text-label">Informe mensual (PPT)</p>
                             <p class="text-caption">Presentación con gráficos, tablas y conclusiones para el municipio.</p>
@@ -150,7 +150,7 @@
                         <x-ui.switch name="tipo_informe_mensual_activo" :checked="$config->tipo_informe_mensual_activo ?? true" />
                     </div>
                     <x-ui.separator />
-                    <div class="flex items-center justify-between">
+                    <div class="flex items-center justify-between gap-2">
                         <div>
                             <p class="text-label">Reporte de alertas</p>
                             <p class="text-caption">Lista de pesajes con alertas de peso y gaps operativos.</p>
@@ -161,9 +161,9 @@
             </x-ui.card.content>
         </x-ui.card>
 
-        <div class="flex items-center justify-between gap-4">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             @if(app()->isLocal())
-                <div class="flex items-center gap-2">
+                <div class="flex flex-wrap items-center gap-2">
                     <a href="{{ route('admin.reportes.preview') }}"
                        class="inline-flex items-center gap-1.5 rounded-full border border-dashed border-border px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground">
                         <x-lucide-eye class="size-3" />
@@ -171,14 +171,14 @@
                     </a>
                     <a href="{{ route('admin.reportes.preview-pdf') }}" target="_blank"
                        class="inline-flex items-center gap-1.5 rounded-full border border-dashed border-border px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground">
-                        <x-lucide-presentation class="size-3" />
+                        <x-lucide-file-text class="size-3" />
                         Preview PDF
                     </a>
                 </div>
             @else
                 <span></span>
             @endif
-            <x-ui.button type="submit">
+            <x-ui.button type="submit" class="self-end sm:self-auto">
                 <x-lucide-save class="size-4" />
                 Guardar configuración
             </x-ui.button>

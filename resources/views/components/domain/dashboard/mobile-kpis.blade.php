@@ -1,4 +1,4 @@
-<div class="sm:hidden">
+<div class="xl:hidden">
     <x-ui.sheet side="bottom">
         <x-slot:trigger>
             <x-ui.button variant="ghost" size="icon">
@@ -68,8 +68,10 @@
                                    'Sin actividad reciente'"></p>
                     </x-ui.kpi>
                     <x-ui.kpi title="kg / hectárea" icon="land-plot" variant="primary">
-                        <span x-text="kpisDia.kg_por_ha !== null ? fmt(kpisDia.kg_por_ha, 1) + ' kg/ha' : '—'"></span>
-                        <span x-show="kpisDia.kg_por_ha !== null" class="text-base font-normal text-muted-foreground ml-1.5" x-text="fmt(kpisDia.kg_por_ha / 1000, 2) + ' t/ha'"></span>
+                        <span class="inline-flex items-baseline gap-1.5">
+                            <span x-text="kpisDia.kg_por_ha !== null ? fmt(kpisDia.kg_por_ha, 1) + ' kg/ha' : '—'"></span>
+                            <span x-show="kpisDia.kg_por_ha !== null" class="text-base font-normal text-muted-foreground" x-text="fmt(kpisDia.kg_por_ha / 1000, 2) + ' t/ha'"></span>
+                        </span>
                         <x-ui.popover side="top" align="start" width="w-52" class="mt-1.5 block">
                             <x-slot:trigger>
                                 <span x-bind:class="deltaBadgeClass(kpisDia.delta_kg_por_ha)">
@@ -85,8 +87,10 @@
                         </x-ui.popover>
                     </x-ui.kpi>
                     <x-ui.kpi title="kg / persona" icon="users" variant="primary">
-                        <span x-text="kpisDia.kg_por_persona !== null ? fmt(kpisDia.kg_por_persona, 2) + ' kg' : '—'"></span>
-                        <span x-show="kpisDia.kg_por_persona !== null" class="text-base font-normal text-muted-foreground ml-1.5" x-text="fmt(kpisDia.kg_por_persona / 1000, 3) + ' t'"></span>
+                        <span class="inline-flex items-baseline gap-1.5">
+                            <span x-text="kpisDia.kg_por_persona !== null ? fmt(kpisDia.kg_por_persona, 2) + ' kg' : '—'"></span>
+                            <span x-show="kpisDia.kg_por_persona !== null" class="text-base font-normal text-muted-foreground" x-text="fmt(kpisDia.kg_por_persona / 1000, 3) + ' t'"></span>
+                        </span>
                         <x-ui.popover side="top" align="start" width="w-52" class="mt-1.5 block">
                             <x-slot:trigger>
                                 <span x-bind:class="deltaBadgeClass(kpisDia.delta_kg_por_persona)">
@@ -157,8 +161,10 @@
                         </x-ui.popover>
                     </x-ui.kpi>
                     <x-ui.kpi title="kg / hectárea" icon="land-plot" variant="primary">
-                        <span x-text="kpisMes.kg_por_ha !== null ? fmt(kpisMes.kg_por_ha, 1) + ' kg/ha' : '—'"></span>
-                        <span x-show="kpisMes.kg_por_ha !== null" class="text-base font-normal text-muted-foreground ml-1.5" x-text="fmt(kpisMes.kg_por_ha / 1000, 2) + ' t/ha'"></span>
+                        <span class="inline-flex items-baseline gap-1.5">
+                            <span x-text="kpisMes.kg_por_ha !== null ? fmt(kpisMes.kg_por_ha, 1) + ' kg/ha' : '—'"></span>
+                            <span x-show="kpisMes.kg_por_ha !== null" class="text-base font-normal text-muted-foreground" x-text="fmt(kpisMes.kg_por_ha / 1000, 2) + ' t/ha'"></span>
+                        </span>
                         <x-ui.popover side="top" align="start" width="w-52" class="mt-1.5 block">
                             <x-slot:trigger>
                                 <span x-bind:class="deltaBadgeClass(kpisMes.delta_kg_por_ha)">
@@ -174,8 +180,10 @@
                         </x-ui.popover>
                     </x-ui.kpi>
                     <x-ui.kpi title="kg / persona" icon="users" variant="primary">
-                        <span x-text="kpisMes.kg_por_persona !== null ? fmt(kpisMes.kg_por_persona, 2) + ' kg' : '—'"></span>
-                        <span x-show="kpisMes.kg_por_persona !== null" class="text-base font-normal text-muted-foreground ml-1.5" x-text="fmt(kpisMes.kg_por_persona / 1000, 3) + ' t'"></span>
+                        <span class="inline-flex items-baseline gap-1.5">
+                            <span x-text="kpisMes.kg_por_persona !== null ? fmt(kpisMes.kg_por_persona, 2) + ' kg' : '—'"></span>
+                            <span x-show="kpisMes.kg_por_persona !== null" class="text-base font-normal text-muted-foreground" x-text="fmt(kpisMes.kg_por_persona / 1000, 3) + ' t'"></span>
+                        </span>
                         <x-ui.popover side="top" align="start" width="w-52" class="mt-1.5 block">
                             <x-slot:trigger>
                                 <span x-bind:class="deltaBadgeClass(kpisMes.delta_kg_por_persona)">
@@ -215,13 +223,17 @@
                             <p class="text-xs font-normal mt-0.5 text-muted-foreground">por día operativo</p>
                         </x-ui.kpi>
                         <x-ui.kpi title="kg / hectárea" icon="land-plot" variant="primary">
-                            <span x-text="kpisRango.kg_por_ha !== null ? fmt(kpisRango.kg_por_ha, 1) + ' kg/ha' : '—'"></span>
-                            <span x-show="kpisRango.kg_por_ha !== null" class="text-base font-normal text-muted-foreground ml-1.5" x-text="fmt(kpisRango.kg_por_ha / 1000, 2) + ' t/ha'"></span>
+                            <span class="inline-flex items-baseline gap-1.5">
+                                <span x-text="kpisRango.kg_por_ha !== null ? fmt(kpisRango.kg_por_ha, 1) + ' kg/ha' : '—'"></span>
+                                <span x-show="kpisRango.kg_por_ha !== null" class="text-base font-normal text-muted-foreground" x-text="fmt(kpisRango.kg_por_ha / 1000, 2) + ' t/ha'"></span>
+                            </span>
                             <p class="text-xs font-normal mt-0.5 text-muted-foreground">por hectárea</p>
                         </x-ui.kpi>
                         <x-ui.kpi title="kg / persona" icon="users" variant="primary">
-                            <span x-text="kpisRango.kg_por_persona !== null ? fmt(kpisRango.kg_por_persona, 2) + ' kg' : '—'"></span>
-                            <span x-show="kpisRango.kg_por_persona !== null" class="text-base font-normal text-muted-foreground ml-1.5" x-text="fmt(kpisRango.kg_por_persona / 1000, 3) + ' t'"></span>
+                            <span class="inline-flex items-baseline gap-1.5">
+                                <span x-text="kpisRango.kg_por_persona !== null ? fmt(kpisRango.kg_por_persona, 2) + ' kg' : '—'"></span>
+                                <span x-show="kpisRango.kg_por_persona !== null" class="text-base font-normal text-muted-foreground" x-text="fmt(kpisRango.kg_por_persona / 1000, 3) + ' t'"></span>
+                            </span>
                             <p class="text-xs font-normal mt-0.5 text-muted-foreground">por habitante</p>
                         </x-ui.kpi>
                     </div>

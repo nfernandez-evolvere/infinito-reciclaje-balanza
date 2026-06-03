@@ -17,7 +17,7 @@ class UpdateTipoServicioRequest extends FormRequest
         $tipoId = $this->route('tipos_servicio')?->id;
 
         return [
-            'nombre'              => [
+            'nombre' => [
                 'required',
                 'string',
                 'max:100',

@@ -22,14 +22,18 @@
     </x-ui.kpi>
 
     <x-ui.kpi title="kg / hectárea" icon="land-plot" variant="primary" help="Kilogramos netos del período por hectárea de zona de servicio.">
-        <span x-text="kpisRango.kg_por_ha !== null ? fmt(kpisRango.kg_por_ha, 1) + ' kg/ha' : '—'"></span>
-        <span x-show="kpisRango.kg_por_ha !== null" class="text-base font-normal text-muted-foreground ml-1.5" x-text="fmt(kpisRango.kg_por_ha / 1000, 2) + ' t/ha'"></span>
+        <span class="inline-flex items-baseline gap-1.5">
+            <span x-text="kpisRango.kg_por_ha !== null ? fmt(kpisRango.kg_por_ha, 1) + ' kg/ha' : '—'"></span>
+            <span x-show="kpisRango.kg_por_ha !== null" class="text-base font-normal text-muted-foreground" x-text="fmt(kpisRango.kg_por_ha / 1000, 2) + ' t/ha'"></span>
+        </span>
         <p class="text-xs font-normal mt-0.5 text-muted-foreground">por hectárea</p>
     </x-ui.kpi>
 
     <x-ui.kpi title="kg / persona" icon="users" variant="primary" help="Kilogramos netos del período por habitante de la zona de servicio.">
-        <span x-text="kpisRango.kg_por_persona !== null ? fmt(kpisRango.kg_por_persona, 2) + ' kg' : '—'"></span>
-        <span x-show="kpisRango.kg_por_persona !== null" class="text-base font-normal text-muted-foreground ml-1.5" x-text="fmt(kpisRango.kg_por_persona / 1000, 3) + ' t'"></span>
+        <span class="inline-flex items-baseline gap-1.5">
+            <span x-text="kpisRango.kg_por_persona !== null ? fmt(kpisRango.kg_por_persona, 2) + ' kg' : '—'"></span>
+            <span x-show="kpisRango.kg_por_persona !== null" class="text-base font-normal text-muted-foreground" x-text="fmt(kpisRango.kg_por_persona / 1000, 3) + ' t'"></span>
+        </span>
         <p class="text-xs font-normal mt-0.5 text-muted-foreground">por habitante</p>
     </x-ui.kpi>
 

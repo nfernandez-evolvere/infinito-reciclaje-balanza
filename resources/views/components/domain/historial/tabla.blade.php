@@ -22,7 +22,7 @@
 @else
 
     {{-- ── Mobile: cards ────────────────────────────────────────── --}}
-    <div class="sm:hidden space-y-2">
+    <div class="lg:hidden space-y-2">
         @foreach($pesajes as $pesaje)
             @php
                 $cardClass = $pesaje->estaCancelado()
@@ -159,7 +159,7 @@
     </div>
 
     {{-- ── Desktop: tabla ────────────────────────────────────────── --}}
-    <x-ui.table class="hidden sm:block bg-card">
+    <x-ui.table class="hidden lg:block bg-card">
         <x-ui.table.header>
             <x-ui.table.row>
                 <x-ui.table.head>

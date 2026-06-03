@@ -30,10 +30,10 @@ class DashboardController extends Controller
                 $hasta = Carbon::parse($request->string('hasta'))->endOfDay();
 
                 if ($desde <= $hasta && $hasta->lte(now()->endOfDay())) {
-                    $response['kpisRango']             = $this->dashboardService->kpisDelRango($desde, $hasta);
-                    $response['evolucionRango']        = $this->dashboardService->evolucionDelRango($desde, $hasta);
+                    $response['kpisRango'] = $this->dashboardService->kpisDelRango($desde, $hasta);
+                    $response['evolucionRango'] = $this->dashboardService->evolucionDelRango($desde, $hasta);
                     $response['desgloseVehiculoRango'] = $this->dashboardService->desgloseByTipoVehiculo($desde, $hasta);
-                    $response['desgloseZonaRango']     = $this->dashboardService->desgloseByZona($desde, $hasta);
+                    $response['desgloseZonaRango'] = $this->dashboardService->desgloseByZona($desde, $hasta);
                 }
             } catch (\Exception) {
                 // fechas inválidas, se ignoran

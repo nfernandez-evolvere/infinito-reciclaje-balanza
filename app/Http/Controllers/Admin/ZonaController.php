@@ -17,6 +17,7 @@ use Illuminate\View\View;
 class ZonaController extends Controller
 {
     use WithToastFlash;
+
     public function __construct(
         protected ZonaService $service,
         protected TipoServicioRepository $tipoServicioRepository,
@@ -24,8 +25,8 @@ class ZonaController extends Controller
 
     public function index(Request $request): View
     {
-        $filters       = $request->only(['nombre', 'activo']);
-        $zonas         = $this->service->listar($filters);
+        $filters = $request->only(['nombre', 'activo']);
+        $zonas = $this->service->listar($filters);
         $tiposServicio = $this->tipoServicioRepository->activos();
 
         return view('modules.admin.zonas.index', compact('zonas', 'filters', 'tiposServicio'));
@@ -115,5 +116,4 @@ class ZonaController extends Controller
             return $this->toastError('admin.zonas.index');
         }
     }
-
 }

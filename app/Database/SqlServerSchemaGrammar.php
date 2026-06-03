@@ -18,7 +18,22 @@ class SqlServerSchemaGrammar extends SqlServerGrammar
     public function setSchema(string $schema): static
     {
         $this->dbSchema = $schema;
+
         return $this;
+    }
+
+    /**
+     * Formato de fecha en ISO 8601 con separador 'T'.
+     *
+     * El default de Laravel ('Y-m-d H:i:s.v', con espacio) es ambiguo para SQL Server:
+     * lo interpreta según el DATEFORMAT del servidor. En columnas datetime eso provoca
+     * intercambio mes↔día (día ≤ 12, se guarda mal) o error de rango (día > 12). El
+     * separador 'T' fuerza la interpretación ISO 8601 sin importar el locale del server,
+     * así toda fecha que Eloquent serializa se inserta y consulta sin ambigüedad.
+     */
+    public function getDateFormat(): string
+    {
+        return 'Y-m-d\TH:i:s.v';
     }
 
     public function wrapTable($table, $prefix = null): string
@@ -36,7 +51,7 @@ class SqlServerSchemaGrammar extends SqlServerGrammar
         $tablePrefix = $prefix ?? $this->connection->getTablePrefix();
 
         return $this->wrapValue($this->dbSchema)
-            . '.'
-            . $this->wrapValue($tablePrefix . $table);
+            .'.'
+            .$this->wrapValue($tablePrefix.$table);
     }
 }

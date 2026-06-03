@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  */
 class TipoServicio extends Model
 {
-    use HasFactory, BelongsToOrganizacion;
+    use BelongsToOrganizacion, HasFactory;
 
     protected $table = 'tipos_servicio';
 

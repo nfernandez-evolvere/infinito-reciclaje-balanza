@@ -17,8 +17,8 @@ class UsuarioRepository
             ->when(
                 ! empty($filters['buscar']),
                 fn ($q) => $q->where(function ($q) use ($filters) {
-                    $q->where('name', 'like', '%' . $filters['buscar'] . '%')
-                      ->orWhere('email', 'like', '%' . $filters['buscar'] . '%');
+                    $q->where('name', 'like', '%'.$filters['buscar'].'%')
+                        ->orWhere('email', 'like', '%'.$filters['buscar'].'%');
                 })
             )
             ->when(
@@ -38,12 +38,14 @@ class UsuarioRepository
     {
         $user = User::create($data);
         $user->organizaciones()->attach(app('organizacion')->id);
+
         return $user;
     }
 
     public function update(User $usuario, array $data): User
     {
         $usuario->update($data);
+
         return $usuario;
     }
 
@@ -78,7 +80,7 @@ class UsuarioRepository
             ->where('role', '!=', 'super_admin')
             ->where(function ($query) use ($q) {
                 $query->where('name', 'like', "%{$q}%")
-                      ->orWhere('email', 'like', "%{$q}%");
+                    ->orWhere('email', 'like', "%{$q}%");
             })
             ->orderBy('name')
             ->limit($limit)

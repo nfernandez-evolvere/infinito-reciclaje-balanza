@@ -20,7 +20,7 @@ class AdminNuevaOrganizacionNotification extends Notification
     public function toMail($notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Nueva organización asignada — ' . $this->organizacion->nombre)
+            ->subject('Nueva organización asignada — '.$this->organizacion->nombre)
             ->markdown('emails.admin-nueva-organizacion', [
                 'user'         => $notifiable,
                 'organizacion' => $this->organizacion,

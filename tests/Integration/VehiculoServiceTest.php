@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Integration;
 
 use App\Models\Pesaje;
 use App\Models\TipoVehiculo;
@@ -19,15 +19,16 @@ class VehiculoServiceTest extends TestCase
     use RefreshDatabase;
 
     private VehiculoService $service;
+
     private TipoVehiculo $tipo;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->service = new VehiculoService(
-            new VehiculoRepository(),
-            new VehiculoLogRepository(),
-            new PesajeRepository(),
+            new VehiculoRepository,
+            new VehiculoLogRepository,
+            new PesajeRepository,
         );
         $this->tipo = TipoVehiculo::factory()->create();
     }
@@ -124,7 +125,7 @@ class VehiculoServiceTest extends TestCase
     public function test_update_corregir_dato_recalculates_pesajes(): void
     {
         $vehiculo = Vehiculo::factory()->create(['tara_kg' => 8000, 'tipo_vehiculo_id' => $this->tipo->id]);
-        $usuario  = User::factory()->create();
+        $usuario = User::factory()->create();
 
         $pesaje = Pesaje::factory()->create([
             'vehiculo_id'   => $vehiculo->id,
@@ -171,7 +172,7 @@ class VehiculoServiceTest extends TestCase
         // Bruto menor que ambas taras: el neto queda clampeado a 0 antes y después,
         // así que cambia la tara pero NO el neto → solo debe auditarse la tara.
         $vehiculo = Vehiculo::factory()->create(['tara_kg' => 8000, 'tipo_vehiculo_id' => $this->tipo->id]);
-        $usuario  = User::factory()->create();
+        $usuario = User::factory()->create();
 
         $pesaje = Pesaje::factory()->create([
             'vehiculo_id'   => $vehiculo->id,
@@ -207,7 +208,7 @@ class VehiculoServiceTest extends TestCase
     public function test_update_cambio_real_keeps_pesajes_but_audits(): void
     {
         $vehiculo = Vehiculo::factory()->create(['tara_kg' => 8000, 'tipo_vehiculo_id' => $this->tipo->id]);
-        $usuario  = User::factory()->create();
+        $usuario = User::factory()->create();
 
         $pesaje = Pesaje::factory()->create([
             'vehiculo_id'   => $vehiculo->id,
@@ -241,7 +242,7 @@ class VehiculoServiceTest extends TestCase
     public function test_update_corregir_dato_excludes_cancelados(): void
     {
         $vehiculo = Vehiculo::factory()->create(['tara_kg' => 8000, 'tipo_vehiculo_id' => $this->tipo->id]);
-        $usuario  = User::factory()->create();
+        $usuario = User::factory()->create();
 
         $cancelado = Pesaje::factory()->cancelado()->create([
             'vehiculo_id'   => $vehiculo->id,
@@ -317,7 +318,7 @@ class VehiculoServiceTest extends TestCase
         Vehiculo::factory()->create(['activo' => true]);
         Vehiculo::factory()->create(['activo' => false]);
 
-        $activos   = $this->service->listar(['activo' => '1']);
+        $activos = $this->service->listar(['activo' => '1']);
         $inactivos = $this->service->listar(['activo' => '0']);
 
         $this->assertCount(2, $activos);

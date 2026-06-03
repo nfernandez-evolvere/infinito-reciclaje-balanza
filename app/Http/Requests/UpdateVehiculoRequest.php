@@ -14,14 +14,14 @@ class UpdateVehiculoRequest extends FormRequest
 
     public function rules(): array
     {
-        $vehiculo   = $this->route('vehiculo');
+        $vehiculo = $this->route('vehiculo');
         $vehiculoId = $vehiculo?->id;
 
         // Cuando la tara cambia y el vehículo ya tiene pesajes, el admin debe
         // declarar si corrige un dato mal cargado (recalcula el historial) o
         // registra un cambio real del vehículo (solo afecta a futuro).
-        $taraCambio       = $vehiculo && (int) $this->input('tara_kg') !== (int) $vehiculo->tara_kg;
-        $tienePesajes     = $vehiculo ? $vehiculo->pesajes()->exists() : false;
+        $taraCambio = $vehiculo && (int) $this->input('tara_kg') !== (int) $vehiculo->tara_kg;
+        $tienePesajes = $vehiculo ? $vehiculo->pesajes()->exists() : false;
         $requiereDecision = $taraCambio && $tienePesajes;
 
         return [

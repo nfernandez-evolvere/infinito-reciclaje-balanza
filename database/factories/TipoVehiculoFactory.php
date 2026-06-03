@@ -20,7 +20,7 @@ class TipoVehiculoFactory extends Factory
         $min = $this->faker->numberBetween(500, 5000);
 
         return [
-            'nombre'      => $this->faker->unique()->word() . ' ' . $this->faker->word(),
+            'nombre'      => $this->faker->unique()->word().' '.$this->faker->word(),
             'peso_min_kg' => $min,
             'peso_max_kg' => $min + $this->faker->numberBetween(1000, 20000),
             'activo'      => true,

@@ -21,6 +21,7 @@
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^3.7",
         "fakerphp/faker": "^1.23",
+        "infection/infection": "^0.33.2",
         "larastan/larastan": "^3.10",
         "laravel/breeze": "^2.4",
         "laravel/pail": "^1.2.5",
@@ -70,6 +71,19 @@
             "@php artisan config:clear --ansi @no_additional_args",
             "@php artisan test"
         ],
+        "check": [
+            "@php vendor/bin/pint --test",
+            "@analyse",
+            "@php artisan config:clear --ansi @no_additional_args",
+            "@php artisan test --coverage --min=68"
+        ],
+        "coverage": [
+            "@php artisan config:clear --ansi @no_additional_args",
+            "@php artisan test --coverage-html build/coverage"
+        ],
+        "mutation": [
+            "@php vendor/bin/infection --show-mutations --no-progress"
+        ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"
@@ -100,7 +114,8 @@
         "sort-packages": true,
         "allow-plugins": {
             "pestphp/pest-plugin": true,
-            "php-http/discovery": true
+            "php-http/discovery": true,
+            "infection/extension-installer": true
         }
     },
     "minimum-stability": "stable",

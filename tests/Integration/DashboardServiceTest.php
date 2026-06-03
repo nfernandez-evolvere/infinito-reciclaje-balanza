@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Integration;
 
 use App\Models\Pesaje;
 use App\Models\TipoVehiculo;
@@ -25,9 +25,9 @@ class DashboardServiceTest extends TestCase
     {
         parent::setUp();
         $this->service = new DashboardService(
-            new PesajeRepository(),
-            new ZonaRepository(),
-            new TipoVehiculoRepository()
+            new PesajeRepository,
+            new ZonaRepository,
+            new TipoVehiculoRepository
         );
     }
 
@@ -314,13 +314,13 @@ class DashboardServiceTest extends TestCase
         // 2 pesajes × 5000 kg, mismo turno → mismo grupo → 10 000 kg para esta zona
         Pesaje::factory()->count(2)->create(['created_at' => today(), 'zona_id' => $zona->id, 'peso_neto_kg' => 5000, 'turno' => 'Mañana']);
 
-        $desglose  = $this->service->desgloseByZona();
-        $entrada   = $desglose->firstWhere('zona_id', $zona->id);
+        $desglose = $this->service->desgloseByZona();
+        $entrada = $desglose->firstWhere('zona_id', $zona->id);
 
         // kg_por_ha  = round(10000 / 100,  1) = 100.0
         // kg_por_hab = round(10000 / 5000, 2) =   2.0
         $this->assertEquals(100.0, $entrada['kg_por_ha']);
-        $this->assertEquals(2.0,   $entrada['kg_por_hab']);
+        $this->assertEquals(2.0, $entrada['kg_por_hab']);
     }
 
     #[Test]
@@ -383,9 +383,11 @@ class DashboardServiceTest extends TestCase
         $this->service->kpisDelDia();
         $this->service->kpisDelMes();
 
+        // Cada motor cita la tabla distinto ("zonas", `zonas`, [dbo].[test_zonas]);
+        // solo las queries a la tabla zonas contienen el substring 'zonas'
+        // (las de pesajes usan 'zona_id', que no lo contiene).
         $zonaQueries = collect(DB::getQueryLog())
-            ->filter(fn ($q) => str_contains(strtolower($q['query']), 'from "zonas"')
-                             || str_contains(strtolower($q['query']), "from `zonas`"));
+            ->filter(fn ($q) => str_contains(strtolower($q['query']), 'zonas'));
 
         DB::disableQueryLog();
 

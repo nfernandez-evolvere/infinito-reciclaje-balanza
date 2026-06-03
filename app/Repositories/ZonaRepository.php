@@ -20,6 +20,7 @@ class ZonaRepository
     public function totales(): array
     {
         $zonas = Zona::activos()->get(['hectareas', 'habitantes']);
+
         return [
             'hectareas'  => (float) $zonas->sum('hectareas'),
             'habitantes' => (int) $zonas->sum('habitantes'),
@@ -29,7 +30,7 @@ class ZonaRepository
     public function activosExcluyendo(array $ids): Collection
     {
         return Zona::activos()
-            ->when(!empty($ids), fn ($q) => $q->whereNotIn('id', $ids))
+            ->when(! empty($ids), fn ($q) => $q->whereNotIn('id', $ids))
             ->get();
     }
 
@@ -60,8 +61,8 @@ class ZonaRepository
         $zonas = Zona::query()
             ->with(['zonaServicios.tipoServicio'])
             ->when(
-                !empty($filters['nombre']),
-                fn ($q) => $q->where('nombre', 'like', '%' . $filters['nombre'] . '%')
+                ! empty($filters['nombre']),
+                fn ($q) => $q->where('nombre', 'like', '%'.$filters['nombre'].'%')
             )
             ->when(
                 isset($filters['activo']) && $filters['activo'] !== '',
@@ -113,6 +114,7 @@ class ZonaRepository
     public function update(Zona $zona, array $data): Zona
     {
         $zona->update($data);
+
         return $zona;
     }
 

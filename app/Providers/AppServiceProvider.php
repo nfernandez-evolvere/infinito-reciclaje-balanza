@@ -22,7 +22,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if (config('database.default') === 'sqlsrv') {
-            $conn   = DB::connection('sqlsrv');
+            $conn = DB::connection('sqlsrv');
             $schema = config('database.connections.sqlsrv.schema', 'dbo');
 
             $conn->setQueryGrammar(
@@ -32,7 +32,6 @@ class AppServiceProvider extends ServiceProvider
                 (new SqlServerSchemaDDLGrammar($conn))->setSchema($schema)
             );
         }
-
 
         /*
          * $attributes->twMerge('base-classes', $computed, ...)
@@ -44,13 +43,12 @@ class AppServiceProvider extends ServiceProvider
          * Usage in a Blade component:
          *   <div {{ $attributes->twMerge('p-6 rounded-xl', $variantClass) }}>
          */
-        Password::defaults(fn () =>
-            Password::min(8)
-                ->letters()
-                ->mixedCase()
-                ->numbers()
-                ->symbols()
-                ->uncompromised()
+        Password::defaults(fn () => Password::min(8)
+            ->letters()
+            ->mixedCase()
+            ->numbers()
+            ->symbols()
+            ->uncompromised()
         );
 
         // super_admin bypassa todas las gates

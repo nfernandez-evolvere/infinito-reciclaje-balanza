@@ -5,6 +5,7 @@
 .env
 .env.*
 !.env.example
+!.env.testing.example
 .phpactor.json
 .phpunit.result.cache
 /.codex
@@ -13,6 +14,7 @@
 /.nova
 /.phpunit.cache
 /.vscode
+/build
 /.zed
 /auth.json
 /node_modules

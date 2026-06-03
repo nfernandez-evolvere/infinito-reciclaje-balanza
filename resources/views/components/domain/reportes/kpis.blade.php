@@ -1,6 +1,6 @@
-@props(['kpis'])
+@props(['kpis', 'gridClass' => 'grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4'])
 
-<div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4">
+<div class="{{ $gridClass }}">
 
     <x-ui.kpi title="Pesajes" icon="scale" variant="primary"
               help="Total de viajes registrados en el período seleccionado.">

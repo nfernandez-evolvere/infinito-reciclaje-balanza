@@ -18,6 +18,7 @@ use Illuminate\View\View;
 class VehiculoController extends Controller
 {
     use WithToastFlash;
+
     public function __construct(
         protected VehiculoService $service,
         protected TipoVehiculoRepository $tipoVehiculoRepository,
@@ -32,7 +33,7 @@ class VehiculoController extends Controller
         if ($tab === 'vehiculos') {
             $filters['activo'] = $request->input('activo');
         }
-        $vehiculos     = $this->service->listar($filters);
+        $vehiculos = $this->service->listar($filters);
         $tiposVehiculo = $this->tipoVehiculoRepository->todos();
 
         $tiposFiltros = $request->only(['nombre', 'peso_min', 'peso_max']);
@@ -129,5 +130,4 @@ class VehiculoController extends Controller
             return $this->toastError('admin.vehiculos.index');
         }
     }
-
 }

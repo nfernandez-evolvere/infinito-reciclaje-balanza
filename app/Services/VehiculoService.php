@@ -31,10 +31,10 @@ class VehiculoService
     public function update(Vehiculo $vehiculo, array $data, User $usuario): Vehiculo
     {
         $taraAnterior = (int) $vehiculo->tara_kg;
-        $taraNueva    = (int) $data['tara_kg'];
+        $taraNueva = (int) $data['tara_kg'];
 
         $intencion = $data['_intencion_tara'] ?? null;
-        $motivo    = trim((string) ($data['_motivo_tara'] ?? ''));
+        $motivo = trim((string) ($data['_motivo_tara'] ?? ''));
 
         // Los campos de decisión no son columnas del vehículo.
         $payload = collect($data)->except(['_intencion_tara', '_motivo_tara'])->all();
@@ -86,7 +86,7 @@ class VehiculoService
     private function recalcularPesajes(Vehiculo $vehiculo, int $taraNueva, string $motivo, User $usuario): void
     {
         $motivoPesaje = 'Corrección de tara del padrón'
-            . ($motivo !== '' ? ' — ' . $motivo : '');
+            .($motivo !== '' ? ' — '.$motivo : '');
 
         $this->pesajeRepository->recalcularPorCambioDeTara(
             $vehiculo->id,
@@ -98,11 +98,11 @@ class VehiculoService
 
     private function motivoAuditoria(?string $intencion, string $motivo): string
     {
-        $sufijo = $motivo !== '' ? ' — ' . $motivo : '';
+        $sufijo = $motivo !== '' ? ' — '.$motivo : '';
 
         return match ($intencion) {
-            'corregir_dato' => 'Corrección de dato mal cargado' . $sufijo,
-            'cambio_real'   => 'Cambio real de tara' . $sufijo,
+            'corregir_dato' => 'Corrección de dato mal cargado'.$sufijo,
+            'cambio_real'   => 'Cambio real de tara'.$sufijo,
             default         => $motivo !== '' ? $motivo : 'Actualización de tara',
         };
     }

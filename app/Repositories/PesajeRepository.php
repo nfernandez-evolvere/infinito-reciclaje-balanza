@@ -52,6 +52,7 @@ class PesajeRepository
     public function update(Pesaje $pesaje, array $data): Pesaje
     {
         $pesaje->update($data);
+
         return $pesaje;
     }
 
@@ -152,8 +153,8 @@ class PesajeRepository
     public function recalcularPorCambioDeTara(int $vehiculoId, int $taraNueva, string $motivo, int $usuarioId): int
     {
         $tara = (int) $taraNueva;
-        $uid  = (int) $usuarioId;
-        $now  = now()->toDateTimeString();
+        $uid = (int) $usuarioId;
+        $now = now()->toDateTimeString();
 
         // Nuevo neto: max(0, bruto - tara). $tara es entero, seguro de interpolar.
         $netoNuevo = "(CASE WHEN peso_bruto_kg - {$tara} < 0 THEN 0 ELSE peso_bruto_kg - {$tara} END)";
@@ -200,7 +201,7 @@ class PesajeRepository
         return Pesaje::query()
             ->when($filtros['desde'] ?? null, fn ($q, $d) => $q->whereDate('created_at', '>=', $d))
             ->when($filtros['hasta'] ?? null, fn ($q, $h) => $q->whereDate('created_at', '<=', $h))
-            ->when($filtros['patente'] ?? null, fn ($q, $p) => $q->whereHas('vehiculo', fn ($v) => $v->where('patente', 'like', '%' . $p . '%')))
+            ->when($filtros['patente'] ?? null, fn ($q, $p) => $q->whereHas('vehiculo', fn ($v) => $v->where('patente', 'like', '%'.$p.'%')))
             ->when($filtros['estado'] ?? null, fn ($q, $e) => $e === 'Activos'
                 ? $q->where('estado', '!=', 'Cancelado')
                 : $q->where('estado', $e)

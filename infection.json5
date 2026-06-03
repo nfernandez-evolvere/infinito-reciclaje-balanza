@@ -1,0 +1,30 @@
+{
+    // Mutation testing enfocado en los Services de lógica de negocio crítica.
+    // Ejecutar con: vendor/bin/infection --show-mutations
+    // Documentación: https://infection.github.io
+    "timeout": 15,
+    "source": {
+        "directories": ["app/Services"],
+        "excludes": [
+            // Servicios que generan archivos externos (PDF, SVG, AI) — no mutables en local
+            "ConclusionesAIService.php",
+            "PdfService.php",
+            "SvgChartService.php"
+        ]
+    },
+    "testFramework": "phpunit",
+    // Solo la suite Integration: más rápida, cubre los Services directamente
+    "testFrameworkOptions": "--testsuite=Integration",
+    "minMsi": 100,
+    "minCoveredMsi": 100,
+    "mutators": {
+        // Mutadores por defecto: operadores aritméticos, lógicos, comparación, etc.
+        "@default": true
+    },
+    "logs": {
+        "text": "build/infection.txt",
+        "json": "build/infection.json",
+        "html": "build/infection.html",
+        "summary": "build/infection-summary.txt"
+    }
+}

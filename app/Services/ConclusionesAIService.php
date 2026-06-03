@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Http;
 
 class ConclusionesAIService
 {
@@ -19,13 +19,13 @@ class ConclusionesAIService
 
     public function generarAnalisis(array $kpis, Collection $zonas, string $periodo): string
     {
-        $top3     = $zonas->take(3)->map(fn ($z) => "{$z['nombre']}: {$z['toneladas']} t ({$z['porcentaje']}%)")->join(', ');
-        $conHa    = $zonas->filter(fn ($z) => $z['kg_ha'] !== null)->sortByDesc('kg_ha')->take(3);
+        $top3 = $zonas->take(3)->map(fn ($z) => "{$z['nombre']}: {$z['toneladas']} t ({$z['porcentaje']}%)")->join(', ');
+        $conHa = $zonas->filter(fn ($z) => $z['kg_ha'] !== null)->sortByDesc('kg_ha')->take(3);
         $densidad = $conHa->isNotEmpty()
             ? $conHa->map(fn ($z) => "{$z['nombre']}: {$z['kg_ha']} kg/ha")->join(', ')
             : 'sin datos de superficie';
 
-        $template = !empty($this->prompt) ? $this->prompt : $this->defaultPrompt;
+        $template = ! empty($this->prompt) ? $this->prompt : $this->defaultPrompt;
 
         $text = str_replace(
             ['{periodo}', '{total_viajes}', '{toneladas}', '{dias_op}', '{dias_rango}', '{promedio_ton_dia}', '{top3_zonas}', '{densidad_zonas}'],
@@ -48,7 +48,7 @@ class ConclusionesAIService
                 "{$this->baseUrl}/{$this->modelo}:generateContent?key={$this->apiKey}",
                 [
                     'contents' => [
-                        ['parts' => [['text' => $prompt]]]
+                        ['parts' => [['text' => $prompt]]],
                     ],
                     'generationConfig' => [
                         'temperature'     => 0.7,

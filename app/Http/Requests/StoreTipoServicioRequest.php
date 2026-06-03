@@ -14,9 +14,9 @@ class StoreTipoServicioRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nombre'               => ['required', 'string', 'max:100', 'unique:tipos_servicio,nombre'],
-            'tipo_vehiculo_ids'    => ['nullable', 'array'],
-            'tipo_vehiculo_ids.*'  => ['integer', 'exists:tipos_vehiculo,id'],
+            'nombre'              => ['required', 'string', 'max:100', 'unique:tipos_servicio,nombre'],
+            'tipo_vehiculo_ids'   => ['nullable', 'array'],
+            'tipo_vehiculo_ids.*' => ['integer', 'exists:tipos_vehiculo,id'],
         ];
     }
 

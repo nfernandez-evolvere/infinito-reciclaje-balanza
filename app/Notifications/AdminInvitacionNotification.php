@@ -21,10 +21,10 @@ class AdminInvitacionNotification extends ResetPassword
             'email' => $notifiable->getEmailForPasswordReset(),
         ], false));
 
-        $expireMinutes = config('auth.passwords.' . config('auth.defaults.passwords') . '.expire');
+        $expireMinutes = config('auth.passwords.'.config('auth.defaults.passwords').'.expire');
 
         return (new MailMessage)
-            ->subject('Activá tu cuenta — ' . $this->orgNombre)
+            ->subject('Activá tu cuenta — '.$this->orgNombre)
             ->markdown('emails.admin-invitacion', [
                 'url'           => $url,
                 'expireMinutes' => $expireMinutes,

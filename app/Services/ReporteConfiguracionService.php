@@ -16,7 +16,7 @@ class ReporteConfiguracionService
         if (isset($validated['servicios'])) {
             $validated['servicios'] = array_values(array_filter(
                 $validated['servicios'],
-                fn ($s) => !empty($s['titulo'])
+                fn ($s) => ! empty($s['titulo'])
             ));
         }
 

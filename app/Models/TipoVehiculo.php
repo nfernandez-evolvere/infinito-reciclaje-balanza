@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class TipoVehiculo extends Model
 {
-    use HasFactory, BelongsToOrganizacion;
+    use BelongsToOrganizacion, HasFactory;
 
     protected $table = 'tipos_vehiculo';
 

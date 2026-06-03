@@ -13,11 +13,11 @@ class ReporteDestinatarioRepository
         return ReporteDestinatario::when(
             $q,
             fn ($query) => $query->where('email', 'like', "%{$q}%")
-                                 ->orWhere('nombre', 'like', "%{$q}%")
+                ->orWhere('nombre', 'like', "%{$q}%")
         )
-        ->orderByDesc('uso_count')
-        ->limit($limit)
-        ->get(['email', 'nombre']);
+            ->orderByDesc('uso_count')
+            ->limit($limit)
+            ->get(['email', 'nombre']);
     }
 
     public function upsert(int $orgId, array $emails): void
@@ -27,8 +27,8 @@ class ReporteDestinatarioRepository
         }
 
         $emails = array_values(array_map('strtolower', $emails));
-        $table  = (new ReporteDestinatario)->getTable();
-        $now    = now()->format('Y-m-d\TH:i:s');
+        $table = (new ReporteDestinatario)->getTable();
+        $now = now()->format('Y-m-d\TH:i:s');
 
         // UPDATE en tabla única — uso_count no es ambiguo (sin MERGE)
         DB::table($table)

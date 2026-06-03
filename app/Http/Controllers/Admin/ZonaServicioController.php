@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 class ZonaServicioController extends Controller
 {
     use WithToastFlash;
+
     public function __construct(
         protected ZonaService $service,
     ) {}
@@ -21,8 +22,8 @@ class ZonaServicioController extends Controller
     {
         try {
             $validated = $request->validated();
-            $turnos    = $validated['turnos'] ?? [];
-            $horarios  = $validated['horarios'] ?? [];
+            $turnos = $validated['turnos'] ?? [];
+            $horarios = $validated['horarios'] ?? [];
 
             $this->service->asignarServicio(
                 $zona,
@@ -48,8 +49,8 @@ class ZonaServicioController extends Controller
     {
         try {
             $validated = $request->validated();
-            $turnos    = $validated['turnos'] ?? [];
-            $horarios  = $validated['horarios'] ?? [];
+            $turnos = $validated['turnos'] ?? [];
+            $horarios = $validated['horarios'] ?? [];
 
             $this->service->actualizarServicio($zona, $tipoServicio->id, $turnos, $horarios);
 
@@ -79,5 +80,4 @@ class ZonaServicioController extends Controller
             return $this->toastError('admin.zonas.index');
         }
     }
-
 }

@@ -11,9 +11,9 @@ class VehiculoSeeder extends Seeder
     public function run(): void
     {
         $compactador = TipoVehiculo::where('nombre', 'Compactador')->first();
-        $volcador    = TipoVehiculo::where('nombre', 'Volcador')->first();
-        $volquete    = TipoVehiculo::where('nombre', 'Volquete')->first();
-        $particular  = TipoVehiculo::where('nombre', 'Particular')->first();
+        $volcador = TipoVehiculo::where('nombre', 'Volcador')->first();
+        $volquete = TipoVehiculo::where('nombre', 'Volquete')->first();
+        $particular = TipoVehiculo::where('nombre', 'Particular')->first();
 
         $vehiculos = [
             [

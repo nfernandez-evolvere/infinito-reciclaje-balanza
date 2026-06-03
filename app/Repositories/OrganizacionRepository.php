@@ -20,6 +20,7 @@ class OrganizacionRepository
     public function update(Organizacion $organizacion, array $data): Organizacion
     {
         $organizacion->update($data);
+
         return $organizacion;
     }
 
@@ -31,6 +32,7 @@ class OrganizacionRepository
     public function toggleActivo(Organizacion $organizacion): Organizacion
     {
         $organizacion->update(['activo' => ! $organizacion->activo]);
+
         return $organizacion;
     }
 }

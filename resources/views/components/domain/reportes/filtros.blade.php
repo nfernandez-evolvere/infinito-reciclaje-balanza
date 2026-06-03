@@ -3,8 +3,11 @@
 <x-ui.filter-sheet
     controlledBy="filterOpen"
     action="{{ route('admin.reportes.index') }}"
-    resetUrl="{{ route('admin.reportes.index') }}"
+    resetUrl="{{ route('admin.reportes.index', ['tab' => 'generar']) }}"
 >
+    {{-- Mantiene la pestaña "Generar" al aplicar el filtro --}}
+    <input type="hidden" name="tab" value="generar">
+
     {{-- Período rápido --}}
     <div
         x-data="{

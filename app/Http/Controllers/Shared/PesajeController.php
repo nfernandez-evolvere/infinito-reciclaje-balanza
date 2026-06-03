@@ -50,11 +50,11 @@ class PesajeController extends Controller
         $isAdmin = auth()->user()->isAdmin();
         $filtros = $this->buildFiltros($request, $isAdmin);
 
-        $pesajes      = $this->pesajeRepository->filtrado($filtros);
-        $kpis         = $this->pesajeRepository->kpisFiltrado($filtros);
-        $kpisHoy      = $this->pesajeRepository->kpisDelTurno();
+        $pesajes = $this->pesajeRepository->filtrado($filtros);
+        $kpis = $this->pesajeRepository->kpisFiltrado($filtros);
+        $kpisHoy = $this->pesajeRepository->kpisDelTurno();
         $ultimoPesaje = $this->pesajeRepository->ultimoDelTurno();
-        $operarios    = $this->usuarioRepository->getOperadoresDeLaOrg();
+        $operarios = $this->usuarioRepository->getOperadoresDeLaOrg();
 
         $viewData = [
             'pesajes'      => $pesajes,
@@ -66,13 +66,13 @@ class PesajeController extends Controller
         ];
 
         if ($isAdmin) {
-            $viewData['titulo']         = 'Pesajes';
+            $viewData['titulo'] = 'Pesajes';
             $viewData['routeHistorial'] = route('admin.pesajes.index');
-            $viewData['exportUrl']      = route('admin.pesajes.export');
-            $viewData['zonas']          = $this->zonaRepository->activos();
-            $viewData['tiposServicio']  = $this->tipoServicioRepository->activos();
+            $viewData['exportUrl'] = route('admin.pesajes.export');
+            $viewData['zonas'] = $this->zonaRepository->activos();
+            $viewData['tiposServicio'] = $this->tipoServicioRepository->activos();
         } else {
-            $viewData['titulo']         = 'Pesajes';
+            $viewData['titulo'] = 'Pesajes';
             $viewData['routeHistorial'] = route('historial');
         }
 
@@ -82,7 +82,11 @@ class PesajeController extends Controller
     public function show(Pesaje $pesaje): View
     {
         $pesaje->load(['vehiculo.tipoVehiculo', 'tipoServicio', 'zona', 'operador']);
-        return view('modules.operador.pesaje-detalle', compact('pesaje'));
+
+        $isAdmin = auth()->user()->isAdmin();
+        $routeHistorial = $isAdmin ? route('admin.pesajes.index') : route('historial');
+
+        return view('modules.operador.pesaje-detalle', compact('pesaje', 'isAdmin', 'routeHistorial'));
     }
 
     public function edit(Pesaje $pesaje): View
@@ -103,9 +107,9 @@ class PesajeController extends Controller
             'peso_max' => $v->tipoVehiculo?->peso_max_kg,
         ];
 
-        $servicio         = $pesaje->tipoServicio;
+        $servicio = $pesaje->tipoServicio;
         $zonasDisponibles = $this->zonaRepository->zonasConTurnosPara($servicio)->values();
-        $zonaActual       = $zonasDisponibles->firstWhere('id', $pesaje->zona_id);
+        $zonaActual = $zonasDisponibles->firstWhere('id', $pesaje->zona_id);
 
         $initial = [
             'vehiculo'          => $vehiculoJs,
@@ -135,7 +139,7 @@ class PesajeController extends Controller
         return redirect()->route($route)
             ->with('toast', [
                 'message'     => 'Cambios guardados.',
-                'description' => 'El historial del pesaje de ' . $pesaje->vehiculo->patente . ' fue actualizado.',
+                'description' => 'El historial del pesaje de '.$pesaje->vehiculo->patente.' fue actualizado.',
                 'variant'     => 'success',
             ]);
     }
@@ -150,7 +154,7 @@ class PesajeController extends Controller
         return redirect()->route($route)
             ->with('toast', [
                 'message'     => 'Egreso registrado.',
-                'description' => 'El egreso de ' . $pesaje->vehiculo->patente . ' fue registrado.',
+                'description' => 'El egreso de '.$pesaje->vehiculo->patente.' fue registrado.',
                 'variant'     => 'success',
             ]);
     }
@@ -165,7 +169,7 @@ class PesajeController extends Controller
         return redirect()->route($route)
             ->with('toast', [
                 'message'     => 'Pesaje cancelado.',
-                'description' => 'El pesaje de ' . $pesaje->vehiculo->patente . ' fue removido del turno.',
+                'description' => 'El pesaje de '.$pesaje->vehiculo->patente.' fue removido del turno.',
                 'variant'     => 'destructive',
             ]);
     }
@@ -177,7 +181,7 @@ class PesajeController extends Controller
         [$servicios, $zonas] = $this->resolveLogLabels($entradas);
 
         $grupos = $entradas
-            ->groupBy(fn ($e) => $e->created_at->timestamp . '|' . $e->usuario_id . '|' . $e->motivo)
+            ->groupBy(fn ($e) => $e->created_at->timestamp.'|'.$e->usuario_id.'|'.$e->motivo)
             ->map(fn ($grupo) => [
                 'fecha'   => $grupo->first()->created_at->format('d/m/Y H:i'),
                 'motivo'  => $grupo->first()->motivo,
@@ -195,9 +199,9 @@ class PesajeController extends Controller
 
     public function export(Request $request): StreamedResponse
     {
-        $filtros  = $this->buildFiltros($request, true);
-        $pesajes  = $this->pesajeRepository->filtradoTodos($filtros);
-        $filename = 'pesajes-' . now()->format('Y-m-d') . '.csv';
+        $filtros = $this->buildFiltros($request, true);
+        $pesajes = $this->pesajeRepository->filtradoTodos($filtros);
+        $filename = 'pesajes-'.now()->format('Y-m-d').'.csv';
 
         return $this->pesajeService->exportarCsv($pesajes, $filename);
     }
@@ -231,7 +235,7 @@ class PesajeController extends Controller
             ->unique()->values();
 
         $servicios = TipoServicio::whereIn('id', $ids('tipo_servicio_id'))->pluck('nombre', 'id');
-        $zonas     = Zona::whereIn('id', $ids('zona_id'))->pluck('nombre', 'id');
+        $zonas = Zona::whereIn('id', $ids('zona_id'))->pluck('nombre', 'id');
 
         return [$servicios, $zonas];
     }
@@ -243,12 +247,12 @@ class PesajeController extends Controller
         }
 
         return match ($campo) {
-            'tipo_servicio_id'           => $servicios[$valor] ?? $valor,
-            'zona_id'                    => $zonas[$valor] ?? $valor,
+            'tipo_servicio_id' => $servicios[$valor] ?? $valor,
+            'zona_id'          => $zonas[$valor] ?? $valor,
             'peso_bruto_kg',
             'peso_tara_kg',
-            'peso_neto_kg'               => number_format((int) $valor, 0, ',', '.') . ' kg',
-            default                      => $valor,
+            'peso_neto_kg' => number_format((int) $valor, 0, ',', '.').' kg',
+            default        => $valor,
         };
     }
 }

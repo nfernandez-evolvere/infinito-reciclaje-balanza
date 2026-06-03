@@ -18,7 +18,7 @@ class VehiculoFactory extends Factory
             'numero_interno'   => (string) $this->faker->unique()->numberBetween(1, 9999),
             'tara_kg'          => $this->faker->numberBetween(3000, 8000),
             'tipo_vehiculo_id' => TipoVehiculo::factory(),
-            'titular'          => 'Municipalidad de ' . $this->faker->city(),
+            'titular'          => 'Municipalidad de '.$this->faker->city(),
             'capacidad_kg'     => null,
             'observaciones'    => null,
             'activo'           => true,
