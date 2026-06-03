@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Exports\ReporteExcelExport;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ExportReporteRequest;
 use App\Http\Requests\Admin\StoreReporteProgramadoRequest;
 use App\Http\Requests\Admin\UpdateReporteConfiguracionRequest;
 use App\Http\Requests\Admin\UpdateReporteProgramadoRequest;
@@ -95,26 +96,16 @@ class ReporteController extends Controller
 
     // ── Exports ────────────────────────────────────────────────────────────
 
-    public function exportExcel(Request $request): StreamedResponse
+    public function exportExcel(ExportReporteRequest $request): StreamedResponse
     {
-        $request->validate([
-            'desde' => ['required', 'date'],
-            'hasta' => ['required', 'date', 'after_or_equal:desde'],
-        ]);
-
         $reporte = $this->generarReporte($request);
         $filename = 'reporte_'.$request->desde.'_'.$request->hasta.'.xlsx';
 
         return (new ReporteExcelExport($reporte))->download($filename);
     }
 
-    public function exportPdfPresentacion(Request $request): Response
+    public function exportPdfPresentacion(ExportReporteRequest $request): Response
     {
-        $request->validate([
-            'desde' => ['required', 'date'],
-            'hasta' => ['required', 'date', 'after_or_equal:desde'],
-        ]);
-
         $desde = Carbon::parse($request->input('desde'));
         $hasta = Carbon::parse($request->input('hasta'));
         $reporte = $this->reporteService->generar(

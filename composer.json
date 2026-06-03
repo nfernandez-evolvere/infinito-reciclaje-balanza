@@ -73,7 +73,8 @@
         "check": [
             "@php vendor/bin/pint --test",
             "@analyse",
-            "@test"
+            "@php artisan config:clear --ansi @no_additional_args",
+            "@php artisan test --coverage --min=65"
         ],
         "coverage": [
             "@php artisan config:clear --ansi @no_additional_args",
