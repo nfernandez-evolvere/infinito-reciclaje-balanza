@@ -4,6 +4,7 @@ namespace Tests\Feature\Pesaje;
 
 use App\Models\Pesaje;
 use App\Models\TipoServicio;
+use App\Models\TipoVehiculo;
 use App\Models\Vehiculo;
 use App\Models\Zona;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -31,15 +32,27 @@ class CreatePesajeTest extends TestCase
     #[Test]
     public function operador_can_create_pesaje_and_is_redirected_to_show(): void
     {
-        $response = $this->actingAs($this->operador())
-            ->post(route('pesajes.store'), $this->payload());
+        // Vehiculo con tara controlada para afirmar el neto calculado.
+        $tipo = TipoVehiculo::factory()->create(['peso_min_kg' => 5000, 'peso_max_kg' => 30000]);
+        $vehiculo = Vehiculo::factory()->create(['tara_kg' => 8000, 'tipo_vehiculo_id' => $tipo->id]);
 
-        $this->assertDatabaseCount('pesajes', 1);
+        $response = $this->actingAs($this->operador())
+            ->post(route('pesajes.store'), $this->payload([
+                'vehiculo_id'   => $vehiculo->id,
+                'peso_bruto_kg' => 20000,
+            ]));
+
+        $pesaje = Pesaje::firstOrFail();
+
+        // Datos calculados por el servicio persistidos correctamente vía HTTP.
+        $this->assertSame('En predio', $pesaje->estado);
+        $this->assertFalse($pesaje->editado);
+        $this->assertSame(8000, $pesaje->peso_tara_kg);
+        $this->assertSame(12000, $pesaje->peso_neto_kg);
+        $this->assertFalse($pesaje->alerta_peso);
 
         // SQL Server (uniqueidentifier) devuelve el uuid en mayúsculas al releerlo,
-        // pero el redirect usa el uuid en minúsculas del modelo recién creado. El
-        // binding por uuid es case-insensitive, así que comparamos sin distinguir caso.
-        $pesaje = Pesaje::firstOrFail();
+        // pero el redirect usa el uuid en minúsculas del modelo recién creado.
         $this->assertSame(
             strtolower(route('pesajes.show', $pesaje)),
             strtolower($response->headers->get('Location')),

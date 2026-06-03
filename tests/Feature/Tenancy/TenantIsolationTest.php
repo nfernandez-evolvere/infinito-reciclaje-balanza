@@ -123,6 +123,41 @@ class TenantIsolationTest extends TestCase
         $this->assertDatabaseHas('pesajes', ['id' => $pesajeB->id, 'estado' => 'En predio']);
     }
 
+    #[Test]
+    public function egreso_sobre_pesaje_de_otra_org_da_404(): void
+    {
+        $orgA = $this->createOrganizacion('Org A');
+        $orgB = $this->createOrganizacion('Org B');
+        $pesajeB = $this->actingInOrg($orgB, fn () => Pesaje::factory()->enPredio()->create());
+
+        $this->actingAsAdminOf($orgA);
+
+        $this->post(route('pesajes.egreso', $pesajeB))
+            ->assertNotFound();
+
+        $this->assertDatabaseHas('pesajes', ['id' => $pesajeB->id, 'estado' => 'En predio']);
+    }
+
+    #[Test]
+    public function update_sobre_pesaje_de_otra_org_da_404(): void
+    {
+        $orgA = $this->createOrganizacion('Org A');
+        $orgB = $this->createOrganizacion('Org B');
+        $pesajeB = $this->actingInOrg($orgB, fn () => Pesaje::factory()->create([
+            'peso_bruto_kg' => 20000,
+            'peso_neto_kg'  => 12000,
+        ]));
+
+        $this->actingAsAdminOf($orgA);
+
+        $this->put(route('pesajes.update', $pesajeB), ['motivo' => 'Intento cross-org.'])
+            ->assertNotFound();
+
+        // Los datos no deben haber cambiado.
+        $this->assertDatabaseHas('pesajes', ['id' => $pesajeB->id, 'peso_neto_kg' => 12000]);
+        $this->assertDatabaseCount('pesajes_log', 0);
+    }
+
     // ── Creación asigna la org del actuante ───────────────────────────
 
     #[Test]

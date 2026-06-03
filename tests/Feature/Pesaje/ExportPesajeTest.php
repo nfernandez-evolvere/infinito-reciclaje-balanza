@@ -3,6 +3,7 @@
 namespace Tests\Feature\Pesaje;
 
 use App\Models\Pesaje;
+use App\Models\Vehiculo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -29,6 +30,20 @@ class ExportPesajeTest extends TestCase
         // Encabezados de columnas.
         $this->assertStringContainsString('Patente', $contenido);
         $this->assertStringContainsString('Neto (kg)', $contenido);
+    }
+
+    #[Test]
+    public function export_csv_contains_correct_row_data(): void
+    {
+        $vehiculo = Vehiculo::factory()->create(['patente' => 'TST001']);
+        Pesaje::factory()->create(['vehiculo_id' => $vehiculo->id, 'peso_neto_kg' => 5000]);
+
+        $contenido = $this->actingAs($this->admin())
+            ->get(route('admin.pesajes.export'))
+            ->streamedContent();
+
+        $this->assertStringContainsString('TST001', $contenido);
+        $this->assertStringContainsString('5000', $contenido);
     }
 
     #[Test]

@@ -75,6 +75,10 @@
             "@analyse",
             "@test"
         ],
+        "coverage": [
+            "@php artisan config:clear --ansi @no_additional_args",
+            "@php artisan test --coverage-html build/coverage"
+        ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"

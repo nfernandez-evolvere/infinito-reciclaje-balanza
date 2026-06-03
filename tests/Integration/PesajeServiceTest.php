@@ -116,6 +116,33 @@ class PesajeServiceTest extends TestCase
     }
 
     #[Test]
+    public function crear_no_marca_alerta_en_el_limite_exacto_del_minimo(): void
+    {
+        // La condición es < min || > max, así que exactamente en min NO debe alertar.
+        $vehiculo = $this->vehiculo(tara: 3000, min: 8000, max: 30000);
+
+        $pesaje = $this->service->crear(
+            $this->payload($vehiculo, ['peso_bruto_kg' => 8000]),
+            $this->operador()
+        );
+
+        $this->assertFalse($pesaje->alerta_peso);
+    }
+
+    #[Test]
+    public function crear_no_marca_alerta_en_el_limite_exacto_del_maximo(): void
+    {
+        $vehiculo = $this->vehiculo(tara: 3000, min: 8000, max: 30000);
+
+        $pesaje = $this->service->crear(
+            $this->payload($vehiculo, ['peso_bruto_kg' => 30000]),
+            $this->operador()
+        );
+
+        $this->assertFalse($pesaje->alerta_peso);
+    }
+
+    #[Test]
     public function crear_inicializa_estado_en_predio_y_no_editado(): void
     {
         $vehiculo = $this->vehiculo();
@@ -179,9 +206,12 @@ class PesajeServiceTest extends TestCase
     {
         $pesaje = Pesaje::factory()->create(['estado' => 'Cerrado']);
 
-        $this->expectException(ValidationException::class);
-
-        $this->service->marcarEgreso($pesaje, []);
+        try {
+            $this->service->marcarEgreso($pesaje, []);
+            $this->fail('Expected ValidationException');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('estado', $e->errors());
+        }
     }
 
     // ── editar ────────────────────────────────────────────────────────
@@ -191,9 +221,12 @@ class PesajeServiceTest extends TestCase
     {
         $pesaje = Pesaje::factory()->create();
 
-        $this->expectException(ValidationException::class);
-
-        $this->service->editar($pesaje, ['motivo' => '   ', 'zona_id' => Zona::factory()->create()->id], $this->operador());
+        try {
+            $this->service->editar($pesaje, ['motivo' => '   ', 'zona_id' => Zona::factory()->create()->id], $this->operador());
+            $this->fail('Expected ValidationException');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('motivo', $e->errors());
+        }
     }
 
     #[Test]
@@ -201,18 +234,25 @@ class PesajeServiceTest extends TestCase
     {
         $pesaje = Pesaje::factory()->create();
         $nuevaZona = Zona::factory()->create();
+        $operador = $this->operador();
+
+        // Capturar el id anterior ANTES de editar (el service puede mutar el modelo en memoria).
+        $zonaIdAnterior = (string) $pesaje->zona_id;
 
         $this->service->editar(
             $pesaje,
             ['motivo' => 'Zona mal cargada', 'zona_id' => $nuevaZona->id],
-            $this->operador()
+            $operador
         );
 
         $this->assertDatabaseCount('pesajes_log', 1);
         $this->assertDatabaseHas('pesajes_log', [
-            'pesaje_id'   => $pesaje->id,
-            'campo'       => 'zona_id',
-            'valor_nuevo' => (string) $nuevaZona->id,
+            'pesaje_id'      => $pesaje->id,
+            'campo'          => 'zona_id',
+            'valor_anterior' => $zonaIdAnterior,
+            'valor_nuevo'    => (string) $nuevaZona->id,
+            'motivo'         => 'Zona mal cargada',
+            'usuario_id'     => $operador->id,
         ]);
     }
 
@@ -296,8 +336,11 @@ class PesajeServiceTest extends TestCase
     {
         $pesaje = Pesaje::factory()->cancelado()->create();
 
-        $this->expectException(ValidationException::class);
-
-        $this->service->cancelar($pesaje, ['motivo' => 'Otra vez'], $this->operador());
+        try {
+            $this->service->cancelar($pesaje, ['motivo' => 'Otra vez'], $this->operador());
+            $this->fail('Expected ValidationException');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('estado', $e->errors());
+        }
     }
 }
