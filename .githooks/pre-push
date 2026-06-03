@@ -17,7 +17,7 @@ php vendor/bin/pint --test
 echo "▸ Larastan (análisis estático)"
 php vendor/bin/phpstan analyse --memory-limit=512M
 
-echo "▸ Tests + cobertura (SQL Server, min 65%)"
-php artisan test --coverage --min=65
+echo "▸ Tests + cobertura (SQL Server, min 68%)"
+php artisan test --coverage --min=68
 
 echo "✓ Gate OK — push permitido"
