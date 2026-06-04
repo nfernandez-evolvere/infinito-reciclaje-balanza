@@ -9,6 +9,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 class AdminInvitacionNotification extends ResetPassword implements ShouldQueue
 {
     public int $tries = 3;
+
     public function __construct(
         string $token,
         protected string $orgNombre,

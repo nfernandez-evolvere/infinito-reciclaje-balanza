@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Pesaje;
+use App\Models\TipoServicio;
 use App\Models\User;
 use App\Models\Vehiculo;
 use App\Repositories\PesajeLogRepository;
@@ -22,7 +23,7 @@ class PesajeService
     public function crear(array $data, User $operador): Pesaje
     {
         $vehiculo = Vehiculo::with('tipoVehiculo')->findOrFail($data['vehiculo_id']);
-        $tipoServicio = \App\Models\TipoServicio::with('tiposVehiculo')->findOrFail($data['tipo_servicio_id']);
+        $tipoServicio = TipoServicio::with('tiposVehiculo')->findOrFail($data['tipo_servicio_id']);
 
         $pesoBruto = (int) $data['peso_bruto_kg'];
         $pesaTara = $vehiculo->tara_kg;

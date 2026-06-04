@@ -149,6 +149,7 @@ class GenerarEnviarReporteJobTest extends TestCase
         $this->instance(ReporteService::class, \Mockery::mock(ReporteService::class, function ($m) use (&$capturedDesde) {
             $m->shouldReceive('generar')->withArgs(function (Carbon $desde) use (&$capturedDesde) {
                 $capturedDesde = $desde;
+
                 return true;
             })->andReturn($this->fakeReporte());
         }));
@@ -174,6 +175,7 @@ class GenerarEnviarReporteJobTest extends TestCase
         $this->instance(ReporteService::class, \Mockery::mock(ReporteService::class, function ($m) use (&$capturedDesde) {
             $m->shouldReceive('generar')->withArgs(function (Carbon $desde) use (&$capturedDesde) {
                 $capturedDesde = $desde;
+
                 return true;
             })->andReturn($this->fakeReporte());
         }));
@@ -199,6 +201,7 @@ class GenerarEnviarReporteJobTest extends TestCase
         $this->instance(ReporteService::class, \Mockery::mock(ReporteService::class, function ($m) use (&$capturedDesde) {
             $m->shouldReceive('generar')->withArgs(function (Carbon $desde) use (&$capturedDesde) {
                 $capturedDesde = $desde;
+
                 return true;
             })->andReturn($this->fakeReporte());
         }));
@@ -224,6 +227,7 @@ class GenerarEnviarReporteJobTest extends TestCase
         $this->instance(ReporteService::class, \Mockery::mock(ReporteService::class, function ($m) use (&$capturedDesde) {
             $m->shouldReceive('generar')->withArgs(function (Carbon $desde) use (&$capturedDesde) {
                 $capturedDesde = $desde;
+
                 return true;
             })->andReturn($this->fakeReporte());
         }));
@@ -291,6 +295,7 @@ class GenerarEnviarReporteJobTest extends TestCase
         $this->instance(PdfService::class, \Mockery::mock(PdfService::class, function ($m) use (&$capturedReporte) {
             $m->shouldReceive('fromView')->withArgs(function ($_view, $data) use (&$capturedReporte) {
                 $capturedReporte = $data['reporte'] ?? null;
+
                 return true;
             })->andReturn('fake-pdf');
         }));
@@ -316,8 +321,8 @@ class GenerarEnviarReporteJobTest extends TestCase
         $adminB = $this->admin();
 
         // Mismo evento (mismo titulo+fecha) para dos admins → deduplicado a 1
-        $titulo = 'Volumen atípico — ' . now()->subDays(5)->format('d/m/Y');
-        $fecha  = now()->subDays(5)->toDateString();
+        $titulo = 'Volumen atípico — '.now()->subDays(5)->format('d/m/Y');
+        $fecha = now()->subDays(5)->toDateString();
 
         Alerta::create(['user_id' => $adminA->id, 'tipo' => 'volumen_diario_atipico', 'titulo' => $titulo, 'fecha_deteccion' => $fecha]);
         Alerta::create(['user_id' => $adminB->id, 'tipo' => 'volumen_diario_atipico', 'titulo' => $titulo, 'fecha_deteccion' => $fecha]);

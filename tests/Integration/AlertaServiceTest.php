@@ -213,7 +213,7 @@ class AlertaServiceTest extends TestCase
     {
         $adminA = $this->admin();
         $adminB = $this->admin();
-        $org    = app('organizacion');
+        $org = app('organizacion');
         $org->users()->syncWithoutDetaching([$adminA->id, $adminB->id]);
 
         $pesaje = $this->pesajeVehiculoNoHabitual($org->id);
@@ -229,7 +229,7 @@ class AlertaServiceTest extends TestCase
     public function registrar_vehiculo_no_habitual_persists_correct_fields(): void
     {
         $admin = $this->admin();
-        $org   = app('organizacion');
+        $org = app('organizacion');
         $org->users()->syncWithoutDetaching([$admin->id]);
 
         $pesaje = $this->pesajeVehiculoNoHabitual($org->id);
@@ -248,7 +248,7 @@ class AlertaServiceTest extends TestCase
     public function registrar_vehiculo_no_habitual_is_idempotent(): void
     {
         $admin = $this->admin();
-        $org   = app('organizacion');
+        $org = app('organizacion');
         $org->users()->syncWithoutDetaching([$admin->id]);
 
         $pesaje = $this->pesajeVehiculoNoHabitual($org->id);
@@ -263,7 +263,7 @@ class AlertaServiceTest extends TestCase
     public function registrar_vehiculo_no_habitual_skips_when_tipo_disabled(): void
     {
         $admin = $this->admin();
-        $org   = app('organizacion');
+        $org = app('organizacion');
         $org->users()->syncWithoutDetaching([$admin->id]);
 
         ConfigAlerta::create(['tipo' => 'vehiculo_no_habitual', 'activo' => false]);
@@ -279,13 +279,13 @@ class AlertaServiceTest extends TestCase
     public function registrar_vehiculo_no_habitual_does_not_create_when_vehicle_is_habitual(): void
     {
         $admin = $this->admin();
-        $org   = app('organizacion');
+        $org = app('organizacion');
         $org->users()->syncWithoutDetaching([$admin->id]);
 
         // Crear servicio y vehículo donde el tipo SÍ es habitual
         $tipoHabitual = TipoVehiculo::factory()->create();
-        $vehiculo     = Vehiculo::factory()->create(['tipo_vehiculo_id' => $tipoHabitual->id]);
-        $servicio     = TipoServicio::factory()->create();
+        $vehiculo = Vehiculo::factory()->create(['tipo_vehiculo_id' => $tipoHabitual->id]);
+        $servicio = TipoServicio::factory()->create();
         $servicio->tiposVehiculo()->attach($tipoHabitual->id);
 
         $pesaje = Pesaje::create([
@@ -349,11 +349,11 @@ class AlertaServiceTest extends TestCase
      */
     private function pesajeVehiculoNoHabitual(int $organizacionId): Pesaje
     {
-        $tipoHabitual   = TipoVehiculo::factory()->create(['nombre' => 'Compactador']);
+        $tipoHabitual = TipoVehiculo::factory()->create(['nombre' => 'Compactador']);
         $tipoNoHabitual = TipoVehiculo::factory()->create(['nombre' => 'Particular']);
-        $vehiculo       = Vehiculo::factory()->create(['tipo_vehiculo_id' => $tipoNoHabitual->id]);
-        $zona           = Zona::factory()->create();
-        $servicio       = TipoServicio::factory()->create(['nombre' => 'Domiciliario']);
+        $vehiculo = Vehiculo::factory()->create(['tipo_vehiculo_id' => $tipoNoHabitual->id]);
+        $zona = Zona::factory()->create();
+        $servicio = TipoServicio::factory()->create(['nombre' => 'Domiciliario']);
         $servicio->tiposVehiculo()->attach($tipoHabitual->id); // habitual = Compactador
 
         $pesaje = Pesaje::create([

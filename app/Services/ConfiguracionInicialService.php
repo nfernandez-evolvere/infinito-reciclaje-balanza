@@ -56,7 +56,7 @@ class ConfiguracionInicialService
             ];
 
             $completado = collect($steps)->where('done', true)->count();
-            $total      = count($steps);
+            $total = count($steps);
 
             return [
                 'steps'      => $steps,

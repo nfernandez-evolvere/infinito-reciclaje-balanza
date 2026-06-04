@@ -10,6 +10,7 @@ use Illuminate\Notifications\Notification;
 class AdminNuevaOrganizacionNotification extends Notification implements ShouldQueue
 {
     public int $tries = 3;
+
     public function __construct(
         protected Organizacion $organizacion,
     ) {}

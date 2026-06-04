@@ -29,6 +29,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -109,7 +110,7 @@ class ReporteController extends Controller
     {
         $desde = Carbon::parse($request->input('desde'));
         $hasta = Carbon::parse($request->input('hasta'));
-        $tipo  = $request->input('tipo', 'informe_mensual');
+        $tipo = $request->input('tipo', 'informe_mensual');
 
         $reporte = $this->reporteService->generar(
             $desde,
@@ -127,7 +128,7 @@ class ReporteController extends Controller
             ];
         }
 
-        $reporte['config']      = $config;
+        $reporte['config'] = $config;
         $reporte['conclusiones'] = $conclusiones;
 
         if ($tipo === 'alertas') {
@@ -230,9 +231,9 @@ class ReporteController extends Controller
         $tipo = $programado->tipo;
 
         $reporte = $this->reporteService->generar($desde, $hasta);
-        $config  = $this->configuracionRepository->first();
+        $config = $this->configuracionRepository->first();
 
-        $reporte['config']       = $config;
+        $reporte['config'] = $config;
         $reporte['conclusiones'] = [];
 
         if ($tipo === 'alertas') {
@@ -271,7 +272,7 @@ class ReporteController extends Controller
         };
     }
 
-    private function consultarAlertas(Carbon $desde, Carbon $hasta): \Illuminate\Support\Collection
+    private function consultarAlertas(Carbon $desde, Carbon $hasta): Collection
     {
         return Alerta::whereDate('fecha_deteccion', '>=', $desde->toDateString())
             ->whereDate('fecha_deteccion', '<=', $hasta->toDateString())

@@ -183,9 +183,9 @@ class CreatePesajeTest extends TestCase
         $admin = $this->admin();
         app('organizacion')->users()->syncWithoutDetaching([$admin->id]);
 
-        $tipoHabitual   = TipoVehiculo::factory()->create();
+        $tipoHabitual = TipoVehiculo::factory()->create();
         $tipoNoHabitual = TipoVehiculo::factory()->create();
-        $vehiculo       = Vehiculo::factory()->create(['tara_kg' => 2000, 'tipo_vehiculo_id' => $tipoNoHabitual->id]);
+        $vehiculo = Vehiculo::factory()->create(['tara_kg' => 2000, 'tipo_vehiculo_id' => $tipoNoHabitual->id]);
 
         $servicio = TipoServicio::factory()->create();
         $servicio->tiposVehiculo()->attach($tipoHabitual->id); // vehículo NO es habitual
@@ -219,7 +219,7 @@ class CreatePesajeTest extends TestCase
         app('organizacion')->users()->syncWithoutDetaching([$admin->id]);
 
         $tipoHabitual = TipoVehiculo::factory()->create(['peso_min_kg' => 1000, 'peso_max_kg' => 30000]);
-        $vehiculo     = Vehiculo::factory()->create(['tara_kg' => 2000, 'tipo_vehiculo_id' => $tipoHabitual->id]);
+        $vehiculo = Vehiculo::factory()->create(['tara_kg' => 2000, 'tipo_vehiculo_id' => $tipoHabitual->id]);
 
         $servicio = TipoServicio::factory()->create();
         $servicio->tiposVehiculo()->attach($tipoHabitual->id); // vehículo SÍ es habitual

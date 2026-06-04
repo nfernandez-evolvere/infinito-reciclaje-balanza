@@ -77,8 +77,8 @@ class AlertaService
             return;
         }
 
-        $servicio   = $pesaje->tipoServicio;
-        $tipoVeh    = $pesaje->vehiculo?->tipoVehiculo;
+        $servicio = $pesaje->tipoServicio;
+        $tipoVeh = $pesaje->vehiculo?->tipoVehiculo;
         $habituales = $servicio?->tiposVehiculo->pluck('nombre')->join(', ') ?? '—';
 
         $base = [
