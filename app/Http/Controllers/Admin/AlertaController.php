@@ -20,7 +20,7 @@ class AlertaController extends Controller
 
     public function index(Request $request): View
     {
-        $userId         = $request->user()->id;
+        $userId = $request->user()->id;
         $organizacionId = app('organizacion')->id;
         $tab = $request->input('tab', 'alertas');
 
@@ -31,8 +31,8 @@ class AlertaController extends Controller
             'hasta' => $request->input('hasta'),
         ];
 
-        $alertas  = $this->alertaRepository->listar($userId, $filtros);
-        $config   = $this->alertaService->getConfigConDefaults($organizacionId);
+        $alertas = $this->alertaRepository->listar($userId, $filtros);
+        $config = $this->alertaService->getConfigConDefaults($organizacionId);
         $noLeidas = $this->alertaRepository->countNoLeidas($userId);
 
         return view('modules.admin.alertas.index', compact('alertas', 'config', 'noLeidas', 'filtros', 'tab'));
@@ -54,8 +54,8 @@ class AlertaController extends Controller
         $count = $this->alertaRepository->marcarTodasLeidas($request->user()->id);
 
         return back()->with('toast', [
-            'message'     => "{$count} alertas marcadas como leídas",
-            'variant'     => 'success',
+            'message' => "{$count} alertas marcadas como leídas",
+            'variant' => 'success',
         ]);
     }
 
@@ -78,16 +78,16 @@ class AlertaController extends Controller
         $userId = $request->user()->id;
 
         return response()->json([
-            'count'  => $this->alertaRepository->countNoLeidas($userId),
-            'items'  => $this->alertaRepository->ultimasNoLeidas($userId, 5)->map(fn ($a) => [
-                'id'          => $a->id,
-                'tipo'        => $a->tipo,
-                'tipo_label'  => $a->tipoLabel(),
-                'tipo_variant'=> $a->tipoVariant(),
-                'titulo'      => $a->titulo,
-                'descripcion' => $a->descripcion,
-                'hace'        => $a->created_at->diffForHumans(),
-                'url_pesaje'  => $a->pesaje_id ? route('admin.pesajes.index', ['search' => $a->pesaje?->vehiculo?->patente]) : null,
+            'count' => $this->alertaRepository->countNoLeidas($userId),
+            'items' => $this->alertaRepository->ultimasNoLeidas($userId, 5)->map(fn ($a) => [
+                'id'           => $a->id,
+                'tipo'         => $a->tipo,
+                'tipo_label'   => $a->tipoLabel(),
+                'tipo_variant' => $a->tipoVariant(),
+                'titulo'       => $a->titulo,
+                'descripcion'  => $a->descripcion,
+                'hace'         => $a->created_at->diffForHumans(),
+                'url_pesaje'   => $a->pesaje_id ? route('admin.pesajes.index', ['search' => $a->pesaje?->vehiculo?->patente]) : null,
             ]),
         ]);
     }

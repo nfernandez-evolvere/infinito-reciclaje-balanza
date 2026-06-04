@@ -51,7 +51,7 @@ class AlertaServiceTest extends TestCase
     public function registrar_peso_fuera_rango_persists_correct_fields(): void
     {
         $admin = $this->admin();
-        $org   = app('organizacion');
+        $org = app('organizacion');
         $org->users()->syncWithoutDetaching([$admin->id]);
 
         $pesaje = $this->pesajeConAlerta($org->id);
@@ -72,7 +72,7 @@ class AlertaServiceTest extends TestCase
     public function registrar_peso_fuera_rango_is_idempotent_for_same_pesaje(): void
     {
         $admin = $this->admin();
-        $org   = app('organizacion');
+        $org = app('organizacion');
         $org->users()->syncWithoutDetaching([$admin->id]);
 
         $pesaje = $this->pesajeConAlerta($org->id);
@@ -87,7 +87,7 @@ class AlertaServiceTest extends TestCase
     public function registrar_peso_fuera_rango_skips_when_tipo_disabled_in_config(): void
     {
         $admin = $this->admin();
-        $org   = app('organizacion');
+        $org = app('organizacion');
         $org->users()->syncWithoutDetaching([$admin->id]);
 
         ConfigAlerta::create(['tipo' => 'peso_fuera_rango', 'activo' => false]);
@@ -164,7 +164,7 @@ class AlertaServiceTest extends TestCase
         $org = app('organizacion');
 
         $this->service->guardarConfig($org->id, [
-            'gap_registro' => ['activo' => false, 'umbral_valor' => '45'],
+            'gap_registro'     => ['activo' => false, 'umbral_valor' => '45'],
             'peso_fuera_rango' => ['activo' => true, 'umbral_valor' => ''],
         ]);
 
@@ -191,7 +191,7 @@ class AlertaServiceTest extends TestCase
     public function alerta_has_unique_uuid_on_create(): void
     {
         $admin = $this->admin();
-        $org   = app('organizacion');
+        $org = app('organizacion');
         $org->users()->syncWithoutDetaching([$admin->id]);
 
         $pesajeA = $this->pesajeConAlerta($org->id);
@@ -212,9 +212,9 @@ class AlertaServiceTest extends TestCase
      */
     private function pesajeConAlerta(int $organizacionId): Pesaje
     {
-        $tipo     = TipoVehiculo::factory()->create(['peso_min_kg' => 5000, 'peso_max_kg' => 10000]);
+        $tipo = TipoVehiculo::factory()->create(['peso_min_kg' => 5000, 'peso_max_kg' => 10000]);
         $vehiculo = Vehiculo::factory()->create(['tipo_vehiculo_id' => $tipo->id, 'tara_kg' => 4000]);
-        $zona     = Zona::factory()->create();
+        $zona = Zona::factory()->create();
         $servicio = TipoServicio::factory()->create();
 
         $operador = $this->operador();

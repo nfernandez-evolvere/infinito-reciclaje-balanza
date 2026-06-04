@@ -5,11 +5,9 @@ namespace Database\Seeders;
 use App\Models\Alerta;
 use App\Models\ConfigAlerta;
 use App\Models\Organizacion;
-use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class AlertaSeeder extends Seeder
 {
@@ -58,8 +56,8 @@ class AlertaSeeder extends Seeder
                     'organizacion_id' => $orgId,
                     'user_id'         => $adminId,
                     'tipo'            => 'peso_fuera_rango',
-                    'titulo'          => 'Peso fuera de rango — pesaje #' . $p->id,
-                    'descripcion'     => 'Peso bruto registrado: ' . number_format($p->peso_bruto_kg) . ' kg, fuera del rango habitual para el tipo de vehículo.',
+                    'titulo'          => 'Peso fuera de rango — pesaje #'.$p->id,
+                    'descripcion'     => 'Peso bruto registrado: '.number_format($p->peso_bruto_kg).' kg, fuera del rango habitual para el tipo de vehículo.',
                     'pesaje_id'       => $p->id,
                     'zona_id'         => $p->zona_id,
                     'fecha_deteccion' => $fecha,
@@ -84,7 +82,7 @@ class AlertaSeeder extends Seeder
                     'organizacion_id' => $orgId,
                     'user_id'         => $adminId,
                     'tipo'            => 'volumen_diario_atipico',
-                    'titulo'          => $titulo . ' — ' . today()->subDays(abs($diasAtras))->format('d/m/Y'),
+                    'titulo'          => $titulo.' — '.today()->subDays(abs($diasAtras))->format('d/m/Y'),
                     'descripcion'     => $descripcion,
                     'fecha_deteccion' => $fecha,
                     'leida'           => $diasAtras < -7,
@@ -108,7 +106,7 @@ class AlertaSeeder extends Seeder
                     'organizacion_id' => $orgId,
                     'user_id'         => $adminId,
                     'tipo'            => 'gap_registro',
-                    'titulo'          => $tituloPrefix . $fecha->format('d/m/Y'),
+                    'titulo'          => $tituloPrefix.$fecha->format('d/m/Y'),
                     'descripcion'     => $descripcion,
                     'fecha_deteccion' => $fecha->toDateString(),
                     'leida'           => $diasAtras < -7,
@@ -136,8 +134,8 @@ class AlertaSeeder extends Seeder
                     'organizacion_id' => $orgId,
                     'user_id'         => $adminId,
                     'tipo'            => 'frecuencia_zona_atipica',
-                    'titulo'          => "Frecuencia atípica en zona — " . $fecha->format('d/m/Y'),
-                    'descripcion'     => $zona->nombre . ': ' . $descripcion,
+                    'titulo'          => 'Frecuencia atípica en zona — '.$fecha->format('d/m/Y'),
+                    'descripcion'     => $zona->nombre.': '.$descripcion,
                     'zona_id'         => $zona->id,
                     'fecha_deteccion' => $fecha->toDateString(),
                     'leida'           => $diasAtras < -7,

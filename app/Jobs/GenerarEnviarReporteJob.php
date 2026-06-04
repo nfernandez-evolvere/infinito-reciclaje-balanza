@@ -40,11 +40,11 @@ class GenerarEnviarReporteJob implements ShouldQueue
         [$desde, $hasta] = $this->calcularPeriodo($programado->opciones['periodo'] ?? 'mes_anterior');
 
         $esAlertas = $programado->tipo === 'alertas';
-        $tipo      = $programado->tipo;
-        $periodo   = ucfirst($desde->translatedFormat('F Y'));
+        $tipo = $programado->tipo;
+        $periodo = ucfirst($desde->translatedFormat('F Y'));
 
         $reporte = $reporteService->generar($desde, $hasta);
-        $reporte['config']      = $config;
+        $reporte['config'] = $config;
         $reporte['conclusiones'] = [];
 
         if ($esAlertas) {
@@ -57,7 +57,7 @@ class GenerarEnviarReporteJob implements ShouldQueue
                 ->orderBy('fecha_deteccion')
                 ->orderBy('tipo')
                 ->get()
-                ->unique(fn ($a) => $a->tipo . '|' . $a->titulo . '|' . $a->fecha_deteccion->toDateString())
+                ->unique(fn ($a) => $a->tipo.'|'.$a->titulo.'|'.$a->fecha_deteccion->toDateString())
                 ->values();
 
             $reporte['alertas'] = $alertas;

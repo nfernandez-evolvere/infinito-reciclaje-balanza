@@ -60,11 +60,11 @@ class AlertaModuleTest extends TestCase
 
         $alertaA = Alerta::create([
             'user_id' => $admin->id, 'tipo' => 'peso_fuera_rango',
-            'titulo' => 'A', 'fecha_deteccion' => today()->toDateString(), 'leida' => false,
+            'titulo'  => 'A', 'fecha_deteccion' => today()->toDateString(), 'leida' => false,
         ]);
         $alertaB = Alerta::create([
             'user_id' => $admin->id, 'tipo' => 'gap_registro',
-            'titulo' => 'B', 'fecha_deteccion' => today()->toDateString(), 'leida' => false,
+            'titulo'  => 'B', 'fecha_deteccion' => today()->toDateString(), 'leida' => false,
         ]);
 
         $this->actingAs($admin)
@@ -85,12 +85,12 @@ class AlertaModuleTest extends TestCase
         foreach (range(1, 3) as $i) {
             Alerta::create([
                 'user_id' => $adminA->id, 'tipo' => 'gap_registro',
-                'titulo' => "A{$i}", 'fecha_deteccion' => today()->toDateString(), 'leida' => false,
+                'titulo'  => "A{$i}", 'fecha_deteccion' => today()->toDateString(), 'leida' => false,
             ]);
         }
         $alertaB = Alerta::create([
             'user_id' => $adminB->id, 'tipo' => 'gap_registro',
-            'titulo' => 'B1', 'fecha_deteccion' => today()->toDateString(), 'leida' => false,
+            'titulo'  => 'B1', 'fecha_deteccion' => today()->toDateString(), 'leida' => false,
         ]);
 
         $this->actingAs($adminA)
@@ -111,7 +111,7 @@ class AlertaModuleTest extends TestCase
         foreach (range(1, 4) as $i) {
             Alerta::create([
                 'user_id' => $admin->id, 'tipo' => 'volumen_diario_atipico',
-                'titulo' => "V{$i}", 'fecha_deteccion' => today()->toDateString(), 'leida' => false,
+                'titulo'  => "V{$i}", 'fecha_deteccion' => today()->toDateString(), 'leida' => false,
             ]);
         }
 
@@ -132,10 +132,10 @@ class AlertaModuleTest extends TestCase
         $this->actingAs($admin)
             ->put(route('admin.alertas.configuracion.update'), [
                 'config' => [
-                    'peso_fuera_rango'       => ['activo' => '1', 'umbral_valor' => ''],
-                    'volumen_diario_atipico' => ['activo' => '0', 'umbral_valor' => '35'],
-                    'gap_registro'           => ['activo' => '1', 'umbral_valor' => '90'],
-                    'frecuencia_zona_atipica'=> ['activo' => '0', 'umbral_valor' => '25'],
+                    'peso_fuera_rango'        => ['activo' => '1', 'umbral_valor' => ''],
+                    'volumen_diario_atipico'  => ['activo' => '0', 'umbral_valor' => '35'],
+                    'gap_registro'            => ['activo' => '1', 'umbral_valor' => '90'],
+                    'frecuencia_zona_atipica' => ['activo' => '0', 'umbral_valor' => '25'],
                 ],
             ])
             ->assertRedirect();
@@ -167,15 +167,15 @@ class AlertaModuleTest extends TestCase
 
         Alerta::create([
             'user_id' => $admin->id, 'tipo' => 'peso_fuera_rango',
-            'titulo' => 'Sin leer 1', 'fecha_deteccion' => today()->toDateString(), 'leida' => false,
+            'titulo'  => 'Sin leer 1', 'fecha_deteccion' => today()->toDateString(), 'leida' => false,
         ]);
         Alerta::create([
             'user_id' => $admin->id, 'tipo' => 'gap_registro',
-            'titulo' => 'Sin leer 2', 'fecha_deteccion' => today()->toDateString(), 'leida' => false,
+            'titulo'  => 'Sin leer 2', 'fecha_deteccion' => today()->toDateString(), 'leida' => false,
         ]);
         Alerta::create([
             'user_id' => $admin->id, 'tipo' => 'gap_registro',
-            'titulo' => 'Ya leída', 'fecha_deteccion' => today()->toDateString(), 'leida' => true,
+            'titulo'  => 'Ya leída', 'fecha_deteccion' => today()->toDateString(), 'leida' => true,
         ]);
 
         $response = $this->actingAs($admin)
@@ -194,7 +194,7 @@ class AlertaModuleTest extends TestCase
 
         Alerta::create([
             'user_id' => $adminB->id, 'tipo' => 'peso_fuera_rango',
-            'titulo' => 'Alerta de B', 'fecha_deteccion' => today()->toDateString(), 'leida' => false,
+            'titulo'  => 'Alerta de B', 'fecha_deteccion' => today()->toDateString(), 'leida' => false,
         ]);
 
         $this->actingAs($adminA)
@@ -258,11 +258,11 @@ class AlertaModuleTest extends TestCase
 
         $this->actingInOrg($orgA, fn () => Alerta::create([
             'user_id' => $adminA->id, 'tipo' => 'peso_fuera_rango',
-            'titulo' => 'Alerta de Org A', 'fecha_deteccion' => today()->toDateString(),
+            'titulo'  => 'Alerta de Org A', 'fecha_deteccion' => today()->toDateString(),
         ]));
         $this->actingInOrg($orgB, fn () => Alerta::create([
             'user_id' => $adminB->id, 'tipo' => 'peso_fuera_rango',
-            'titulo' => 'Alerta de Org B', 'fecha_deteccion' => today()->toDateString(),
+            'titulo'  => 'Alerta de Org B', 'fecha_deteccion' => today()->toDateString(),
         ]));
 
         app()->instance('organizacion', $orgA);

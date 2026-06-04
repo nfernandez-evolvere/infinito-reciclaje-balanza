@@ -246,6 +246,7 @@ class GenerarEnviarReporteJobTest extends TestCase
         $this->instance(PdfService::class, \Mockery::mock(PdfService::class, function ($m) use (&$capturedReporte) {
             $m->shouldReceive('fromView')->withArgs(function ($_view, $data) use (&$capturedReporte) {
                 $capturedReporte = $data['reporte'] ?? null;
+
                 return true;
             })->andReturn('fake-pdf');
         }));
@@ -269,11 +270,11 @@ class GenerarEnviarReporteJobTest extends TestCase
 
         $adminA = $this->admin();
         $adminB = $this->admin();
-        $desde  = now()->subMonth()->startOfMonth();
+        $desde = now()->subMonth()->startOfMonth();
 
         // Mismo evento (misma titulo+fecha) para dos admins → debe deduplicarse a 1
-        $titulo = 'Volumen atípico — ' . $desde->format('d/m/Y');
-        $fecha  = $desde->copy()->addDays(3)->toDateString();
+        $titulo = 'Volumen atípico — '.$desde->format('d/m/Y');
+        $fecha = $desde->copy()->addDays(3)->toDateString();
 
         Alerta::create(['user_id' => $adminA->id, 'tipo' => 'volumen_diario_atipico', 'titulo' => $titulo, 'fecha_deteccion' => $fecha]);
         Alerta::create(['user_id' => $adminB->id, 'tipo' => 'volumen_diario_atipico', 'titulo' => $titulo, 'fecha_deteccion' => $fecha]);
@@ -313,6 +314,7 @@ class GenerarEnviarReporteJobTest extends TestCase
         $this->instance(PdfService::class, \Mockery::mock(PdfService::class, function ($m) use (&$capturedReporte) {
             $m->shouldReceive('fromView')->withArgs(function ($_view, $data) use (&$capturedReporte) {
                 $capturedReporte = $data['reporte'] ?? null;
+
                 return true;
             })->andReturn('pdf');
         }));

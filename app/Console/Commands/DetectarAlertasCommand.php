@@ -8,7 +8,8 @@ use Illuminate\Console\Command;
 
 class DetectarAlertasCommand extends Command
 {
-    protected $signature   = 'alertas:detectar {--org= : ID de organización específica}';
+    protected $signature = 'alertas:detectar {--org= : ID de organización específica}';
+
     protected $description = 'Detecta alertas automáticas (volumen atípico, gaps, frecuencia por zona)';
 
     public function handle(AlertaService $alertaService): int
@@ -24,9 +25,9 @@ class DetectarAlertasCommand extends Command
 
             try {
                 $alertaService->detectarParaOrganizacion($org->id);
-                $this->info("  ✓ Detección completada");
+                $this->info('  ✓ Detección completada');
             } catch (\Throwable $e) {
-                $this->error("  ✗ Error: " . $e->getMessage());
+                $this->error('  ✗ Error: '.$e->getMessage());
             }
         }
 

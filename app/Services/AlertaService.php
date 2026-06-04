@@ -30,14 +30,14 @@ class AlertaService
 
         $tipo = $pesaje->vehiculo?->tipoVehiculo;
         $rango = $tipo
-            ? number_format($tipo->peso_min_kg) . ' – ' . number_format($tipo->peso_max_kg) . ' kg'
+            ? number_format($tipo->peso_min_kg).' – '.number_format($tipo->peso_max_kg).' kg'
             : 'rango no definido';
 
         $base = [
             'organizacion_id' => $pesaje->organizacion_id,
             'tipo'            => 'peso_fuera_rango',
             'titulo'          => "Peso fuera de rango — {$pesaje->vehiculo?->patente}",
-            'descripcion'     => "Peso bruto: " . number_format($pesaje->peso_bruto_kg) . " kg. Rango habitual para {$tipo?->nombre}: {$rango}.",
+            'descripcion'     => 'Peso bruto: '.number_format($pesaje->peso_bruto_kg)." kg. Rango habitual para {$tipo?->nombre}: {$rango}.",
             'pesaje_id'       => $pesaje->id,
             'zona_id'         => $pesaje->zona_id,
             'fecha_deteccion' => today()->toDateString(),
@@ -103,7 +103,7 @@ class AlertaService
 
         // Promedio de los 30 días anteriores al día analizado
         $inicio30 = $fecha->copy()->subDays(30);
-        $fin30    = $fecha->copy()->subDay();
+        $fin30 = $fecha->copy()->subDay();
 
         $promedioToneladas = Pesaje::withoutGlobalScopes()
             ->where('organizacion_id', $organizacionId)
@@ -142,9 +142,9 @@ class AlertaService
         $direccion = $toneladasDia > $promedioTon ? 'por encima' : 'por debajo';
 
         $this->createParaAdmins($organizacionId, [
-            'tipo'            => 'volumen_diario_atipico',
-            'titulo'          => 'Volumen diario atípico — ' . $fecha->translatedFormat('d/m/Y'),
-            'descripcion'     => \sprintf(
+            'tipo'        => 'volumen_diario_atipico',
+            'titulo'      => 'Volumen diario atípico — '.$fecha->translatedFormat('d/m/Y'),
+            'descripcion' => \sprintf(
                 'Se recolectaron %.1f t el %s (%.0f%% %s del promedio histórico de %.1f t/día).',
                 $toneladasDia,
                 $fecha->translatedFormat('d/m/Y'),
@@ -182,16 +182,17 @@ class AlertaService
             ->pluck('created_at');
 
         $iniciOperativo = $fecha->copy()->setTime(8, 0);
-        $finOperativo   = $fecha->copy()->setTime(18, 0);
+        $finOperativo = $fecha->copy()->setTime(18, 0);
 
         // Sin pesajes en todo el día operativo
         if ($pesajesDia->isEmpty()) {
             $this->createParaAdmins($organizacionId, [
                 'tipo'            => 'gap_registro',
-                'titulo'          => 'Sin actividad — ' . $fecha->translatedFormat('d/m/Y'),
+                'titulo'          => 'Sin actividad — '.$fecha->translatedFormat('d/m/Y'),
                 'descripcion'     => 'No se registraron pesajes durante el horario operativo (08:00–18:00).',
                 'fecha_deteccion' => $fecha->toDateString(),
             ]);
+
             return;
         }
 
@@ -208,7 +209,7 @@ class AlertaService
                 $hasta = $puntos[$i + 1]->format('H:i');
                 $this->createParaAdmins($organizacionId, [
                     'tipo'            => 'gap_registro',
-                    'titulo'          => "Sin actividad {$gap} min — " . $fecha->translatedFormat('d/m/Y'),
+                    'titulo'          => "Sin actividad {$gap} min — ".$fecha->translatedFormat('d/m/Y'),
                     'descripcion'     => "No se registraron pesajes entre las {$desde} y las {$hasta} ({$gap} minutos).",
                     'fecha_deteccion' => $fecha->toDateString(),
                 ]);
@@ -227,7 +228,7 @@ class AlertaService
         $umbralPct = $config?->umbral_valor ?? ConfigAlerta::defaults()['frecuencia_zona_atipica']['umbral_valor'];
 
         $inicio30 = $fecha->copy()->subDays(30);
-        $fin30    = $fecha->copy()->subDay();
+        $fin30 = $fecha->copy()->subDay();
 
         $diasHistorial = $this->diasConPesajes($organizacionId, $inicio30, $fin30);
         if ($diasHistorial < 5) {
@@ -278,9 +279,9 @@ class AlertaService
             $direccion = $totalDia > $promedio ? 'por encima' : 'por debajo';
 
             $this->createParaAdmins($organizacionId, [
-                'tipo'            => 'frecuencia_zona_atipica',
-                'titulo'          => "Frecuencia atípica en zona — " . $fecha->translatedFormat('d/m/Y'),
-                'descripcion'     => \sprintf(
+                'tipo'        => 'frecuencia_zona_atipica',
+                'titulo'      => 'Frecuencia atípica en zona — '.$fecha->translatedFormat('d/m/Y'),
+                'descripcion' => \sprintf(
                     '%d pesajes registrados (%.0f%% %s del promedio de %.1f/día en los últimos 30 días).',
                     $totalDia,
                     $desviacionPct,
@@ -309,14 +310,14 @@ class AlertaService
     public function getConfigConDefaults(int $organizacionId): array
     {
         $guardadas = $this->alertaRepository->getConfigPorOrg($organizacionId);
-        $defaults  = ConfigAlerta::defaults();
+        $defaults = ConfigAlerta::defaults();
         $resultado = [];
 
         foreach ($defaults as $tipo => $default) {
             $guardada = $guardadas[$tipo] ?? null;
             $resultado[$tipo] = array_merge($default, [
-                'activo'       => $guardada ? $guardada->activo        : $default['activo'],
-                'umbral_valor' => $guardada ? $guardada->umbral_valor   : $default['umbral_valor'],
+                'activo'       => $guardada ? $guardada->activo : $default['activo'],
+                'umbral_valor' => $guardada ? $guardada->umbral_valor : $default['umbral_valor'],
             ]);
         }
 

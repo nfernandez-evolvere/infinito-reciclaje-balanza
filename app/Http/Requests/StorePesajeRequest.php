@@ -31,12 +31,16 @@ class StorePesajeRequest extends FormRequest
     {
         $validator->after(function (Validator $v) {
             $vehiculoId = (int) $this->input('vehiculo_id');
-            $pesoBruto  = (int) $this->input('peso_bruto_kg');
+            $pesoBruto = (int) $this->input('peso_bruto_kg');
 
-            if (!$vehiculoId || !$pesoBruto) return;
+            if (! $vehiculoId || ! $pesoBruto) {
+                return;
+            }
 
             $vehiculo = Vehiculo::find($vehiculoId);
-            if (!$vehiculo) return;
+            if (! $vehiculo) {
+                return;
+            }
 
             if ($pesoBruto < $vehiculo->tara_kg) {
                 $v->errors()->add(

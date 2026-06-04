@@ -4,7 +4,6 @@ namespace App\Repositories;
 
 use App\Models\Alerta;
 use App\Models\ConfigAlerta;
-use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
@@ -37,7 +36,7 @@ class AlertaRepository
             ->with(['pesaje.vehiculo', 'zona'])
             ->orderByDesc('alertas.created_at');
 
-        if (!empty($filtros['tipo'])) {
+        if (! empty($filtros['tipo'])) {
             $q->where('tipo', $filtros['tipo']);
         }
 
@@ -45,11 +44,11 @@ class AlertaRepository
             $q->where('leida', (bool) $filtros['leida']);
         }
 
-        if (!empty($filtros['desde'])) {
+        if (! empty($filtros['desde'])) {
             $q->whereDate('fecha_deteccion', '>=', $filtros['desde']);
         }
 
-        if (!empty($filtros['hasta'])) {
+        if (! empty($filtros['hasta'])) {
             $q->whereDate('fecha_deteccion', '<=', $filtros['hasta']);
         }
 

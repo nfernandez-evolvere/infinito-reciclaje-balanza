@@ -153,7 +153,7 @@ class CreatePesajeTest extends TestCase
         $admin = $this->admin();
         app('organizacion')->users()->syncWithoutDetaching([$admin->id]);
 
-        $tipo     = TipoVehiculo::factory()->create(['peso_min_kg' => 5000, 'peso_max_kg' => 10000]);
+        $tipo = TipoVehiculo::factory()->create(['peso_min_kg' => 5000, 'peso_max_kg' => 10000]);
         $vehiculo = Vehiculo::factory()->create(['tara_kg' => 4000, 'tipo_vehiculo_id' => $tipo->id]);
 
         // Peso bruto fuera del rango del tipo (> 10.000 kg)
@@ -183,7 +183,7 @@ class CreatePesajeTest extends TestCase
         $admin = $this->admin();
         app('organizacion')->users()->syncWithoutDetaching([$admin->id]);
 
-        $tipo     = TipoVehiculo::factory()->create(['peso_min_kg' => 5000, 'peso_max_kg' => 30000]);
+        $tipo = TipoVehiculo::factory()->create(['peso_min_kg' => 5000, 'peso_max_kg' => 30000]);
         $vehiculo = Vehiculo::factory()->create(['tara_kg' => 4000, 'tipo_vehiculo_id' => $tipo->id]);
 
         $this->actingAs($this->operador())

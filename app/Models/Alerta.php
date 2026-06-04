@@ -3,25 +3,26 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToOrganizacion;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 
 /**
- * @property int         $id
- * @property string      $uuid
- * @property int         $organizacion_id
- * @property int|null    $user_id
- * @property string      $tipo
- * @property string      $titulo
+ * @property int $id
+ * @property string $uuid
+ * @property int $organizacion_id
+ * @property int|null $user_id
+ * @property string $tipo
+ * @property string $titulo
  * @property string|null $descripcion
- * @property int|null    $pesaje_id
- * @property int|null    $zona_id
- * @property \Carbon\Carbon $fecha_deteccion
- * @property bool        $leida
- * @property \Carbon\Carbon|null $leida_at
- * @property \Carbon\Carbon $created_at
- * @property \Carbon\Carbon $updated_at
+ * @property int|null $pesaje_id
+ * @property int|null $zona_id
+ * @property Carbon $fecha_deteccion
+ * @property bool $leida
+ * @property Carbon|null $leida_at
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
  */
 class Alerta extends Model
 {
