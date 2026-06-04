@@ -93,10 +93,10 @@ class GenerarEnviarReporteJob implements ShouldQueue
             // en el PDF, así que la llamada a la API se evita cuando no se genera.
             if (in_array('pdf', $formatos, true)) {
                 Log::info('GenerarEnviarReporteJob: evaluando AI', [
-                    'ai_enabled'      => $config?->ai_enabled,
-                    'ai_api_key_set'  => ! empty($config?->ai_api_key),
-                    'ai_modelo'       => $config?->ai_modelo,
-                    'ai_prompt_set'   => ! empty($config?->ai_prompt),
+                    'ai_enabled'     => $config?->ai_enabled,
+                    'ai_api_key_set' => ! empty($config?->ai_api_key),
+                    'ai_modelo'      => $config?->ai_modelo,
+                    'ai_prompt_set'  => ! empty($config?->ai_prompt),
                 ]);
 
                 if ($config?->ai_enabled && $config?->ai_api_key) {

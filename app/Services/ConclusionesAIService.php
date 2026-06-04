@@ -45,9 +45,9 @@ class ConclusionesAIService
     private function llamar(string $prompt): string
     {
         Log::info('[ConclusionesAI] Prompt enviado', [
-            'modelo'  => $this->modelo,
-            'chars'   => \strlen($prompt),
-            'prompt'  => $prompt,
+            'modelo' => $this->modelo,
+            'chars'  => \strlen($prompt),
+            'prompt' => $prompt,
         ]);
 
         try {
@@ -66,8 +66,8 @@ class ConclusionesAIService
             );
 
             Log::debug('[ConclusionesAI] Respuesta recibida', [
-                'status'   => $response->status(),
-                'body'     => $response->json(),
+                'status' => $response->status(),
+                'body'   => $response->json(),
             ]);
 
             if ($response->successful()) {
