@@ -11,6 +11,7 @@
 # Build de assets (se genera en la etapa asset-build)
 /public/build
 /public/hot
+/public/storage
 
 # Entornos y secretos — NUNCA copiar al contexto de build
 .env

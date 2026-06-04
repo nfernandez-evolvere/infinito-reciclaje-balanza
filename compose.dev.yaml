@@ -6,7 +6,15 @@
 # 1433 estático y abrir el firewall. Desde el contenedor la instancia nombrada
 # no se resuelve por nombre, solo por host:puerto.
 #
-# Uso:  docker compose -f compose.dev.yaml up --build
+# Bind mount: el código fuente del host se monta sobre /app, así los cambios
+# en PHP/Blade se reflejan sin rebuild. vendor/ y public/build/ son volumes
+# anónimos que preservan lo generado durante el build de la imagen.
+#
+# Uso:
+#   Primera vez (o cuando cambian deps/assets):
+#     docker compose -f compose.dev.yaml up --build
+#   Día a día (solo cambios de código PHP/Blade):
+#     docker compose -f compose.dev.yaml up
 
 services:
   app:
@@ -18,6 +26,12 @@ services:
     environment:
       APP_ENV: local
       APP_DEBUG: "true"
+      # La app corre en :8080 dentro del contenedor, pero el host la expone en
+      # :8000. APP_URL y ASSET_URL deben reflejar la URL externa:
+      # - APP_URL: usada por route() para generar links absolutos
+      # - ASSET_URL: usada por asset() y @vite() para los assets (CSS/JS)
+      APP_URL: "http://localhost:8000"
+      ASSET_URL: "http://localhost:8000"
       # NUNCA migrar automáticamente: en dev el contenedor apunta al SQL Server
       # del host, que es la base COMPARTIDA entre proyectos. Las migraciones se
       # corren a mano y de forma deliberada (ver CLAUDE.md → política de DB).
@@ -28,12 +42,36 @@ services:
       DB_PORT: "1433"
       DB_ENCRYPT: "no"
       DB_TRUST_SERVER_CERTIFICATE: "yes"
+    volumes:
+      # Código fuente del host → cambios PHP/Blade se ven sin rebuild
+      - .:/app
+      # Directorios generados durante el build o en runtime propios del contenedor.
+      # Volumes anónimos: se inicializan con el contenido de la imagen y NO son
+      # pisados por el bind mount de arriba.
+      - /app/vendor              # composer install --no-dev de la imagen
+      - /app/public/build        # assets de Vite (npm run build de la imagen)
+      - /app/node_modules        # node_modules de la imagen
+      - /app/bootstrap/cache     # packages.php/services.php propios del contenedor
+      #                            (evita que el packages.php del HOST, que incluye
+      #                            providers de require-dev como Pail, rompa el contenedor
+      #                            que tiene vendor sin dev-deps)
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
       - "8000:8080"
     restart: unless-stopped
-    # CMD por defecto de la imagen = grupo web (nginx + php-fpm)
+
+  vite:
+    image: node:22-bookworm-slim
+    working_dir: /app
+    volumes:
+      - .:/app
+      - vite_node_modules:/app/node_modules   # volumen propio para node_modules de Node
+    ports:
+      - "5173:5173"
+    # npm install en caso de que el volumen esté vacío (primera vez o --volumes)
+    command: sh -c "npm install --no-audit --no-fund && npm run dev"
+    restart: unless-stopped
 
   worker:
     build:
@@ -44,15 +82,26 @@ services:
     environment:
       APP_ENV: local
       APP_DEBUG: "true"
+      APP_URL: "http://localhost:8000"
+      ASSET_URL: "http://localhost:8000"
       AUTO_MIGRATE: "false"
       DB_CONNECTION: sqlsrv
       DB_HOST: host.docker.internal
       DB_PORT: "1433"
       DB_ENCRYPT: "no"
       DB_TRUST_SERVER_CERTIFICATE: "yes"
+    volumes:
+      - .:/app
+      - /app/vendor
+      - /app/public/build
+      - /app/node_modules
+      - /app/bootstrap/cache
     extra_hosts:
       - "host.docker.internal:host-gateway"
     command: ["supervisord", "-c", "/etc/supervisor/conf.d/worker.conf", "-n"]
     restart: unless-stopped
     depends_on:
       - app
+
+volumes:
+  vite_node_modules:    # node_modules aislados para el contenedor Node/Vite

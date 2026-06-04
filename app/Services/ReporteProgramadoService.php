@@ -24,7 +24,7 @@ class ReporteProgramadoService
 
     public function update(ReporteProgramado $programado, array $validated): ReporteProgramado
     {
-        $data = $this->prepareData($validated);
+        $data = $this->prepareData($validated, $programado);
         $programado = $this->programadoRepository->update($programado, $data);
         $this->syncDestinatarios($data['destinatarios']);
 
@@ -36,15 +36,25 @@ class ReporteProgramadoService
         $this->programadoRepository->delete($programado);
     }
 
-    private function prepareData(array $validated): array
+    private function prepareData(array $validated, ?ReporteProgramado $existing = null): array
     {
         $destinatarios = array_values(array_filter(
             array_map('trim', explode(',', $validated['destinatarios']))
         ));
 
+        // 'formatos' no es columna: se guarda dentro del JSON 'opciones'. Las
+        // alertas se envían siempre en PDF; el informe mensual usa lo elegido.
+        $formatos = $validated['tipo'] === 'informe_mensual'
+            ? array_values(array_intersect(['pdf', 'excel'], $validated['formatos'] ?? ['pdf']))
+            : ['pdf'];
+        $opcionesBase = $existing ? ($existing->opciones ?? []) : [];
+        $opciones = [...$opcionesBase, 'formatos' => $formatos ?: ['pdf']];
+        unset($validated['formatos']);
+
         return [
             ...$validated,
             'destinatarios'    => $destinatarios,
+            'opciones'         => $opciones,
             'cron_expresion'   => $this->cronDesdeFrecuencia($validated['frecuencia']),
             'proximo_envio_at' => now()->addMinute(),
         ];

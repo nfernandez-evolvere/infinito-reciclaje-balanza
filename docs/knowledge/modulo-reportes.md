@@ -157,10 +157,13 @@ La pestaña **Programados** te permite configurar el envío automático de repor
 | Nombre | Nombre identificatorio del programado (ej: "Informe mensual municipio") |
 | Tipo de reporte | **Informe mensual** (resumen de operación) o **Alertas** (reporte de alertas del período) |
 | Frecuencia | **Diaria** (ayer), **Semanal** (últimos 7 días), **Quincenal** (últimos 15 días) o **Mensual** (últimos 30 días) |
+| Formatos del envío | Solo para **Informe mensual**: elegí en qué se adjunta el reporte al email — **PDF**, **Excel** o ambos. Tenés que dejar al menos uno marcado. Las **Alertas** se envían siempre en PDF, así que este campo no aparece. |
 | Destinatarios | Uno o más emails — presioná Enter o coma para confirmar cada uno |
 | Activo | Switch para activar o desactivar el envío automático |
 
 4. Guardar.
+
+> El **Excel** adjunto se abre directamente en Google Sheets, así que sirve tanto para quien usa Excel como para quien trabaja en la nube. Si marcás los dos formatos, el email llega con ambos archivos adjuntos.
 
 ### Acciones disponibles sobre un programado existente
 
@@ -225,9 +228,12 @@ No. Podés generar reportes de cualquier período desde el inicio de la operaci�
 **¿Puedo programar el envío automático del reporte al municipio?**
 Sí. En la pestaña **Programados** podés crear un reporte programado con frecuencia mensual y los emails del municipio como destinatarios. El sistema lo genera y envía automáticamente en la fecha configurada.
 
+**¿Puedo elegir si el reporte programado llega en PDF o en Excel?**
+Sí, en los programados de tipo **Informe mensual**. Al crear o editar el programado marcás **PDF**, **Excel** o ambos en "Formatos del envío" (al menos uno). El email automático adjunta los formatos elegidos. Los programados de tipo **Alertas** se envían siempre en PDF.
+
 **¿Puedo configurar el logo y los datos del municipio en el PDF?**
 Los datos institucionales (nombre del municipio, texto de presentación, servicios destacados) se configuran en la pestaña **Configuración** del módulo de Reportes.
 
 ---
 
-*Documento actualizado: 04/06/2026 | Versión: 1.1*
+*Documento actualizado: 04/06/2026 | Versión: 1.2*

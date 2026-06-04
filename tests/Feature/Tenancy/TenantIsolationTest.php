@@ -2,14 +2,18 @@
 
 namespace Tests\Feature\Tenancy;
 
+use App\Jobs\GenerarEnviarReporteJob;
 use App\Models\Organizacion;
 use App\Models\Pesaje;
+use App\Models\ReporteProgramado;
 use App\Models\TipoServicio;
 use App\Models\TipoVehiculo;
 use App\Models\User;
 use App\Models\Vehiculo;
 use App\Models\Zona;
+use App\Services\PdfService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -180,6 +184,69 @@ class TenantIsolationTest extends TestCase
             'patente'         => 'NEW999',
             'organizacion_id' => $orgA->id,
         ]);
+    }
+
+    // ── Background jobs: aislamiento sin contexto HTTP ───────────────────
+
+    #[Test]
+    public function job_de_reporte_no_mezcla_pesajes_entre_organizaciones(): void
+    {
+        // Invariante: un job de reporte programado solo puede ver los pesajes
+        // de su propia organización, aunque corra sin contexto HTTP (sin sesión,
+        // sin middleware ResolveOrganizacion).
+        $orgA = $this->createOrganizacion('Org A');
+        $orgB = $this->createOrganizacion('Org B');
+
+        // 4 pesajes de org A (1500 kg c/u → 6 t en total)
+        $this->actingInOrg($orgA, function () {
+            Pesaje::factory()->count(4)->create([
+                'estado'       => 'Cerrado',
+                'peso_neto_kg' => 1500,
+                'created_at'   => now()->subDays(3)->format('Y-m-d\TH:i:s'),
+                'updated_at'   => now()->subDays(3)->format('Y-m-d\TH:i:s'),
+            ]);
+        });
+
+        // 6 pesajes de org B (3000 kg c/u → 18 t). Sin aislamiento se sumarían:
+        // total=10, toneladas=24. Con aislamiento correcto: total=4, toneladas=6.
+        $this->actingInOrg($orgB, function () {
+            Pesaje::factory()->count(6)->create([
+                'estado'       => 'Cerrado',
+                'peso_neto_kg' => 3000,
+                'created_at'   => now()->subDays(3)->format('Y-m-d\TH:i:s'),
+                'updated_at'   => now()->subDays(3)->format('Y-m-d\TH:i:s'),
+            ]);
+        });
+
+        $programado = $this->actingInOrg($orgA, fn () => ReporteProgramado::create([
+            'tipo'           => 'informe_mensual',
+            'nombre'         => 'Mensual Org A',
+            'frecuencia'     => 'mensual',
+            'cron_expresion' => '0 8 1 * *',
+            'destinatarios'  => ['a@test.com'],
+            'activo'         => true,
+            'opciones'       => ['formatos' => ['pdf']],
+        ]));
+
+        $capturedKpis = null;
+        $this->instance(PdfService::class, \Mockery::mock(PdfService::class, function ($m) use (&$capturedKpis) {
+            $m->shouldReceive('fromView')->withArgs(function ($view, $data) use (&$capturedKpis) {
+                $capturedKpis = $data['reporte']['kpis'] ?? null;
+
+                return true;
+            })->andReturn('pdf');
+        }));
+
+        Mail::fake();
+        // Sin binding de organización: replica el contexto del worker de cola
+        app()->forgetInstance('organizacion');
+
+        GenerarEnviarReporteJob::dispatchSync($programado->id);
+
+        // Solo los 4 pesajes de Org A deben aparecer; Org B no puede cruzar.
+        $this->assertSame(4, $capturedKpis['total']);
+        // 4 × 1500 kg = 6000 kg = 6 t
+        $this->assertEqualsWithDelta(6.0, $capturedKpis['toneladas'], 0.01);
     }
 
     #[Test]

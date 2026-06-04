@@ -59,6 +59,18 @@ class CancelPesajeTest extends TestCase
     }
 
     #[Test]
+    public function admin_cancels_pesaje_redirects_to_admin_index(): void
+    {
+        $pesaje = Pesaje::factory()->create(['estado' => 'En predio']);
+
+        $this->actingAs($this->admin())
+            ->patch(route('pesajes.cancelar', $pesaje), ['motivo' => 'Carga duplicada por error.'])
+            ->assertRedirect(route('admin.pesajes.index'));
+
+        $this->assertDatabaseHas('pesajes', ['id' => $pesaje->id, 'estado' => 'Cancelado']);
+    }
+
+    #[Test]
     public function guest_is_redirected_to_login(): void
     {
         $pesaje = Pesaje::factory()->create(['estado' => 'En predio']);

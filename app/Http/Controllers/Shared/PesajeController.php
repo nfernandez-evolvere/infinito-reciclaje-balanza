@@ -8,8 +8,6 @@ use App\Http\Requests\EgresoPesajeRequest;
 use App\Http\Requests\UpdatePesajeRequest;
 use App\Models\Pesaje;
 use App\Models\PesajeLog;
-use App\Models\TipoServicio;
-use App\Models\Zona;
 use App\Repositories\PesajeLogRepository;
 use App\Repositories\PesajeRepository;
 use App\Repositories\TipoServicioRepository;
@@ -21,7 +19,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PesajeController extends Controller
 {
@@ -68,7 +65,6 @@ class PesajeController extends Controller
         if ($isAdmin) {
             $viewData['titulo'] = 'Pesajes';
             $viewData['routeHistorial'] = route('admin.pesajes.index');
-            $viewData['exportUrl'] = route('admin.pesajes.export');
             $viewData['zonas'] = $this->zonaRepository->activos();
             $viewData['tiposServicio'] = $this->tipoServicioRepository->activos();
         } else {
@@ -197,15 +193,6 @@ class PesajeController extends Controller
         return response()->json($grupos);
     }
 
-    public function export(Request $request): StreamedResponse
-    {
-        $filtros = $this->buildFiltros($request, true);
-        $pesajes = $this->pesajeRepository->filtradoTodos($filtros);
-        $filename = 'pesajes-'.now()->format('Y-m-d').'.csv';
-
-        return $this->pesajeService->exportarCsv($pesajes, $filename);
-    }
-
     private function buildFiltros(Request $request, bool $isAdmin): array
     {
         return [
@@ -218,7 +205,7 @@ class PesajeController extends Controller
             'tipo_servicio_id' => $isAdmin ? ($request->input('tipo_servicio_id') ?: null) : null,
             'solo_alerta'      => $isAdmin ? ($request->boolean('solo_alerta') ?: null) : null,
             'solo_editados'    => $isAdmin ? ($request->boolean('solo_editados') ?: null) : null,
-            'sort_direction'   => in_array($request->input('direction'), ['asc', 'desc']) ? $request->input('direction') : 'desc',
+            'direction'        => in_array($request->input('direction'), ['asc', 'desc']) ? $request->input('direction') : 'desc',
         ];
     }
 
@@ -234,8 +221,8 @@ class PesajeController extends Controller
             ->filter(fn ($v) => $v !== null && $v !== '')
             ->unique()->values();
 
-        $servicios = TipoServicio::whereIn('id', $ids('tipo_servicio_id'))->pluck('nombre', 'id');
-        $zonas = Zona::whereIn('id', $ids('zona_id'))->pluck('nombre', 'id');
+        $servicios = $this->tipoServicioRepository->nombresPorIds($ids('tipo_servicio_id'));
+        $zonas = $this->zonaRepository->nombresPorIds($ids('zona_id'));
 
         return [$servicios, $zonas];
     }

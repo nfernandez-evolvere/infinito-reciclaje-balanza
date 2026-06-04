@@ -1,14 +1,16 @@
 @php
-    $hasProgramadoErrors = $errors->hasAny(['nombre', 'tipo', 'frecuencia', 'destinatarios', 'activo']);
+    $hasProgramadoErrors = $errors->hasAny(['nombre', 'tipo', 'frecuencia', 'destinatarios', 'formatos', 'activo']);
     $isEditing      = old('_mode') === 'edit';
+    $defaultTipo    = ($config->tipo_informe_mensual_activo ?? true) ? 'informe_mensual' : 'alertas';
     $initialProgramado = $hasProgramadoErrors ? [
         'modalOpen' => true,
         'modalMode' => $isEditing ? 'edit' : 'create',
         'form' => [
             'id'         => (int) old('_editing_id', 0) ?: null,
             'nombre'     => old('nombre', ''),
-            'tipo'       => old('tipo', 'informe_mensual'),
+            'tipo'       => old('tipo', $defaultTipo),
             'frecuencia' => old('frecuencia', 'mensual'),
+            'formatos'   => array_values(array_intersect(['pdf', 'excel'], (array) old('formatos', ['pdf']))) ?: ['pdf'],
             'activo'     => old('activo', true),
         ],
         '_oldDestinatariosStr' => old('destinatarios', ''),
@@ -41,6 +43,11 @@
             <x-lucide-file-bar-chart class="size-4" />
             <span x-show="active === 'generar'" x-cloak class="sm:inline">Generar</span>
             <span class="hidden sm:inline" x-show="active !== 'generar'">Generar</span>
+        </x-ui.tabs.trigger>
+        <x-ui.tabs.trigger value="historial" class="flex-1 sm:flex-none">
+            <x-lucide-history class="size-4" />
+            <span x-show="active === 'historial'" x-cloak class="sm:inline">Historial</span>
+            <span class="hidden sm:inline" x-show="active !== 'historial'">Historial</span>
         </x-ui.tabs.trigger>
         <x-ui.tabs.trigger value="configuracion" class="flex-1 sm:flex-none">
             <x-lucide-settings-2 class="size-4" />
@@ -117,10 +124,19 @@
             </div>
 
             <x-domain.reportes.tabla-programados :programados="$programados" />
-            <x-domain.reportes.modal-programado />
+            <x-domain.reportes.modal-programado :config="$config" />
             <x-domain.reportes.modal-enviar />
             <x-domain.reportes.modal-delete />
 
+        </div>
+    </x-ui.tabs.content>
+
+    {{-- ── Tab: Historial ── --}}
+    <x-ui.tabs.content value="historial" class="mt-0">
+        <div class="flex flex-col gap-6">
+            <x-ui.typography as="muted">Reportes descargados y enviados. Volvé a abrir cualquiera para regenerarlo con los datos del período.</x-ui.typography>
+
+            <x-domain.reportes.tabla-historial :historial="$historial" />
         </div>
     </x-ui.tabs.content>
 

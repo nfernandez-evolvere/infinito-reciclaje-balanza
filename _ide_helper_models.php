@@ -210,6 +210,56 @@ namespace App\Models{
 
 namespace App\Models{
 /**
+ * Registro inmutable de cada reporte producido: una descarga manual (Excel/PDF)
+ * o un envío programado. Solo guarda metadatos (período, filtros, formato,
+ * destinatarios); el contenido se regenera bajo demanda desde los pesajes.
+ *
+ * @property int $id
+ * @property int $organizacion_id
+ * @property int|null $usuario_id
+ * @property int|null $reporte_programado_id
+ * @property string $origen
+ * @property string $tipo
+ * @property string $formato
+ * @property \Illuminate\Support\Carbon $periodo_desde
+ * @property \Illuminate\Support\Carbon $periodo_hasta
+ * @property array<array-key, mixed>|null $filtros
+ * @property array<array-key, mixed>|null $destinatarios
+ * @property string $estado
+ * @property string|null $error
+ * @property string|null $conclusiones
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\Organizacion $organizacion
+ * @property-read \App\Models\ReporteProgramado|null $programado
+ * @property-read \App\Models\User|null $usuario
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteGenerado newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteGenerado newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteGenerado query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteGenerado whereConclusiones($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteGenerado whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteGenerado whereDestinatarios($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteGenerado whereError($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteGenerado whereEstado($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteGenerado whereFiltros($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteGenerado whereFormato($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteGenerado whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteGenerado whereOrganizacionId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteGenerado whereOrigen($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteGenerado wherePeriodoDesde($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteGenerado wherePeriodoHasta($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteGenerado whereReporteProgramadoId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteGenerado whereTipo($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteGenerado whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteGenerado whereUsuarioId($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperReporteGenerado {}
+}
+
+namespace App\Models{
+/**
  * @property int $id
  * @property int $organizacion_id
  * @property string $tipo

@@ -56,7 +56,7 @@
                 <div class="mx-auto max-w-3xl text-center">
                     <span class="text-overline reveal">Sistema de Gestión de Balanza</span>
                     <h1 class="mt-4 text-balance text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl reveal delay-100">
-                        Control del reciclaje,<br class="hidden sm:block"> sin planillas.
+                        Control del reciclaje,<br class="hidden sm:block"> sin planilla.
                     </h1>
                     <p class="mx-auto mt-6 max-w-xl text-balance text-lg text-muted-foreground reveal delay-200">
                         Registro ágil de pesajes, historial trazable y métricas en tiempo real para el predio de disposición final de la Municipalidad de Corrientes.

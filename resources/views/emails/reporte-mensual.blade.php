@@ -9,7 +9,7 @@ El documento incluye el resumen de actividad del período, evolución diaria, de
 
 <x-mail::panel>
 Período: **{{ $periodo }}**
-Adjunto: {{ $filename }}
+{{ count($nombresAdjuntos) > 1 ? 'Adjuntos' : 'Adjunto' }}: {{ implode(', ', $nombresAdjuntos) }}
 </x-mail::panel>
 
 Infinito Reciclaje — Gestión Integral de Residuos

@@ -1,4 +1,4 @@
-@props([])
+@props(['config'])
 
 <x-ui.sheet controlled-by="modalOpen" side="right">
 
@@ -51,8 +51,12 @@
                             <x-ui.select.value placeholder="Seleccionar tipo" />
                         </x-ui.select.trigger>
                         <x-ui.select.content>
-                            <x-ui.select.item value="informe_mensual">Informe mensual</x-ui.select.item>
-                            <x-ui.select.item value="alertas">Alertas</x-ui.select.item>
+                            @if($config->tipo_informe_mensual_activo ?? true)
+                                <x-ui.select.item value="informe_mensual">Informe</x-ui.select.item>
+                            @endif
+                            @if($config->tipo_alertas_activo ?? false)
+                                <x-ui.select.item value="alertas">Alertas</x-ui.select.item>
+                            @endif
                         </x-ui.select.content>
                     </x-ui.select>
                 </x-ui.form-field>
@@ -75,6 +79,38 @@
                         </x-ui.select.content>
                     </x-ui.select>
                 </x-ui.form-field>
+
+                {{-- Formatos del envío — solo aplica al informe mensual (las alertas van siempre en PDF) --}}
+                <div x-show="form.tipo === 'informe_mensual'" x-cloak class="space-y-2">
+                    <x-ui.form-field
+                        :state="$errors->has('formatos') ? 'destructive' : null"
+                        :message="$errors->first('formatos')"
+                    >
+                        <x-ui.label>Formatos del envío</x-ui.label>
+                        <div class="flex flex-col gap-2.5 pt-1">
+                            @foreach (['pdf' => 'PDF', 'excel' => 'Excel'] as $value => $label)
+                                <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                                    <button
+                                        type="button"
+                                        role="checkbox"
+                                        :aria-checked="form.formatos.includes('{{ $value }}') ? 'true' : 'false'"
+                                        @click="toggleFormato('{{ $value }}')"
+                                        :class="form.formatos.includes('{{ $value }}') ? 'bg-primary border-primary text-primary-foreground' : 'bg-background border-input'"
+                                        class="size-4 shrink-0 rounded border flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                    >
+                                        <x-lucide-check class="size-3" stroke-width="3" x-show="form.formatos.includes('{{ $value }}')" x-cloak />
+                                    </button>
+                                    <span class="text-sm">{{ $label }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                        <p class="text-caption">Se adjuntan al email. Elegí al menos uno.</p>
+                    </x-ui.form-field>
+
+                    <template x-for="f in form.formatos" :key="f">
+                        <input type="hidden" name="formatos[]" :value="f">
+                    </template>
+                </div>
 
                 <x-ui.form-field
                     :state="$errors->has('destinatarios') ? 'destructive' : null"

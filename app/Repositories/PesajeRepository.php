@@ -77,19 +77,12 @@ class PesajeRepository
             ->withQueryString();
     }
 
-    public function filtradoTodos(array $filtros): Collection
-    {
-        return $this->buildQuery($filtros)
-            ->with(['vehiculo.tipoVehiculo', 'tipoServicio', 'zona', 'operador'])
-            ->get();
-    }
-
     public function kpisFiltrado(array $filtros): array
     {
         $stats = $this->buildQuery($filtros)
             ->where('estado', '!=', 'Cancelado')
             ->reorder()
-            ->selectRaw('COUNT(*) as total, SUM(peso_neto_kg) as total_neto, AVG(peso_neto_kg) as avg_neto')
+            ->selectRaw('COUNT(*) as total, SUM(peso_neto_kg) as total_neto')
             ->first();
 
         $enPredio = $this->buildQuery($filtros)
@@ -97,12 +90,15 @@ class PesajeRepository
             ->count();
 
         $total = (int) ($stats->total ?? 0);
+        $totalNeto = (int) ($stats->total_neto ?? 0);
 
         return [
             'total'           => $total,
-            'toneladas_netas' => round(($stats->total_neto ?? 0) / 1000, 1),
-            'promedio_kg'     => $total ? (int) round($stats->avg_neto) : 0,
-            'en_predio'       => $enPredio,
+            'toneladas_netas' => round($totalNeto / 1000, 1),
+            // Promedio derivado de SUM/COUNT (no AVG): AVG sobre columna entera trunca
+            // en SQL Server. Así redondea igual que kpisDelTurno y es independiente del motor.
+            'promedio_kg' => $total ? (int) round($totalNeto / $total) : 0,
+            'en_predio'   => $enPredio,
         ];
     }
 
@@ -211,6 +207,6 @@ class PesajeRepository
             ->when($filtros['tipo_servicio_id'] ?? null, fn ($q, $id) => $q->where('tipo_servicio_id', $id))
             ->when($filtros['solo_alerta'] ?? null, fn ($q) => $q->where('alerta_peso', true))
             ->when($filtros['solo_editados'] ?? null, fn ($q) => $q->where('editado', true))
-            ->orderBy('created_at', $filtros['sort_direction'] ?? 'desc');
+            ->orderBy('created_at', $filtros['direction'] ?? 'desc');
     }
 }

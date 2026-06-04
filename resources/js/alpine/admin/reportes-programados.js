@@ -4,6 +4,7 @@ const formVacio = () => ({
     tipo:           'informe_mensual',
     frecuencia:     'mensual',
     cron_expresion: '0 8 1 * *',
+    formatos:       ['pdf'],
     activo:         true,
 });
 
@@ -43,6 +44,15 @@ export default (initial = {}) => ({
         this.$nextTick(() => resetDestinatarios([]));
     },
 
+    toggleFormato(formato) {
+        const i = this.form.formatos.indexOf(formato);
+        if (i === -1) {
+            this.form.formatos.push(formato);
+        } else {
+            this.form.formatos.splice(i, 1);
+        }
+    },
+
     confirmEnviar(id, nombre) {
         this.enviarId     = id;
         this.enviarNombre = nombre;
@@ -70,6 +80,7 @@ export default (initial = {}) => ({
             tipo:           p.tipo,
             frecuencia:     p.frecuencia,
             cron_expresion: p.cron_expresion,
+            formatos:       Array.isArray(p.formatos) && p.formatos.length ? p.formatos : ['pdf'],
             activo:         p.activo,
         };
         this.modalMode = 'edit';
