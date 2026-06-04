@@ -18,6 +18,7 @@ class AlertaRepository
             ->count();
     }
 
+    /** @return Collection<int, Alerta> */
     public function ultimasNoLeidas(int $userId, int $limit = 5): Collection
     {
         return Alerta::withoutGlobalScopes()
@@ -101,6 +102,7 @@ class AlertaRepository
 
     // Config ——————————————————————————————————————————
 
+    /** @return Collection<string, ConfigAlerta> */
     public function getConfigPorOrg(int $organizacionId): Collection
     {
         return ConfigAlerta::withoutGlobalScopes()

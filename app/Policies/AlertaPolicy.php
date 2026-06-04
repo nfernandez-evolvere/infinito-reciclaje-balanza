@@ -9,6 +9,9 @@ class AlertaPolicy
 {
     public function update(User $user, Alerta $alerta): bool
     {
-        return $user->isAdmin() && $user->organizacion_id === $alerta->organizacion_id;
+        /** @var \App\Models\Organizacion $org */
+        $org = app('organizacion');
+
+        return $user->isAdmin() && $org->id === $alerta->organizacion_id;
     }
 }

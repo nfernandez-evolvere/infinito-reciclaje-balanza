@@ -341,3 +341,27 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: app/View/Components/GuestLayout.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\Vehiculo\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Services/AlertaService.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\TipoVehiculo\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Services/AlertaService.php
+
+		-
+			message: '#^Ternary operator condition is always true\.$#'
+			identifier: ternary.alwaysTrue
+			count: 1
+			path: app/Services/AlertaService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>umbral_valor" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 3
+			path: app/Services/AlertaService.php

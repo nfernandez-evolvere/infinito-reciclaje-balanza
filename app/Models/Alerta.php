@@ -18,6 +18,8 @@ use Illuminate\Support\Str;
  * @property string|null $descripcion
  * @property int|null $pesaje_id
  * @property int|null $zona_id
+ * @property Pesaje|null $pesaje
+ * @property Zona|null $zona
  * @property Carbon $fecha_deteccion
  * @property bool $leida
  * @property Carbon|null $leida_at
