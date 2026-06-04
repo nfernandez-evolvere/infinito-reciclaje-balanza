@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AlertaController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ReporteController;
 use App\Http\Controllers\Admin\TipoServicioController;
@@ -86,6 +87,13 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::delete('/reportes/programados/{programado}', [ReporteController::class, 'destroyProgramado'])->name('reportes.programados.destroy');
     Route::post('/reportes/programados/{programado}/enviar-ahora', [ReporteController::class, 'enviarAhoraProgramado'])
         ->name('reportes.programados.enviar-ahora');
+
+    // Alertas ————————————————————————————————————————————————————————
+    Route::get('/alertas', [AlertaController::class, 'index'])->name('alertas.index');
+    Route::get('/alertas/novedades', [AlertaController::class, 'novedades'])->name('alertas.novedades');
+    Route::patch('/alertas/{alerta}/leer', [AlertaController::class, 'marcarLeida'])->name('alertas.leer');
+    Route::post('/alertas/leer-todas', [AlertaController::class, 'marcarTodasLeidas'])->name('alertas.leer-todas');
+    Route::put('/alertas/configuracion', [AlertaController::class, 'updateConfig'])->name('alertas.configuracion.update');
 
     // Zonas ——————————————————————————————————————————————————————————
     Route::resource('zonas', ZonaController::class)

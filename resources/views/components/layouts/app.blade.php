@@ -4,17 +4,22 @@
     $user = auth()->user();
 
     $operacionItems = [
-        ['route' => 'admin.dashboard',     'icon' => 'layout-dashboard', 'label' => 'Dashboard'],
-        ['route' => 'admin.pesajes.index', 'icon' => 'scale',            'label' => 'Pesajes'],
-        ['route' => 'admin.reportes.index','icon' => 'file-bar-chart',   'label' => 'Reportes',  'match' => 'admin.reportes.*'],
+        ['route' => 'admin.dashboard',      'icon' => 'layout-dashboard', 'label' => 'Dashboard'],
+        ['route' => 'admin.pesajes.index',  'icon' => 'scale',            'label' => 'Pesajes'],
+        ['route' => 'admin.reportes.index', 'icon' => 'file-bar-chart',   'label' => 'Reportes',  'match' => 'admin.reportes.*'],
     ];
+
+    $alertasNoLeidas = $user?->isAdmin()
+        ? app(\App\Repositories\AlertaRepository::class)->countNoLeidas($user->id)
+        : 0;
     $padronItems = [
         ['route' => 'admin.zonas.index',          'icon' => 'map-pin',        'label' => 'Zonas'],
         ['route' => 'admin.tipos-servicio.index', 'icon' => 'clipboard-list', 'label' => 'Servicios'],
         ['route' => 'admin.vehiculos.index',      'icon' => 'truck',          'label' => 'Vehículos'],
     ];
     $sistemaItems = [
-        ['route' => 'admin.usuarios.index', 'icon' => 'users', 'label' => 'Usuarios'],
+        ['route' => 'admin.alertas.index',  'icon' => 'triangle-alert',   'label' => 'Alertas',   'match' => 'admin.alertas.*'],
+        ['route' => 'admin.usuarios.index', 'icon' => 'users',             'label' => 'Usuarios'],
     ];
     $operadorItems = [
         ['route' => 'balanza',   'icon' => 'scale', 'label' => 'Pesaje', 'match' => ['balanza', 'pesajes.*']],
@@ -145,19 +150,22 @@
                     </x-ui.sidebar.group-content>
                 </x-ui.sidebar.group>
 
+                <x-ui.sidebar.separator />
+
                 {{-- Sistema --}}
                 <x-ui.sidebar.group>
                     <x-ui.sidebar.group-label x-show="!isCollapsed" x-cloak>Sistema</x-ui.sidebar.group-label>
                     <x-ui.sidebar.group-content>
                         <x-ui.sidebar.menu>
                             @foreach($sistemaItems as $item)
+                                @php $isActive = request()->routeIs($item['match'] ?? $item['route']); @endphp
                                 <x-ui.sidebar.menu-item>
                                     <x-ui.sidebar.menu-button
                                         :href="route($item['route'])"
-                                        :active="request()->routeIs($item['route'])"
+                                        :active="$isActive"
                                         :tooltip="$item['label']"
                                     >
-                                        <span class="{{ request()->routeIs($item['route']) ? 'bg-primary/20 text-primary' : '' }} inline-flex size-8 items-center justify-center rounded-full shrink-0 transition-colors group-hover:bg-primary/20 group-hover:text-primary">
+                                        <span class="{{ $isActive ? 'bg-primary/20 text-primary' : '' }} inline-flex size-8 items-center justify-center rounded-full shrink-0 transition-colors group-hover:bg-primary/20 group-hover:text-primary">
                                             <x-dynamic-component :component="'lucide-' . $item['icon']" />
                                         </span>
                                         <span>{{ $item['label'] }}</span>
@@ -290,6 +298,12 @@
             @endisset
 
             <div class="ml-auto flex items-center gap-1">
+
+                {{-- Notificaciones: visible en todos los tamaños, maneja mobile/desktop internamente --}}
+                @if($user?->isAdmin())
+                    <x-domain.alertas.notificaciones-dropdown :count="$alertasNoLeidas" />
+                @endif
+
                 {{-- Desktop --}}
                 <div class="hidden sm:flex items-center gap-1">
                     @if($user?->isOperador())

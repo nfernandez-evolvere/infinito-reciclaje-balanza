@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Mail\ReporteAlertaMail;
 use App\Mail\ReporteMensualMail;
+use App\Models\Alerta;
 use App\Models\ReporteConfiguracion;
 use App\Models\ReporteProgramado;
 use App\Services\ConclusionesAIService;
@@ -39,38 +40,50 @@ class GenerarEnviarReporteJob implements ShouldQueue
         [$desde, $hasta] = $this->calcularPeriodo($programado->opciones['periodo'] ?? 'mes_anterior');
 
         $esAlertas = $programado->tipo === 'alertas';
-        $filtros = $esAlertas ? ['solo_alerta' => true] : [];
+        $tipo      = $programado->tipo;
+        $periodo   = ucfirst($desde->translatedFormat('F Y'));
 
-        $reporte = $reporteService->generar($desde, $hasta, $filtros);
+        $reporte = $reporteService->generar($desde, $hasta);
+        $reporte['config']      = $config;
+        $reporte['conclusiones'] = [];
 
-        $conclusiones = [];
-        if (! $esAlertas && $config?->ai_enabled && $config?->ai_api_key) {
-            $ai = new ConclusionesAIService($config->ai_api_key, $config->ai_modelo ?? 'gemini-2.5-flash', $config->ai_prompt ?? '');
-            $conclusiones = [
-                'analisis' => $ai->generarAnalisis($reporte['kpis'], $reporte['zonas'], $desde->translatedFormat('F Y')),
-            ];
+        if ($esAlertas) {
+            // Alertas únicas del período (una por evento, deduplicadas por titulo+fecha)
+            $alertas = Alerta::withoutGlobalScopes()
+                ->where('organizacion_id', $programado->organizacion_id)
+                ->whereDate('fecha_deteccion', '>=', $desde->toDateString())
+                ->whereDate('fecha_deteccion', '<=', $hasta->toDateString())
+                ->with(['zona'])
+                ->orderBy('fecha_deteccion')
+                ->orderBy('tipo')
+                ->get()
+                ->unique(fn ($a) => $a->tipo . '|' . $a->titulo . '|' . $a->fecha_deteccion->toDateString())
+                ->values();
+
+            $reporte['alertas'] = $alertas;
+        } else {
+            if ($config?->ai_enabled && $config?->ai_api_key) {
+                $ai = new ConclusionesAIService($config->ai_api_key, $config->ai_modelo ?? 'gemini-2.5-flash', $config->ai_prompt ?? '');
+                $reporte['conclusiones'] = [
+                    'analisis' => $ai->generarAnalisis($reporte['kpis'], $reporte['zonas'], $desde->translatedFormat('F Y')),
+                ];
+            }
         }
 
-        $reporte['config'] = $config;
-        $reporte['conclusiones'] = $conclusiones;
-
-        $periodo = ucfirst($desde->translatedFormat('F Y'));
-        $tipo = $programado->tipo;
-
         Log::info('GenerarEnviarReporteJob: generando PDF');
+        $pdfContent = $pdfService->fromView('modules.admin.reportes.pdf-presentacion', compact('reporte', 'tipo'));
+
         if ($esAlertas) {
             $filename = 'alertas_'.$desde->format('Y-m').'.pdf';
-            $pdfContent = $pdfService->fromView('modules.admin.reportes.pdf-presentacion', compact('reporte', 'tipo'));
             $mailable = new ReporteAlertaMail(
                 periodo: $periodo,
                 municipalidad: $config?->municipalidad_nombre ?? 'Municipalidad',
                 pdfContent: $pdfContent,
                 filename: $filename,
-                totalAlertas: $reporte['kpis']['total'],
+                totalAlertas: $reporte['alertas']->count(),
             );
         } else {
             $filename = 'informe_'.$desde->format('Y-m').'.pdf';
-            $pdfContent = $pdfService->fromView('modules.admin.reportes.pdf-presentacion', compact('reporte', 'tipo'));
             $mailable = new ReporteMensualMail(
                 periodo: $periodo,
                 municipalidad: $config?->municipalidad_nombre ?? 'Municipalidad',

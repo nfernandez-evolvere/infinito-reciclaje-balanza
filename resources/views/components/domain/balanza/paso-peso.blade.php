@@ -14,11 +14,13 @@
     {{-- Readout shell --}}
     <div
         class="border rounded-lg p-4 sm:p-5 flex flex-col gap-4 sm:flex-row sm:items-end transition-all duration-150"
-        x-bind:class="outOfRange
-            ? 'bg-warning-subtle border-warning'
-            : inRange
-                ? 'bg-success-subtle border-success-border'
-                : 'bg-muted/40 border-border'"
+        x-bind:class="belowTara
+            ? 'bg-destructive/5 border-destructive'
+            : outOfRange
+                ? 'bg-warning-subtle border-warning'
+                : inRange
+                    ? 'bg-success-subtle border-success-border'
+                    : 'bg-muted/40 border-border'"
     >
         <div class="flex-1">
             <div class="text-[11px] font-semibold text-muted-foreground tracking-widest uppercase mb-1.5">Peso bruto en balanza</div>
@@ -32,7 +34,7 @@
                     placeholder="0"
                     class="w-full bg-transparent border-none outline-none p-0 text-right font-bold tabular-nums transition-colors duration-150 placeholder:text-foreground/20"
                     style="font-size:clamp(44px,10vw,72px);line-height:1;letter-spacing:-0.03em"
-                    x-bind:class="outOfRange ? 'text-warning-subtle-foreground' : inRange ? 'text-success-subtle-foreground' : 'text-foreground'"
+                    x-bind:class="belowTara ? 'text-destructive' : outOfRange ? 'text-warning-subtle-foreground' : inRange ? 'text-success-subtle-foreground' : 'text-foreground'"
                 />
                 <span class="font-semibold text-muted-foreground pb-1" style="font-size:clamp(20px,4vw,28px)">kg</span>
             </div>
@@ -50,8 +52,17 @@
         </div>
     </div>
 
+    {{-- Error: peso bruto menor a tara --}}
+    <div x-show="belowTara" x-cloak class="mt-2.5 flex items-center gap-1.5 text-[13px] font-medium text-destructive">
+        <x-lucide-circle-alert class="size-3.5 shrink-0" />
+        <span>
+            El peso bruto no puede ser menor a la tara del vehículo
+            (<span x-text="fmtKg(vehiculo?.tara)"></span>).
+        </span>
+    </div>
+
     {{-- Hint rango --}}
-    <div x-show="vehiculo?.peso_min" x-cloak class="mt-2.5 text-[13px]"
+    <div x-show="vehiculo?.peso_min && !belowTara" x-cloak class="mt-2.5 text-[13px]"
         x-bind:class="outOfRange ? 'text-warning-subtle-foreground' : 'text-muted-foreground'"
     >
         <template x-if="outOfRange">

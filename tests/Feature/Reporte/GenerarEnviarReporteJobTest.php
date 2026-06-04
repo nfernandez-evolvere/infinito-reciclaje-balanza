@@ -5,12 +5,14 @@ namespace Tests\Feature\Reporte;
 use App\Jobs\GenerarEnviarReporteJob;
 use App\Mail\ReporteAlertaMail;
 use App\Mail\ReporteMensualMail;
+use App\Models\Alerta;
 use App\Models\ReporteConfiguracion;
 use App\Models\ReporteProgramado;
 use App\Services\PdfService;
 use App\Services\ReporteService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Mail;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -143,7 +145,6 @@ class GenerarEnviarReporteJobTest extends TestCase
         Mail::fake();
 
         $esperadoDesde = now()->subMonth()->startOfMonth()->startOfDay();
-        $esperadoHasta = now()->subMonth()->endOfMonth();
 
         $capturedDesde = null;
 
@@ -213,6 +214,117 @@ class GenerarEnviarReporteJobTest extends TestCase
         GenerarEnviarReporteJob::dispatchSync($programado->id);
 
         Mail::assertSent(ReporteMensualMail::class);
+    }
+
+    // ── tipo alertas — integración con tabla alertas ──────────────────
+
+    #[Test]
+    public function tipo_alertas_includes_alertas_from_db_table_not_pesajes(): void
+    {
+        Mail::fake();
+
+        $admin = $this->admin();
+        $desde = now()->subMonth()->startOfMonth();
+
+        // Creamos alertas en el período del reporte
+        Alerta::create([
+            'user_id'         => $admin->id,
+            'tipo'            => 'peso_fuera_rango',
+            'titulo'          => 'Peso fuera de rango — ABC123',
+            'fecha_deteccion' => $desde->copy()->addDays(2)->toDateString(),
+            'leida'           => false,
+        ]);
+        Alerta::create([
+            'user_id'         => $admin->id,
+            'tipo'            => 'gap_registro',
+            'titulo'          => 'Sin actividad 140 min',
+            'fecha_deteccion' => $desde->copy()->addDays(5)->toDateString(),
+            'leida'           => true,
+        ]);
+
+        $capturedReporte = null;
+        $this->instance(PdfService::class, \Mockery::mock(PdfService::class, function ($m) use (&$capturedReporte) {
+            $m->shouldReceive('fromView')->withArgs(function ($_view, $data) use (&$capturedReporte) {
+                $capturedReporte = $data['reporte'] ?? null;
+                return true;
+            })->andReturn('fake-pdf');
+        }));
+        $this->instance(ReporteService::class, \Mockery::mock(ReporteService::class, function ($m) {
+            $m->shouldReceive('generar')->andReturn($this->fakeReporte());
+        }));
+
+        $programado = $this->programado(['tipo' => 'alertas', 'opciones' => ['periodo' => 'mes_anterior']]);
+        GenerarEnviarReporteJob::dispatchSync($programado->id);
+
+        $this->assertNotNull($capturedReporte);
+        $this->assertArrayHasKey('alertas', $capturedReporte);
+        $this->assertInstanceOf(Collection::class, $capturedReporte['alertas']);
+        $this->assertSame(2, $capturedReporte['alertas']->count());
+    }
+
+    #[Test]
+    public function tipo_alertas_total_alertas_in_mail_equals_unique_event_count(): void
+    {
+        Mail::fake();
+
+        $adminA = $this->admin();
+        $adminB = $this->admin();
+        $desde  = now()->subMonth()->startOfMonth();
+
+        // Mismo evento (misma titulo+fecha) para dos admins → debe deduplicarse a 1
+        $titulo = 'Volumen atípico — ' . $desde->format('d/m/Y');
+        $fecha  = $desde->copy()->addDays(3)->toDateString();
+
+        Alerta::create(['user_id' => $adminA->id, 'tipo' => 'volumen_diario_atipico', 'titulo' => $titulo, 'fecha_deteccion' => $fecha]);
+        Alerta::create(['user_id' => $adminB->id, 'tipo' => 'volumen_diario_atipico', 'titulo' => $titulo, 'fecha_deteccion' => $fecha]);
+        // Evento diferente (título distinto) → cuenta como 1 más
+        Alerta::create(['user_id' => $adminA->id, 'tipo' => 'gap_registro', 'titulo' => 'Sin actividad', 'fecha_deteccion' => $fecha]);
+
+        $this->instance(ReporteService::class, \Mockery::mock(ReporteService::class, function ($m) {
+            $m->shouldReceive('generar')->andReturn($this->fakeReporte());
+        }));
+        $this->instance(PdfService::class, \Mockery::mock(PdfService::class, function ($m) {
+            $m->shouldReceive('fromView')->andReturn('pdf');
+        }));
+
+        $programado = $this->programado(['tipo' => 'alertas', 'opciones' => ['periodo' => 'mes_anterior']]);
+        GenerarEnviarReporteJob::dispatchSync($programado->id);
+
+        // 4 filas en DB, pero deduplicadas = 2 eventos únicos
+        Mail::assertSent(ReporteAlertaMail::class, fn ($m) => $m->totalAlertas === 2);
+    }
+
+    #[Test]
+    public function tipo_alertas_does_not_include_alertas_outside_period(): void
+    {
+        Mail::fake();
+
+        $admin = $this->admin();
+
+        // Alerta fuera del período (hace 3 meses)
+        Alerta::create([
+            'user_id'         => $admin->id,
+            'tipo'            => 'gap_registro',
+            'titulo'          => 'Fuera del período',
+            'fecha_deteccion' => now()->subMonths(3)->toDateString(),
+        ]);
+
+        $capturedReporte = null;
+        $this->instance(PdfService::class, \Mockery::mock(PdfService::class, function ($m) use (&$capturedReporte) {
+            $m->shouldReceive('fromView')->withArgs(function ($_view, $data) use (&$capturedReporte) {
+                $capturedReporte = $data['reporte'] ?? null;
+                return true;
+            })->andReturn('pdf');
+        }));
+        $this->instance(ReporteService::class, \Mockery::mock(ReporteService::class, function ($m) {
+            $m->shouldReceive('generar')->andReturn($this->fakeReporte());
+        }));
+
+        $programado = $this->programado(['tipo' => 'alertas', 'opciones' => ['periodo' => 'mes_anterior']]);
+        GenerarEnviarReporteJob::dispatchSync($programado->id);
+
+        $this->assertSame(0, $capturedReporte['alertas']->count());
+        Mail::assertSent(ReporteAlertaMail::class, fn ($m) => $m->totalAlertas === 0);
     }
 
     // ── helpers privados ──────────────────────────────────────────────

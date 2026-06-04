@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Repositories\AlertaRepository;
 use App\Repositories\PesajeRepository;
 use App\Repositories\TipoVehiculoRepository;
 use App\Repositories\ZonaRepository;
@@ -20,6 +21,7 @@ class DashboardService
         protected PesajeRepository $pesajeRepository,
         protected ZonaRepository $zonaRepository,
         protected TipoVehiculoRepository $tipoVehiculoRepository,
+        protected AlertaRepository $alertaRepository,
     ) {}
 
     public function kpisDelDia(): array
@@ -291,8 +293,9 @@ class DashboardService
 
     public function alertasActivas(): int
     {
-        // Sprint 6: módulo de alarmas. Por ahora siempre 0.
-        return 0;
+        $user = auth()->user();
+
+        return $user ? $this->alertaRepository->countNoLeidas($user->id) : 0;
     }
 
     private function totalesZonas(): array

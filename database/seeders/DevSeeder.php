@@ -20,6 +20,8 @@ class DevSeeder extends Seeder
     public function run(): void
     {
         // Limpia datos previos en orden correcto (hijos antes que padres)
+        DB::table('alertas')->delete();
+        DB::table('config_alertas')->delete();
         DB::table('pesajes_log')->delete();
         DB::table('pesajes')->delete();
         DB::table('vehiculos_log')->delete();
@@ -62,6 +64,7 @@ class DevSeeder extends Seeder
         $resistencia->users()->attach($adminDoble->id);
 
         $this->call(PesajeSeeder::class);
+        $this->call(AlertaSeeder::class);
     }
 
     private function seedOrganizacion(Organizacion $org, string $suffix): void

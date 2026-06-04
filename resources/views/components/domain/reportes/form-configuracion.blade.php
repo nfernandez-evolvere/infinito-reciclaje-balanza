@@ -53,13 +53,15 @@
                                     x-model="s.titulo"
                                     placeholder="Título del servicio"
                                 />
-                                <x-ui.input
+                                <x-ui.textarea
                                     x-bind:name="`servicios[${i}][descripcion]`"
                                     x-model="s.descripcion"
                                     placeholder="Descripción breve"
+                                    size="sm"
+                                    rows="3"
                                 />
                             </div>
-                            <x-ui.button type="button" variant="ghost" size="icon" @click="removeServicio(i)" class="shrink-0 mt-0.5">
+                            <x-ui.button type="button" variant="ghost" size="sm" @click="removeServicio(i)" class="shrink-0 mt-1 w-8 px-0">
                                 <x-lucide-x class="size-4" />
                             </x-ui.button>
                         </div>

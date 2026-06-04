@@ -6,7 +6,7 @@
         </p>
         <p class="text-xs text-warning-foreground/70">Revisá las alarmas para ver el detalle.</p>
     </div>
-    <x-ui.button variant="outline" size="sm" href="#" class="border-warning/40 text-warning-foreground hover:bg-warning/20 shrink-0">
+    <x-ui.button variant="outline" size="sm" href="{{ route('admin.alertas.index') }}" class="border-warning/40 text-warning-foreground hover:bg-warning/20 shrink-0">
         Revisar
     </x-ui.button>
 </div>

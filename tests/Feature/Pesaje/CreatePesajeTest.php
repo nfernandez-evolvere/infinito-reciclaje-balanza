@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Pesaje;
 
+use App\Models\Alerta;
 use App\Models\Pesaje;
 use App\Models\TipoServicio;
 use App\Models\TipoVehiculo;
@@ -141,5 +142,58 @@ class CreatePesajeTest extends TestCase
         $this->actingAs($this->operador())
             ->post(route('pesajes.store'), $this->payload(['observaciones' => str_repeat('a', 501)]))
             ->assertSessionHasErrors('observaciones');
+    }
+
+    // ── Integración con Alertas ───────────────────────────────────────
+
+    #[Test]
+    public function crear_pesaje_fuera_de_rango_persists_alerta_record(): void
+    {
+        // Admin adjunto a la org para que AlertaService::getAdminIds() lo encuentre
+        $admin = $this->admin();
+        app('organizacion')->users()->syncWithoutDetaching([$admin->id]);
+
+        $tipo     = TipoVehiculo::factory()->create(['peso_min_kg' => 5000, 'peso_max_kg' => 10000]);
+        $vehiculo = Vehiculo::factory()->create(['tara_kg' => 4000, 'tipo_vehiculo_id' => $tipo->id]);
+
+        // Peso bruto fuera del rango del tipo (> 10.000 kg)
+        $this->actingAs($this->operador())
+            ->post(route('pesajes.store'), $this->payload([
+                'vehiculo_id'   => $vehiculo->id,
+                'peso_bruto_kg' => 25000,
+            ]));
+
+        $pesaje = Pesaje::firstOrFail();
+        $this->assertTrue($pesaje->alerta_peso);
+
+        // Debe existir exactamente un registro en alertas para ese pesaje
+        $alerta = Alerta::withoutGlobalScopes()
+            ->where('pesaje_id', $pesaje->id)
+            ->firstOrFail();
+
+        $this->assertSame('peso_fuera_rango', $alerta->tipo);
+        $this->assertSame($admin->id, $alerta->user_id);
+        $this->assertNotNull($alerta->uuid);
+        $this->assertFalse($alerta->leida);
+    }
+
+    #[Test]
+    public function crear_pesaje_dentro_de_rango_does_not_create_alerta(): void
+    {
+        $admin = $this->admin();
+        app('organizacion')->users()->syncWithoutDetaching([$admin->id]);
+
+        $tipo     = TipoVehiculo::factory()->create(['peso_min_kg' => 5000, 'peso_max_kg' => 30000]);
+        $vehiculo = Vehiculo::factory()->create(['tara_kg' => 4000, 'tipo_vehiculo_id' => $tipo->id]);
+
+        $this->actingAs($this->operador())
+            ->post(route('pesajes.store'), $this->payload([
+                'vehiculo_id'   => $vehiculo->id,
+                'peso_bruto_kg' => 20000, // dentro del rango 5.000–30.000
+            ]));
+
+        $pesaje = Pesaje::firstOrFail();
+        $this->assertFalse($pesaje->alerta_peso);
+        $this->assertSame(0, Alerta::withoutGlobalScopes()->where('pesaje_id', $pesaje->id)->count());
     }
 }

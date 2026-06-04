@@ -7,8 +7,10 @@ use App\Models\TipoServicio;
 use App\Models\TipoVehiculo;
 use App\Models\Vehiculo;
 use App\Models\Zona;
+use App\Repositories\AlertaRepository;
 use App\Repositories\PesajeLogRepository;
 use App\Repositories\PesajeRepository;
+use App\Services\AlertaService;
 use App\Services\PesajeService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
@@ -24,7 +26,11 @@ class PesajeServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new PesajeService(new PesajeRepository, new PesajeLogRepository);
+        $this->service = new PesajeService(
+            new PesajeRepository,
+            new PesajeLogRepository,
+            new AlertaService(new AlertaRepository),
+        );
     }
 
     /** Vehículo con tara y rango de peso controlados para los cálculos. */

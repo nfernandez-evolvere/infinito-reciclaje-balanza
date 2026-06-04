@@ -5,8 +5,10 @@ namespace App\Services;
 use App\Models\Pesaje;
 use App\Models\User;
 use App\Models\Vehiculo;
+use App\Repositories\AlertaRepository;
 use App\Repositories\PesajeLogRepository;
 use App\Repositories\PesajeRepository;
+use App\Services\AlertaService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -16,6 +18,7 @@ class PesajeService
     public function __construct(
         protected PesajeRepository $pesajeRepository,
         protected PesajeLogRepository $logRepository,
+        protected AlertaService $alertaService,
     ) {}
 
     public function crear(array $data, User $operador): Pesaje
@@ -32,7 +35,7 @@ class PesajeService
             $alerta = true;
         }
 
-        return $this->pesajeRepository->create([
+        $pesaje = $this->pesajeRepository->create([
             'vehiculo_id'      => $vehiculo->id,
             'operador_id'      => $operador->id,
             'tipo_servicio_id' => $data['tipo_servicio_id'],
@@ -46,6 +49,13 @@ class PesajeService
             'estado'           => 'En predio',
             'editado'          => false,
         ]);
+
+        if ($alerta) {
+            $pesaje->load('vehiculo.tipoVehiculo');
+            $this->alertaService->registrarPesoFueraRango($pesaje);
+        }
+
+        return $pesaje;
     }
 
     public function marcarEgreso(Pesaje $pesaje, array $data): Pesaje

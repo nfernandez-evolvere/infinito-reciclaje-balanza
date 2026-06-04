@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Vehiculo;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class StorePesajeRequest extends FormRequest
 {
@@ -23,5 +25,25 @@ class StorePesajeRequest extends FormRequest
             'peso_bruto_kg'    => ['required', 'integer', 'min:1'],
             'observaciones'    => ['nullable', 'string', 'max:500'],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $v) {
+            $vehiculoId = (int) $this->input('vehiculo_id');
+            $pesoBruto  = (int) $this->input('peso_bruto_kg');
+
+            if (!$vehiculoId || !$pesoBruto) return;
+
+            $vehiculo = Vehiculo::find($vehiculoId);
+            if (!$vehiculo) return;
+
+            if ($pesoBruto < $vehiculo->tara_kg) {
+                $v->errors()->add(
+                    'peso_bruto_kg',
+                    "El peso bruto ({$pesoBruto} kg) no puede ser menor a la tara del vehículo ({$vehiculo->tara_kg} kg)."
+                );
+            }
+        });
     }
 }

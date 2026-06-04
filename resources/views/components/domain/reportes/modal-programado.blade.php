@@ -132,9 +132,15 @@
             </div>
 
             {{-- Footer --}}
-            <div class="shrink-0 flex justify-end gap-2 p-6 border-t border-border">
-                <x-ui.button type="button" variant="outline" @click="modalOpen = false">Cancelar</x-ui.button>
-                <x-ui.button type="submit" x-text="modalMode === 'create' ? 'Crear' : 'Guardar'"></x-ui.button>
+            <div class="shrink-0 flex gap-2 p-6 border-t border-border">
+                <x-ui.button type="button" variant="ghost" @click="modalOpen = false" class="w-full">
+                    <x-lucide-x class="size-4" />
+                    Cancelar
+                </x-ui.button>
+                <x-ui.button type="submit" class="w-full">
+                    <x-lucide-save class="size-4" />
+                    <span x-text="modalMode === 'create' ? 'Crear' : 'Guardar'"></span>
+                </x-ui.button>
             </div>
 
         </form>

@@ -38,6 +38,10 @@ export default function balanza(initial = null, opts = {}) {
             if (!this.vehiculo?.peso_min || this.brutoN <= 0) return false;
             return !this.inRange;
         },
+        get belowTara() {
+            if (!this.vehiculo || this.brutoN <= 0) return false;
+            return this.brutoN < this.vehiculo.tara;
+        },
         get tipoMismatch() {
             return this.vehiculo && this.tiposSugeridos.length > 0 && !this.tiposSugeridos.includes(this.vehiculo.tipo);
         },
@@ -45,7 +49,7 @@ export default function balanza(initial = null, opts = {}) {
             return !!(this.servicioId && this.zonaId && (!this.requiereTurno || this.turno));
         },
         get canSave() {
-            const base = !!(this.vehiculo && this.servicioId && this.zonaId && (!this.requiereTurno || this.turno) && this.brutoN > 0);
+            const base = !!(this.vehiculo && this.servicioId && this.zonaId && (!this.requiereTurno || this.turno) && this.brutoN > 0 && !this.belowTara);
             return this.editMode ? base && !!this.motivo.trim() : base;
         },
         get hintContextual() {
@@ -55,6 +59,7 @@ export default function balanza(initial = null, opts = {}) {
                 return 'Completá los datos';
             }
             if (this.canSave) return 'Listo para guardar';
+            if (this.belowTara) return 'El peso bruto no puede ser menor a la tara';
             if (this.vehiculo && this.servicioId && this.zonaId && this.requiereTurno && !this.turno) return 'Elegí el turno';
             if (this.vehiculo && this.servicioId && this.zonaId) return 'Ingresá el peso bruto';
             if (this.vehiculo && this.servicioId) return 'Elegí el origen';

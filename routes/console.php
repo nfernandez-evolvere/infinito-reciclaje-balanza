@@ -1,5 +1,6 @@
 <?php
 
+use App\Console\Commands\DetectarAlertasCommand;
 use App\Jobs\GenerarEnviarReporteJob;
 use App\Models\ReporteProgramado;
 use Illuminate\Foundation\Inspiring;
@@ -16,3 +17,6 @@ Schedule::call(function () {
         ->where('proximo_envio_at', '<=', now())
         ->each(fn ($r) => GenerarEnviarReporteJob::dispatch($r->id));
 })->everyFifteenMinutes()->name('reportes-programados');
+
+// Detección de alertas automáticas — corre diariamente a las 00:30
+Schedule::command(DetectarAlertasCommand::class)->dailyAt('00:30')->name('detectar-alertas');

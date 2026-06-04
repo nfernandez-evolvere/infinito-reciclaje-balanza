@@ -6,6 +6,7 @@ use App\Models\Pesaje;
 use App\Models\TipoVehiculo;
 use App\Models\Vehiculo;
 use App\Models\Zona;
+use App\Repositories\AlertaRepository;
 use App\Repositories\PesajeRepository;
 use App\Repositories\TipoVehiculoRepository;
 use App\Repositories\ZonaRepository;
@@ -27,7 +28,8 @@ class DashboardServiceTest extends TestCase
         $this->service = new DashboardService(
             new PesajeRepository,
             new ZonaRepository,
-            new TipoVehiculoRepository
+            new TipoVehiculoRepository,
+            new AlertaRepository,
         );
     }
 

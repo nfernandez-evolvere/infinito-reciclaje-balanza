@@ -771,6 +771,121 @@
         line-height: 1.6;
     }
 
+    /* ════════════════════════════════════════
+       SLIDE ALERTAS
+    ════════════════════════════════════════ */
+    .alerta-tipo-header {
+        display: flex;
+        align-items: center;
+        gap: 3mm;
+        margin: 6mm 0 3mm;
+        padding-bottom: 2mm;
+        border-bottom: 2px solid var(--p-700);
+    }
+    .alerta-tipo-header:first-child { margin-top: 0; }
+
+    .alerta-tipo-dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .alerta-tipo-label {
+        font-size: 8.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--p-950);
+    }
+
+    .alerta-tipo-count {
+        margin-left: auto;
+        font-size: 7.5px;
+        font-weight: 600;
+        color: var(--n-400);
+    }
+
+    .alerta-row {
+        display: flex;
+        gap: 4mm;
+        padding: 2.5mm 3mm;
+        border-bottom: 1px solid var(--n-100);
+        align-items: flex-start;
+    }
+    .alerta-row:last-child { border-bottom: none; }
+    .alerta-row:nth-child(even) { background: var(--p-50); }
+
+    .alerta-fecha {
+        font-size: 7.5px;
+        color: var(--n-500);
+        white-space: nowrap;
+        flex-shrink: 0;
+        padding-top: 0.5mm;
+        width: 16mm;
+    }
+
+    .alerta-body { flex: 1; min-width: 0; }
+
+    .alerta-titulo {
+        font-size: 8.5px;
+        font-weight: 600;
+        color: var(--p-950);
+        margin-bottom: 1mm;
+    }
+
+    .alerta-desc {
+        font-size: 7.5px;
+        color: var(--n-600);
+        line-height: 1.5;
+    }
+
+    .alerta-zona {
+        font-size: 7px;
+        color: var(--p-700);
+        font-weight: 500;
+        margin-top: 0.8mm;
+    }
+
+    .alerta-tipo-colors {
+        'peso_fuera_rango':        '#f59e0b',
+        'volumen_diario_atipico':  '#dc2626',
+        'gap_registro':            '#6b7280',
+        'frecuencia_zona_atipica': '#f59e0b',
+    }
+
+    .resumen-alertas {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 4mm;
+        margin-bottom: 7mm;
+    }
+
+    .resumen-alerta-card {
+        background: var(--n-50);
+        border: 1px solid var(--n-200);
+        border-top: 3px solid var(--p-700);
+        border-radius: 7px;
+        padding: 4mm 4mm;
+    }
+
+    .resumen-alerta-card.amber { border-top-color: var(--amber-500); }
+    .resumen-alerta-card.red   { border-top-color: var(--red-600); }
+    .resumen-alerta-card.gray  { border-top-color: var(--n-400); }
+
+    .resumen-alerta-num {
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--p-950);
+        line-height: 1;
+        margin-bottom: 1.5mm;
+    }
+
+    .resumen-alerta-label {
+        font-size: 7.5px;
+        color: var(--n-600);
+        line-height: 1.4;
+    }
+
 </style>
 </head>
 <body>
@@ -786,6 +901,15 @@
     $ai        = $reporte['conclusiones'] ?? [];
 
     $esAlerta  = ($tipo ?? 'informe_mensual') === 'alertas';
+    $alertas   = $reporte['alertas'] ?? collect();
+
+    $tipoLabels = [
+        'peso_fuera_rango'        => 'Peso fuera de rango',
+        'volumen_diario_atipico'  => 'Volumen atípico',
+        'gap_registro'            => 'Sin actividad',
+        'frecuencia_zona_atipica' => 'Frecuencia atípica',
+    ];
+    $alertasAgrupadas = $alertas->groupBy('tipo');
 
     $periodo      = ucfirst($desde->translatedFormat('F Y'));
     $periodoLargo = $desde->translatedFormat('d \d\e F') . ' al ' . $hasta->translatedFormat('d \d\e F \d\e Y');
@@ -898,6 +1022,132 @@
         </div>
     </div>
 </div>
+
+{{-- ═══════════ SLIDE ALERTAS (solo tipo alertas) ═══════════ --}}
+@if($esAlerta)
+
+{{-- Resumen --}}
+<div class="page">
+    <div class="slide-wrap">
+        <div class="slide-head">
+            <div class="slide-header-row">
+                <div>
+                    <div class="slide-eyebrow">Detección automática</div>
+                    <div class="slide-title">Alertas del Período</div>
+                </div>
+                <div class="slide-meta">{{ $periodoLargo }}</div>
+            </div>
+            <div class="slide-rule"></div>
+        </div>
+
+        <div class="slide-content">
+
+            @php
+                $colores = [
+                    'peso_fuera_rango'        => 'amber',
+                    'volumen_diario_atipico'  => 'red',
+                    'gap_registro'            => 'gray',
+                    'frecuencia_zona_atipica' => 'amber',
+                ];
+            @endphp
+
+            {{-- Resumen por tipo --}}
+            <div class="resumen-alertas">
+                @foreach($tipoLabels as $tipoKey => $tipoNombre)
+                @php $cnt = ($alertasAgrupadas[$tipoKey] ?? collect())->count(); @endphp
+                <div class="resumen-alerta-card {{ $colores[$tipoKey] ?? '' }}">
+                    <div class="resumen-alerta-num">{{ $cnt }}</div>
+                    <div class="resumen-alerta-label">{{ $tipoNombre }}</div>
+                </div>
+                @endforeach
+            </div>
+
+            @if($alertas->isEmpty())
+                <div class="insight">
+                    <div class="insight-label">Sin alertas en el período</div>
+                    <div class="insight-text">No se detectaron alertas entre {{ $periodoLargo }}.</div>
+                </div>
+            @else
+                <div class="insight amber">
+                    <div class="insight-label">Total de alertas detectadas</div>
+                    <div class="insight-text">
+                        Se detectaron <strong>{{ $alertas->count() }} alertas</strong> entre {{ $periodoLargo }}.
+                        @php $sinLeer = $alertas->where('leida', false)->count(); @endphp
+                        @if($sinLeer > 0)
+                            <strong>{{ $sinLeer }}</strong> {{ $sinLeer === 1 ? 'permanece' : 'permanecen' }} sin leer.
+                        @endif
+                    </div>
+                </div>
+            @endif
+
+        </div>
+
+        <div class="foot">
+            <div class="foot-left"><span class="foot-brand">Infinito Reciclaje</span> · Gestión Integral de Residuos</div>
+            <div class="foot-right">{{ $organizacion }} · {{ $periodo }}</div>
+        </div>
+    </div>
+</div>
+
+{{-- Detalle por tipo (una página por tipo con alertas) --}}
+@foreach($tipoLabels as $tipoKey => $tipoNombre)
+@php $grupo = $alertasAgrupadas[$tipoKey] ?? collect(); @endphp
+@if($grupo->isNotEmpty())
+@foreach($grupo->chunk(20) as $chunkIdx => $chunk)
+<div class="page">
+    <div class="slide-wrap">
+        <div class="slide-head">
+            <div class="slide-header-row">
+                <div>
+                    <div class="slide-eyebrow">Alertas — {{ $tipoNombre }}</div>
+                    <div class="slide-title">
+                        {{ $tipoNombre }}
+                        @if($grupo->count() > 20)
+                            <span style="font-size:12px;color:oklch(0.708 0 0);font-weight:400;">({{ $chunkIdx + 1 }}/{{ $grupo->chunk(20)->count() }})</span>
+                        @endif
+                    </div>
+                </div>
+                <div class="slide-meta">{{ $grupo->count() }} {{ $grupo->count() === 1 ? 'alerta' : 'alertas' }} · {{ $periodo }}</div>
+            </div>
+            <div class="slide-rule"></div>
+        </div>
+
+        <div class="slide-content">
+            @foreach($chunk as $alerta)
+            <div class="alerta-row">
+                <div class="alerta-fecha">{{ $alerta->fecha_deteccion->format('d/m/Y') }}</div>
+                <div class="alerta-body">
+                    <div class="alerta-titulo">{{ $alerta->titulo }}</div>
+                    @if($alerta->descripcion)
+                        <div class="alerta-desc">{{ $alerta->descripcion }}</div>
+                    @endif
+                    @if($alerta->zona)
+                        <div class="alerta-zona">Zona: {{ $alerta->zona->nombre }}</div>
+                    @endif
+                </div>
+                <div style="flex-shrink:0;margin-left:3mm;">
+                    @if($alerta->leida)
+                        <span style="font-size:7px;color:oklch(0.592 0.153 144);font-weight:600;">Leída</span>
+                    @else
+                        <span style="font-size:7px;color:var(--amber-500);font-weight:600;">Sin leer</span>
+                    @endif
+                </div>
+            </div>
+            @endforeach
+        </div>
+
+        <div class="foot">
+            <div class="foot-left"><span class="foot-brand">Infinito Reciclaje</span> · Gestión Integral de Residuos</div>
+            <div class="foot-right">{{ $organizacion }} · {{ $periodo }}</div>
+        </div>
+    </div>
+</div>
+@endforeach
+@endif
+@endforeach
+
+@endif
+{{-- ═══════════ FIN SLIDE ALERTAS ═══════════ --}}
 
 {{-- ═══════════ RESUMEN GENERAL ═══════════ --}}
 <div class="page">
