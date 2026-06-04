@@ -4,12 +4,13 @@ namespace App\Services;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class ConclusionesAIService
 {
     private string $baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models';
 
-    private string $defaultPrompt = "Sos analista operativo de Infinito Reciclaje redactando la sección 'Oportunidades Estratégicas' del informe mensual para el municipio. Período: {periodo}.\n\nDatos del período:\n- Viajes realizados: {total_viajes}\n- Toneladas netas recolectadas: {toneladas} t\n- Días operativos: {dias_op} de {dias_rango}\n- Productividad promedio: {promedio_ton_dia} t/día\n- Top 3 zonas por volumen: {top3_zonas}\n- Zonas de mayor densidad (kg/ha): {densidad_zonas}\n\nReferencias para evaluación:\n- Productividad alta: > 80 t/día | Media: 40–80 t/día | Baja: < 40 t/día\n- Tasa de actividad óptima: > 85 % de los días del período\n- Zona crítica: concentra más del 35 % del volumen total\n\nRedactá exactamente 2 párrafos:\nPárrafo 1 — Diagnóstico: usá los datos y las referencias para evaluar si la productividad fue alta, media o baja; calculá la tasa de actividad e indicá si es óptima o deficitaria; nombrá la zona más crítica y si su concentración exige ajuste de frecuencia.\nPárrafo 2 — Oportunidades: planteá 2 acciones específicas y accionables para el próximo período, derivadas directamente de los datos (no genéricas). Cada acción debe nombrar la zona o métrica concreta que la justifica.\n\nEspañol formal. Sin encabezados, sin viñetas, sin saludos. Solo los dos párrafos.";
+    private string $defaultPrompt = "Sos analista operativo de Infinito Reciclaje redactando la sección 'Análisis Estratégico' del informe mensual para el municipio. Período: {periodo}.\n\nDatos del período:\n- Viajes realizados: {total_viajes}\n- Toneladas netas recolectadas: {toneladas} t\n- Días operativos: {dias_op} de {dias_rango}\n- Productividad promedio: {promedio_ton_dia} t/día\n- Top 3 zonas por volumen: {top3_zonas}\n- Zonas de mayor densidad (kg/ha): {densidad_zonas}\n\nReferencias para evaluación:\n- Productividad alta: > 80 t/día | Media: 40–80 t/día | Baja: < 40 t/día\n- Tasa de actividad óptima: > 85 % de los días del período\n- Zona crítica: concentra más del 35 % del volumen total\n\nRedactá exactamente 3 párrafos separados por una línea en blanco:\nPárrafo 1 — Diagnóstico: evaluá si la productividad fue alta, media o baja; calculá la tasa de actividad e indicá si es óptima o deficitaria; nombrá la zona de mayor concentración y si su peso relativo exige revisión de frecuencia.\nPárrafo 2 — Posibilidades de mejora: identificá 2 oportunidades concretas derivadas de los datos (no genéricas). Cada una debe nombrar la zona o métrica que la justifica y describir qué acción la aprovecharía.\nPárrafo 3 — Recomendaciones para el próximo período: planteá 2 acciones prioritarias con foco operativo (rutas, frecuencias, recursos) que el municipio puede implementar de inmediato. Que sean específicas y accionables.\n\nEspañol formal. Sin encabezados, sin viñetas, sin numeración, sin saludos. Solo los tres párrafos separados por línea en blanco.";
 
     public function __construct(
         private string $apiKey,
@@ -43,6 +44,12 @@ class ConclusionesAIService
 
     private function llamar(string $prompt): string
     {
+        Log::info('[ConclusionesAI] Prompt enviado', [
+            'modelo'  => $this->modelo,
+            'chars'   => \strlen($prompt),
+            'prompt'  => $prompt,
+        ]);
+
         try {
             $response = Http::timeout(15)->post(
                 "{$this->baseUrl}/{$this->modelo}:generateContent?key={$this->apiKey}",
@@ -52,17 +59,33 @@ class ConclusionesAIService
                     ],
                     'generationConfig' => [
                         'temperature'     => 0.7,
-                        'maxOutputTokens' => 700,
+                        'maxOutputTokens' => 1024,
+                        'thinkingConfig'  => ['thinkingBudget' => 0],
                     ],
                 ]
             );
+
+            Log::debug('[ConclusionesAI] Respuesta recibida', [
+                'status'   => $response->status(),
+                'body'     => $response->json(),
+            ]);
 
             if ($response->successful()) {
                 return $response->json('candidates.0.content.parts.0.text', '');
             }
 
+            Log::warning('[ConclusionesAI] Respuesta no exitosa', [
+                'status' => $response->status(),
+                'body'   => $response->body(),
+            ]);
+
             return '';
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            Log::error('[ConclusionesAI] Excepción al llamar a la API', [
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+            ]);
+
             return '';
         }
     }
