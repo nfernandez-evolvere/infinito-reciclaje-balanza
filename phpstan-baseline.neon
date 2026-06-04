@@ -163,10 +163,34 @@ parameters:
 			path: app/Notifications/VerifyEmailNotification.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$avg_neto\.$#'
-			identifier: property.notFound
+			message: '#^Ternary operator condition is always true\.$#'
+			identifier: ternary.alwaysTrue
 			count: 1
-			path: app/Repositories/PesajeRepository.php
+			path: app/Services/AlertaService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>umbral_valor" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 3
+			path: app/Services/AlertaService.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\TipoServicio\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Services/AlertaService.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\TipoVehiculo\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Services/AlertaService.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\Vehiculo\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 4
+			path: app/Services/AlertaService.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$created_at\.$#'
@@ -235,92 +259,8 @@ parameters:
 			path: app/Services/DashboardService.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$alerta_peso\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/PesajeService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$created_at\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/PesajeService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$editado\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/PesajeService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$estado\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/PesajeService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$hora_salida\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/PesajeService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/PesajeService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$operador\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/PesajeService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$peso_bruto_kg\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/PesajeService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$peso_neto_kg\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/PesajeService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$peso_tara_kg\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/PesajeService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$tipoServicio\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/PesajeService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$vehiculo\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/PesajeService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$zona\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/PesajeService.php
-
-		-
 			message: '#^Left side of && is always true\.$#'
 			identifier: booleanAnd.leftAlwaysTrue
-			count: 1
-			path: app/Services/PesajeService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>nombre" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
 			count: 1
 			path: app/Services/PesajeService.php
 
@@ -341,33 +281,3 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: app/View/Components/GuestLayout.php
-
-		-
-			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\Vehiculo\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 4
-			path: app/Services/AlertaService.php
-
-		-
-			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\TipoServicio\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: app/Services/AlertaService.php
-
-		-
-			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\TipoVehiculo\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: app/Services/AlertaService.php
-
-		-
-			message: '#^Ternary operator condition is always true\.$#'
-			identifier: ternary.alwaysTrue
-			count: 1
-			path: app/Services/AlertaService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>umbral_valor" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 3
-			path: app/Services/AlertaService.php

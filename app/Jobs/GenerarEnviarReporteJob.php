@@ -94,20 +94,23 @@ class GenerarEnviarReporteJob implements ShouldQueue
             if (in_array('pdf', $formatos, true)) {
                 Log::info('GenerarEnviarReporteJob: evaluando AI', [
                     'ai_enabled'     => $config?->ai_enabled,
-                    'ai_api_key_set' => ! empty($config?->ai_api_key),
+                    'ai_api_key_set' => $config !== null && ! empty($config->ai_api_key),
                     'ai_modelo'      => $config?->ai_modelo,
-                    'ai_prompt_set'  => ! empty($config?->ai_prompt),
+                    'ai_prompt_set'  => $config !== null && ! empty($config->ai_prompt),
                 ]);
+
+                $analisisTexto = null;
 
                 if ($config?->ai_enabled && $config?->ai_api_key) {
                     Log::info('GenerarEnviarReporteJob: llamando API de AI');
                     $ai = new ConclusionesAIService($config->ai_api_key, $config->ai_modelo ?? 'gemini-2.5-flash', $config->ai_prompt ?? '');
+                    $analisisTexto = $ai->generarAnalisis($reporte['kpis'], $reporte['zonas'], $desde->translatedFormat('F Y'));
                     $reporte['conclusiones'] = [
-                        'analisis' => $ai->generarAnalisis($reporte['kpis'], $reporte['zonas'], $desde->translatedFormat('F Y')),
+                        'analisis' => $analisisTexto,
                         'modelo'   => $config->ai_modelo ?? 'gemini-2.5-flash',
                     ];
                     Log::info('GenerarEnviarReporteJob: AI completada', [
-                        'analisis_chars' => strlen($reporte['conclusiones']['analisis'] ?? ''),
+                        'analisis_chars' => strlen($analisisTexto),
                     ]);
                 } else {
                     Log::info('GenerarEnviarReporteJob: AI omitida (deshabilitada o sin API key)');
@@ -156,7 +159,7 @@ class GenerarEnviarReporteJob implements ShouldQueue
             $desde,
             $hasta,
             $programado->destinatarios,
-            $reporte['conclusiones']['analisis'] ?? null,
+            $analisisTexto ?? null,
         );
 
         Log::info('GenerarEnviarReporteJob: completado', ['programado_id' => $this->programadoId]);
