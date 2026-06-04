@@ -62,7 +62,7 @@ class ConfiguracionInicialService
                 'steps'      => $steps,
                 'completado' => $completado,
                 'total'      => $total,
-                'porcentaje' => $total > 0 ? intval(($completado / $total) * 100) : 0,
+                'porcentaje' => intval(($completado / $total) * 100),
             ];
         });
     }
