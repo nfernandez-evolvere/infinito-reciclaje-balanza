@@ -1,7 +1,7 @@
 # Guía de inicio para el operador
 ## Sistema de Gestión de Balanza — Infinito Reciclaje
 
-**Dirigido a:** Operadores de balanza (Roberto y cualquier operador nuevo)
+**Dirigido a:** Operador de balanza
 **Objetivo:** Que puedas registrar pesajes desde el primer día, sin depender de nadie.
 
 ---
@@ -23,7 +23,7 @@ Al final del turno, el administrador puede ver todo lo que se registró sin nece
 
 El sistema te va a llevar directo a la pantalla de pesaje.
 
-> Si no recordás tu contraseña, avisale a Nacho para que te la resetee.
+> Si no recordás tu contraseña, avisale al administrador para que te la resetee.
 
 ---
 
@@ -149,7 +149,7 @@ Si escribís la patente o el número interno y no aparece ninguna sugerencia:
 
 1. Verificá que lo estés escribiendo bien (patente sin espacios extras, número sin ceros de más).
 2. Si sigue sin aparecer, el vehículo no está cargado en el sistema.
-3. **Avisale a Nacho** para que lo agregue al padrón.
+3. **Avisale al administrador** para que lo agregue al padrón.
 4. Mientras tanto, podés registrar el pesaje de todas formas usando el número interno manualmente, pero aclaralo en las observaciones.
 
 ---

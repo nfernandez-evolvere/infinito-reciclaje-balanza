@@ -1,0 +1,26 @@
+# Compose del EDGE — nginx router persistente que hace el blue-green.
+# Se levanta UNA vez en el host y sobrevive a todos los deploys; el cutover
+# se hace reescribiendo active-upstream.conf + `nginx -s reload` (graceful).
+#
+#   docker compose -p app-edge -f compose.edge.yaml up -d
+#
+# Este es el nginx "de afuera". El nginx "de adentro" (docker/nginx/default.conf)
+# va horneado en la imagen de la app y sirve /public.
+
+services:
+  edge:
+    image: nginx:1.27-alpine
+    container_name: balanza-edge
+    ports:
+      - "80:80"
+      # - "443:443"   # habilitar al sumar TLS (certs montados en docker/edge/certs)
+    volumes:
+      - ./docker/edge/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./docker/edge:/etc/nginx/edge:ro
+    networks:
+      - balanza-net
+    restart: unless-stopped
+
+networks:
+  balanza-net:
+    external: true

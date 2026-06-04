@@ -1,0 +1,26 @@
+# Compose del WORKER — cola + scheduler. UNA sola instancia en el host,
+# persistente y compartida por ambos colores (NO participa del blue-green).
+# Evita el doble-scheduling de reportes/alertas (routes/console.php).
+#
+#   TAG=<sha> docker compose -p app-worker -f compose.worker.yaml up -d
+#
+# En el deploy se actualiza a la imagen nueva DESPUÉS del cutover (su reinicio
+# es un parpadeo invisible para el usuario; los jobs se reintentan).
+
+services:
+  worker:
+    image: ghcr.io/nfernandez-evolvere/infinito-reciclaje-balanza:${TAG:-latest}
+    container_name: balanza-worker
+    env_file: .env.prod
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      AUTO_MIGRATE: "false"
+    command: ["supervisord", "-c", "/etc/supervisor/conf.d/worker.conf", "-n"]
+    networks:
+      - balanza-net
+    restart: unless-stopped
+
+networks:
+  balanza-net:
+    external: true

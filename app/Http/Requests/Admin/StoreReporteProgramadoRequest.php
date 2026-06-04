@@ -9,13 +9,11 @@ class StoreReporteProgramadoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nombre'         => ['required', 'string', 'max:150'],
-            'tipo'           => ['required', 'in:informe_mensual,alertas'],
-            'frecuencia'     => ['required', 'in:mensual,semanal,custom'],
-            'cron_expresion' => ['nullable', 'string', 'max:50'],
-            'destinatarios'  => ['required', 'string'],
-            'opciones'       => ['nullable', 'array'],
-            'activo'         => ['boolean'],
+            'nombre'        => ['required', 'string', 'max:150'],
+            'tipo'          => ['required', 'in:informe_mensual,alertas'],
+            'frecuencia'    => ['required', 'in:diaria,semanal,quincenal,mensual'],
+            'destinatarios' => ['required', 'string'],
+            'activo'        => ['boolean'],
         ];
     }
 

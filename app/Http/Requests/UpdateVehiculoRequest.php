@@ -26,7 +26,7 @@ class UpdateVehiculoRequest extends FormRequest
 
         return [
             'patente'          => ['required', 'string', 'max:20', Rule::unique('vehiculos', 'patente')->ignore($vehiculoId)],
-            'numero_interno'   => ['required', 'string', 'max:20', Rule::unique('vehiculos', 'numero_interno')->ignore($vehiculoId)],
+            'numero_interno'   => ['nullable', 'string', 'max:20', Rule::unique('vehiculos', 'numero_interno')->ignore($vehiculoId)],
             'tara_kg'          => ['required', 'integer', 'min:1'],
             'tipo_vehiculo_id' => ['required', 'integer', 'exists:tipos_vehiculo,id'],
             'titular'          => ['required', 'string', 'max:200'],

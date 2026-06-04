@@ -120,7 +120,7 @@
         {{-- ── Mobile: cards ── --}}
         <div class="sm:hidden space-y-2">
             @foreach($alertas as $alerta)
-                <x-ui.card variant="elevated" class="p-3 {{ $alerta->leida ? 'opacity-60' : '' }}">
+                <x-ui.card variant="elevated" class="p-3">
                     <x-ui.card.header class="items-start gap-2">
                         <div class="flex flex-col gap-1 min-w-0 flex-1">
                             <div class="flex items-center gap-2">
@@ -183,7 +183,7 @@
                 </x-ui.table.header>
                 <x-ui.table.body>
                     @foreach($alertas as $alerta)
-                        <x-ui.table.row class="{{ $alerta->leida ? 'opacity-60' : '' }}">
+                        <x-ui.table.row>
 
                             <x-ui.table.cell>
                                 <div class="flex items-center gap-2">

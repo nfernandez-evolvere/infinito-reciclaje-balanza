@@ -1,7 +1,7 @@
 # Módulo de pesajes (vista administrador)
 ## Sistema de Gestión de Balanza — Infinito Reciclaje
 
-**Dirigido a:** Administrador (Nacho)
+**Dirigido a:** Administrador
 **Cuándo usarlo:** Referencia de cómo revisar, filtrar, editar y auditar el log completo de pesajes
 
 ---

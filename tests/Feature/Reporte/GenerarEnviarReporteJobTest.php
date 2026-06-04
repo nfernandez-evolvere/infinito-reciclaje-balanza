@@ -33,7 +33,6 @@ class GenerarEnviarReporteJobTest extends TestCase
             'frecuencia'     => 'mensual',
             'cron_expresion' => '0 8 1 * *',
             'destinatarios'  => ['dest1@test.com', 'dest2@test.com'],
-            'opciones'       => ['periodo' => 'mes_anterior'],
             'activo'         => true,
         ], $overrides));
     }
@@ -137,21 +136,19 @@ class GenerarEnviarReporteJobTest extends TestCase
         Mail::assertSent(ReporteMensualMail::class);
     }
 
-    // ── calcularPeriodo ───────────────────────────────────────────────
+    // ── calcularPeriodo según frecuencia ─────────────────────────────
 
     #[Test]
-    public function periodo_mes_anterior_usa_el_mes_pasado(): void
+    public function frecuencia_mensual_usa_ultimos_30_dias(): void
     {
         Mail::fake();
 
-        $esperadoDesde = now()->subMonth()->startOfMonth()->startOfDay();
-
+        $esperadoDesde = now()->subDays(30)->startOfDay();
         $capturedDesde = null;
 
         $this->instance(ReporteService::class, \Mockery::mock(ReporteService::class, function ($m) use (&$capturedDesde) {
             $m->shouldReceive('generar')->withArgs(function (Carbon $desde) use (&$capturedDesde) {
                 $capturedDesde = $desde;
-
                 return true;
             })->andReturn($this->fakeReporte());
         }));
@@ -160,24 +157,23 @@ class GenerarEnviarReporteJobTest extends TestCase
         }));
 
         GenerarEnviarReporteJob::dispatchSync(
-            $this->programado(['opciones' => ['periodo' => 'mes_anterior']])->id
+            $this->programado(['frecuencia' => 'mensual'])->id
         );
 
         $this->assertTrue($capturedDesde->isSameDay($esperadoDesde));
     }
 
     #[Test]
-    public function periodo_mes_actual_usa_el_mes_en_curso(): void
+    public function frecuencia_semanal_usa_ultimos_7_dias(): void
     {
         Mail::fake();
 
-        $esperadoDesde = now()->startOfMonth()->startOfDay();
+        $esperadoDesde = now()->subDays(7)->startOfDay();
         $capturedDesde = null;
 
         $this->instance(ReporteService::class, \Mockery::mock(ReporteService::class, function ($m) use (&$capturedDesde) {
             $m->shouldReceive('generar')->withArgs(function (Carbon $desde) use (&$capturedDesde) {
                 $capturedDesde = $desde;
-
                 return true;
             })->andReturn($this->fakeReporte());
         }));
@@ -186,7 +182,57 @@ class GenerarEnviarReporteJobTest extends TestCase
         }));
 
         GenerarEnviarReporteJob::dispatchSync(
-            $this->programado(['opciones' => ['periodo' => 'mes_actual']])->id
+            $this->programado(['frecuencia' => 'semanal'])->id
+        );
+
+        $this->assertTrue($capturedDesde->isSameDay($esperadoDesde));
+    }
+
+    #[Test]
+    public function frecuencia_quincenal_usa_ultimos_15_dias(): void
+    {
+        Mail::fake();
+
+        $esperadoDesde = now()->subDays(15)->startOfDay();
+        $capturedDesde = null;
+
+        $this->instance(ReporteService::class, \Mockery::mock(ReporteService::class, function ($m) use (&$capturedDesde) {
+            $m->shouldReceive('generar')->withArgs(function (Carbon $desde) use (&$capturedDesde) {
+                $capturedDesde = $desde;
+                return true;
+            })->andReturn($this->fakeReporte());
+        }));
+        $this->instance(PdfService::class, \Mockery::mock(PdfService::class, function ($m) {
+            $m->shouldReceive('fromView')->andReturn('pdf');
+        }));
+
+        GenerarEnviarReporteJob::dispatchSync(
+            $this->programado(['frecuencia' => 'quincenal'])->id
+        );
+
+        $this->assertTrue($capturedDesde->isSameDay($esperadoDesde));
+    }
+
+    #[Test]
+    public function frecuencia_diaria_usa_ayer(): void
+    {
+        Mail::fake();
+
+        $esperadoDesde = now()->subDay()->startOfDay();
+        $capturedDesde = null;
+
+        $this->instance(ReporteService::class, \Mockery::mock(ReporteService::class, function ($m) use (&$capturedDesde) {
+            $m->shouldReceive('generar')->withArgs(function (Carbon $desde) use (&$capturedDesde) {
+                $capturedDesde = $desde;
+                return true;
+            })->andReturn($this->fakeReporte());
+        }));
+        $this->instance(PdfService::class, \Mockery::mock(PdfService::class, function ($m) {
+            $m->shouldReceive('fromView')->andReturn('pdf');
+        }));
+
+        GenerarEnviarReporteJob::dispatchSync(
+            $this->programado(['frecuencia' => 'diaria'])->id
         );
 
         $this->assertTrue($capturedDesde->isSameDay($esperadoDesde));
@@ -224,21 +270,20 @@ class GenerarEnviarReporteJobTest extends TestCase
         Mail::fake();
 
         $admin = $this->admin();
-        $desde = now()->subMonth()->startOfMonth();
 
-        // Creamos alertas en el período del reporte
+        // Creamos alertas dentro de la ventana móvil de mensual (últimos 30 días)
         Alerta::create([
             'user_id'         => $admin->id,
             'tipo'            => 'peso_fuera_rango',
             'titulo'          => 'Peso fuera de rango — ABC123',
-            'fecha_deteccion' => $desde->copy()->addDays(2)->toDateString(),
+            'fecha_deteccion' => now()->subDays(5)->toDateString(),
             'leida'           => false,
         ]);
         Alerta::create([
             'user_id'         => $admin->id,
             'tipo'            => 'gap_registro',
             'titulo'          => 'Sin actividad 140 min',
-            'fecha_deteccion' => $desde->copy()->addDays(5)->toDateString(),
+            'fecha_deteccion' => now()->subDays(10)->toDateString(),
             'leida'           => true,
         ]);
 
@@ -246,7 +291,6 @@ class GenerarEnviarReporteJobTest extends TestCase
         $this->instance(PdfService::class, \Mockery::mock(PdfService::class, function ($m) use (&$capturedReporte) {
             $m->shouldReceive('fromView')->withArgs(function ($_view, $data) use (&$capturedReporte) {
                 $capturedReporte = $data['reporte'] ?? null;
-
                 return true;
             })->andReturn('fake-pdf');
         }));
@@ -254,7 +298,7 @@ class GenerarEnviarReporteJobTest extends TestCase
             $m->shouldReceive('generar')->andReturn($this->fakeReporte());
         }));
 
-        $programado = $this->programado(['tipo' => 'alertas', 'opciones' => ['periodo' => 'mes_anterior']]);
+        $programado = $this->programado(['tipo' => 'alertas', 'frecuencia' => 'mensual']);
         GenerarEnviarReporteJob::dispatchSync($programado->id);
 
         $this->assertNotNull($capturedReporte);
@@ -270,15 +314,14 @@ class GenerarEnviarReporteJobTest extends TestCase
 
         $adminA = $this->admin();
         $adminB = $this->admin();
-        $desde = now()->subMonth()->startOfMonth();
 
-        // Mismo evento (misma titulo+fecha) para dos admins → debe deduplicarse a 1
-        $titulo = 'Volumen atípico — '.$desde->format('d/m/Y');
-        $fecha = $desde->copy()->addDays(3)->toDateString();
+        // Mismo evento (mismo titulo+fecha) para dos admins → deduplicado a 1
+        $titulo = 'Volumen atípico — ' . now()->subDays(5)->format('d/m/Y');
+        $fecha  = now()->subDays(5)->toDateString();
 
         Alerta::create(['user_id' => $adminA->id, 'tipo' => 'volumen_diario_atipico', 'titulo' => $titulo, 'fecha_deteccion' => $fecha]);
         Alerta::create(['user_id' => $adminB->id, 'tipo' => 'volumen_diario_atipico', 'titulo' => $titulo, 'fecha_deteccion' => $fecha]);
-        // Evento diferente (título distinto) → cuenta como 1 más
+        // Evento diferente → cuenta como 1 más
         Alerta::create(['user_id' => $adminA->id, 'tipo' => 'gap_registro', 'titulo' => 'Sin actividad', 'fecha_deteccion' => $fecha]);
 
         $this->instance(ReporteService::class, \Mockery::mock(ReporteService::class, function ($m) {
@@ -288,10 +331,10 @@ class GenerarEnviarReporteJobTest extends TestCase
             $m->shouldReceive('fromView')->andReturn('pdf');
         }));
 
-        $programado = $this->programado(['tipo' => 'alertas', 'opciones' => ['periodo' => 'mes_anterior']]);
+        $programado = $this->programado(['tipo' => 'alertas', 'frecuencia' => 'mensual']);
         GenerarEnviarReporteJob::dispatchSync($programado->id);
 
-        // 4 filas en DB, pero deduplicadas = 2 eventos únicos
+        // 3 filas en DB, deduplicadas = 2 eventos únicos
         Mail::assertSent(ReporteAlertaMail::class, fn ($m) => $m->totalAlertas === 2);
     }
 
@@ -322,7 +365,7 @@ class GenerarEnviarReporteJobTest extends TestCase
             $m->shouldReceive('generar')->andReturn($this->fakeReporte());
         }));
 
-        $programado = $this->programado(['tipo' => 'alertas', 'opciones' => ['periodo' => 'mes_anterior']]);
+        $programado = $this->programado(['tipo' => 'alertas', 'frecuencia' => 'mensual']);
         GenerarEnviarReporteJob::dispatchSync($programado->id);
 
         $this->assertSame(0, $capturedReporte['alertas']->count());

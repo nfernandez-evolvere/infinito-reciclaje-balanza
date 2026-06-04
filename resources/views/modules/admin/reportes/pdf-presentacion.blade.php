@@ -1149,6 +1149,7 @@
 @endif
 {{-- ═══════════ FIN SLIDE ALERTAS ═══════════ --}}
 
+@if(!$esAlerta)
 {{-- ═══════════ RESUMEN GENERAL ═══════════ --}}
 <div class="page">
     <div class="slide-wrap">
@@ -1647,7 +1648,9 @@
         </div>
     </div>
 </div>
-@endif
+@endif {{-- zonasConHa --}}
+
+@endif {{-- !esAlerta --}}
 
 {{-- ═══════════ CIERRE ═══════════ --}}
 <div class="page cover">

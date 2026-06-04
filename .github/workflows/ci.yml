@@ -1,0 +1,90 @@
+name: CI
+
+# Corre en cada PR (gate de merge) y es reusable por el workflow de deploy.
+# Reproduce `composer check`: pint + larastan + tests con cobertura ≥ 68%,
+# sobre un SQL Server real (el proyecto NO se testea en SQLite).
+on:
+  pull_request:
+  workflow_call:
+
+jobs:
+  quality:
+    name: Pint + Larastan + Tests (SQL Server)
+    runs-on: ubuntu-latest
+
+    services:
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: "Y"
+          MSSQL_SA_PASSWORD: "Strong_Passw0rd!"
+          MSSQL_PID: Developer
+        ports:
+          - 1433:1433
+
+    env:
+      # Estas pisan a .env.testing (Laravel/phpdotenv en modo immutable NO sobrescribe
+      # variables ya presentes en el entorno) → apuntan la suite al service container
+      # en vez de la instancia nombrada local, sin tocar el archivo.
+      APP_KEY: base64:R1eiNJVSQxsl3wBNfHBdXMn/PASE3oXUIHhbFzdNkz8=
+      DB_HOST: 127.0.0.1
+      DB_PORT: "1433"
+      DB_USERNAME: sa
+      DB_PASSWORD: "Strong_Passw0rd!"
+      DB_DATABASE: infinito_balanza_testing
+      DB_ENCRYPT: "no"
+      DB_TRUST_SERVER_CERTIFICATE: "yes"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: sqlsrv, pdo_sqlsrv, gd, zip, intl, bcmath, pcntl, opcache
+          coverage: pcov
+          tools: composer:v2
+
+      - name: Cache de Composer
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
+      - name: Instalar dependencias
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Preparar .env.testing
+        # .env.testing está gitignoreado (solo se versiona el .example). Las DB_*
+        # las pisa el bloque env: de arriba; acá solo necesitamos que el archivo exista.
+        run: cp .env.testing.example .env.testing
+
+      - name: Esperar a SQL Server
+        run: |
+          for i in $(seq 1 30); do
+            if php -r '$e=1; try { new PDO("sqlsrv:Server=127.0.0.1,1433;TrustServerCertificate=1","sa",getenv("DB_PASSWORD")); $e=0; } catch (Throwable $x) {} exit($e);'; then
+              echo "SQL Server arriba"; exit 0
+            fi
+            echo "esperando SQL Server ($i)…"; sleep 3
+          done
+          echo "SQL Server no respondió a tiempo"; exit 1
+
+      - name: Crear base de datos de test
+        run: |
+          php -r '
+            $c = new PDO("sqlsrv:Server=127.0.0.1,1433;TrustServerCertificate=1","sa",getenv("DB_PASSWORD"));
+            $c->exec("IF DB_ID(\"infinito_balanza_testing\") IS NULL CREATE DATABASE infinito_balanza_testing");
+          '
+
+      - name: Pint (formato)
+        run: vendor/bin/pint --test
+
+      - name: Larastan (análisis estático)
+        run: composer analyse
+
+      - name: Tests + cobertura (≥ 68%)
+        run: |
+          php artisan config:clear
+          php artisan test --coverage --min=68

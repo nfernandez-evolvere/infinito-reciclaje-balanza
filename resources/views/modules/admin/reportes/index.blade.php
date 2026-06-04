@@ -1,16 +1,15 @@
 @php
-    $hasProgramadoErrors = $errors->hasAny(['nombre', 'tipo', 'frecuencia', 'cron_expresion', 'destinatarios', 'activo']);
+    $hasProgramadoErrors = $errors->hasAny(['nombre', 'tipo', 'frecuencia', 'destinatarios', 'activo']);
     $isEditing      = old('_mode') === 'edit';
     $initialProgramado = $hasProgramadoErrors ? [
         'modalOpen' => true,
         'modalMode' => $isEditing ? 'edit' : 'create',
         'form' => [
-            'id'             => (int) old('_editing_id', 0) ?: null,
-            'nombre'         => old('nombre', ''),
-            'tipo'           => old('tipo', 'informe_mensual'),
-            'frecuencia'     => old('frecuencia', 'mensual'),
-            'cron_expresion' => old('cron_expresion', '0 8 1 * *'),
-            'activo'         => old('activo', true),
+            'id'         => (int) old('_editing_id', 0) ?: null,
+            'nombre'     => old('nombre', ''),
+            'tipo'       => old('tipo', 'informe_mensual'),
+            'frecuencia' => old('frecuencia', 'mensual'),
+            'activo'     => old('activo', true),
         ],
         '_oldDestinatariosStr' => old('destinatarios', ''),
     ] : [];

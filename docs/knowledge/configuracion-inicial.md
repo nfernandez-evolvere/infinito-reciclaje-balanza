@@ -1,7 +1,7 @@
 # Configuración inicial del sistema
 ## Checklist pre-go-live
 
-**Dirigido a:** Administrador (Nacho)
+**Dirigido a:** Administrador
 **Cuándo usarlo:** Antes de que el sistema entre en operación real. Este checklist debe completarse en orden — cada paso depende del anterior.
 
 ---
@@ -28,7 +28,7 @@ Si no podés ingresar, contactá al equipo de soporte de EVOLVERE.
 
 Los tipos de vehículo definen los rangos de **peso bruto** esperados (vehículo + carga). El sistema los usa para detectar pesajes anómalos.
 
-Ir a **Transporte → Tipos de vehículo** y verificar que estén cargados:
+Ir a **Padrón → Vehículos** (pestaña **Tipos de vehículo**) y verificar que estén cargados:
 
 | Tipo | Bruto mínimo | Bruto máximo |
 |------|------------|------------|
@@ -45,7 +45,7 @@ Ir a **Transporte → Tipos de vehículo** y verificar que estén cargados:
 
 Los tipos de servicio definen el nombre del servicio y el tipo de vehículo habitual.
 
-Ir a **Padrón → Tipos de servicio** y verificar que estén cargados:
+Ir a **Padrón → Servicios** y verificar que estén cargados:
 
 | Servicio | Tipo de vehículo sugerido |
 |----------|--------------------------|
@@ -90,7 +90,7 @@ Esta configuración determina qué zonas y turnos le aparecen al operador al reg
 
 Este es el paso más importante y el que más tiempo lleva. **Todos los camiones que van a ingresar al predio deben estar cargados antes del día 1.**
 
-Ir a **Transporte → Vehículos** y cargar cada vehículo con:
+Ir a **Padrón → Vehículos** y cargar cada vehículo con:
 
 | Campo | Descripción | Ejemplo |
 |-------|-------------|---------|
@@ -98,7 +98,7 @@ Ir a **Transporte → Vehículos** y cargar cada vehículo con:
 | Número interno | Número asignado por la Municipalidad | 45 |
 | Tara | Peso del vehículo vacío en kg | 8.500 |
 | Tipo de vehículo | Compactador, Volcador, Volquete o Particular | Compactador |
-| Titular | Municipalidad de Corrientes o nombre del particular | Municipalidad de Corrientes |
+| Titular | Municipalidad o nombre del particular responsable del vehículo | Municipalidad de San Juan |
 
 > La tara es crítica — se usa para calcular los kg netos en cada pesaje. Si la tara está mal, todos los pesajes de ese camión van a quedar mal calculados.
 
@@ -144,8 +144,8 @@ Antes de habilitar el sistema para operación real:
 | No aparece el autocompletado de un vehículo | Verificar que la patente o número interno estén cargados exactamente como el operador los ingresa |
 | El peso neto parece incorrecto | Verificar la tara del vehículo en Transporte → Vehículos |
 | Un operador no puede ingresar | Verificar que su usuario esté activo en Sistema → Usuarios |
-| Un servicio no muestra zonas en el select | Verificar que la zona tenga asignado el tipo de servicio correcto en Padrón → Zonas |
+| Un servicio no muestra zonas en el select | Verificar que la zona tenga asignado el tipo de servicio correcto en **Padrón → Zonas** |
 
 ---
 
-*Documento actualizado: 14/05/2026 | Versión: 1.1*
+*Documento actualizado: 04/06/2026 | Versión: 1.2*

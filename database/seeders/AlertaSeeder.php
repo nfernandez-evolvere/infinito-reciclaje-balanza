@@ -27,6 +27,7 @@ class AlertaSeeder extends Seeder
             $this->seedVolumenAtipico($org->id, $adminIds);
             $this->seedGapRegistro($org->id, $adminIds);
             $this->seedFrecuenciaZona($org->id, $adminIds);
+            $this->seedVehiculoNoHabitual($org->id, $adminIds);
         }
     }
 
@@ -139,6 +140,33 @@ class AlertaSeeder extends Seeder
                     'zona_id'         => $zona->id,
                     'fecha_deteccion' => $fecha->toDateString(),
                     'leida'           => $diasAtras < -7,
+                ]);
+            }
+        }
+    }
+
+    private function seedVehiculoNoHabitual(int $orgId, array $adminIds): void
+    {
+        $pesajes = DB::table('pesajes')
+            ->join('vehiculos', 'pesajes.vehiculo_id', '=', 'vehiculos.id')
+            ->join('tipos_servicio', 'pesajes.tipo_servicio_id', '=', 'tipos_servicio.id')
+            ->where('pesajes.organizacion_id', $orgId)
+            ->orderByDesc('pesajes.created_at')
+            ->limit(5)
+            ->get(['pesajes.id', 'pesajes.zona_id', 'vehiculos.patente', 'tipos_servicio.nombre as servicio']);
+
+        foreach ($pesajes as $p) {
+            foreach ($adminIds as $adminId) {
+                Alerta::create([
+                    'organizacion_id' => $orgId,
+                    'user_id'         => $adminId,
+                    'tipo'            => 'vehiculo_no_habitual',
+                    'titulo'          => "Vehículo no habitual — {$p->patente}",
+                    'descripcion'     => "Tipo de vehículo no coincide con los habituales para el servicio {$p->servicio}.",
+                    'pesaje_id'       => $p->id,
+                    'zona_id'         => $p->zona_id,
+                    'fecha_deteccion' => today()->subDays(rand(1, 20))->toDateString(),
+                    'leida'           => (bool) random_int(0, 1),
                 ]);
             }
         }

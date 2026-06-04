@@ -47,7 +47,7 @@ A medida que escribís aparecen las sugerencias. Hacé clic en el camión correc
 No tenés que escribir nada de eso — el sistema lo trae del padrón.
 
 **Si el vehículo no aparece en las sugerencias:**
-El vehículo no está cargado en el padrón. Avisale a Nacho para que lo agregue. Mientras tanto podés registrar el pesaje usando el número interno en forma manual, pero aclaralo en el campo de observaciones.
+El vehículo no está cargado en el padrón. Avisale al administrador para que lo agregue. Mientras tanto podés registrar el pesaje usando el número interno en forma manual, pero aclaralo en el campo de observaciones.
 
 ---
 
@@ -94,7 +94,7 @@ Antes de guardar, el resumen muestra:
 
 ```
 Vehículo:         ABC-123 — Compactador
-Titular:          Municipalidad de Corrientes
+Titular:          Municipalidad de San Juan
 Número interno:   45
 Tara:             8.500 kg
 Servicio:         Domiciliario
@@ -171,17 +171,6 @@ En la parte de abajo de la pantalla, siempre visible sin importar en qué pantal
 
 ---
 
-## Modo sin conexión
-
-Si la conexión a internet se corta, aparece un aviso en la pantalla que dice *"Sin conexión"*. En ese estado:
-
-- Podés seguir registrando pesajes — se guardan localmente en tu navegador
-- Cuando vuelve la conexión, los pesajes se sincronizan automáticamente
-
-No hagas nada especial — el sistema se encarga solo.
-
----
-
 ## Preguntas frecuentes
 
 **¿Qué pasa si cierro el navegador mientras estoy llenando un pesaje?**
@@ -204,4 +193,4 @@ Sí. El origen que aparece es el predeterminado para ese servicio, pero podés c
 
 ---
 
-*Documento generado: 12/05/2026 | Versión: 1.0*
+*Documento actualizado: 04/06/2026 | Versión: 1.1*

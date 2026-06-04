@@ -38,12 +38,12 @@
                     <div class="flex flex-col gap-6 p-8 md:p-10">
 
                         {{-- Brand --}}
-                        <div class="flex items-center gap-3">
+{{--                         <div class="flex items-center gap-3">
                             <div class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary">
                                 <span class="text-sm font-bold leading-none text-primary-foreground">IR</span>
                             </div>
                             <span class="font-semibold text-sm">Infinito Reciclaje</span>
-                        </div>
+                        </div> --}}
 
                         {{-- Title & description --}}
                         <div>

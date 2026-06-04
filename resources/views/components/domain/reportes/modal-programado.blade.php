@@ -68,30 +68,13 @@
                             <x-ui.select.value placeholder="Seleccionar frecuencia" />
                         </x-ui.select.trigger>
                         <x-ui.select.content>
-                            <x-ui.select.item value="mensual">Mensual</x-ui.select.item>
-                            <x-ui.select.item value="semanal">Semanal</x-ui.select.item>
-                            <x-ui.select.item value="custom">Custom (cron)</x-ui.select.item>
+                            <x-ui.select.item value="diaria">Diaria — último día</x-ui.select.item>
+                            <x-ui.select.item value="semanal">Semanal — últimos 7 días</x-ui.select.item>
+                            <x-ui.select.item value="quincenal">Quincenal — últimos 15 días</x-ui.select.item>
+                            <x-ui.select.item value="mensual">Mensual — últimos 30 días</x-ui.select.item>
                         </x-ui.select.content>
                     </x-ui.select>
                 </x-ui.form-field>
-
-                <div x-show="form.frecuencia === 'custom'" x-cloak>
-                    <x-ui.form-field
-                        for="m-cron"
-                        :state="$errors->has('cron_expresion') ? 'destructive' : null"
-                        :message="$errors->first('cron_expresion')"
-                    >
-                        <x-ui.label for="m-cron">Expresión cron</x-ui.label>
-                        <x-ui.input
-                            id="m-cron"
-                            name="cron_expresion"
-                            x-model="form.cron_expresion"
-                            placeholder="0 8 1 * *"
-                            :state="$errors->has('cron_expresion') ? 'destructive' : null"
-                        />
-                        <p class="text-caption">Formato: minuto hora día-mes mes día-semana</p>
-                    </x-ui.form-field>
-                </div>
 
                 <x-ui.form-field
                     :state="$errors->has('destinatarios') ? 'destructive' : null"

@@ -1,0 +1,58 @@
+# Compose de DESARROLLO.
+# Corre la MISMA imagen que producción, construida localmente, apuntando al
+# SQL Server (SQLEXPRESS) instalado en el host Windows.
+#
+# Prerrequisito (una vez): habilitar TCP/IP en SQLEXPRESS, fijarle el puerto
+# 1433 estático y abrir el firewall. Desde el contenedor la instancia nombrada
+# no se resuelve por nombre, solo por host:puerto.
+#
+# Uso:  docker compose -f compose.dev.yaml up --build
+
+services:
+  app:
+    build:
+      context: .
+      target: runtime
+    image: balanza:dev
+    env_file: .env
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      # NUNCA migrar automáticamente: en dev el contenedor apunta al SQL Server
+      # del host, que es la base COMPARTIDA entre proyectos. Las migraciones se
+      # corren a mano y de forma deliberada (ver CLAUDE.md → política de DB).
+      AUTO_MIGRATE: "false"
+      # Conexión al SQL Server del host (ver prerrequisito arriba)
+      DB_CONNECTION: sqlsrv
+      DB_HOST: host.docker.internal
+      DB_PORT: "1433"
+      DB_ENCRYPT: "no"
+      DB_TRUST_SERVER_CERTIFICATE: "yes"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8000:8080"
+    restart: unless-stopped
+    # CMD por defecto de la imagen = grupo web (nginx + php-fpm)
+
+  worker:
+    build:
+      context: .
+      target: runtime
+    image: balanza:dev
+    env_file: .env
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      AUTO_MIGRATE: "false"
+      DB_CONNECTION: sqlsrv
+      DB_HOST: host.docker.internal
+      DB_PORT: "1433"
+      DB_ENCRYPT: "no"
+      DB_TRUST_SERVER_CERTIFICATE: "yes"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: ["supervisord", "-c", "/etc/supervisor/conf.d/worker.conf", "-n"]
+    restart: unless-stopped
+    depends_on:
+      - app

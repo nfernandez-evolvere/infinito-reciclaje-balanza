@@ -75,38 +75,78 @@
                 </x-ui.form-field>
 
                 <div x-show="modalMode === 'create'" x-cloak class="space-y-2">
-                    <x-ui.form-field
-                        for="password"
-                        :state="$errors->has('password') ? 'destructive' : null"
-                        :message="$errors->first('password')"
-                    >
-                        <x-ui.label for="password">Contraseña inicial</x-ui.label>
-                        <x-ui.input
-                            id="password"
-                            name="password"
-                            type="password"
-                            x-model="form.password"
-                            placeholder="Mínimo 8 caracteres"
-                            :state="$errors->has('password') ? 'destructive' : null"
-                            autocomplete="new-password"
-                        />
-                    </x-ui.form-field>
 
+                    {{-- Contraseña + checklist de requisitos --}}
+                    <div x-data="{ showPw: false }" class="grid gap-1.5">
+                        <x-ui.label for="password">Contraseña inicial</x-ui.label>
+
+                        <x-ui.input-group :class="$errors->has('password') ? 'border-destructive-border ring-2 ring-destructive/20' : ''">
+                            <x-ui.input-group.input
+                                id="password"
+                                name="password"
+                                x-bind:type="showPw ? 'text' : 'password'"
+                                x-model="form.password"
+                                autocomplete="new-password"
+                                :aria-invalid="$errors->has('password') ? 'true' : null"
+                            />
+                            <x-ui.input-group.button type="button" class="rounded-full h-8 w-8" @click="showPw = !showPw" tabindex="-1" aria-label="Mostrar u ocultar contraseña">
+                                <x-lucide-eye     x-show="!showPw"        class="size-4" />
+                                <x-lucide-eye-off x-show="showPw" x-cloak class="size-4" />
+                            </x-ui.input-group.button>
+                        </x-ui.input-group>
+
+                        <ul class="mt-0.5 space-y-1.5">
+                            @php
+                                $rules = [
+                                    ['expr' => 'form.password.length >= 8',                                         'label' => 'Mínimo 8 caracteres'],
+                                    ['expr' => '/[a-z]/.test(form.password) && /[A-Z]/.test(form.password)',        'label' => 'Mayúsculas y minúsculas'],
+                                    ['expr' => '/[0-9]/.test(form.password)',                                       'label' => 'Al menos un número'],
+                                    ['expr' => '/[^a-zA-Z0-9\s]/.test(form.password)',                             'label' => 'Al menos un símbolo'],
+                                ];
+                            @endphp
+
+                            @foreach ($rules as $rule)
+                                <li class="flex items-center gap-2 text-xs transition-colors"
+                                    :class="{{ $rule['expr'] }} ? 'text-success' : 'text-muted-foreground'">
+                                    <x-lucide-circle-check x-show="{{ $rule['expr'] }}"            class="size-3.5 shrink-0" />
+                                    <x-lucide-circle       x-show="!({{ $rule['expr'] }})" x-cloak class="size-3.5 shrink-0" />
+                                    {{ $rule['label'] }}
+                                </li>
+                            @endforeach
+
+                            @foreach ($errors->get('password') as $msg)
+                                @if (str_contains($msg, 'filtración'))
+                                    <li class="flex items-center gap-2 text-xs text-destructive">
+                                        <x-lucide-circle-x class="size-3.5 shrink-0" />
+                                        {{ $msg }}
+                                    </li>
+                                @endif
+                            @endforeach
+                        </ul>
+                    </div>
+
+                    {{-- Confirmación de contraseña --}}
                     <x-ui.form-field
                         for="password_confirmation"
                         :state="$errors->has('password') ? 'destructive' : null"
                     >
                         <x-ui.label for="password_confirmation">Confirmar contraseña</x-ui.label>
-                        <x-ui.input
-                            id="password_confirmation"
-                            name="password_confirmation"
-                            type="password"
-                            x-model="form.password_confirmation"
-                            placeholder="Repetí la contraseña"
-                            :state="$errors->has('password') ? 'destructive' : null"
-                            autocomplete="new-password"
-                        />
+                        <x-ui.input-group x-data="{ showPwConf: false }">
+                            <x-ui.input-group.input
+                                id="password_confirmation"
+                                name="password_confirmation"
+                                x-bind:type="showPwConf ? 'text' : 'password'"
+                                x-model="form.password_confirmation"
+                                autocomplete="new-password"
+                                :aria-invalid="$errors->has('password') ? 'true' : null"
+                            />
+                            <x-ui.input-group.button type="button" class="rounded-full h-8 w-8" @click="showPwConf = !showPwConf" tabindex="-1" aria-label="Mostrar u ocultar contraseña">
+                                <x-lucide-eye     x-show="!showPwConf"        class="size-4" />
+                                <x-lucide-eye-off x-show="showPwConf" x-cloak class="size-4" />
+                            </x-ui.input-group.button>
+                        </x-ui.input-group>
                     </x-ui.form-field>
+
                 </div>
 
             </div>

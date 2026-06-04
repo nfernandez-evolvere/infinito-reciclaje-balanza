@@ -12,6 +12,7 @@
 | [`docs/data-model.md`](docs/data-model.md) | Modelo de datos completo: tipos, constraints, índices, cardinalidades, patrones de consulta y decisiones de diseño |
 | [`docs/sprints/`](docs/sprints/) | Plan detallado por sprint: sub-sprints, tareas granulares, tests unitarios, de integración y manuales |
 | [`docs/testing-strategy.md`](docs/testing-strategy.md) | Estrategia y convenciones de testing: taxonomía de suites, naming, roadmap de cobertura, CI |
+| [`docs/deployment-docker.md`](docs/deployment-docker.md) | Infraestructura Docker: imagen multi-stage, compose dev/prod, blue-green con nginx edge, CI/CD (GitHub Actions → GHCR → SSH), runbook de servidor y troubleshooting |
 
 > **Al escribir cualquier texto en vistas Blade, consultar `docs/ux-writing.md`.**
 > Las reglas de escritura para el operador y el admin son distintas — aplicarlas según el perfil de la pantalla.

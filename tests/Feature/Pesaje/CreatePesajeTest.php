@@ -178,6 +178,68 @@ class CreatePesajeTest extends TestCase
     }
 
     #[Test]
+    public function crear_pesaje_con_vehiculo_no_habitual_persists_alerta_record(): void
+    {
+        $admin = $this->admin();
+        app('organizacion')->users()->syncWithoutDetaching([$admin->id]);
+
+        $tipoHabitual   = TipoVehiculo::factory()->create();
+        $tipoNoHabitual = TipoVehiculo::factory()->create();
+        $vehiculo       = Vehiculo::factory()->create(['tara_kg' => 2000, 'tipo_vehiculo_id' => $tipoNoHabitual->id]);
+
+        $servicio = TipoServicio::factory()->create();
+        $servicio->tiposVehiculo()->attach($tipoHabitual->id); // vehículo NO es habitual
+
+        $this->actingAs($this->operador())
+            ->post(route('pesajes.store'), [
+                'vehiculo_id'      => $vehiculo->id,
+                'tipo_servicio_id' => $servicio->id,
+                'zona_id'          => Zona::factory()->create()->id,
+                'turno'            => null,
+                'peso_bruto_kg'    => 5000,
+                'observaciones'    => null,
+            ]);
+
+        $pesaje = Pesaje::firstOrFail();
+
+        $alerta = Alerta::withoutGlobalScopes()
+            ->where('tipo', 'vehiculo_no_habitual')
+            ->where('pesaje_id', $pesaje->id)
+            ->firstOrFail();
+
+        $this->assertSame($admin->id, $alerta->user_id);
+        $this->assertStringContainsString($vehiculo->patente, $alerta->titulo);
+        $this->assertFalse($alerta->leida);
+    }
+
+    #[Test]
+    public function crear_pesaje_con_vehiculo_habitual_does_not_create_alerta_vehiculo(): void
+    {
+        $admin = $this->admin();
+        app('organizacion')->users()->syncWithoutDetaching([$admin->id]);
+
+        $tipoHabitual = TipoVehiculo::factory()->create(['peso_min_kg' => 1000, 'peso_max_kg' => 30000]);
+        $vehiculo     = Vehiculo::factory()->create(['tara_kg' => 2000, 'tipo_vehiculo_id' => $tipoHabitual->id]);
+
+        $servicio = TipoServicio::factory()->create();
+        $servicio->tiposVehiculo()->attach($tipoHabitual->id); // vehículo SÍ es habitual
+
+        $this->actingAs($this->operador())
+            ->post(route('pesajes.store'), [
+                'vehiculo_id'      => $vehiculo->id,
+                'tipo_servicio_id' => $servicio->id,
+                'zona_id'          => Zona::factory()->create()->id,
+                'turno'            => null,
+                'peso_bruto_kg'    => 5000,
+                'observaciones'    => null,
+            ]);
+
+        $this->assertSame(0, Alerta::withoutGlobalScopes()
+            ->where('tipo', 'vehiculo_no_habitual')
+            ->count());
+    }
+
+    #[Test]
     public function crear_pesaje_dentro_de_rango_does_not_create_alerta(): void
     {
         $admin = $this->admin();

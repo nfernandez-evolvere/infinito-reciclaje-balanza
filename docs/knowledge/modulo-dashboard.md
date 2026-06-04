@@ -1,7 +1,7 @@
 # Módulo Dashboard
 ## Sistema de Gestión de Balanza — Infinito Reciclaje
 
-**Dirigido a:** Administrador (Nacho)
+**Dirigido a:** Administrador
 **Cuándo usarlo:** Referencia de cómo leer e interpretar el panel de control en tiempo real
 
 ---
@@ -27,7 +27,7 @@ Esta sección aparece **solo cuando hay alertas** sin resolver. Está en la part
 Muestra:
 - Cantidad de alertas activas
 - Tipo de alerta (gap de pesajes, peso inusual, frecuencia atípica)
-- Un botón **Ver alertas** que te lleva al módulo de Alarmas
+- Un botón **Ver alertas** que te lleva al módulo de Alertas (Sistema → Alertas)
 
 Si no hay alertas activas, esta sección no aparece y el resto del dashboard ocupa ese espacio.
 
@@ -119,7 +119,7 @@ Una revisión rápida de 30 segundos alcanza para detectar:
 
 | Sección | Qué hacés si algo llama la atención |
 |---------|-------------------------------------|
-| Alertas activas | Ir a Alarmas, revisar cada alerta y marcarla como resuelta |
+| Alertas activas | Ir a Sistema → Alertas, revisar cada alerta y marcarla como resuelta |
 | Camiones en predio | Hablar con el operador para que registre el egreso, o hacerlo vos desde Pesajes |
 | KPIs del día muy bajos | Verificar con el operador si hay algún problema operativo o de sistema |
 | Gráfico con día en cero | Investigar si fue feriado, paro o problema técnico |
@@ -145,8 +145,8 @@ Sí, incluyen todos los datos desde el día 1 del mes hasta el momento en que es
 Todos los indicadores del Dashboard trabajan con **toneladas netas** (peso bruto menos tara).
 
 **¿Puedo filtrar el Dashboard por origen o por tipo de servicio?**
-No en esta versión. El Dashboard muestra la operación total. Para análisis filtrados, usar el módulo de Reportes.
+No. El Dashboard muestra la operación total. Para análisis filtrados, usar el módulo de Reportes.
 
 ---
 
-*Documento generado: 12/05/2026 | Versión: 1.0*
+*Documento actualizado: 04/06/2026 | Versión: 1.1*

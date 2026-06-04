@@ -66,6 +66,36 @@ class AlertaService
         }
     }
 
+    public function registrarVehiculoNoHabitual(Pesaje $pesaje): void
+    {
+        $config = $this->alertaRepository->getConfig($pesaje->organizacion_id, 'vehiculo_no_habitual');
+        if ($config && ! $config->activo) {
+            return;
+        }
+
+        if ($this->alertaRepository->existeHoy($pesaje->organizacion_id, 'vehiculo_no_habitual', now(), $pesaje->id)) {
+            return;
+        }
+
+        $servicio   = $pesaje->tipoServicio;
+        $tipoVeh    = $pesaje->vehiculo?->tipoVehiculo;
+        $habituales = $servicio?->tiposVehiculo->pluck('nombre')->join(', ') ?? '—';
+
+        $base = [
+            'organizacion_id' => $pesaje->organizacion_id,
+            'tipo'            => 'vehiculo_no_habitual',
+            'titulo'          => "Vehículo no habitual — {$pesaje->vehiculo?->patente}",
+            'descripcion'     => "Tipo: {$tipoVeh?->nombre}. Habituales para {$servicio?->nombre}: {$habituales}.",
+            'pesaje_id'       => $pesaje->id,
+            'zona_id'         => $pesaje->zona_id,
+            'fecha_deteccion' => today()->toDateString(),
+        ];
+
+        foreach ($this->getAdminIds($pesaje->organizacion_id) as $adminId) {
+            $this->alertaRepository->create(array_merge($base, ['user_id' => $adminId]));
+        }
+    }
+
     // ── Detección automática (llamada desde DetectarAlertasCommand) ───
 
     public function detectarParaOrganizacion(int $organizacionId): void

@@ -50,7 +50,10 @@
                             :state="$errors->has('numero_interno') ? 'destructive' : null"
                             :message="$errors->first('numero_interno')"
                         >
-                            <x-ui.label for="numero_interno">N.° interno</x-ui.label>
+                            <x-ui.label for="numero_interno">
+                                N.° interno
+                                <span class="text-muted-foreground font-normal">— opcional</span>
+                            </x-ui.label>
                             <x-ui.input
                                 id="numero_interno"
                                 name="numero_interno"

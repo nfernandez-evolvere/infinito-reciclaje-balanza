@@ -42,10 +42,22 @@ class ReporteProgramadoService
             array_map('trim', explode(',', $validated['destinatarios']))
         ));
 
-        return array_merge($validated, [
+        return [
+            ...$validated,
             'destinatarios'    => $destinatarios,
+            'cron_expresion'   => $this->cronDesdeFrecuencia($validated['frecuencia']),
             'proximo_envio_at' => now()->addMinute(),
-        ]);
+        ];
+    }
+
+    private function cronDesdeFrecuencia(string $frecuencia): string
+    {
+        return match ($frecuencia) {
+            'diaria'    => '0 8 * * *',
+            'semanal'   => '0 8 * * 1',
+            'quincenal' => '0 8 1,15 * *',
+            default     => '0 8 1 * *',   // mensual
+        };
     }
 
     private function syncDestinatarios(array $emails): void

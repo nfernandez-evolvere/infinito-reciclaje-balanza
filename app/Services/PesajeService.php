@@ -22,6 +22,7 @@ class PesajeService
     public function crear(array $data, User $operador): Pesaje
     {
         $vehiculo = Vehiculo::with('tipoVehiculo')->findOrFail($data['vehiculo_id']);
+        $tipoServicio = \App\Models\TipoServicio::with('tiposVehiculo')->findOrFail($data['tipo_servicio_id']);
 
         $pesoBruto = (int) $data['peso_bruto_kg'];
         $pesaTara = $vehiculo->tara_kg;
@@ -51,6 +52,16 @@ class PesajeService
         if ($alerta) {
             $pesaje->load('vehiculo.tipoVehiculo');
             $this->alertaService->registrarPesoFueraRango($pesaje);
+        }
+
+        // Alerta si el tipo de vehículo no es habitual para el servicio
+        $tiposHabitualesIds = $tipoServicio->tiposVehiculo->pluck('id');
+        if ($vehiculo->tipo_vehiculo_id && $tiposHabitualesIds->isNotEmpty()
+            && ! $tiposHabitualesIds->contains($vehiculo->tipo_vehiculo_id)
+        ) {
+            $pesaje->setRelation('tipoServicio', $tipoServicio);
+            $pesaje->load('vehiculo.tipoVehiculo');
+            $this->alertaService->registrarVehiculoNoHabitual($pesaje);
         }
 
         return $pesaje;

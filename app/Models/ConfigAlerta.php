@@ -51,6 +51,12 @@ class ConfigAlerta extends Model
                 'descripcion'  => 'Se genera cuando la frecuencia de pesajes de una zona se desvía más de X% de su promedio histórico.',
                 'umbral_label' => '% de desviación del promedio por zona',
             ],
+            'vehiculo_no_habitual' => [
+                'activo'       => true,
+                'umbral_valor' => null,
+                'descripcion'  => 'Se genera al registrar un pesaje con un tipo de vehículo que no coincide con los tipos habituales del servicio seleccionado.',
+                'umbral_label' => null,
+            ],
         ];
     }
 }

@@ -1,7 +1,7 @@
 # Módulo de alarmas
 ## Sistema de Gestión de Balanza — Infinito Reciclaje
 
-**Dirigido a:** Administrador (Nacho)
+**Dirigido a:** Administrador
 **Cuándo usarlo:** Referencia de cómo funcionan las alarmas, cómo interpretarlas y cómo configurarlas
 
 ---
@@ -21,7 +21,7 @@ Las alarmas aparecen en dos lugares:
 1. **Dashboard** — en la parte superior, cuando hay alarmas activas sin resolver. Muestra la cantidad y un botón para ir al detalle.
 2. **Módulo de Alarmas** — la lista completa con el detalle de cada alarma, incluyendo las ya resueltas.
 
-**Ruta al módulo:** Análisis → Alarmas (en la barra lateral)
+**Ruta al módulo:** Sistema → Alertas (en la barra lateral)
 
 ---
 
@@ -86,7 +86,7 @@ Las alarmas aparecen en dos lugares:
 
 ## Cómo resolver una alarma
 
-1. Ir a **Análisis → Alarmas** o hacer clic en **Ver alertas** desde el Dashboard.
+1. Ir a **Sistema → Alertas** o hacer clic en **Ver alertas** desde el Dashboard.
 2. Encontrá la alarma en la lista.
 3. Hacé clic en la alarma para ver su detalle.
 4. Tomá la acción correspondiente (editar un pesaje, contactar al operador, etc.).
@@ -165,4 +165,4 @@ Sí. El historial de alarmas no tiene límite de fecha. Podés filtrar por perí
 
 ---
 
-*Documento generado: 12/05/2026 | Versión: 1.0*
+*Documento actualizado: 04/06/2026 | Versión: 1.1*

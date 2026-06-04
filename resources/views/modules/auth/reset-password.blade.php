@@ -31,7 +31,7 @@
                     autocomplete="new-password"
                     :aria-invalid="$errors->has('password') ? 'true' : null"
                 />
-                <x-ui.input-group.button type="button" @click="show = !show" tabindex="-1" aria-label="Mostrar u ocultar contraseña">
+                <x-ui.input-group.button type="button" class="rounded-full h-8 w-8" @click="show = !show" tabindex="-1" aria-label="Mostrar u ocultar contraseña">
                     <x-lucide-eye     x-show="!show"        class="size-4" />
                     <x-lucide-eye-off x-show="show" x-cloak class="size-4" />
                 </x-ui.input-group.button>
@@ -79,7 +79,7 @@
                     :value="old('password_confirmation')"
                     :aria-invalid="$errors->has('password_confirmation') ? 'true' : null"
                 />
-                <x-ui.input-group.button type="button" @click="show = !show" tabindex="-1" aria-label="Mostrar u ocultar contraseña">
+                <x-ui.input-group.button type="button" class="rounded-full h-8 w-8" @click="show = !show" tabindex="-1" aria-label="Mostrar u ocultar contraseña">
                     <x-lucide-eye     x-show="!show"        class="size-4" />
                     <x-lucide-eye-off x-show="show" x-cloak class="size-4" />
                 </x-ui.input-group.button>

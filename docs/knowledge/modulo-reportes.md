@@ -1,7 +1,7 @@
 # Módulo de reportes
 ## Sistema de Gestión de Balanza — Infinito Reciclaje
 
-**Dirigido a:** Administrador (Nacho)
+**Dirigido a:** Administrador
 **Cuándo usarlo:** Referencia de cómo generar, interpretar y exportar reportes de la operación
 
 ---
@@ -10,13 +10,25 @@
 
 El módulo de Reportes genera los informes formales de la operación de recolección. Reemplaza la tarea manual de armar los reportes mensuales en Excel — algo que antes llevaba entre 2 y 3 horas por mes.
 
-El reporte principal es el **reporte mensual** que se entrega a la Municipalidad de Corrientes. También podés generar reportes trimestrales o por rango de fechas personalizado para análisis internos.
+El reporte principal es el **reporte mensual** que se entrega al municipio. También podés generar reportes trimestrales o por rango de fechas personalizado para análisis internos.
 
 ---
 
 ## Cómo acceder
 
-**Ruta:** Análisis → Reportes (en la barra lateral)
+**Ruta:** Operación → Reportes (en la barra lateral)
+
+---
+
+## Estructura del módulo
+
+El módulo de Reportes tiene tres pestañas:
+
+| Pestaña | Para qué sirve |
+|---------|---------------|
+| **Generar** | Generar un reporte para un período específico y exportarlo en PDF o Excel |
+| **Programados** | Configurar el envío automático de reportes por email |
+| **Configuración** | Datos institucionales que aparecen en los PDFs (nombre del municipio, texto de presentación, servicios destacados) |
 
 ---
 
@@ -130,6 +142,54 @@ Si un origen tiene habitantes o hectáreas en cero, estos indicadores no se calc
 
 ---
 
+## Reportes programados
+
+La pestaña **Programados** te permite configurar el envío automático de reportes por email. El sistema genera el reporte y lo envía solo, sin que tengas que hacerlo manualmente.
+
+### Cómo crear un reporte programado
+
+1. Ir a **Operación → Reportes**, pestaña **Programados**.
+2. Hacer clic en **Programar reporte**.
+3. Completar el formulario:
+
+| Campo | Descripción |
+|-------|-------------|
+| Nombre | Nombre identificatorio del programado (ej: "Informe mensual municipio") |
+| Tipo de reporte | **Informe mensual** (resumen de operación) o **Alertas** (reporte de alertas del período) |
+| Frecuencia | **Diaria** (ayer), **Semanal** (últimos 7 días), **Quincenal** (últimos 15 días) o **Mensual** (últimos 30 días) |
+| Destinatarios | Uno o más emails — presioná Enter o coma para confirmar cada uno |
+| Activo | Switch para activar o desactivar el envío automático |
+
+4. Guardar.
+
+### Acciones disponibles sobre un programado existente
+
+Desde el menú de acciones (⋯) de cada programado:
+- **Editar** — modificar cualquier campo
+- **Enviar ahora** — disparar el envío inmediatamente, sin esperar la próxima ejecución programada
+- **Descargar PDF** — obtener el PDF del último período sin enviarlo por email
+- **Eliminar** — borrar el programado definitivamente
+
+### Cuándo ver el próximo envío
+
+La tabla muestra **Último envío** y **Próximo envío** para cada programado. Si el campo "Próximo envío" dice "—", el sistema todavía no calculó la próxima ejecución.
+
+---
+
+## Configuración del reporte
+
+La pestaña **Configuración** define los datos institucionales que aparecen en los PDFs exportados.
+
+| Campo | Descripción |
+|-------|-------------|
+| Nombre del municipio | Aparece en la portada y pie de página del informe |
+| Texto de presentación | Descripción de la empresa para la sección "Quiénes Somos" del informe PPT |
+| Servicios destacados | Cards de servicios que aparecen en la sección "Quiénes Somos" (máximo 6) |
+
+Completar estos datos antes de generar el primer PDF formal para el municipio.
+
+---
+
 ## El reporte PDF vs el reporte Excel
 
 **Reporte PDF:**
@@ -163,8 +223,11 @@ Sí. Aplicá el filtro de origen antes de generar el reporte. El PDF generado re
 No. Podés generar reportes de cualquier período desde el inicio de la operación.
 
 **¿Puedo programar el envío automático del reporte al municipio?**
-No en esta versión. El reporte se genera manualmente y se envía por los canales habituales (email, sistema del municipio, etc.).
+Sí. En la pestaña **Programados** podés crear un reporte programado con frecuencia mensual y los emails del municipio como destinatarios. El sistema lo genera y envía automáticamente en la fecha configurada.
+
+**¿Puedo configurar el logo y los datos del municipio en el PDF?**
+Los datos institucionales (nombre del municipio, texto de presentación, servicios destacados) se configuran en la pestaña **Configuración** del módulo de Reportes.
 
 ---
 
-*Documento generado: 12/05/2026 | Versión: 1.0*
+*Documento actualizado: 04/06/2026 | Versión: 1.1*

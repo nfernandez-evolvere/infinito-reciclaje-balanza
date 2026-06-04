@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AlertaController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\OnboardingController;
 use App\Http\Controllers\Admin\ReporteController;
 use App\Http\Controllers\Admin\TipoServicioController;
 use App\Http\Controllers\Admin\TipoVehiculoController;
@@ -14,6 +15,9 @@ use App\Services\PdfService;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+
+    // Onboarding
+    Route::post('/onboarding/visto', [OnboardingController::class, 'store'])->name('onboarding.visto');
 
     // Vistas generales
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -87,6 +91,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::delete('/reportes/programados/{programado}', [ReporteController::class, 'destroyProgramado'])->name('reportes.programados.destroy');
     Route::post('/reportes/programados/{programado}/enviar-ahora', [ReporteController::class, 'enviarAhoraProgramado'])
         ->name('reportes.programados.enviar-ahora');
+    Route::get('/reportes/programados/{programado}/pdf', [ReporteController::class, 'downloadPdfProgramado'])
+        ->name('reportes.programados.pdf');
 
     // Alertas ————————————————————————————————————————————————————————
     Route::get('/alertas', [AlertaController::class, 'index'])->name('alertas.index');

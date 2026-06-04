@@ -37,7 +37,7 @@ class GenerarEnviarReporteJob implements ShouldQueue
             ->where('organizacion_id', $programado->organizacion_id)
             ->first();
 
-        [$desde, $hasta] = $this->calcularPeriodo($programado->opciones['periodo'] ?? 'mes_anterior');
+        [$desde, $hasta] = $this->calcularPeriodo($programado->frecuencia);
 
         $esAlertas = $programado->tipo === 'alertas';
         $tipo = $programado->tipo;
@@ -57,7 +57,7 @@ class GenerarEnviarReporteJob implements ShouldQueue
                 ->orderBy('fecha_deteccion')
                 ->orderBy('tipo')
                 ->get()
-                ->unique(fn ($a) => $a->tipo.'|'.$a->titulo.'|'.$a->fecha_deteccion->toDateString())
+                ->unique(fn ($a) => "{$a->tipo}|{$a->titulo}|{$a->fecha_deteccion->toDateString()}")
                 ->values();
 
             $reporte['alertas'] = $alertas;
@@ -100,29 +100,36 @@ class GenerarEnviarReporteJob implements ShouldQueue
         // Actualizar timestamps
         $programado->update([
             'ultimo_envio_at'  => now(),
-            'proximo_envio_at' => $this->calcularProximoEnvio($programado->cron_expresion),
+            'proximo_envio_at' => $this->calcularProximoEnvio($programado->frecuencia),
         ]);
 
         Log::info('GenerarEnviarReporteJob: completado', ['programado_id' => $this->programadoId]);
     }
 
-    private function calcularPeriodo(string $periodo): array
+    private function calcularPeriodo(string $frecuencia): array
     {
-        return match ($periodo) {
-            'mes_actual'    => [now()->startOfMonth(), now()->endOfMonth()],
-            'semana_actual' => [now()->startOfWeek(), now()->endOfWeek()],
-            default         => [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()],
+        return match ($frecuencia) {
+            'diaria'    => [now()->subDay()->startOfDay(),    now()->subDay()->endOfDay()],
+            'semanal'   => [now()->subDays(7)->startOfDay(),  now()->endOfDay()],
+            'quincenal' => [now()->subDays(15)->startOfDay(), now()->endOfDay()],
+            default     => [now()->subDays(30)->startOfDay(), now()->endOfDay()], // mensual
         };
     }
 
-    private function calcularProximoEnvio(string $cron): Carbon
+    private function calcularProximoEnvio(string $frecuencia): Carbon
     {
-        // Parseo básico de cron: "0 8 1 * *" = día 1 de cada mes a las 8am
-        $parts = explode(' ', $cron);
-        try {
-            return Carbon::parse(now()->addMonth()->startOfMonth()->setTime((int) ($parts[1] ?? 8), 0));
-        } catch (\Throwable) {
-            return now()->addMonth();
-        }
+        return match ($frecuencia) {
+            'diaria'    => now()->addDay()->setTime(8, 0),
+            'semanal'   => now()->next(Carbon::MONDAY)->setTime(8, 0),
+            'quincenal' => $this->proximoQuincenal(),
+            default     => now()->addMonthNoOverflow()->startOfMonth()->setTime(8, 0), // mensual
+        };
+    }
+
+    private function proximoQuincenal(): Carbon
+    {
+        return now()->day < 15
+            ? now()->setDay(15)->setTime(8, 0)
+            : now()->addMonthNoOverflow()->startOfMonth()->setTime(8, 0);
     }
 }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Operador\OnboardingController;
 use App\Http\Controllers\Operador\PesajeController as OperadorPesajeController;
+use App\Http\Controllers\Shared\ManualController;
 use App\Http\Controllers\Shared\PesajeController;
 use App\Http\Controllers\Shared\TipoServicioController;
 use App\Http\Controllers\Shared\VehiculoController;
@@ -22,6 +23,8 @@ Route::middleware(['auth', 'role:operador'])->group(function () {
 
 // Rutas accesibles a cualquier usuario autenticado
 Route::middleware(['auth'])->group(function () {
+    Route::get('/manual/{slug?}', [ManualController::class, 'show'])->name('manual.show');
+
     Route::get('/vehiculos/buscar', [VehiculoController::class, 'buscar'])->name('vehiculos.buscar');
     Route::get('/servicios/{servicio}/zonas', [TipoServicioController::class, 'zonas'])->name('servicios.zonas');
     Route::get('/pesajes/{pesaje}', [PesajeController::class, 'show'])->name('pesajes.show');

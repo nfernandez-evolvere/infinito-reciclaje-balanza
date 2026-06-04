@@ -9,6 +9,7 @@ use App\Http\Requests\Admin\StoreReporteProgramadoRequest;
 use App\Http\Requests\Admin\UpdateReporteConfiguracionRequest;
 use App\Http\Requests\Admin\UpdateReporteProgramadoRequest;
 use App\Jobs\GenerarEnviarReporteJob;
+use App\Models\Alerta;
 use App\Models\ReporteConfiguracion;
 use App\Models\ReporteProgramado;
 use App\Repositories\ReporteConfiguracionRepository;
@@ -108,6 +109,8 @@ class ReporteController extends Controller
     {
         $desde = Carbon::parse($request->input('desde'));
         $hasta = Carbon::parse($request->input('hasta'));
+        $tipo  = $request->input('tipo', 'informe_mensual');
+
         $reporte = $this->reporteService->generar(
             $desde,
             $hasta,
@@ -117,18 +120,24 @@ class ReporteController extends Controller
         $config = $this->configuracionRepository->first();
 
         $conclusiones = [];
-        if ($config?->ai_enabled && $config?->ai_api_key) {
+        if ($tipo !== 'alertas' && $config?->ai_enabled && $config?->ai_api_key) {
             $aiService = new ConclusionesAIService($config->ai_api_key, $config->ai_modelo, $config->ai_prompt ?? '');
             $conclusiones = [
                 'analisis' => $aiService->generarAnalisis($reporte['kpis'], $reporte['zonas'], $desde->translatedFormat('F Y')),
             ];
         }
 
-        $reporte['config'] = $config;
+        $reporte['config']      = $config;
         $reporte['conclusiones'] = $conclusiones;
 
-        $filename = 'informe_'.$desde->format('Y-m').'.pdf';
-        $pdfContent = $this->pdfService->fromView('modules.admin.reportes.pdf-presentacion', compact('reporte'));
+        if ($tipo === 'alertas') {
+            $reporte['alertas'] = $this->consultarAlertas($desde, $hasta);
+            $filename = 'alertas_'.$desde->format('Y-m').'.pdf';
+        } else {
+            $filename = 'informe_'.$desde->format('Y-m').'.pdf';
+        }
+
+        $pdfContent = $this->pdfService->fromView('modules.admin.reportes.pdf-presentacion', compact('reporte', 'tipo'));
 
         return response($pdfContent, 200, [
             'Content-Type'        => 'application/pdf',
@@ -215,6 +224,32 @@ class ReporteController extends Controller
         return response()->json($destinatarios);
     }
 
+    public function downloadPdfProgramado(ReporteProgramado $programado): Response
+    {
+        [$desde, $hasta] = $this->calcularPeriodoProgramado($programado->frecuencia);
+        $tipo = $programado->tipo;
+
+        $reporte = $this->reporteService->generar($desde, $hasta);
+        $config  = $this->configuracionRepository->first();
+
+        $reporte['config']       = $config;
+        $reporte['conclusiones'] = [];
+
+        if ($tipo === 'alertas') {
+            $reporte['alertas'] = $this->consultarAlertas($desde, $hasta);
+            $filename = 'alertas_'.$desde->format('Y-m-d').'.pdf';
+        } else {
+            $filename = 'informe_'.$desde->format('Y-m').'.pdf';
+        }
+
+        $pdfContent = $this->pdfService->fromView('modules.admin.reportes.pdf-presentacion', compact('reporte', 'tipo'));
+
+        return response($pdfContent, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
+    }
+
     // ── Helpers privados ───────────────────────────────────────────────────
 
     private function generarReporte(Request $request): array
@@ -224,5 +259,27 @@ class ReporteController extends Controller
             Carbon::parse($request->input('hasta')),
             array_filter($request->only(['zona_id', 'tipo_servicio_id', 'tipo_vehiculo_id']))
         );
+    }
+
+    private function calcularPeriodoProgramado(string $frecuencia): array
+    {
+        return match ($frecuencia) {
+            'diaria'    => [now()->subDay()->startOfDay(),    now()->subDay()->endOfDay()],
+            'semanal'   => [now()->subDays(7)->startOfDay(),  now()->endOfDay()],
+            'quincenal' => [now()->subDays(15)->startOfDay(), now()->endOfDay()],
+            default     => [now()->subDays(30)->startOfDay(), now()->endOfDay()],
+        };
+    }
+
+    private function consultarAlertas(Carbon $desde, Carbon $hasta): \Illuminate\Support\Collection
+    {
+        return Alerta::whereDate('fecha_deteccion', '>=', $desde->toDateString())
+            ->whereDate('fecha_deteccion', '<=', $hasta->toDateString())
+            ->with(['zona'])
+            ->orderBy('fecha_deteccion')
+            ->orderBy('tipo')
+            ->get()
+            ->unique(fn ($a) => "{$a->tipo}|{$a->titulo}|{$a->fecha_deteccion->toDateString()}")
+            ->values();
     }
 }
