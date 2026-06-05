@@ -3,6 +3,7 @@
 namespace Tests\Feature\Reporte;
 
 use App\Jobs\GenerarEnviarReporteJob;
+use App\Models\ReporteConfiguracion;
 use App\Models\ReporteProgramado;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
@@ -21,6 +22,7 @@ class ReporteProgramadoTest extends TestCase
             'frecuencia'     => 'mensual',
             'cron_expresion' => '0 8 1 * *',
             'destinatarios'  => 'dest@municipio.gob.ar',
+            'formatos'       => ['pdf'],
             'activo'         => true,
         ], $overrides);
     }
@@ -88,6 +90,93 @@ class ReporteProgramadoTest extends TestCase
         $this->actingAs($this->admin())
             ->post(route('admin.reportes.programados.store'), $this->payload(['destinatarios' => '']))
             ->assertSessionHasErrors('destinatarios');
+    }
+
+    // ── formatos del informe mensual ──────────────────────────────────
+
+    #[Test]
+    public function store_persiste_los_formatos_seleccionados(): void
+    {
+        $this->actingAs($this->admin())
+            ->post(route('admin.reportes.programados.store'), $this->payload([
+                'nombre'   => 'Informe con Excel',
+                'formatos' => ['pdf', 'excel'],
+            ]))
+            ->assertRedirect(route('admin.reportes.index', ['tab' => 'programados']));
+
+        $programado = ReporteProgramado::where('nombre', 'Informe con Excel')->first();
+        $this->assertNotNull($programado);
+        $this->assertSame(['pdf', 'excel'], $programado->opciones['formatos']);
+        $this->assertSame(['pdf', 'excel'], $programado->formatos());
+    }
+
+    #[Test]
+    public function store_normaliza_formatos_a_orden_canonico_pdf_excel(): void
+    {
+        $this->actingAs($this->admin())
+            ->post(route('admin.reportes.programados.store'), $this->payload([
+                'nombre'   => 'Informe orden',
+                'formatos' => ['excel', 'pdf'],
+            ]))
+            ->assertRedirect();
+
+        $programado = ReporteProgramado::where('nombre', 'Informe orden')->first();
+        $this->assertSame(['pdf', 'excel'], $programado->opciones['formatos']);
+    }
+
+    #[Test]
+    public function store_informe_mensual_requiere_al_menos_un_formato(): void
+    {
+        $this->actingAs($this->admin())
+            ->post(route('admin.reportes.programados.store'), $this->payload(['formatos' => []]))
+            ->assertSessionHasErrors('formatos');
+
+        $this->assertDatabaseMissing('reportes_programados', ['nombre' => 'Informe mensual Norte']);
+    }
+
+    #[Test]
+    public function store_rechaza_un_formato_no_soportado(): void
+    {
+        $this->actingAs($this->admin())
+            ->post(route('admin.reportes.programados.store'), $this->payload(['formatos' => ['word']]))
+            ->assertSessionHasErrors('formatos.0');
+    }
+
+    #[Test]
+    public function store_alertas_no_requiere_formatos_y_queda_en_pdf(): void
+    {
+        // El tipo "alertas" solo es un tipo válido si la organización lo habilitó
+        // en su configuración de reportes (default en la migración: deshabilitado).
+        ReporteConfiguracion::create(['tipo_alertas_activo' => true]);
+
+        $this->actingAs($this->admin())
+            ->post(route('admin.reportes.programados.store'), $this->payload([
+                'nombre'   => 'Alertas Norte',
+                'tipo'     => 'alertas',
+                'formatos' => [],
+            ]))
+            ->assertRedirect(route('admin.reportes.index', ['tab' => 'programados']))
+            ->assertSessionHasNoErrors();
+
+        $programado = ReporteProgramado::where('nombre', 'Alertas Norte')->first();
+        $this->assertNotNull($programado);
+        $this->assertSame(['pdf'], $programado->formatos());
+    }
+
+    #[Test]
+    public function update_preserva_otras_opciones_al_guardar_formatos(): void
+    {
+        $programado = $this->programado(['opciones' => ['periodo' => 'mes_anterior']]);
+
+        $this->actingAs($this->admin())
+            ->put(route('admin.reportes.programados.update', $programado), $this->payload([
+                'formatos' => ['excel'],
+            ]))
+            ->assertRedirect();
+
+        $programado->refresh();
+        $this->assertSame(['excel'], $programado->opciones['formatos']);
+        $this->assertSame('mes_anterior', $programado->opciones['periodo']);
     }
 
     // ── updateProgramado ──────────────────────────────────────────────

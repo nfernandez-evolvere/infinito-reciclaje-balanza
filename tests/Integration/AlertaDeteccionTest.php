@@ -186,6 +186,59 @@ class AlertaDeteccionTest extends TestCase
             ->count());
     }
 
+    #[Test]
+    public function gap_registro_uses_configured_horario_operativo_in_description(): void
+    {
+        Carbon::setTestNow(self::HOY);
+
+        ConfigAlerta::create([
+            'tipo'        => 'gap_registro',
+            'activo'      => true,
+            'hora_inicio' => '06:00',
+            'hora_fin'    => '22:00',
+        ]);
+        // Ayer (martes) sin pesajes → gap completo del horario operativo configurado
+
+        $this->service->detectarParaOrganizacion($this->orgId);
+
+        $alerta = Alerta::withoutGlobalScopes()
+            ->where('tipo', 'gap_registro')
+            ->where('organizacion_id', $this->orgId)
+            ->firstOrFail();
+
+        $this->assertStringContainsString('06:00', $alerta->descripcion);
+        $this->assertStringContainsString('22:00', $alerta->descripcion);
+        $this->assertStringNotContainsString('08:00', $alerta->descripcion);
+    }
+
+    #[Test]
+    public function gap_registro_respects_configured_window_and_ignores_pesajes_outside_it(): void
+    {
+        Carbon::setTestNow(self::HOY);
+
+        // Ventana angosta 09:00–11:00. Con pesajes cada 60 min adentro no hay gap >= 120.
+        // Con la ventana default (08–18) el pesaje de las 14:00 generaría un gap → este test
+        // pasa solo si la ventana configurada se respeta y los pesajes externos se ignoran.
+        ConfigAlerta::create([
+            'tipo'        => 'gap_registro',
+            'activo'      => true,
+            'hora_inicio' => '09:00',
+            'hora_fin'    => '11:00',
+        ]);
+
+        $this->pesaje(self::AYER.' 09:00:00');
+        $this->pesaje(self::AYER.' 10:00:00');
+        $this->pesaje(self::AYER.' 11:00:00');
+        $this->pesaje(self::AYER.' 14:00:00'); // fuera de la ventana → debe ignorarse
+
+        $this->service->detectarParaOrganizacion($this->orgId);
+
+        $this->assertSame(0, Alerta::withoutGlobalScopes()
+            ->where('tipo', 'gap_registro')
+            ->where('organizacion_id', $this->orgId)
+            ->count());
+    }
+
     // ══════════════════════════════════════════════════════════════════
     // detectarVolumenAtipico
     // ══════════════════════════════════════════════════════════════════

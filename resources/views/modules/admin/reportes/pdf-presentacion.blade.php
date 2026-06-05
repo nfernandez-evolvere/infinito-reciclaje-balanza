@@ -886,6 +886,302 @@
         line-height: 1.4;
     }
 
+    /* ════════════════════════════════════════
+       PÁGINA ANÁLISIS ESTRATÉGICO (AI)
+    ════════════════════════════════════════ */
+    .ai-page {
+        background: var(--p-950);
+        min-height: 210mm;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .ai-page::before {
+        content: '';
+        position: absolute;
+        top: -30mm; right: -15mm;
+        width: 90mm; height: 90mm;
+        border-radius: 50%;
+        background: var(--p-800);
+        opacity: 0.4;
+    }
+
+    .ai-page::after {
+        content: '';
+        position: absolute;
+        bottom: 10mm; left: -20mm;
+        width: 70mm; height: 70mm;
+        border-radius: 50%;
+        background: var(--p-900);
+        opacity: 0.5;
+    }
+
+    .ai-stripe {
+        position: absolute;
+        top: 0; right: 42mm;
+        width: 5mm; height: 100%;
+        background: var(--p-600);
+        opacity: 0.4;
+    }
+
+    .ai-body {
+        padding: 14mm 24mm 0;
+        position: relative;
+        z-index: 1;
+        flex: 1;
+    }
+
+    .ai-header {
+        margin-bottom: 9mm;
+    }
+
+    .ai-eyebrow {
+        font-size: 7px;
+        font-weight: 700;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+        color: var(--p-400);
+        margin-bottom: 2mm;
+    }
+
+    .ai-title {
+        font-size: 26px;
+        font-weight: 800;
+        color: #fff;
+        letter-spacing: -0.025em;
+        line-height: 1.05;
+        margin-bottom: 3mm;
+    }
+
+    .ai-title span { color: var(--p-400); }
+
+    .ai-rule {
+        width: 20mm; height: 3px;
+        background: linear-gradient(90deg, var(--p-500), var(--p-300));
+        border-radius: 2px;
+    }
+
+    .ai-sections {
+        display: flex;
+        flex-direction: column;
+        gap: 5mm;
+    }
+
+    .ai-section {
+        display: flex;
+        gap: 5mm;
+        align-items: flex-start;
+    }
+
+    .ai-section-num {
+        flex-shrink: 0;
+        width: 10mm;
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--p-700);
+        line-height: 1;
+        letter-spacing: -0.03em;
+        padding-top: 0.5mm;
+    }
+
+    .ai-section-content {
+        flex: 1;
+        border-left: 2px solid var(--p-800);
+        padding-left: 4mm;
+    }
+
+    .ai-section-label {
+        font-size: 7px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--p-500);
+        margin-bottom: 2mm;
+    }
+
+    .ai-section-text {
+        font-size: 9.5px;
+        color: var(--p-100);
+        line-height: 1.75;
+    }
+
+    .ai-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 1.5mm;
+        background: oklch(from var(--p-700) l c h / 20%);
+        border: 1px solid var(--p-800);
+        border-radius: 4px;
+        padding: 1mm 2.5mm;
+        font-size: 6.5px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--p-400);
+        margin-top: 3mm;
+    }
+
+    .ai-badge-dot {
+        width: 4px; height: 4px;
+        border-radius: 50%;
+        background: var(--p-500);
+    }
+
+    /* ════════════════════════════════════════
+       PÁGINA CIERRE — GRACIAS (claro)
+    ════════════════════════════════════════ */
+    .thank-page {
+        background: #fff;
+        min-height: 210mm;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Banda superior verde */
+    .thank-stripe-top {
+        height: 5mm;
+        background: linear-gradient(90deg, var(--p-800), var(--p-500), var(--p-300));
+        flex-shrink: 0;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Círculo decorativo grande — fondo derecha */
+    .thank-deco-a {
+        position: absolute;
+        top: -18mm; right: -22mm;
+        width: 110mm; height: 110mm;
+        border-radius: 50%;
+        background: var(--p-50);
+    }
+
+    /* Círculo decorativo mediano — izquierda centro */
+    .thank-deco-b {
+        position: absolute;
+        top: 38mm; left: -28mm;
+        width: 70mm; height: 70mm;
+        border-radius: 50%;
+        background: var(--p-50);
+    }
+
+    /* Anillo decorativo — derecha centro (solo borde) */
+    .thank-deco-c {
+        position: absolute;
+        top: 50mm; right: 18mm;
+        width: 55mm; height: 55mm;
+        border-radius: 50%;
+        border: 6mm solid var(--p-100);
+        background: transparent;
+    }
+
+    /* Círculo pequeño sólido — bottom right */
+    .thank-deco-d {
+        position: absolute;
+        bottom: 18mm; right: 14mm;
+        width: 22mm; height: 22mm;
+        border-radius: 50%;
+        background: var(--p-100);
+    }
+
+    /* Línea vertical decorativa izquierda */
+    .thank-deco-line {
+        position: absolute;
+        top: 0; left: 42mm;
+        width: 1px; height: 100%;
+        background: var(--p-100);
+    }
+
+    .thank-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 0 30mm 0 28mm;
+        position: relative;
+        z-index: 1;
+    }
+
+    .thank-eyebrow {
+        font-size: 7px;
+        font-weight: 700;
+        letter-spacing: 0.26em;
+        text-transform: uppercase;
+        color: var(--p-600);
+        margin-bottom: 4mm;
+    }
+
+    .thank-title {
+        font-size: 82px;
+        font-weight: 800;
+        color: var(--p-900);
+        letter-spacing: -0.045em;
+        line-height: 0.88;
+        margin-bottom: 7mm;
+    }
+
+    .thank-rule {
+        width: 26mm;
+        height: 3px;
+        background: linear-gradient(90deg, var(--p-700), var(--p-300));
+        border-radius: 2px;
+        margin-bottom: 7mm;
+    }
+
+    .thank-org {
+        font-size: 14px;
+        font-weight: 300;
+        color: var(--n-500);
+        letter-spacing: 0.01em;
+        margin-bottom: 5mm;
+    }
+
+    .thank-caption {
+        font-size: 9.5px;
+        color: var(--n-400);
+        line-height: 1.75;
+        max-width: 140mm;
+    }
+
+    .thank-footer {
+        background: var(--p-950);
+        padding: 5mm 28mm;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-shrink: 0;
+        position: relative;
+        z-index: 2;
+    }
+
+    .thank-footer-org {
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--p-100);
+        margin-bottom: 1mm;
+    }
+
+    .thank-footer-sub {
+        font-size: 7.5px;
+        color: var(--p-500);
+        letter-spacing: 0.02em;
+    }
+
+    .thank-footer-badge {
+        background: oklch(from var(--p-700) l c h / 20%);
+        border: 1px solid var(--p-700);
+        border-radius: 5px;
+        padding: 2.5mm 4.5mm;
+        font-size: 7px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        color: var(--p-300);
+        text-transform: uppercase;
+    }
+
 </style>
 </head>
 <body>
@@ -1149,6 +1445,7 @@
 @endif
 {{-- ═══════════ FIN SLIDE ALERTAS ═══════════ --}}
 
+@if(!$esAlerta)
 {{-- ═══════════ RESUMEN GENERAL ═══════════ --}}
 <div class="page">
     <div class="slide-wrap">
@@ -1647,58 +1944,89 @@
         </div>
     </div>
 </div>
-@endif
+@endif {{-- zonasConHa --}}
 
-{{-- ═══════════ CIERRE ═══════════ --}}
-<div class="page cover">
-    <div class="cover-stripe"></div>
+@endif {{-- !esAlerta --}}
 
-    <div class="cover-body" style="padding-top: 22mm;">
-        <div class="cover-brand" style="margin-bottom: 12mm;">
-            <div class="cover-brand-dot"></div>
-            Infinito Reciclaje
+{{-- ═══════════ ANÁLISIS ESTRATÉGICO (AI) ═══════════ --}}
+@if(!$esAlerta && !empty($ai['analisis']))
+@php
+    $parrafos = array_values(array_filter(
+        explode("\n\n", trim($ai['analisis'])),
+        fn($p) => trim($p) !== ''
+    ));
+    $labels = ['Diagnóstico', 'Posibilidades de mejora', 'Recomendaciones'];
+@endphp
+<div class="page ai-page">
+    <div class="ai-stripe"></div>
+
+    <div class="ai-body">
+        <div class="ai-header">
+            <div class="ai-eyebrow">Informe · {{ $periodo }}</div>
+            <div class="ai-title">Análisis <span>Estratégico</span></div>
+            <div class="ai-rule"></div>
         </div>
 
-        <div class="cover-eyebrow">Agradecimiento</div>
-        <div class="cover-title" style="font-size: 42px; margin-bottom: 6mm;">Gracias</div>
-        <div class="cover-accent"></div>
-
-        <p style="font-size: 10px; color: var(--p-200); line-height: 1.75; max-width: 200mm; margin-bottom: 9mm;">
-            @if(!empty($ai['analisis']))
-                {{ $ai['analisis'] }}
-            @else
-                Agradecemos la confianza depositada en Infinito Reciclaje durante {{ $periodo }}.
-                Este informe refleja el trabajo comprometido de todo el equipo operativo.
-                Seguimos trabajando para mejorar la eficiencia, la trazabilidad y el impacto ambiental
-                de cada jornada de recolección.
-            @endif
-        </p>
-
-        <div class="closing-grid">
-            <div class="closing-card">
-                <div class="closing-num">01</div>
-                <div class="closing-card-title">Seguimiento continuo</div>
-                <div class="closing-card-desc">Cada pesaje queda registrado en la plataforma digital con trazabilidad completa. Los datos de este informe son auditables en tiempo real.</div>
+        <div class="ai-sections">
+            @foreach($parrafos as $i => $parrafo)
+            <div class="ai-section">
+                <div class="ai-section-num">0{{ $i + 1 }}</div>
+                <div class="ai-section-content">
+                    <div class="ai-section-label">{{ $labels[$i] ?? 'Análisis' }}</div>
+                    <div class="ai-section-text">{{ $parrafo }}</div>
+                </div>
             </div>
-            <div class="closing-card">
-                <div class="closing-num">02</div>
-                <div class="closing-card-title">Próximo informe</div>
-                <div class="closing-card-desc">El informe correspondiente al mes siguiente será generado y enviado automáticamente a los destinatarios configurados en el sistema.</div>
-            </div>
-            <div class="closing-card">
-                <div class="closing-num">03</div>
-                <div class="closing-card-title">Consultas y soporte</div>
-                <div class="closing-card-desc">Para consultas sobre este informe o sobre el servicio, el equipo de Infinito Reciclaje está disponible a través de los canales habituales de contacto.</div>
-            </div>
+            @endforeach
         </div>
     </div>
 
     <div class="cover-footer">
+        <div class="ai-badge">
+            <div class="ai-badge-dot"></div>
+            Generado con IA · {{ $ai['modelo'] ?? 'Gemini' }}
+        </div>
         <div>
             <div class="cover-muni">{{ $organizacion }}</div>
-            <div class="cover-sub">Sistema de Balanza Digital · Generado el {{ $generado }}</div>
+            <div class="cover-sub">Sistema de Balanza Digital · {{ $periodo }}</div>
         </div>
-        <div class="cover-badge">Gestión Integral de Residuos</div>
+    </div>
+</div>
+@endif
+
+{{-- ═══════════ CIERRE ═══════════ --}}
+<div class="page thank-page">
+
+    {{-- Adornos geométricos --}}
+    <div class="thank-deco-a"></div>
+    <div class="thank-deco-b"></div>
+    <div class="thank-deco-c"></div>
+    <div class="thank-deco-d"></div>
+    <div class="thank-deco-line"></div>
+
+    {{-- Banda superior --}}
+    <div class="thank-stripe-top"></div>
+
+    {{-- Contenido central --}}
+    <div class="thank-body">
+        <div class="thank-eyebrow">Infinito Reciclaje · {{ $periodo }}</div>
+        <div class="thank-title">Gracias.</div>
+        <div class="thank-rule"></div>
+        <div class="thank-org">{{ $organizacion }}</div>
+        <p class="thank-caption">
+            Agradecemos la confianza depositada en nuestro servicio durante {{ $periodo }}.<br>
+            Este informe refleja el trabajo comprometido de todo el equipo operativo.<br>
+            Seguimos trabajando cada jornada para mejorar la eficiencia,
+            la trazabilidad y el impacto ambiental de la recolección.
+        </p>
+    </div>
+
+    {{-- Pie oscuro --}}
+    <div class="thank-footer">
+        <div>
+            <div class="thank-footer-org">{{ $organizacion }}</div>
+            <div class="thank-footer-sub">Sistema de Balanza Digital · Generado el {{ $generado }}</div>
+        </div>
+        <div class="thank-footer-badge">Gestión Integral de Residuos</div>
     </div>
 </div>
 

@@ -111,8 +111,11 @@ return [
             'prefix'         => env('DB_TABLE_PREFIX', 'dev_'),
             'schema'         => env('DB_SCHEMA', 'infinito_balanza'),
             'prefix_indexes' => true,
-            // 'encrypt' => env('DB_ENCRYPT', 'yes'),
-            // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
+            // msodbcsql18 cifra por defecto (Encrypt=yes). Contra un SQL Server con
+            // certificado self-signed (dev/CI) hay que poder relajarlo vía env, si no
+            // la conexión falla con error SSL.
+            'encrypt'                  => env('DB_ENCRYPT', 'yes'),
+            'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
     ],

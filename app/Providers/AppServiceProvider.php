@@ -4,6 +4,13 @@ namespace App\Providers;
 
 use App\Database\SqlServerSchemaDDLGrammar;
 use App\Database\SqlServerSchemaGrammar;
+use App\Models\TipoServicio;
+use App\Models\TipoVehiculo;
+use App\Models\User;
+use App\Models\Vehiculo;
+use App\Models\Zona;
+use App\Models\ZonaServicio;
+use App\Services\ConfiguracionInicialService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -61,6 +68,18 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('view-dashboard', fn ($user) => $user->isAdmin());
         Gate::define('manage-usuarios', fn ($user) => $user->isAdmin());
         Gate::define('manage-organizaciones', fn ($user) => $user->isSuperAdmin());
+
+        // Invalida el cache de progreso de configuración inicial cuando cambia
+        // cualquier modelo que forma parte del checklist.
+        $flush = fn () => ConfiguracionInicialService::forgetCache();
+
+        TipoVehiculo::saved($flush);
+        TipoServicio::saved($flush);
+        Vehiculo::saved($flush);
+        Zona::saved($flush);
+        ZonaServicio::saved($flush);
+        ZonaServicio::deleted($flush);
+        User::saved($flush);
 
         ComponentAttributeBag::macro('twMerge', function (string ...$classes): ComponentAttributeBag {
             /** @var ComponentAttributeBag $this */

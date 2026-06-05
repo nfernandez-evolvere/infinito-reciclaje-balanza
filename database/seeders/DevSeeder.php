@@ -46,7 +46,7 @@ class DevSeeder extends Seeder
         User::create([
             'name'     => 'Nicolás Fernández',
             'email'    => 'nfernandez@evolvere.com.ar',
-            'password' => '1234',
+            'password' => 'Evolvere123!@',
             'role'     => 'super_admin',
         ]);
 
@@ -57,7 +57,7 @@ class DevSeeder extends Seeder
         $adminDoble = User::create([
             'name'     => 'Admin Doble',
             'email'    => 'admin.doble@test.com',
-            'password' => '1234',
+            'password' => 'Evolvere123!@',
             'role'     => 'admin',
         ]);
         $corrientes->users()->attach($adminDoble->id);
@@ -75,7 +75,7 @@ class DevSeeder extends Seeder
         $admin = User::create([
             'name'     => "Admin $suffix",
             'email'    => "admin@{$orgSlug}.com",
-            'password' => '1234',
+            'password' => 'Evolvere123!@',
             'role'     => 'admin',
         ]);
         $org->users()->attach($admin->id);
@@ -83,7 +83,7 @@ class DevSeeder extends Seeder
         $operario = User::create([
             'name'     => "Operario $suffix",
             'email'    => "operario@{$orgSlug}.com",
-            'password' => '1234',
+            'password' => 'Evolvere123!@',
             'role'     => 'operador',
         ]);
         $org->users()->attach($operario->id);

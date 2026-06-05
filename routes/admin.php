@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AlertaController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\OnboardingController;
 use App\Http\Controllers\Admin\ReporteController;
 use App\Http\Controllers\Admin\TipoServicioController;
 use App\Http\Controllers\Admin\TipoVehiculoController;
@@ -15,11 +16,13 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
 
+    // Onboarding
+    Route::post('/onboarding/visto', [OnboardingController::class, 'store'])->name('onboarding.visto');
+
     // Vistas generales
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/data', [DashboardController::class, 'data'])->name('dashboard.data');
     Route::get('/pesajes', [PesajeController::class, 'index'])->name('pesajes.index');
-    Route::get('/pesajes/export', [PesajeController::class, 'export'])->name('pesajes.export');
     Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
     Route::get('/reportes/preview-pdf', function () {
         abort_unless(app()->isLocal(), 404);
@@ -80,6 +83,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     })->name('reportes.preview');
     Route::get('/reportes/pdf-presentacion', [ReporteController::class, 'exportPdfPresentacion'])->name('reportes.pdf-presentacion');
     Route::get('/reportes/excel', [ReporteController::class, 'exportExcel'])->name('reportes.excel');
+    Route::get('/reportes/historial/{generado}/descargar', [ReporteController::class, 'downloadHistorial'])
+        ->name('reportes.historial.download');
     Route::get('/reportes/destinatarios', [ReporteController::class, 'indexDestinatarios'])->name('reportes.destinatarios.index');
     Route::put('/reportes/configuracion', [ReporteController::class, 'updateConfiguracion'])->name('reportes.configuracion.update');
     Route::post('/reportes/programados', [ReporteController::class, 'storeProgramado'])->name('reportes.programados.store');
@@ -87,6 +92,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::delete('/reportes/programados/{programado}', [ReporteController::class, 'destroyProgramado'])->name('reportes.programados.destroy');
     Route::post('/reportes/programados/{programado}/enviar-ahora', [ReporteController::class, 'enviarAhoraProgramado'])
         ->name('reportes.programados.enviar-ahora');
+    Route::get('/reportes/programados/{programado}/pdf', [ReporteController::class, 'downloadPdfProgramado'])
+        ->name('reportes.programados.pdf');
+    Route::get('/reportes/programados/{programado}/excel', [ReporteController::class, 'downloadExcelProgramado'])
+        ->name('reportes.programados.excel');
 
     // Alertas ————————————————————————————————————————————————————————
     Route::get('/alertas', [AlertaController::class, 'index'])->name('alertas.index');

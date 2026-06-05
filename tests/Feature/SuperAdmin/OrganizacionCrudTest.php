@@ -140,6 +140,16 @@ class OrganizacionCrudTest extends TestCase
             ->assertSessionHasErrors('admin_email');
     }
 
+    #[Test]
+    public function store_validates_admin_email_unique(): void
+    {
+        User::factory()->create(['email' => 'admin@corrientes.gob.ar']);
+
+        $this->actingAs($this->superAdmin())
+            ->post(route('super.organizaciones.store'), $this->payload())
+            ->assertSessionHasErrors('admin_email');
+    }
+
     // ── Update ────────────────────────────────────────────────────────
 
     #[Test]

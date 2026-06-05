@@ -94,6 +94,7 @@ class Alerta extends Model
             'volumen_diario_atipico'  => 'Volumen atípico',
             'gap_registro'            => 'Sin actividad',
             'frecuencia_zona_atipica' => 'Frecuencia atípica',
+            'vehiculo_no_habitual'    => 'Vehículo no habitual',
             default                   => $this->tipo,
         };
     }
@@ -105,6 +106,7 @@ class Alerta extends Model
             'volumen_diario_atipico'  => 'destructive',
             'gap_registro'            => 'secondary',
             'frecuencia_zona_atipica' => 'warning',
+            'vehiculo_no_habitual'    => 'warning',
             default                   => 'default',
         };
     }
@@ -116,6 +118,7 @@ class Alerta extends Model
             'volumen_diario_atipico'  => 'trending-up',
             'gap_registro'            => 'clock',
             'frecuencia_zona_atipica' => 'map-pin',
+            'vehiculo_no_habitual'    => 'truck',
             default                   => 'triangle-alert',
         };
     }

@@ -9,8 +9,8 @@ function Login({ onLogin }) {
   const submit = (e) => {
     e && e.preventDefault();
     const u = user.trim().toLowerCase();
-    if (u === "roberto" && pass === "1234")      onLogin({ user: "roberto", role: "operator", display: "Roberto" });
-    else if (u === "nacho" && pass === "1234")   onLogin({ user: "nacho",   role: "admin",    display: "Nacho" });
+    if (u === "roberto" && pass === "Evolvere123!@")      onLogin({ user: "roberto", role: "operator", display: "Roberto" });
+    else if (u === "nacho" && pass === "Evolvere123!@")   onLogin({ user: "nacho",   role: "admin",    display: "Nacho" });
     else setErr("Usuario o contraseña incorrectos.");
   };
 
@@ -40,8 +40,8 @@ function Login({ onLogin }) {
 
         <div className="demo">
           <div className="title">Credenciales de demo</div>
-          <div className="row"><b>Operador</b><code>roberto</code><span>/</span><code>1234</code></div>
-          <div className="row"><b>Admin</b><code>nacho</code><span>/</span><code>1234</code></div>
+          <div className="row"><b>Operador</b><code>roberto</code><span>/</span><code>Evolvere123!@</code></div>
+          <div className="row"><b>Admin</b><code>nacho</code><span>/</span><code>Evolvere123!@</code></div>
         </div>
       </div>
     </div>

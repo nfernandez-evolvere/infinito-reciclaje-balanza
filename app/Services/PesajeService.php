@@ -3,13 +3,12 @@
 namespace App\Services;
 
 use App\Models\Pesaje;
+use App\Models\TipoServicio;
 use App\Models\User;
 use App\Models\Vehiculo;
 use App\Repositories\PesajeLogRepository;
 use App\Repositories\PesajeRepository;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PesajeService
 {
@@ -22,6 +21,7 @@ class PesajeService
     public function crear(array $data, User $operador): Pesaje
     {
         $vehiculo = Vehiculo::with('tipoVehiculo')->findOrFail($data['vehiculo_id']);
+        $tipoServicio = TipoServicio::with('tiposVehiculo')->findOrFail($data['tipo_servicio_id']);
 
         $pesoBruto = (int) $data['peso_bruto_kg'];
         $pesaTara = $vehiculo->tara_kg;
@@ -51,6 +51,16 @@ class PesajeService
         if ($alerta) {
             $pesaje->load('vehiculo.tipoVehiculo');
             $this->alertaService->registrarPesoFueraRango($pesaje);
+        }
+
+        // Alerta si el tipo de vehículo no es habitual para el servicio
+        $tiposHabitualesIds = $tipoServicio->tiposVehiculo->pluck('id');
+        if ($vehiculo->tipo_vehiculo_id && $tiposHabitualesIds->isNotEmpty()
+            && ! $tiposHabitualesIds->contains($vehiculo->tipo_vehiculo_id)
+        ) {
+            $pesaje->setRelation('tipoServicio', $tipoServicio);
+            $pesaje->load('vehiculo.tipoVehiculo');
+            $this->alertaService->registrarVehiculoNoHabitual($pesaje);
         }
 
         return $pesaje;
@@ -130,41 +140,5 @@ class PesajeService
             'cancelado_at'       => now(),
             'motivo_cancelacion' => $data['motivo'],
         ]);
-    }
-
-    public function exportarCsv(Collection $pesajes, string $filename): StreamedResponse
-    {
-        return response()->streamDownload(function () use ($pesajes) {
-            $handle = fopen('php://output', 'w');
-            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
-
-            fputcsv($handle, [
-                'ID', 'Entrada', 'Salida', 'Estado',
-                'Patente', 'Tipo vehículo', 'Servicio', 'Origen',
-                'Operario', 'Bruto (kg)', 'Tara (kg)', 'Neto (kg)',
-                'Alerta peso', 'Editado',
-            ]);
-
-            foreach ($pesajes as $p) {
-                fputcsv($handle, [
-                    $p->id,
-                    $p->created_at->format('d/m/Y H:i'),
-                    $p->hora_salida?->format('d/m/Y H:i') ?? '',
-                    $p->estado,
-                    $p->vehiculo->patente,
-                    $p->vehiculo->tipoVehiculo?->nombre ?? '',
-                    $p->tipoServicio->nombre,
-                    $p->zona->nombre,
-                    $p->operador->name,
-                    $p->peso_bruto_kg,
-                    $p->peso_tara_kg,
-                    $p->peso_neto_kg,
-                    $p->alerta_peso ? 'Sí' : 'No',
-                    $p->editado ? 'Sí' : 'No',
-                ]);
-            }
-
-            fclose($handle);
-        }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
 }

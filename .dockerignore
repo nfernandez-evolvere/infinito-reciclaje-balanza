@@ -1,0 +1,60 @@
+# Control de versiones / CI
+.git
+.github
+.gitignore
+.gitattributes
+
+# Dependencias (se instalan dentro del build)
+/vendor
+/node_modules
+
+# Build de assets (se genera en la etapa asset-build)
+/public/build
+/public/hot
+/public/storage
+
+# Entornos y secretos — NUNCA copiar al contexto de build
+.env
+.env.*
+!.env.example
+auth.json
+
+# Storage runtime (se recrea en el contenedor)
+/storage/*.key
+/storage/logs/*
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/app/public/*
+/bootstrap/cache/*.php
+
+# SQLite local
+/database/*.sqlite
+/database/*.sqlite-journal
+
+# Tooling / artefactos de dev
+/build
+/coverage
+/.phpunit.cache
+.phpunit.result.cache
+infection.log
+/docs
+/tests
+.idea
+.vscode
+.fleet
+*.md
+!README.md
+
+# Base de conocimiento del manual (ManualController la lee en runtime desde
+# docs/knowledge/*.md). Re-incluir pese a /docs y *.md de arriba — last-match-wins.
+!/docs/knowledge/
+!/docs/knowledge/*.md
+
+# Plataforma host
+.DS_Store
+Thumbs.db
+
+# Los propios artefactos Docker no necesitan recopiarse al contexto
+docker-compose*.yml
+compose*.yaml

@@ -1,7 +1,7 @@
 # Módulo de gestión de padrones (ABMs)
 ## Sistema de Gestión de Balanza — Infinito Reciclaje
 
-**Dirigido a:** Administrador (Nacho)
+**Dirigido a:** Administrador
 **Cuándo usarlo:** Referencia de cómo gestionar vehículos, zonas, servicios, tipos de vehículo y usuarios
 
 ---
@@ -29,7 +29,7 @@ La baja es siempre **lógica**: los registros nunca se borran. Si un camión dej
 
 ## Padrón de tipos de vehículo
 
-**Ruta:** Transporte → Tipos de vehículo
+**Ruta:** Padrón → Vehículos (pestaña **Tipos de vehículo**)
 
 Los tipos de vehículo definen los rangos de **peso bruto** esperados para cada categoría de camión (vehículo + carga completa). El sistema usa estos rangos para detectar pesajes anómalos y alertar al operador cuando el peso registrado queda fuera de lo habitual.
 
@@ -75,7 +75,7 @@ Estos valores son una referencia — cada municipio puede necesitar ajustarlos s
 
 ### Cómo crear un tipo nuevo
 
-1. Ir a Transporte → Tipos de vehículo.
+1. Ir a **Padrón → Vehículos**, pestaña **Tipos de vehículo**.
 2. Hacer clic en **Nuevo tipo**.
 3. Completar el nombre y los rangos de peso.
 4. Guardar.
@@ -86,10 +86,11 @@ El tipo queda disponible de inmediato para asignarlo a vehículos.
 
 ### Cómo editar un tipo existente
 
-1. En la tabla, abrir el menú de acciones (⋯) del tipo a modificar.
-2. Seleccionar **Editar**.
-3. Modificar los campos necesarios.
-4. Guardar.
+1. Ir a **Padrón → Vehículos**, pestaña **Tipos de vehículo**.
+2. En la tabla, abrir el menú de acciones (⋯) del tipo a modificar.
+3. Seleccionar **Editar**.
+4. Modificar los campos necesarios.
+5. Guardar.
 
 Los cambios en los rangos afectan la detección de anomalías **a partir del momento del cambio**. Los pesajes ya registrados no se recalculan.
 
@@ -163,7 +164,7 @@ No en nuevos pesajes. Pero si un vehículo tenía ese tipo asignado antes de des
 
 ## Padrón de vehículos
 
-**Ruta:** Transporte → Vehículos
+**Ruta:** Padrón → Vehículos (pestaña **Vehículos**)
 
 El padrón de vehículos registra todos los camiones habilitados para operar en la balanza. Cada vehículo tiene su tara (peso vacío) cargada, que el sistema usa automáticamente para calcular el peso neto en cada pesaje.
 
@@ -184,7 +185,7 @@ La **tara** es el campo más crítico: un error en ese valor afecta el cálculo 
 | Patente | Patente oficial del vehículo, sin espacios ni guiones (ej: ABC123) | Sí |
 | N.° interno | Código interno asignado por la Municipalidad (ej: 042) | Sí |
 | Tipo de vehículo | Compactador, Volcador, Volquete u otro tipo definido en el padrón de tipos | Sí |
-| Titular | Propietario o responsable del vehículo (ej: Municipalidad de Corrientes) | Sí |
+| Titular | Propietario o responsable del vehículo (ej: Municipalidad de San Juan) | Sí |
 | Tara (kg) | Peso del vehículo completamente vacío, en kilogramos enteros | Sí |
 | Capacidad (kg) | Carga máxima teórica del vehículo. Informativo, no afecta los cálculos | No |
 | Observaciones | Texto libre visible para el operador al seleccionar el vehículo. Se autocompleta en el formulario de pesaje | No |
@@ -200,7 +201,7 @@ La **tara** es el campo más crítico: un error en ese valor afecta el cálculo 
 
 ### Cómo crear un vehículo nuevo
 
-1. Ir a Transporte → Vehículos.
+1. Ir a **Padrón → Vehículos**.
 2. Hacer clic en **Nuevo vehículo**.
 3. Completar patente, número interno, tipo, titular y tara.
 4. Opcionalmente, cargar capacidad y observaciones.
@@ -271,7 +272,7 @@ Es la carga máxima teórica del vehículo. No se usa en ningún cálculo autom�
 
 ## Padrón de tipos de servicio
 
-**Ruta:** Padrón → Tipos de servicio
+**Ruta:** Padrón → Servicios
 
 Los tipos de servicio definen las categorías de operación disponibles en la balanza — Domiciliario, Barrido, Voluminoso, etc. Cada tipo puede tener un tipo de vehículo habitual sugerido, que el sistema usa como referencia en el formulario de pesaje.
 
@@ -314,7 +315,7 @@ Además, los tipos de servicio se usan para configurar las zonas: cada zona tien
 
 ### Cómo crear un tipo nuevo
 
-1. Ir a Padrón → Tipos de servicio.
+1. Ir a **Padrón → Servicios**.
 2. Hacer clic en **Nuevo tipo**.
 3. Completar el nombre y, opcionalmente, elegir el vehículo habitual.
 4. Guardar.
@@ -482,7 +483,7 @@ No. El sistema no permite eliminar registros. La baja lógica (desactivar) prese
 Los pesajes futuros usan la nueva tara. Los pesajes ya registrados conservan la tara original.
 
 **¿Puedo agregar un tipo de servicio nuevo?**
-Sí. Ir a Padrón → Tipos de servicio y usar el botón Agregar.
+Sí. Ir a **Padrón → Servicios** y usar el botón Agregar.
 
 **¿Qué pasa si desactivo una zona que tiene pesajes activos?**
 Los pesajes "en predio" no se ven afectados. La desactivación solo impide que la zona aparezca en nuevos pesajes.
@@ -495,4 +496,4 @@ Sí. En el padrón de Zonas, en la fila del servicio asignado, usá el botón **
 
 ---
 
-*Documento actualizado: 18/05/2026 | Versión: 1.2*
+*Documento actualizado: 04/06/2026 | Versión: 1.3*

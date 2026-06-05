@@ -1,4 +1,4 @@
-@props([])
+@props(['config'])
 
 <x-ui.sheet controlled-by="modalOpen" side="right">
 
@@ -51,8 +51,12 @@
                             <x-ui.select.value placeholder="Seleccionar tipo" />
                         </x-ui.select.trigger>
                         <x-ui.select.content>
-                            <x-ui.select.item value="informe_mensual">Informe mensual</x-ui.select.item>
-                            <x-ui.select.item value="alertas">Alertas</x-ui.select.item>
+                            @if($config->tipo_informe_mensual_activo ?? true)
+                                <x-ui.select.item value="informe_mensual">Informe</x-ui.select.item>
+                            @endif
+                            @if($config->tipo_alertas_activo ?? false)
+                                <x-ui.select.item value="alertas">Alertas</x-ui.select.item>
+                            @endif
                         </x-ui.select.content>
                     </x-ui.select>
                 </x-ui.form-field>
@@ -68,29 +72,44 @@
                             <x-ui.select.value placeholder="Seleccionar frecuencia" />
                         </x-ui.select.trigger>
                         <x-ui.select.content>
-                            <x-ui.select.item value="mensual">Mensual</x-ui.select.item>
-                            <x-ui.select.item value="semanal">Semanal</x-ui.select.item>
-                            <x-ui.select.item value="custom">Custom (cron)</x-ui.select.item>
+                            <x-ui.select.item value="diaria">Diaria — último día</x-ui.select.item>
+                            <x-ui.select.item value="semanal">Semanal — últimos 7 días</x-ui.select.item>
+                            <x-ui.select.item value="quincenal">Quincenal — últimos 15 días</x-ui.select.item>
+                            <x-ui.select.item value="mensual">Mensual — últimos 30 días</x-ui.select.item>
                         </x-ui.select.content>
                     </x-ui.select>
                 </x-ui.form-field>
 
-                <div x-show="form.frecuencia === 'custom'" x-cloak>
+                {{-- Formatos del envío — solo aplica al informe mensual (las alertas van siempre en PDF) --}}
+                <div x-show="form.tipo === 'informe_mensual'" x-cloak class="space-y-2">
                     <x-ui.form-field
-                        for="m-cron"
-                        :state="$errors->has('cron_expresion') ? 'destructive' : null"
-                        :message="$errors->first('cron_expresion')"
+                        :state="$errors->has('formatos') ? 'destructive' : null"
+                        :message="$errors->first('formatos')"
                     >
-                        <x-ui.label for="m-cron">Expresión cron</x-ui.label>
-                        <x-ui.input
-                            id="m-cron"
-                            name="cron_expresion"
-                            x-model="form.cron_expresion"
-                            placeholder="0 8 1 * *"
-                            :state="$errors->has('cron_expresion') ? 'destructive' : null"
-                        />
-                        <p class="text-caption">Formato: minuto hora día-mes mes día-semana</p>
+                        <x-ui.label>Formatos del envío</x-ui.label>
+                        <div class="flex flex-col gap-2.5 pt-1">
+                            @foreach (['pdf' => 'PDF', 'excel' => 'Excel'] as $value => $label)
+                                <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                                    <button
+                                        type="button"
+                                        role="checkbox"
+                                        :aria-checked="form.formatos.includes('{{ $value }}') ? 'true' : 'false'"
+                                        @click="toggleFormato('{{ $value }}')"
+                                        :class="form.formatos.includes('{{ $value }}') ? 'bg-primary border-primary text-primary-foreground' : 'bg-background border-input'"
+                                        class="size-4 shrink-0 rounded border flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                    >
+                                        <x-lucide-check class="size-3" stroke-width="3" x-show="form.formatos.includes('{{ $value }}')" x-cloak />
+                                    </button>
+                                    <span class="text-sm">{{ $label }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                        <p class="text-caption">Se adjuntan al email. Elegí al menos uno.</p>
                     </x-ui.form-field>
+
+                    <template x-for="f in form.formatos" :key="f">
+                        <input type="hidden" name="formatos[]" :value="f">
+                    </template>
                 </div>
 
                 <x-ui.form-field

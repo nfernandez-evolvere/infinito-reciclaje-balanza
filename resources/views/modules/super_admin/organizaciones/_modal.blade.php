@@ -318,10 +318,8 @@
                                 Agregar
                             </x-ui.button>
 
-                            <x-ui.alert state="destructive" x-show="addError" x-cloak>
-                                <x-lucide-circle-alert class="size-4" />
-                                <x-ui.alert.title>No se pudo realizar el cambio.</x-ui.alert.title>
-                                <x-ui.alert.description x-text="addError"></x-ui.alert.description>
+                            <x-ui.alert state="destructive" title="No se pudo realizar el cambio." x-show="addError" x-cloak>
+                                <x-slot:description><span x-text="addError"></span></x-slot:description>
                             </x-ui.alert>
                         </div>
 

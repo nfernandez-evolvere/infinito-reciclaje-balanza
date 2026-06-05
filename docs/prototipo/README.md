@@ -30,7 +30,7 @@ Design system for the **Sistema de Gestión de Balanza** built for **Infinito Re
 
 ## PROTOTYPE INVENTORY
 
-What the current click-through prototype actually does. Demo credentials are visible on the login screen: `roberto / 1234` → operator flow, `nacho / 1234` → admin flow.
+What the current click-through prototype actually does. Demo credentials are visible on the login screen: `roberto / Evolvere123!@` → operator flow, `nacho / Evolvere123!@` → admin flow.
 
 ### 1 · Login
 
@@ -381,7 +381,7 @@ Until those four answers exist, we leave G.2 in place and treat any `brutoSalida
 
 ### UI kits
 
-- **`ui_kits/balanza/`** — the only product surface, with eleven screens: Login, Balanza, Historial, Dashboard, Pesajes (admin), Vehículos, Orígenes, Tipos de servicio, Tipos de vehículo, Usuarios, Reportes. Demo credentials: `roberto / 1234` (operator) · `nacho / 1234` (admin). See its own `README.md` for the component vocabulary and per-file responsibilities.
+- **`ui_kits/balanza/`** — the only product surface, with eleven screens: Login, Balanza, Historial, Dashboard, Pesajes (admin), Vehículos, Orígenes, Tipos de servicio, Tipos de vehículo, Usuarios, Reportes. Demo credentials: `roberto / Evolvere123!@` (operator) · `nacho / Evolvere123!@` (admin). See its own `README.md` for the component vocabulary and per-file responsibilities.
 
 ---
 

@@ -85,5 +85,14 @@ Alpine.store('toast', {
     },
 });
 
+// — Alpine store: lightbox ————————————————————————————————————
+Alpine.store('lightbox', {
+    open: false,
+    src: '',
+    alt: '',
+    show(src, alt) { this.src = src; this.alt = alt; this.open = true; },
+    hide() { this.open = false; },
+});
+
 window.Alpine = Alpine;
 Alpine.start();

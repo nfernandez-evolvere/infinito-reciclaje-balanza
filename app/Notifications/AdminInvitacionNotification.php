@@ -3,10 +3,13 @@
 namespace App\Notifications;
 
 use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 
-class AdminInvitacionNotification extends ResetPassword
+class AdminInvitacionNotification extends ResetPassword implements ShouldQueue
 {
+    public int $tries = 3;
+
     public function __construct(
         string $token,
         protected string $orgNombre,

@@ -40,4 +40,19 @@ class ReporteProgramado extends Model
     {
         return $query->where('activo', true);
     }
+
+    /**
+     * Formatos en los que se adjunta el reporte al email (informe_mensual).
+     * Sanitiza contra los valores soportados y mantiene el orden canónico
+     * (PDF, Excel). Si no hay nada configurado, vuelve a 'pdf' por defecto:
+     * cubre los programados creados antes de esta opción y los de tipo alertas.
+     *
+     * @return list<string>
+     */
+    public function formatos(): array
+    {
+        $formatos = $this->opciones['formatos'] ?? [];
+
+        return array_values(array_intersect(['pdf', 'excel'], $formatos)) ?: ['pdf'];
+    }
 }

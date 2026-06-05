@@ -1,5 +1,7 @@
 {{-- Desktop: grid --}}
-<div class="hidden xl:grid grid-cols-3 gap-4">
+<div class="hidden xl:block">
+
+<div class="grid grid-cols-3 gap-4" x-show="!sinDatos">
 
     <x-ui.kpi title="Pesajes hoy" icon="scale" variant="primary" help="Total de pesajes registrados en el día.">
         <span x-text="fmt(kpisDia.total)"></span>
@@ -105,5 +107,11 @@
             </div>
         </x-ui.popover>
     </x-ui.kpi>
+
+</div>
+
+<div x-show="sinDatos" x-cloak>
+    <x-domain.dashboard.kpis-vacio />
+</div>
 
 </div>

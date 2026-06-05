@@ -1,0 +1,30 @@
+# Compose del EDGE — nginx router persistente, maneja PRODUCCIÓN y STAGING.
+# Se levanta UNA vez en el host y sobrevive a todos los deploys de ambos entornos.
+# El cutover se hace reescribiendo docker/edge/{prod|staging}/active-upstream.conf
+# y ejecutando `docker exec balanza-edge nginx -s reload` (graceful).
+#
+#   docker compose -p app-edge -f compose.edge.yaml up -d
+#
+# Para actualizar la config del edge sin recrear el contenedor:
+#   docker exec balanza-edge nginx -t && docker exec balanza-edge nginx -s reload
+
+services:
+  edge:
+    image: nginx:1.27-alpine
+    container_name: balanza-edge
+    ports:
+      - "80:80"
+      # - "443:443"   # habilitar al sumar TLS
+    volumes:
+      # Config principal del edge (dos server blocks: prod + staging)
+      - ./docker/edge/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      # Carpetas de upstreams por entorno (active-upstream.conf las gestiona deploy.sh)
+      - ./docker/edge/prod:/etc/nginx/edge/prod
+      - ./docker/edge/staging:/etc/nginx/edge/staging
+    networks:
+      - balanza-net
+    restart: unless-stopped
+
+networks:
+  balanza-net:
+    external: true

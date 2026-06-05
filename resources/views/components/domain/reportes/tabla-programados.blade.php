@@ -1,8 +1,8 @@
 @props(['programados'])
 
 @php
-    $tiposLabel = ['informe_mensual' => 'Informe mensual', 'alertas' => 'Alertas'];
-    $frecLabels = ['mensual' => 'Mensual', 'semanal' => 'Semanal', 'custom' => 'Custom'];
+    $tiposLabel = ['informe_mensual' => 'Informe', 'alertas' => 'Alertas'];
+    $frecLabels = ['diaria' => 'Diaria', 'semanal' => 'Semanal', 'quincenal' => 'Quincenal', 'mensual' => 'Mensual'];
 @endphp
 
 @if($programados->isEmpty())
@@ -45,7 +45,7 @@
                         </x-ui.dropdown-menu.trigger>
                         <x-ui.dropdown-menu.content align="end">
                             <x-ui.dropdown-menu.item
-                                @click="openEdit({{ Js::from(['id' => $p->id, 'nombre' => $p->nombre, 'tipo' => $p->tipo, 'frecuencia' => $p->frecuencia, 'cron_expresion' => $p->cron_expresion, 'destinatarios_str' => implode(', ', $p->destinatarios), 'activo' => $p->activo]) }})">
+                                @click="openEdit({{ Js::from(['id' => $p->id, 'nombre' => $p->nombre, 'tipo' => $p->tipo, 'frecuencia' => $p->frecuencia, 'destinatarios_str' => implode(', ', $p->destinatarios), 'formatos' => $p->formatos(), 'activo' => $p->activo]) }})">
                                 <x-lucide-pencil class="size-4" /> Editar
                             </x-ui.dropdown-menu.item>
                             <form id="enviar-{{ $p->id }}" method="POST" action="{{ route('admin.reportes.programados.enviar-ahora', $p) }}">
@@ -53,6 +53,12 @@
                             </form>
                             <x-ui.dropdown-menu.item @click="confirmEnviar({{ $p->id }}, '{{ addslashes($p->nombre) }}')">
                                 <x-lucide-send class="size-4" /> Enviar ahora
+                            </x-ui.dropdown-menu.item>
+                            <x-ui.dropdown-menu.item href="{{ route('admin.reportes.programados.pdf', $p) }}">
+                                <x-lucide-file-text class="size-4" /> Descargar PDF
+                            </x-ui.dropdown-menu.item>
+                            <x-ui.dropdown-menu.item href="{{ route('admin.reportes.programados.excel', $p) }}">
+                                <x-lucide-file-spreadsheet class="size-4" /> Descargar Excel
                             </x-ui.dropdown-menu.item>
                             <x-ui.dropdown-menu.separator />
                             <form id="delete-{{ $p->id }}" method="POST" action="{{ route('admin.reportes.programados.destroy', $p) }}">
@@ -139,11 +145,17 @@
                             </x-ui.dropdown-menu.trigger>
                             <x-ui.dropdown-menu.content align="end">
                                 <x-ui.dropdown-menu.item
-                                    @click="openEdit({{ Js::from(['id' => $p->id, 'nombre' => $p->nombre, 'tipo' => $p->tipo, 'frecuencia' => $p->frecuencia, 'cron_expresion' => $p->cron_expresion, 'destinatarios_str' => implode(', ', $p->destinatarios), 'activo' => $p->activo]) }})">
+                                    @click="openEdit({{ Js::from(['id' => $p->id, 'nombre' => $p->nombre, 'tipo' => $p->tipo, 'frecuencia' => $p->frecuencia, 'destinatarios_str' => implode(', ', $p->destinatarios), 'formatos' => $p->formatos(), 'activo' => $p->activo]) }})">
                                     <x-lucide-pencil class="size-4" /> Editar
                                 </x-ui.dropdown-menu.item>
                                 <x-ui.dropdown-menu.item @click="confirmEnviar({{ $p->id }}, '{{ addslashes($p->nombre) }}')">
                                     <x-lucide-send class="size-4" /> Enviar ahora
+                                </x-ui.dropdown-menu.item>
+                                <x-ui.dropdown-menu.item href="{{ route('admin.reportes.programados.pdf', $p) }}">
+                                    <x-lucide-file-text class="size-4" /> Descargar PDF
+                                </x-ui.dropdown-menu.item>
+                                <x-ui.dropdown-menu.item href="{{ route('admin.reportes.programados.excel', $p) }}">
+                                    <x-lucide-file-spreadsheet class="size-4" /> Descargar Excel
                                 </x-ui.dropdown-menu.item>
                                 <x-ui.dropdown-menu.separator />
                                 <form id="delete-{{ $p->id }}" method="POST" action="{{ route('admin.reportes.programados.destroy', $p) }}">

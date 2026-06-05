@@ -50,7 +50,10 @@
                             :state="$errors->has('numero_interno') ? 'destructive' : null"
                             :message="$errors->first('numero_interno')"
                         >
-                            <x-ui.label for="numero_interno">N.° interno</x-ui.label>
+                            <x-ui.label for="numero_interno">
+                                N.° interno
+                                <span class="text-muted-foreground font-normal">— opcional</span>
+                            </x-ui.label>
                             <x-ui.input
                                 id="numero_interno"
                                 name="numero_interno"
@@ -211,55 +214,53 @@
                      y el vehículo ya tiene pesajes. Reemplaza a los demás campos hasta
                      que se confirme la acción. --}}
                 <div x-show="mostrarDecisionTara" x-cloak x-collapse>
-                    <div class="rounded-2xl border border-warning-border bg-warning/10 p-4 space-y-4">
-                        <div class="flex items-start gap-2.5">
-                            <x-lucide-triangle-alert class="size-4 shrink-0 text-warning mt-0.5" />
-                            <div class="space-y-1">
-                                <p class="text-sm font-semibold text-warning-subtle-foreground">Cambiaste la tara de este vehículo</p>
-                                <p class="text-sm text-warning-subtle-foreground">
-                                    <span x-text="Number(form._tara_original || 0).toLocaleString('es-AR')"></span> kg
-                                    <span class="px-1">→</span>
-                                    <span class="font-semibold" x-text="Number(form.tara_kg || 0).toLocaleString('es-AR')"></span> kg
-                                    <span class="px-1 text-warning-subtle-foreground/60">·</span>
-                                    <span class="font-semibold" x-text="form.pesajes_count"></span>
-                                    <span x-text="Number(form.pesajes_count) === 1 ? 'pesaje' : 'pesajes'"></span>
-                                </p>
-                                <p class="text-xs text-warning-subtle-foreground/90">Elegí cómo aplicar el cambio y confirmá. Podés ajustar la tara arriba.</p>
-                            </div>
+                    <x-ui.alert state="warning" title="Cambiaste la tara de este vehículo">
+                        <div class="space-y-1">
+                            <p class="text-sm">
+                                <span x-text="Number(form._tara_original || 0).toLocaleString('es-AR')"></span> kg
+                                <span class="px-1">→</span>
+                                <span class="font-semibold" x-text="Number(form.tara_kg || 0).toLocaleString('es-AR')"></span> kg
+                                <span class="px-1 text-warning-subtle-foreground/60">·</span>
+                                <span class="font-semibold" x-text="form.pesajes_count"></span>
+                                <span x-text="Number(form.pesajes_count) === 1 ? 'pesaje' : 'pesajes'"></span>
+                            </p>
+                            <p class="text-xs text-warning-subtle-foreground/90">Elegí cómo aplicar el cambio y confirmá. Podés ajustar la tara arriba.</p>
                         </div>
 
-                        <x-domain.vehiculos.opcion-tara
-                            value="corregir_dato"
-                            titulo="Corregir un dato mal cargado"
-                            descripcion="La tara estaba mal. Se recalcula el peso neto de los pesajes anteriores y queda registrado en el historial de cada uno."
-                        />
-
-                        <x-domain.vehiculos.opcion-tara
-                            value="cambio_real"
-                            titulo="Cambio real del vehículo"
-                            descripcion="El vehículo cambió de peso. Los pesajes anteriores no se modifican; solo los nuevos usarán la tara nueva."
-                        />
-
-                        @error('_intencion_tara')
-                            <x-ui.helper-text state="destructive" :message="$message" />
-                        @enderror
-
-                        <x-ui.form-field
-                            for="_motivo_tara"
-                            :state="$errors->has('_motivo_tara') ? 'destructive' : null"
-                            :message="$errors->first('_motivo_tara')"
-                        >
-                            <x-ui.label for="_motivo_tara">Motivo</x-ui.label>
-                            <x-ui.textarea
-                                id="_motivo_tara"
-                                name="_motivo_tara"
-                                x-model="form._motivo_tara"
-                                rows="2"
-                                placeholder="Ej: se había cargado 8.000 en vez de 18.000."
-                                :state="$errors->has('_motivo_tara') ? 'destructive' : 'warning'"
+                        <div class="mt-4 space-y-4">
+                            <x-domain.vehiculos.opcion-tara
+                                value="corregir_dato"
+                                titulo="Corregir un dato mal cargado"
+                                descripcion="La tara estaba mal. Se recalcula el peso neto de los pesajes anteriores y queda registrado en el historial de cada uno."
                             />
-                        </x-ui.form-field>
-                    </div>
+
+                            <x-domain.vehiculos.opcion-tara
+                                value="cambio_real"
+                                titulo="Cambio real del vehículo"
+                                descripcion="El vehículo cambió de peso. Los pesajes anteriores no se modifican; solo los nuevos usarán la tara nueva."
+                            />
+
+                            @error('_intencion_tara')
+                                <x-ui.helper-text state="destructive" :message="$message" />
+                            @enderror
+
+                            <x-ui.form-field
+                                for="_motivo_tara"
+                                :state="$errors->has('_motivo_tara') ? 'destructive' : null"
+                                :message="$errors->first('_motivo_tara')"
+                            >
+                                <x-ui.label for="_motivo_tara">Motivo</x-ui.label>
+                                <x-ui.textarea
+                                    id="_motivo_tara"
+                                    name="_motivo_tara"
+                                    x-model="form._motivo_tara"
+                                    rows="2"
+                                    placeholder="Ej: se había cargado 8.000 en vez de 18.000."
+                                    :state="$errors->has('_motivo_tara') ? 'destructive' : 'warning'"
+                                />
+                            </x-ui.form-field>
+                        </div>
+                    </x-ui.alert>
                 </div>
 
             </div>

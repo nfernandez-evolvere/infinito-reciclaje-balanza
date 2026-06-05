@@ -1,0 +1,89 @@
+name: Deploy
+
+# Despliegue automático sin caída al hacer push a main (prod) o staging:
+#   1. build   → construye y pushea la imagen a GHCR
+#   2. deploy  → SSH al host: git pull + docker/deploy.sh (swap blue-green)
+#
+# El gate de calidad (pint + larastan + tests sobre SQL Server) NO corre en CI:
+# se ejecuta localmente antes de cada push vía el hook .githooks/pre-push
+# (git config core.hooksPath .githooks). Equivale a `composer check`.
+on:
+  push:
+    branches: [main, staging]
+
+# Concurrencia separada por entorno: un deploy a prod nunca bloquea staging ni
+# viceversa, y nunca se cancela un deploy a mitad del cutover.
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build & push a GHCR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      env_prefix: ${{ steps.env.outputs.env_prefix }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolver ENV_PREFIX desde la rama
+        id: env
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "env_prefix=prod" >> "$GITHUB_OUTPUT"
+          else
+            echo "env_prefix=staging" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Login a GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build & push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ghcr.io/${{ github.repository }}:${{ steps.env.outputs.env_prefix }}-latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy blue-green (${{ needs.build.outputs.env_prefix }})
+    needs: build
+    # El deploy (swap blue-green por SSH) corre SOLO en main/staging. En cualquier
+    # otra rama el workflow se queda en build+push a GHCR → permite probar la
+    # primera mitad del CI sin desplegar nada. (Mejora permanente, no la quites.)
+    if: github.ref_name == 'main' || github.ref_name == 'staging'
+    runs-on: ubuntu-latest
+    environment: ${{ needs.build.outputs.env_prefix }}
+    steps:
+      - name: SSH → pull + swap
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            set -e
+            cd ${{ secrets.APP_DIR || '~/infinito-reciclaje-balanza' }}
+            git fetch --all
+            git reset --hard ${{ github.sha }}
+            export GHCR_USER='${{ github.actor }}'
+            export GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}'
+            # NOTA: el deploy NUNCA migra el schema (la base es compartida entre
+            # proyectos). Las migraciones son siempre una acción manual del operador:
+            #   docker exec balanza-prod-app-blue php artisan migrate --force
+            bash docker/deploy.sh ${{ github.sha }} ${{ needs.build.outputs.env_prefix }}

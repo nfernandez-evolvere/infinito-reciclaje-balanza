@@ -16,6 +16,8 @@ class ConfigAlerta extends Model
         'tipo',
         'activo',
         'umbral_valor',
+        'hora_inicio',
+        'hora_fin',
     ];
 
     protected $casts = [
@@ -42,7 +44,9 @@ class ConfigAlerta extends Model
             'gap_registro' => [
                 'activo'       => true,
                 'umbral_valor' => 120.0,
-                'descripcion'  => 'Se genera cuando no hay pesajes durante X minutos consecutivos en horario operativo (08:00–18:00).',
+                'hora_inicio'  => '08:00',
+                'hora_fin'     => '18:00',
+                'descripcion'  => 'Se genera cuando no hay pesajes durante X minutos consecutivos dentro del horario operativo configurado abajo.',
                 'umbral_label' => 'Minutos sin actividad',
             ],
             'frecuencia_zona_atipica' => [
@@ -50,6 +54,12 @@ class ConfigAlerta extends Model
                 'umbral_valor' => 30.0,
                 'descripcion'  => 'Se genera cuando la frecuencia de pesajes de una zona se desvía más de X% de su promedio histórico.',
                 'umbral_label' => '% de desviación del promedio por zona',
+            ],
+            'vehiculo_no_habitual' => [
+                'activo'       => true,
+                'umbral_valor' => null,
+                'descripcion'  => 'Se genera al registrar un pesaje con un tipo de vehículo que no coincide con los tipos habituales del servicio seleccionado.',
+                'umbral_label' => null,
             ],
         ];
     }

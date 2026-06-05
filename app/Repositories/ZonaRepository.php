@@ -17,6 +17,17 @@ class ZonaRepository
         return Zona::activos()->orderBy('nombre')->get();
     }
 
+    /**
+     * Mapa id => nombre para los ids dados. Pensado para resolver etiquetas de auditoría.
+     *
+     * @param  iterable<int, int|string>  $ids
+     * @return SupportCollection<int, string>
+     */
+    public function nombresPorIds(iterable $ids): SupportCollection
+    {
+        return Zona::whereIn('id', $ids)->pluck('nombre', 'id');
+    }
+
     public function totales(): array
     {
         $zonas = Zona::activos()->get(['hectareas', 'habitantes']);

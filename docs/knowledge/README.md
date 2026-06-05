@@ -9,9 +9,9 @@ Esta carpeta contiene la documentación de usuario del sistema. Está escrita en
 
 | Archivo | Dirigido a | Cuándo usarlo |
 |---------|-----------|--------------|
-| [configuracion-inicial.md](configuracion-inicial.md) | Admin (Nacho) | Antes del go-live — pasos para dejar el sistema listo para operar |
-| [onboarding-operador.md](onboarding-operador.md) | Operador (Roberto y otros) | Primera semana de uso — cómo usar el sistema día a día |
-| [onboarding-admin.md](onboarding-admin.md) | Admin (Nacho) | Primera semana de uso — cómo gestionar el sistema |
+| [configuracion-inicial.md](configuracion-inicial.md) | Admin | Antes del go-live — pasos para dejar el sistema listo para operar |
+| [onboarding-operador.md](onboarding-operador.md) | Operador | Primera semana de uso — cómo usar el sistema día a día |
+| [onboarding-admin.md](onboarding-admin.md) | Admin | Primera semana de uso — cómo gestionar el sistema |
 | [modulo-balanza.md](modulo-balanza.md) | Operador | Referencia del módulo de registro de pesajes |
 | [modulo-abms.md](modulo-abms.md) | Admin | Cómo gestionar vehículos, zonas, servicios, tipos y usuarios |
 | [modulo-dashboard.md](modulo-dashboard.md) | Admin | Cómo leer e interpretar el panel de control |
@@ -35,4 +35,4 @@ Para indexar, tratar cada sección `##` como un chunk independiente.
 
 ---
 
-*Base de conocimiento generada: 12/05/2026*
+*Base de conocimiento actualizada: 04/06/2026*

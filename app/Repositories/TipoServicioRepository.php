@@ -5,12 +5,24 @@ namespace App\Repositories;
 use App\Models\TipoServicio;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection as SupportCollection;
 
 class TipoServicioRepository
 {
     public function activos(): Collection
     {
         return TipoServicio::activos()->orderBy('nombre')->get();
+    }
+
+    /**
+     * Mapa id => nombre para los ids dados. Pensado para resolver etiquetas de auditoría.
+     *
+     * @param  iterable<int, int|string>  $ids
+     * @return SupportCollection<int, string>
+     */
+    public function nombresPorIds(iterable $ids): SupportCollection
+    {
+        return TipoServicio::whereIn('id', $ids)->pluck('nombre', 'id');
     }
 
     public function activosConTiposVehiculo(): Collection

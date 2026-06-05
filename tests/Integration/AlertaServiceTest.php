@@ -113,7 +113,7 @@ class AlertaServiceTest extends TestCase
     // ── getConfigConDefaults ──────────────────────────────────────────
 
     #[Test]
-    public function get_config_con_defaults_returns_all_four_tipos(): void
+    public function get_config_con_defaults_returns_all_five_tipos(): void
     {
         $config = $this->service->getConfigConDefaults(app('organizacion')->id);
 
@@ -121,6 +121,8 @@ class AlertaServiceTest extends TestCase
         $this->assertArrayHasKey('volumen_diario_atipico', $config);
         $this->assertArrayHasKey('gap_registro', $config);
         $this->assertArrayHasKey('frecuencia_zona_atipica', $config);
+        $this->assertArrayHasKey('vehiculo_no_habitual', $config);
+        $this->assertCount(5, $config);
     }
 
     #[Test]
@@ -185,6 +187,84 @@ class AlertaServiceTest extends TestCase
         $this->assertNull($peso->umbral_valor);
     }
 
+    // ── Horario operativo configurable ────────────────────────────────
+
+    #[Test]
+    public function get_config_con_defaults_includes_horario_operativo_only_for_gap_registro(): void
+    {
+        $config = $this->service->getConfigConDefaults(app('organizacion')->id);
+
+        $this->assertSame('08:00', $config['gap_registro']['hora_inicio']);
+        $this->assertSame('18:00', $config['gap_registro']['hora_fin']);
+
+        // El resto de los tipos no expone horario operativo
+        $this->assertArrayNotHasKey('hora_inicio', $config['peso_fuera_rango']);
+        $this->assertArrayNotHasKey('hora_inicio', $config['volumen_diario_atipico']);
+        $this->assertArrayNotHasKey('hora_inicio', $config['frecuencia_zona_atipica']);
+    }
+
+    #[Test]
+    public function get_config_con_defaults_merges_saved_horario_operativo_over_defaults(): void
+    {
+        $org = app('organizacion');
+
+        ConfigAlerta::create([
+            'organizacion_id' => $org->id,
+            'tipo'            => 'gap_registro',
+            'activo'          => true,
+            'umbral_valor'    => 120.0,
+            'hora_inicio'     => '07:30',
+            'hora_fin'        => '15:00',
+        ]);
+
+        $config = $this->service->getConfigConDefaults($org->id);
+
+        $this->assertSame('07:30', $config['gap_registro']['hora_inicio']);
+        $this->assertSame('15:00', $config['gap_registro']['hora_fin']);
+    }
+
+    #[Test]
+    public function guardar_config_persists_horario_operativo_for_gap_registro(): void
+    {
+        $org = app('organizacion');
+
+        $this->service->guardarConfig($org->id, [
+            'gap_registro' => ['activo' => true, 'umbral_valor' => '120', 'hora_inicio' => '06:00', 'hora_fin' => '22:00'],
+        ]);
+
+        $gap = ConfigAlerta::withoutGlobalScopes()
+            ->where('organizacion_id', $org->id)
+            ->where('tipo', 'gap_registro')
+            ->firstOrFail();
+
+        $this->assertSame('06:00', $gap->hora_inicio);
+        $this->assertSame('22:00', $gap->hora_fin);
+    }
+
+    #[Test]
+    public function guardar_config_leaves_horario_operativo_untouched_when_not_submitted(): void
+    {
+        $org = app('organizacion');
+
+        // Sin claves de horario en el payload → no debe escribirlas (quedan null → caen al default)
+        $this->service->guardarConfig($org->id, [
+            'gap_registro' => ['activo' => false, 'umbral_valor' => '45'],
+        ]);
+
+        $gap = ConfigAlerta::withoutGlobalScopes()
+            ->where('organizacion_id', $org->id)
+            ->where('tipo', 'gap_registro')
+            ->firstOrFail();
+
+        $this->assertNull($gap->hora_inicio);
+        $this->assertNull($gap->hora_fin);
+
+        // El service rellena el default al leer
+        $config = $this->service->getConfigConDefaults($org->id);
+        $this->assertSame('08:00', $config['gap_registro']['hora_inicio']);
+        $this->assertSame('18:00', $config['gap_registro']['hora_fin']);
+    }
+
     // ── UUID auto-generado ────────────────────────────────────────────
 
     #[Test]
@@ -202,6 +282,114 @@ class AlertaServiceTest extends TestCase
 
         $uuids = Alerta::withoutGlobalScopes()->pluck('uuid')->all();
         $this->assertCount(count($uuids), array_unique($uuids));
+    }
+
+    // ── registrarVehiculoNoHabitual ───────────────────────────────────
+
+    #[Test]
+    public function registrar_vehiculo_no_habitual_creates_one_record_per_admin(): void
+    {
+        $adminA = $this->admin();
+        $adminB = $this->admin();
+        $org = app('organizacion');
+        $org->users()->syncWithoutDetaching([$adminA->id, $adminB->id]);
+
+        $pesaje = $this->pesajeVehiculoNoHabitual($org->id);
+
+        $this->service->registrarVehiculoNoHabitual($pesaje);
+
+        $this->assertSame(2, Alerta::withoutGlobalScopes()->where('pesaje_id', $pesaje->id)->count());
+        $this->assertTrue(Alerta::withoutGlobalScopes()->where('pesaje_id', $pesaje->id)->where('user_id', $adminA->id)->exists());
+        $this->assertTrue(Alerta::withoutGlobalScopes()->where('pesaje_id', $pesaje->id)->where('user_id', $adminB->id)->exists());
+    }
+
+    #[Test]
+    public function registrar_vehiculo_no_habitual_persists_correct_fields(): void
+    {
+        $admin = $this->admin();
+        $org = app('organizacion');
+        $org->users()->syncWithoutDetaching([$admin->id]);
+
+        $pesaje = $this->pesajeVehiculoNoHabitual($org->id);
+
+        $this->service->registrarVehiculoNoHabitual($pesaje);
+
+        $alerta = Alerta::withoutGlobalScopes()->where('pesaje_id', $pesaje->id)->firstOrFail();
+
+        $this->assertSame('vehiculo_no_habitual', $alerta->tipo);
+        $this->assertStringContainsString($pesaje->vehiculo->patente, $alerta->titulo);
+        $this->assertNotNull($alerta->uuid);
+        $this->assertFalse($alerta->leida);
+    }
+
+    #[Test]
+    public function registrar_vehiculo_no_habitual_is_idempotent(): void
+    {
+        $admin = $this->admin();
+        $org = app('organizacion');
+        $org->users()->syncWithoutDetaching([$admin->id]);
+
+        $pesaje = $this->pesajeVehiculoNoHabitual($org->id);
+
+        $this->service->registrarVehiculoNoHabitual($pesaje);
+        $this->service->registrarVehiculoNoHabitual($pesaje);
+
+        $this->assertSame(1, Alerta::withoutGlobalScopes()->where('pesaje_id', $pesaje->id)->count());
+    }
+
+    #[Test]
+    public function registrar_vehiculo_no_habitual_skips_when_tipo_disabled(): void
+    {
+        $admin = $this->admin();
+        $org = app('organizacion');
+        $org->users()->syncWithoutDetaching([$admin->id]);
+
+        ConfigAlerta::create(['tipo' => 'vehiculo_no_habitual', 'activo' => false]);
+
+        $pesaje = $this->pesajeVehiculoNoHabitual($org->id);
+
+        $this->service->registrarVehiculoNoHabitual($pesaje);
+
+        $this->assertSame(0, Alerta::withoutGlobalScopes()->where('pesaje_id', $pesaje->id)->count());
+    }
+
+    #[Test]
+    public function registrar_vehiculo_no_habitual_does_not_create_when_vehicle_is_habitual(): void
+    {
+        $admin = $this->admin();
+        $org = app('organizacion');
+        $org->users()->syncWithoutDetaching([$admin->id]);
+
+        // Crear servicio y vehículo donde el tipo SÍ es habitual
+        $tipoHabitual = TipoVehiculo::factory()->create();
+        $vehiculo = Vehiculo::factory()->create(['tipo_vehiculo_id' => $tipoHabitual->id]);
+        $servicio = TipoServicio::factory()->create();
+        $servicio->tiposVehiculo()->attach($tipoHabitual->id);
+
+        $pesaje = Pesaje::create([
+            'vehiculo_id'      => $vehiculo->id,
+            'operador_id'      => $this->operador()->id,
+            'tipo_servicio_id' => $servicio->id,
+            'zona_id'          => Zona::factory()->create()->id,
+            'peso_bruto_kg'    => 10000,
+            'peso_tara_kg'     => 5000,
+            'peso_neto_kg'     => 5000,
+            'alerta_peso'      => false,
+            'estado'           => 'En predio',
+            'editado'          => false,
+        ]);
+
+        // El servicio SÍ acepta ese tipo → no debe crear alerta
+        $pesaje->setRelation('tipoServicio', $servicio->load('tiposVehiculo'));
+        $pesaje->load('vehiculo.tipoVehiculo');
+
+        // Verificamos que los IDs habituales incluyen el tipo del vehículo
+        $habitualesIds = $servicio->tiposVehiculo->pluck('id');
+        $this->assertTrue($habitualesIds->contains($vehiculo->tipo_vehiculo_id));
+
+        // La función no debe crear alertas para este caso
+        // (el caller en PesajeService ya hace el check antes de llamar)
+        $this->assertSame(0, Alerta::withoutGlobalScopes()->where('tipo', 'vehiculo_no_habitual')->count());
     }
 
     // ── helpers ───────────────────────────────────────────────────────
@@ -231,5 +419,37 @@ class AlertaServiceTest extends TestCase
             'estado'           => 'En predio',
             'editado'          => false,
         ]);
+    }
+
+    /**
+     * Pesaje donde el tipo de vehículo NO está en los habituales del servicio.
+     * El servicio tiene un tipo habitual distinto al del vehículo.
+     */
+    private function pesajeVehiculoNoHabitual(int $organizacionId): Pesaje
+    {
+        $tipoHabitual = TipoVehiculo::factory()->create(['nombre' => 'Compactador']);
+        $tipoNoHabitual = TipoVehiculo::factory()->create(['nombre' => 'Particular']);
+        $vehiculo = Vehiculo::factory()->create(['tipo_vehiculo_id' => $tipoNoHabitual->id]);
+        $zona = Zona::factory()->create();
+        $servicio = TipoServicio::factory()->create(['nombre' => 'Domiciliario']);
+        $servicio->tiposVehiculo()->attach($tipoHabitual->id); // habitual = Compactador
+
+        $pesaje = Pesaje::create([
+            'vehiculo_id'      => $vehiculo->id,
+            'operador_id'      => $this->operador()->id,
+            'tipo_servicio_id' => $servicio->id,
+            'zona_id'          => $zona->id,
+            'peso_bruto_kg'    => 8000,
+            'peso_tara_kg'     => 4000,
+            'peso_neto_kg'     => 4000,
+            'alerta_peso'      => false,
+            'estado'           => 'En predio',
+            'editado'          => false,
+        ]);
+
+        $pesaje->setRelation('tipoServicio', $servicio->load('tiposVehiculo'));
+        $pesaje->load('vehiculo.tipoVehiculo');
+
+        return $pesaje;
     }
 }

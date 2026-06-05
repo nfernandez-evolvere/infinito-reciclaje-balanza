@@ -12,11 +12,14 @@ class ReporteMensualMail extends Mailable
 {
     use Queueable;
 
+    /**
+     * @param  list<array{content: string, filename: string, mime: string}>  $adjuntos
+     *                                                                                  Uno o más archivos del reporte (PDF y/o Excel) según lo configurado.
+     */
     public function __construct(
         public readonly string $periodo,
         public readonly string $municipalidad,
-        public readonly string $pdfContent,
-        public readonly string $filename,
+        public readonly array $adjuntos,
     ) {}
 
     public function envelope(): Envelope
@@ -30,14 +33,16 @@ class ReporteMensualMail extends Mailable
     {
         return new Content(
             markdown: 'emails.reporte-mensual',
+            with: ['nombresAdjuntos' => array_column($this->adjuntos, 'filename')],
         );
     }
 
     public function attachments(): array
     {
-        return [
-            Attachment::fromData(fn () => $this->pdfContent, $this->filename)
-                ->withMime('application/pdf'),
-        ];
+        return array_map(
+            fn (array $a) => Attachment::fromData(fn () => $a['content'], $a['filename'])
+                ->withMime($a['mime']),
+            $this->adjuntos,
+        );
     }
 }

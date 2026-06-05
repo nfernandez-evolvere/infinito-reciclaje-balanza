@@ -79,6 +79,14 @@
                                         Editar
                                     </x-ui.dropdown-menu.item>
                                 @endif
+                                @if($pesaje->estaEnPredio())
+                                    <x-ui.dropdown-menu.item
+                                        @click="abrirEgreso('{{ $pesaje->uuid }}', '{{ addslashes($pesaje->vehiculo->patente) }}')"
+                                    >
+                                        <x-lucide-log-out class="size-4" />
+                                        Marcar egreso
+                                    </x-ui.dropdown-menu.item>
+                                @endif
                                 @if($pesaje->editado || $pesaje->estaCancelado())
                                     <x-ui.dropdown-menu.item
                                         @click="abrirLog('{{ $pesaje->uuid }}', '{{ addslashes($pesaje->vehiculo->patente) }}')"
@@ -297,6 +305,14 @@
                                 <x-ui.dropdown-menu.item href="{{ route('pesajes.edit', $pesaje) }}">
                                     <x-lucide-pencil class="size-4" />
                                     Editar
+                                </x-ui.dropdown-menu.item>
+                            @endif
+                            @if($pesaje->estaEnPredio())
+                                <x-ui.dropdown-menu.item
+                                    @click="abrirEgreso('{{ $pesaje->uuid }}', '{{ addslashes($pesaje->vehiculo->patente) }}')"
+                                >
+                                    <x-lucide-log-out class="size-4" />
+                                    Marcar egreso
                                 </x-ui.dropdown-menu.item>
                             @endif
                             @if($pesaje->editado || $pesaje->estaCancelado())

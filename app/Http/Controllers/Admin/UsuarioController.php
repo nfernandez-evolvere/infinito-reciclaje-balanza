@@ -7,12 +7,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ResetPasswordUsuarioRequest;
 use App\Http\Requests\StoreUsuarioRequest;
 use App\Http\Requests\UpdateUsuarioRequest;
-use App\Mail\WelcomeMail;
+use App\Jobs\EnviarBienvenidaJob;
 use App\Models\User;
 use App\Services\UsuarioService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class UsuarioController extends Controller
@@ -39,7 +38,7 @@ class UsuarioController extends Controller
             $data['activo'] = true;
             $usuario = $this->service->crear($data);
 
-            Mail::to($usuario)->send(new WelcomeMail($usuario, $plainPassword, app('organizacion')));
+            EnviarBienvenidaJob::dispatch($usuario, $plainPassword, app('organizacion'));
 
             return redirect()->route('admin.usuarios.index')
                 ->with('toast', [

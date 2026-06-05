@@ -366,59 +366,32 @@ Gate de cobertura en CI: subir umbral mínimo gradualmente (ej. arrancar en el %
 
 ---
 
-## 6. CI — GitHub Actions
+## 6. Gate de calidad — local en `pre-push`
 
-`.github/workflows/ci.yml`:
+El gate **no corre en GitHub Actions**: se ejecuta localmente antes de cada push
+mediante el hook [`.githooks/pre-push`](../.githooks/pre-push), que bloquea el push
+si pint, larastan o los tests fallan. El proyecto se testea sobre **SQL Server real**
+(no SQLite — ver [`CLAUDE.md`](../CLAUDE.md) y `.env.testing`), por lo que el gate
+necesita una instancia de SQL Server accesible localmente.
 
-```yaml
-name: CI
-on:
-  push:
-    branches: [main]
-  pull_request:
+```sh
+git config core.hooksPath .githooks      # activar una vez por clon
 
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          extensions: gd, zip, sqlite3, pcov
-          coverage: pcov
-
-      - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist --no-progress
-
-      - name: Prepare environment
-        run: |
-          cp .env.example .env
-          php artisan key:generate
-
-      - name: Lint (Pint)
-        run: vendor/bin/pint --test
-
-      - name: Static analysis (Larastan)
-        run: composer analyse
-
-      - name: Tests + coverage
-        run: php artisan test --coverage --min=0   # subir --min progresivamente
+# .githooks/pre-push (equivale a `composer check`):
+php vendor/bin/pint --test                            # formato
+php vendor/bin/phpstan analyse --memory-limit=512M    # análisis estático (larastan)
+php artisan test --coverage --min=68                  # tests + cobertura ≥ 68%
 ```
 
-Notas:
-- Con `withoutVite()` en el `TestCase` **no hace falta** paso de `npm build` → CI más rápido.
-- SQLite en memoria ya está en `phpunit.xml`; no se necesita servicio de DB.
-- `--min` arranca en el % real medido y se sube fase a fase (gate anti-regresión).
-- Larastan ya está configurado (`composer analyse`); Pint ya es dependencia.
+`deploy.yml` (push a `main`) **no** vuelve a correr el gate: solo buildea la imagen y
+deploya. Asume código ya verificado localmente, evitando levantar un SQL Server efímero
+en la nube y duplicar el costo del gate que ya pasó en el pre-push.
 
 ---
 
 ## 7. Definición de "robusto" (criterios de salida)
 
-- ✅ Todo PR corre tests + análisis estático + lint automáticamente y no mergea en rojo.
+- ✅ Todo push corre tests + análisis estático + lint vía el hook `pre-push` y se bloquea en rojo.
 - ✅ Cobertura medida, visible, con umbral que no puede bajar.
 - ✅ El ciclo de vida del Pesaje y el aislamiento multi-tenant tienen tests dedicados.
 - ✅ Cero dominios con controller/service en producción y 0 tests.

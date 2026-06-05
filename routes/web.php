@@ -1,11 +1,18 @@
 <?php
 
+use App\Http\Controllers\Shared\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 require __DIR__.'/auth.php';
 require __DIR__.'/operador.php';
 require __DIR__.'/admin.php';
 require __DIR__.'/super.php';
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/perfil', [ProfileController::class, 'show'])->name('perfil.show');
+    Route::put('/perfil', [ProfileController::class, 'updateProfile'])->name('perfil.update');
+    Route::put('/perfil/contrasena', [ProfileController::class, 'updatePassword'])->name('perfil.password');
+});
 
 Route::get('/', function () {
     if (! auth()->check()) {

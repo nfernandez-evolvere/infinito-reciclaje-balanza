@@ -12,14 +12,18 @@
     $alertasNoLeidas = $user?->isAdmin()
         ? app(\App\Repositories\AlertaRepository::class)->countNoLeidas($user->id)
         : 0;
+
+    $configProgress = $user?->isAdmin()
+        ? app(\App\Services\ConfiguracionInicialService::class)->getProgress()
+        : null;
     $padronItems = [
         ['route' => 'admin.zonas.index',          'icon' => 'map-pin',        'label' => 'Zonas'],
         ['route' => 'admin.tipos-servicio.index', 'icon' => 'clipboard-list', 'label' => 'Servicios'],
         ['route' => 'admin.vehiculos.index',      'icon' => 'truck',          'label' => 'Vehículos'],
     ];
     $sistemaItems = [
-        ['route' => 'admin.alertas.index',  'icon' => 'triangle-alert',   'label' => 'Alertas',   'match' => 'admin.alertas.*'],
-        ['route' => 'admin.usuarios.index', 'icon' => 'users',             'label' => 'Usuarios'],
+        ['route' => 'admin.alertas.index',  'icon' => 'triangle-alert', 'label' => 'Alertas', 'match' => 'admin.alertas.*'],
+        ['route' => 'admin.usuarios.index', 'icon' => 'users',          'label' => 'Usuarios'],
     ];
     $operadorItems = [
         ['route' => 'balanza',   'icon' => 'scale', 'label' => 'Pesaje', 'match' => ['balanza', 'pesajes.*']],
@@ -206,6 +210,181 @@
 
         </x-ui.sidebar.content>
 
+        {{-- Progreso de configuración inicial --}}
+        @if($configProgress && $configProgress['completado'] < $configProgress['total'])
+        @php
+            $pendientes  = $configProgress['total'] - $configProgress['completado'];
+            $completados = array_filter($configProgress['steps'], fn($s) =>  $s['done']);
+            $faltantes   = array_filter($configProgress['steps'], fn($s) => !$s['done']);
+        @endphp
+        <div class="px-2 py-2" x-data="{ sheetOpen: false }">
+
+            {{-- Trigger + hover dropdown --}}
+            <x-ui.dropdown-menu side="right" class="block w-full">
+
+                {{-- x-ref="anchor" es requerido por _place() del dropdown --}}
+                <div
+                    x-ref="anchor"
+                    @mouseenter="openHover()"
+                    @mouseleave="closeHover()"
+                    @click="sheetOpen = true"
+                    class="cursor-pointer"
+                >
+                    {{-- Expandido --}}
+                    <div x-show="!isCollapsed" x-cloak
+                         class="flex flex-col gap-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-2.5 hover:bg-primary/20 transition-colors">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-1.5">
+                                <x-lucide-list-checks class="size-3.5 shrink-0 text-primary" />
+                                <span class="text-xs font-medium text-foreground">Configuración inicial</span>
+                            </div>
+                            <span class="text-[11px] tabular-nums font-medium text-muted-foreground">
+                                {{ $configProgress['completado'] }}/{{ $configProgress['total'] }}
+                            </span>
+                        </div>
+                        <div class="h-1.5 w-full overflow-hidden rounded-full bg-primary/20">
+                            <div class="h-full rounded-full bg-primary transition-all duration-500"
+                                 style="width: {{ $configProgress['porcentaje'] }}%"></div>
+                        </div>
+                        <p class="text-[11px] leading-none text-muted-foreground">
+                            {{ $pendientes }} paso{{ $pendientes !== 1 ? 's' : '' }} pendiente{{ $pendientes !== 1 ? 's' : '' }}
+                        </p>
+                    </div>
+
+                    {{-- Colapsado --}}
+                    <div x-show="isCollapsed" x-cloak class="flex justify-center">
+                        <div class="relative flex size-9 items-center justify-center rounded-md bg-primary/10 hover:bg-primary/20 transition-colors">
+                            <x-lucide-list-checks class="size-4 text-primary" />
+                            <span class="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold leading-none text-primary-foreground">
+                                {{ $configProgress['completado'] }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Hover popover content --}}
+                <x-ui.dropdown-menu.content
+                    @mouseenter="clearTimeout(_ht); open = true"
+                    @mouseleave="closeHover()"
+                    class="w-56"
+                >
+                    <x-ui.dropdown-menu.label>Configuración inicial</x-ui.dropdown-menu.label>
+                    <x-ui.dropdown-menu.separator />
+
+                    @foreach($completados as $step)
+                        <x-ui.dropdown-menu.item :disabled="true">
+                            <x-lucide-circle-check class="size-4 text-success" />
+                            <span>{{ $step['label'] }}</span>
+                        </x-ui.dropdown-menu.item>
+                    @endforeach
+
+                    @if(count($completados) > 0 && count($faltantes) > 0)
+                        <x-ui.dropdown-menu.separator />
+                    @endif
+
+                    @foreach($faltantes as $step)
+                        <x-ui.dropdown-menu.item :href="route($step['route'], $step['params'] ?: [])">
+                            <x-lucide-circle class="size-4 text-muted-foreground/50" />
+                            <span class="flex-1">{{ $step['label'] }}</span>
+                            <x-lucide-arrow-right class="size-3 text-muted-foreground/50" />
+                        </x-ui.dropdown-menu.item>
+                    @endforeach
+
+                    <x-ui.dropdown-menu.separator />
+                    <x-ui.dropdown-menu.label class="text-[11px] font-normal">Clic para ver detalles</x-ui.dropdown-menu.label>
+                </x-ui.dropdown-menu.content>
+
+            </x-ui.dropdown-menu>
+
+            {{-- Sheet de detalle --}}
+            <x-ui.sheet controlled-by="sheetOpen" side="right">
+                <div class="flex h-full flex-col">
+
+                    <div class="flex items-center justify-between border-b border-border p-6 pb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="flex size-9 items-center justify-center rounded-lg bg-primary/10">
+                                <x-lucide-list-checks class="size-4 text-primary" />
+                            </div>
+                            <div>
+                                <h2 class="text-h4">Configuración inicial</h2>
+                                <p class="text-caption mt-0.5">
+                                    {{ $configProgress['completado'] }} de {{ $configProgress['total'] }} pasos completados
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Progress bar --}}
+                    <div class="px-6 py-4 border-b border-border">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-muted-foreground">Progreso general</span>
+                            <span class="text-xs font-semibold tabular-nums">{{ $configProgress['porcentaje'] }}%</span>
+                        </div>
+                        <div class="h-2 w-full overflow-hidden rounded-full bg-muted">
+                            <div class="h-full rounded-full bg-primary transition-all duration-500"
+                                 style="width: {{ $configProgress['porcentaje'] }}%"></div>
+                        </div>
+                    </div>
+
+                    {{-- Steps --}}
+                    <div class="flex-1 overflow-y-auto p-6 space-y-6">
+
+                        @if(count($completados) > 0)
+                        <div class="space-y-2">
+                            <p class="text-overline">Completados</p>
+                            <ul class="space-y-1.5">
+                                @foreach($completados as $step)
+                                <li class="flex items-center gap-3 rounded-lg bg-success/5 border border-success/20 px-3 py-2.5">
+                                    <x-lucide-circle-check class="size-4 shrink-0 text-success" />
+                                    <span class="text-sm font-medium text-foreground">{{ $step['label'] }}</span>
+                                </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                        @endif
+
+                        @if(count($faltantes) > 0)
+                        <div class="space-y-2">
+                            <p class="text-overline">Pendientes</p>
+                            <ul class="space-y-1.5">
+                                @foreach($faltantes as $step)
+                                <li>
+                                    <a
+                                        href="{{ route($step['route'], $step['params'] ?: []) }}"
+                                        @click="sheetOpen = false"
+                                        class="group flex items-center gap-3 rounded-lg border border-border px-3 py-2.5 hover:bg-accent hover:border-accent transition-colors"
+                                    >
+                                        <x-lucide-circle class="size-4 shrink-0 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
+                                        <span class="flex-1 text-sm text-muted-foreground group-hover:text-foreground transition-colors">{{ $step['label'] }}</span>
+                                        <x-lucide-arrow-right class="size-3.5 shrink-0 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
+                                    </a>
+                                </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                        @endif
+
+                    </div>
+
+                    {{-- Footer --}}
+                    <div class="border-t border-border p-4">
+                        <x-ui.button
+                            class="w-full gap-2"
+                            @click="sheetOpen = false"
+                            tag="a"
+                            href="{{ route('manual.show', 'configuracion-inicial') }}"
+                        >
+                            <x-lucide-book-open class="size-4" />
+                            Ver guía completa
+                        </x-ui.button>
+                    </div>
+
+                </div>
+            </x-ui.sheet>
+
+        </div>
+        @endif
+
         {{-- User footer --}}
         @if($user)
         <x-ui.sidebar.footer class="border-t border-sidebar-border p-2">
@@ -252,6 +431,26 @@
                                 <p class="text-xs text-muted-foreground truncate capitalize">{{ $user->role }}</p>
                             </div>
                         </div>
+
+                        <div role="separator" class="-mx-1 my-1 h-px bg-border"></div>
+
+                        <a
+                            href="{{ route('perfil.show') }}"
+                            @click="open = false"
+                            class="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                        >
+                            <x-lucide-user class="size-4 text-muted-foreground" />
+                            Mi perfil
+                        </a>
+
+                        <a
+                            href="{{ route('manual.show') }}"
+                            @click="open = false"
+                            class="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                        >
+                            <x-lucide-book-open class="size-4 text-muted-foreground" />
+                            Manual de uso
+                        </a>
 
                         <div role="separator" class="-mx-1 my-1 h-px bg-border"></div>
 
@@ -316,6 +515,16 @@
                             </x-ui.button>
                         </x-ui.tooltip>
                     @endif
+                    @if($user?->isAdmin())
+                        <x-ui.tooltip content="Ayuda" side="bottom">
+                            <x-ui.button size="icon" variant="ghost"
+                                aria-label="Ayuda"
+                                @click="$dispatch('abrir-onboarding-admin')"
+                            >
+                                <x-lucide-circle-help class="size-6" />
+                            </x-ui.button>
+                        </x-ui.tooltip>
+                    @endif
 
                     <x-ui.tooltip content="Cambiar tema" side="bottom">
                         <x-ui.button size="icon" variant="ghost" @click="$store.theme.toggle()"
@@ -347,6 +556,11 @@
                         <x-ui.dropdown-menu.content align="end">
                             @if($user?->isOperador())
                                 <x-ui.dropdown-menu.item @click="$dispatch('abrir-onboarding')">
+                                    <x-lucide-circle-help /> Ayuda
+                                </x-ui.dropdown-menu.item>
+                            @endif
+                            @if($user?->isAdmin())
+                                <x-ui.dropdown-menu.item @click="$dispatch('abrir-onboarding-admin')">
                                     <x-lucide-circle-help /> Ayuda
                                 </x-ui.dropdown-menu.item>
                             @endif
@@ -396,6 +610,10 @@
     </x-ui.sidebar.inset>
 
 </x-ui.sidebar.provider>
+
+@if($user?->isAdmin())
+    <x-onboarding.bienvenida-admin :forzar="!$user->onboarding_visto" />
+@endif
 
 <x-ui.sonner />
 

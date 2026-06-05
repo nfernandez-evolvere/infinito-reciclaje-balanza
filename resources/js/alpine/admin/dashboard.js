@@ -28,6 +28,10 @@ export default function dashboardData() {
         desgloseVehiculoRango: [],
         desgloseZonaRango:     [],
 
+        get sinDatos() {
+            return (this.kpisDia?.total ?? 0) === 0 && (this.kpisMes?.total ?? 0) === 0;
+        },
+
         desgloseColor(source, nombre) {
             const valid = (this[source] ?? []).filter(d => d.toneladas > 0);
             const idx = valid.findIndex(d => d.nombre === nombre);

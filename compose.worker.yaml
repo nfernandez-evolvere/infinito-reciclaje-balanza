@@ -1,0 +1,32 @@
+# Compose del WORKER — cola + scheduler. UNA sola instancia por entorno,
+# persistente y compartida por ambos colores (NO participa del blue-green).
+# Evita el doble-scheduling de reportes/alertas (routes/console.php).
+#
+#   # Producción
+#   ENV_PREFIX=prod    TAG=<sha> docker compose -p prod-worker    -f compose.worker.yaml up -d
+#   # Staging
+#   ENV_PREFIX=staging TAG=<sha> docker compose -p staging-worker -f compose.worker.yaml up -d
+#
+# En el deploy se actualiza a la imagen nueva DESPUÉS del cutover (su reinicio
+# es un parpadeo invisible para el usuario; los jobs se reintentan).
+
+services:
+  worker:
+    image: ghcr.io/nfernandez-evolvere/infinito-reciclaje-balanza:${TAG:-latest}
+    container_name: balanza-${ENV_PREFIX:-prod}-worker
+    env_file: .env.${ENV_PREFIX:-prod}
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+    command: ["supervisord", "-c", "/etc/supervisor/conf.d/worker.conf", "-n"]
+    # El HEALTHCHECK del Dockerfile hace curl a :8080/up (nginx). El worker no
+    # corre nginx → el check siempre fallaría. Se desactiva acá.
+    healthcheck:
+      disable: true
+    networks:
+      - balanza-net
+    restart: unless-stopped
+
+networks:
+  balanza-net:
+    external: true

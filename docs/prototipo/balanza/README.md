@@ -4,7 +4,7 @@ Interactive click-through prototype for the operator + admin workflows. Single-p
 
 ## Screens
 
-1. **Login** — `roberto / 1234` → Balanza · `nacho / 1234` → Dashboard
+1. **Login** — `roberto / Evolvere123!@` → Balanza · `nacho / Evolvere123!@` → Dashboard
 2. **Balanza (Pesaje)** — vertical sequential form: vehicle → service → weight → summary. 72 px weight readout, autocomplete, cascade *warning* (never override), keyboard shortcuts and a sticky action bar with shortcut hints.
 3. **Historial** — last 20 weighings of the shift (operator view, read-only + egreso + edit)
 4. **Dashboard (admin)** — alerts, KPIs, evolución diaria chart, zone + vehicle breakdowns

@@ -44,7 +44,6 @@
         } else {
             $subtitulo = 'Todos los pesajes';
         }
-        $exportUrl     = $exportUrl ?? null;
         $zonas         = $zonas ?? collect();
         $tiposServicio = $tiposServicio ?? collect();
     @endphp
@@ -62,14 +61,7 @@
                     </x-ui.button>
                 </x-ui.tooltip>
             </div>
-            @if($exportUrl)
-            <x-ui.tooltip content="Exportar">
-                <x-ui.button variant="ghost" size="icon" href="{{ $exportUrl . '?' . http_build_query(array_filter($filtros)) }}">
-                    <x-lucide-download class="size-4" />
-                </x-ui.button>
-            </x-ui.tooltip>
-            @endif
-            <x-domain.historial.filtros :filtros="$filtros" :operarios="$operarios" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" :zonas="$zonas" :tiposServicio="$tiposServicio" :sortDirection="$filtros['sort_direction']" />
+            <x-domain.historial.filtros :filtros="$filtros" :operarios="$operarios" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" :zonas="$zonas" :tiposServicio="$tiposServicio" :sortDirection="$filtros['direction']" />
         </div>
     </div>
 
@@ -77,7 +69,7 @@
 
     <x-domain.historial.kpis :kpis="$kpis" />
 
-    <x-domain.historial.tabla :pesajes="$pesajes" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" :sortDirection="$filtros['sort_direction']" />
+    <x-domain.historial.tabla :pesajes="$pesajes" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" :sortDirection="$filtros['direction']" />
 
     <x-domain.historial.dialog-egreso />
 

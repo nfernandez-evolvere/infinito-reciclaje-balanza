@@ -1,5 +1,7 @@
 {{-- Desktop: 3 + 2 --}}
-<div class="hidden xl:flex flex-col gap-4">
+<div class="hidden xl:block">
+
+<div class="flex flex-col gap-4" x-show="!sinDatos">
 
     <div class="grid grid-cols-3 gap-4">
         <x-ui.kpi title="Días operativos" icon="calendar-days" variant="primary" help="Cantidad de días con al menos un pesaje registrado.">
@@ -95,5 +97,11 @@
             </x-ui.popover>
         </x-ui.kpi>
     </div>
+
+</div>
+
+<div x-show="sinDatos" x-cloak>
+    <x-domain.dashboard.kpis-vacio />
+</div>
 
 </div>

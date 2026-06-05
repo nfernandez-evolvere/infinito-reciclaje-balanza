@@ -150,7 +150,7 @@
       "Bash(curl -s -c /tmp/cookies.txt http://127.0.0.1:8000/login)",
       "Bash(cd \"c:\\\\Users\\\\34891406\\\\Nicolas\\\\Proyectos\\\\infinito-reciclaje-balanza\" && \\\\ *)",
       "Read(//tmp/**)",
-      "Bash(curl -s -c /tmp/cookies.txt -b /tmp/cookies.txt -X POST http://127.0.0.1:8000/login --data-urlencode email=nfernandez@evolvere.com.ar --data-urlencode password=1234 --data-urlencode _token=Ru61vPtJdyf0NiQzMPw7augahe0WyrzXsHAEGKIm -L -o /tmp/after_login.html -w '\\\\nHTTP Status: %{http_code}')"
+      "Bash(curl -s -c /tmp/cookies.txt -b /tmp/cookies.txt -X POST http://127.0.0.1:8000/login --data-urlencode email=nfernandez@evolvere.com.ar --data-urlencode password=Evolvere123!@ --data-urlencode _token=Ru61vPtJdyf0NiQzMPw7augahe0WyrzXsHAEGKIm -L -o /tmp/after_login.html -w '\\\\nHTTP Status: %{http_code}')"
     ],
     "additionalDirectories": [
       "c:\\Users\\34891406\\Nicolas\\Proyectos\\infinito-reciclaje-balanza\\database\\sql",

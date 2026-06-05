@@ -679,11 +679,8 @@ Para `destructive`, `success`, `warning`, `info`:
 | Texto de helper/estado           | `text-{state}`                           |
 
 ```blade
-{{-- Alert de error --}}
-<x-ui.alert state="destructive">
-    <x-ui.alert.title>Error</x-ui.alert.title>
-    <x-ui.alert.description>Algo salió mal.</x-ui.alert.description>
-</x-ui.alert>
+{{-- Alert de error — título y descripción por props (el ícono se deriva del state) --}}
+<x-ui.alert state="destructive" title="Error" description="Algo salió mal." />
 
 {{-- Badge de éxito sutil --}}
 <x-ui.badge state="success" :subtle="true">Activo</x-ui.badge>
@@ -745,7 +742,7 @@ El tema oscuro se activa con la clase `dark` en `<html>`. El layout lo gestiona 
 | `drawer`          | `content`, `header`, `title`, `description`, `footer` | Panel lateral (mobile-first) |
 | `sheet`           | `content`, `header`, `title`, `description`, `footer` | Panel lateral |
 | `alert-dialog`    | `trigger`, `content`, `header`, `title`, `description`, `footer`, `action`, `cancel` | Confirmación |
-| `alert`           | `title`, `description`                   | Mensaje de estado                  |
+| `alert`           | `title`, `description`, `action` (slots) — props: `state`, `title`, `description`, `icon`, `hideIcon` | Mensaje de estado. Título/descripción por prop (string) o por slot (contenido dinámico). El ícono se deriva del `state` |
 | `tabs`            | `list`, `trigger`, `content`             | Pestañas                           |
 | `accordion`       | `item`, `header`, `trigger`, `content`   | Acordeón colapsable                |
 | `select`          | `trigger`, `content`, `group`, `label`, `item`, `separator`, `value` | Select estilizado |

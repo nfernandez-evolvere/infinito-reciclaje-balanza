@@ -31,7 +31,7 @@
                             rows="4"
                             placeholder="Describí brevemente la empresa y su propósito..."
                         >{{ old('intro_empresa', $config->intro_empresa) }}</x-ui.textarea>
-                        <p class="text-caption">Aparece en la segunda página del informe PPT.</p>
+                        <p class="text-caption">Aparece en la segunda página del informe PDF.</p>
                     </x-ui.form-field>
                 </div>
             </x-ui.card.content>
@@ -85,7 +85,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-label">Habilitar IA</p>
-                            <p class="text-caption">Genera conclusiones automáticas en el informe PPT.</p>
+                            <p class="text-caption">Genera conclusiones automáticas en el informe PDF.</p>
                         </div>
                         <label class="flex items-center gap-2 cursor-pointer">
                             <x-ui.switch name="ai_enabled" :checked="$config->ai_enabled" x-model="aiEnabled" />
@@ -146,7 +146,7 @@
                 <div class="space-y-4">
                     <div class="flex items-center justify-between gap-2">
                         <div>
-                            <p class="text-label">Informe mensual (PPT)</p>
+                            <p class="text-label">Informe mensual (PDF)</p>
                             <p class="text-caption">Presentación con gráficos, tablas y conclusiones para el municipio.</p>
                         </div>
                         <x-ui.switch name="tipo_informe_mensual_activo" :checked="$config->tipo_informe_mensual_activo ?? true" />

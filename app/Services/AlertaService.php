@@ -66,6 +66,36 @@ class AlertaService
         }
     }
 
+    public function registrarVehiculoNoHabitual(Pesaje $pesaje): void
+    {
+        $config = $this->alertaRepository->getConfig($pesaje->organizacion_id, 'vehiculo_no_habitual');
+        if ($config && ! $config->activo) {
+            return;
+        }
+
+        if ($this->alertaRepository->existeHoy($pesaje->organizacion_id, 'vehiculo_no_habitual', now(), $pesaje->id)) {
+            return;
+        }
+
+        $servicio = $pesaje->tipoServicio;
+        $tipoVeh = $pesaje->vehiculo?->tipoVehiculo;
+        $habituales = $servicio?->tiposVehiculo->pluck('nombre')->join(', ') ?? '—';
+
+        $base = [
+            'organizacion_id' => $pesaje->organizacion_id,
+            'tipo'            => 'vehiculo_no_habitual',
+            'titulo'          => "Vehículo no habitual — {$pesaje->vehiculo?->patente}",
+            'descripcion'     => "Tipo: {$tipoVeh?->nombre}. Habituales para {$servicio?->nombre}: {$habituales}.",
+            'pesaje_id'       => $pesaje->id,
+            'zona_id'         => $pesaje->zona_id,
+            'fecha_deteccion' => today()->toDateString(),
+        ];
+
+        foreach ($this->getAdminIds($pesaje->organizacion_id) as $adminId) {
+            $this->alertaRepository->create(array_merge($base, ['user_id' => $adminId]));
+        }
+    }
+
     // ── Detección automática (llamada desde DetectarAlertasCommand) ───
 
     public function detectarParaOrganizacion(int $organizacionId): void
@@ -181,15 +211,19 @@ class AlertaService
             ->orderBy('created_at')
             ->pluck('created_at');
 
-        $iniciOperativo = $fecha->copy()->setTime(8, 0);
-        $finOperativo = $fecha->copy()->setTime(18, 0);
+        $defaultsGap = ConfigAlerta::defaults()['gap_registro'];
+        $horaInicio = $config?->hora_inicio ?: $defaultsGap['hora_inicio'];
+        $horaFin = $config?->hora_fin ?: $defaultsGap['hora_fin'];
+
+        $iniciOperativo = $fecha->copy()->setTimeFromTimeString($horaInicio);
+        $finOperativo = $fecha->copy()->setTimeFromTimeString($horaFin);
 
         // Sin pesajes en todo el día operativo
         if ($pesajesDia->isEmpty()) {
             $this->createParaAdmins($organizacionId, [
                 'tipo'            => 'gap_registro',
                 'titulo'          => 'Sin actividad — '.$fecha->translatedFormat('d/m/Y'),
-                'descripcion'     => 'No se registraron pesajes durante el horario operativo (08:00–18:00).',
+                'descripcion'     => "No se registraron pesajes durante el horario operativo ({$horaInicio}–{$horaFin}).",
                 'fecha_deteccion' => $fecha->toDateString(),
             ]);
 
@@ -315,10 +349,18 @@ class AlertaService
 
         foreach ($defaults as $tipo => $default) {
             $guardada = $guardadas[$tipo] ?? null;
-            $resultado[$tipo] = array_merge($default, [
+            $overrides = [
                 'activo'       => $guardada ? $guardada->activo : $default['activo'],
                 'umbral_valor' => $guardada ? $guardada->umbral_valor : $default['umbral_valor'],
-            ]);
+            ];
+
+            // El horario operativo solo aplica a los tipos que lo definen (gap_registro).
+            if (\array_key_exists('hora_inicio', $default)) {
+                $overrides['hora_inicio'] = $guardada?->hora_inicio ?: $default['hora_inicio'];
+                $overrides['hora_fin'] = $guardada?->hora_fin ?: $default['hora_fin'];
+            }
+
+            $resultado[$tipo] = array_merge($default, $overrides);
         }
 
         return $resultado;
@@ -326,17 +368,29 @@ class AlertaService
 
     public function guardarConfig(int $organizacionId, array $data): void
     {
-        foreach (ConfigAlerta::defaults() as $tipo => $_) {
+        foreach (ConfigAlerta::defaults() as $tipo => $default) {
             if (! isset($data[$tipo])) {
                 continue;
             }
 
-            $this->alertaRepository->upsertConfig($organizacionId, $tipo, [
+            $payload = [
                 'activo'       => (bool) ($data[$tipo]['activo'] ?? false),
                 'umbral_valor' => isset($data[$tipo]['umbral_valor']) && $data[$tipo]['umbral_valor'] !== ''
                     ? (float) $data[$tipo]['umbral_valor']
                     : null,
-            ]);
+            ];
+
+            // Horario operativo: solo se persiste si el tipo lo soporta y llegan valores.
+            if (\array_key_exists('hora_inicio', $default)) {
+                if (! empty($data[$tipo]['hora_inicio'])) {
+                    $payload['hora_inicio'] = $data[$tipo]['hora_inicio'];
+                }
+                if (! empty($data[$tipo]['hora_fin'])) {
+                    $payload['hora_fin'] = $data[$tipo]['hora_fin'];
+                }
+            }
+
+            $this->alertaRepository->upsertConfig($organizacionId, $tipo, $payload);
         }
     }
 }

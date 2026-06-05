@@ -131,6 +131,11 @@ export default function evolucionChart(datasets7, datasets15, datasets90) {
 
         get promedio() { return this.datasets[this.periodo].promedio; },
 
+        get vacio() {
+            const datos = this.datasets[this.periodo]?.datos ?? [];
+            return datos.every(d => !(d.toneladas > 0));
+        },
+
         primaryColor() {
             const el = document.createElement('span');
             el.className = 'bg-primary';
@@ -227,6 +232,12 @@ export default function evolucionChart(datasets7, datasets15, datasets90) {
             this.chart.render();
 
             this.$watch('periodo', () => this.updateChart());
+
+            // Al pasar de vacío a con datos, el contenedor estaba en display:none
+            // (ancho 0). Re-renderizar tras mostrarlo para que tome el ancho real.
+            this.$watch('vacio', (v) => {
+                if (!v) this.$nextTick(() => this.updateChart());
+            });
 
             this._refreshHandler = (e) => {
                 const d = e.detail;

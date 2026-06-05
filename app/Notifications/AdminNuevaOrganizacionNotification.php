@@ -3,11 +3,14 @@
 namespace App\Notifications;
 
 use App\Models\Organizacion;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class AdminNuevaOrganizacionNotification extends Notification
+class AdminNuevaOrganizacionNotification extends Notification implements ShouldQueue
 {
+    public int $tries = 3;
+
     public function __construct(
         protected Organizacion $organizacion,
     ) {}

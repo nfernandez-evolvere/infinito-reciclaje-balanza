@@ -134,7 +134,7 @@ Los seeds están segmentados por ambiente. `DatabaseSeeder` despacha el seeder c
 | `staging` | `StagingSeeder` *(pendiente)* | — |
 | `production` | `ProductionSeeder` *(pendiente)* | — |
 
-Usuarios de dev (contraseña `1234`):
+Usuarios de dev (contraseña `Evolvere123!@`):
 
 | Email | Rol | Organización |
 |-------|-----|--------------|

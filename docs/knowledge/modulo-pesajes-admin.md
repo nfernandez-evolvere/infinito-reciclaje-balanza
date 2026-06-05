@@ -1,7 +1,7 @@
 # Módulo de pesajes (vista administrador)
 ## Sistema de Gestión de Balanza — Infinito Reciclaje
 
-**Dirigido a:** Administrador (Nacho)
+**Dirigido a:** Administrador
 **Cuándo usarlo:** Referencia de cómo revisar, filtrar, editar y auditar el log completo de pesajes
 
 ---
@@ -14,7 +14,7 @@ El módulo de Pesajes es el log completo de todos los pesajes registrados en el 
 - Editar un pesaje cuando hay un error
 - Ver el historial de cambios de cualquier pesaje
 
-Es diferente al Historial del operador, que solo muestra el turno actual. Este log incluye todo.
+Ambas vistas (admin y operador) muestran todos los pesajes de la organización sin límite de fecha. La diferencia está en los filtros disponibles: el operador puede filtrar por fecha, patente, estado y operario; el admin tiene además filtros de zona, tipo de servicio, alertas de peso y pesajes editados.
 
 ---
 
@@ -63,7 +63,7 @@ Los filtros se aplican en tiempo real. Para limpiar todos los filtros, usá el b
 
 ## Cómo ver el detalle de un pesaje
 
-Hacé clic en cualquier fila para abrir el panel de detalle. Muestra:
+Hacé clic en el menú de cualquier fila y selecciona la opción Detalles. Muestra:
 
 - Todos los campos del pesaje (vehículo, servicio, origen, pesos, operador, fechas)
 - Observaciones (si tiene)
