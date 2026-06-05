@@ -651,20 +651,26 @@ Props: `variant` (default/secondary/destructive/outline/ghost/link/warning/succe
 
 ### Alert
 
-Props: `variant` (default/destructive)
-Sub-componentes: `<x-ui.alert.title>`, `<x-ui.alert.description>`
-El SVG se posiciona automáticamente con CSS arbitrario (`[&>svg]:absolute [&>svg]:left-4`).
+Props: `state` (null/destructive/success/warning/info), `title` (string), `description` (string), `icon` (override del nombre lucide, opcional), `hideIcon` (bool).
+Slots: `title`, `description` (para contenido dinámico con Alpine), `action` (botón/link a la derecha), y el slot por defecto para cuerpos custom.
+
+El ícono se deriva automáticamente del `state` (no se escribe a mano). El layout, el ícono, el título, la descripción y la acción están encapsulados en el componente — **nunca** repetir el SVG ni `<x-ui.alert.title>`/`<x-ui.alert.description>` salvo cuando el contenido sea dinámico (slot).
 
 ```blade
-<x-ui.alert>
-    <x-ui.alert.title>Título</x-ui.alert.title>
-    <x-ui.alert.description>Descripción.</x-ui.alert.description>
+{{-- Caso simple: todo por props --}}
+<x-ui.alert state="destructive" title="Error" description="Algo salió mal." />
+<x-ui.alert state="success" title="Listo" description="Se guardó correctamente." />
+
+{{-- Con acción (botón / link) --}}
+<x-ui.alert state="warning" title="3 alertas activas" description="Revisá el detalle.">
+    <x-slot:action>
+        <x-ui.button variant="ghost" state="warning" href="/alertas">Revisar</x-ui.button>
+    </x-slot:action>
 </x-ui.alert>
 
-<x-ui.alert variant="destructive">
-    <svg class="size-4" .../>
-    <x-ui.alert.title>Error</x-ui.alert.title>
-    <x-ui.alert.description>Algo salió mal.</x-ui.alert.description>
+{{-- Contenido dinámico (Alpine): título/descripción por slot --}}
+<x-ui.alert state="destructive" title="No se pudo realizar el cambio." x-show="error" x-cloak>
+    <x-slot:description><span x-text="error"></span></x-slot:description>
 </x-ui.alert>
 ```
 

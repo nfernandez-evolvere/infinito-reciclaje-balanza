@@ -28,13 +28,11 @@
 
     {{-- Alerta de peso fuera de rango --}}
     @if($pesaje->alerta_peso)
-        <x-ui.alert state="warning">
-            <x-lucide-triangle-alert class="size-4" />
-            <x-ui.alert.title>Peso fuera del rango habitual</x-ui.alert.title>
-            <x-ui.alert.description>
-                El peso bruto registrado está fuera del rango esperado para este tipo de vehículo. El pesaje se guardó igualmente.
-            </x-ui.alert.description>
-        </x-ui.alert>
+        <x-ui.alert
+            state="warning"
+            title="Peso fuera del rango habitual"
+            description="El peso bruto registrado está fuera del rango esperado para este tipo de vehículo. El pesaje se guardó igualmente."
+        />
     @endif
 
     {{-- Hero: Peso neto --}}

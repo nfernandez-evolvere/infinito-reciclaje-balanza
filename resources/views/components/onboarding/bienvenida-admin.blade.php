@@ -64,7 +64,7 @@
 
                 {{-- Pasos --}}
                 <div class="px-6 py-5 space-y-4">
-                    <p class="text-sm text-muted-foreground">Tres cosas para arrancar. Seguí el orden y el sistema va a estar listo para operar.</p>
+                    <p class="text-sm text-muted-foreground">Cuatro cosas para arrancar. La primera es cargar los datos; el resto es la operación del día a día.</p>
 
                     <div class="space-y-3">
                         {{-- Paso 1 --}}
@@ -84,7 +84,7 @@
                             </div>
                             <div>
                                 <p class="text-sm font-semibold">Seguí la operación desde el Dashboard</p>
-                                <p class="text-xs text-muted-foreground mt-0.5">Muestra en tiempo real los camiones en el predio, los KPIs del día y las alertas activas. En Pesajes podés editar cualquier registro si hay un error.</p>
+                                <p class="text-xs text-muted-foreground mt-0.5">Muestra en tiempo real los camiones en el predio, los KPIs del día y las alertas activas. Es la pantalla para monitorear cómo viene la jornada.</p>
                             </div>
                         </div>
                         {{-- Paso 3 --}}
@@ -93,7 +93,17 @@
                                 <span class="text-xs font-bold text-primary">3</span>
                             </div>
                             <div>
-                                <p class="text-sm font-semibold">Generá el reporte mensual para el municipio</p>
+                                <p class="text-sm font-semibold">Atendé las alertas cuando aparezcan</p>
+                                <p class="text-xs text-muted-foreground mt-0.5">El sistema avisa solo cuando algo se sale de lo normal: un gap sin pesajes en horario operativo, un peso fuera del rango del vehículo o una frecuencia atípica en un origen. Desde la alerta saltás directo al pesaje para corregirlo y la marcás como resuelta.</p>
+                            </div>
+                        </div>
+                        {{-- Paso 4 --}}
+                        <div class="flex gap-3 rounded-lg border border-border p-3">
+                            <div class="size-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                                <span class="text-xs font-bold text-primary">4</span>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold">Generá el reporte mensual de la operación</p>
                                 <p class="text-xs text-muted-foreground mt-0.5">En Reportes seleccionás el período, aplicás filtros y exportás en PDF o Excel. También podés programar el envío automático por email.</p>
                             </div>
                         </div>
@@ -103,9 +113,7 @@
 
                 {{-- Footer --}}
                 <div class="flex items-center justify-between px-6 py-4 border-t border-border">
-                    <a href="{{ route('manual.show', 'onboarding-admin') }}" class="text-xs text-muted-foreground hover:text-foreground transition-colors">
-                        Ver guía completa
-                    </a>
+                    <x-ui.button variant="link" href="{{ route('manual.show', 'onboarding-admin') }}">Ver guía completa</x-ui.button>
                     <x-ui.button @click="cerrar()">Entendido</x-ui.button>
                 </div>
             </div>

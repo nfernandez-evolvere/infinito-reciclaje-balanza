@@ -435,6 +435,15 @@
                         <div role="separator" class="-mx-1 my-1 h-px bg-border"></div>
 
                         <a
+                            href="{{ route('perfil.show') }}"
+                            @click="open = false"
+                            class="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                        >
+                            <x-lucide-user class="size-4 text-muted-foreground" />
+                            Mi perfil
+                        </a>
+
+                        <a
                             href="{{ route('manual.show') }}"
                             @click="open = false"
                             class="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors"

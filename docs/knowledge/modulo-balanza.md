@@ -180,7 +180,7 @@ Si el pesaje no fue guardado, se pierde. El sistema te avisa con un mensaje de c
 El formulario se limpia. El pesaje no se guardó, así que tenés que empezar de nuevo.
 
 **¿Puedo ver pesajes de días anteriores?**
-No desde esta pantalla. El Historial muestra solo el turno actual. Para ver pesajes de otros días, el administrador tiene acceso al log completo.
+Sí. El Historial muestra todos los pesajes de la organización. Podés usar el filtro de fecha para buscar registros de días anteriores.
 
 **¿El sistema guarda la hora automáticamente?**
 Sí. La hora de entrada se registra en el momento en que guardás el pesaje. No tenés que ingresarla.

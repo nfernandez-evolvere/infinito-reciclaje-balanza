@@ -7,11 +7,12 @@
         @csrf
 
         @if (session('status'))
-            <x-ui.alert state="success" class="mb-4">
-                <x-lucide-circle-check class="size-4" />
-                <x-ui.alert.title>Enlace enviado</x-ui.alert.title>
-                <x-ui.alert.description>{{ session('status') }}</x-ui.alert.description>
-            </x-ui.alert>
+            <x-ui.alert
+                state="success"
+                title="Enlace enviado"
+                :description="session('status')"
+                class="mb-4"
+            />
         @endif
 
         <x-ui.form-field for="email" :state="$errors->has('email') ? 'destructive' : null" :message="$errors->first('email')">

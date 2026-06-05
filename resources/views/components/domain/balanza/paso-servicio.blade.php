@@ -98,16 +98,18 @@
     </div>
 
     {{-- Cascade warning --}}
-    <div x-show="tipoMismatch" x-cloak
-        class="mt-3 bg-warning-subtle border-l-[3px] border-warning rounded-md px-3 py-2.5 text-sm text-foreground flex gap-2 items-start"
+    <x-ui.alert
+        x-show="tipoMismatch"
+        x-cloak
+        state="warning"
+        title="No es un tipo habitual para este servicio."
+        class="mt-3"
     >
-        <x-lucide-triangle-alert class="size-4 shrink-0 mt-0.5 text-warning" />
-        <div>
-            <b>No es un tipo habitual para este servicio.</b><br>
+        <x-slot:description>
             Para <b x-text="servicioNombre"></b> se espera
             <span x-text="tiposSugeridos.length === 1 ? 'un' : 'uno de'"></span>
             <b x-text="tiposSugeridos.join(', ')"></b>; este vehículo es <b x-text="vehiculo?.tipo"></b>. El pesaje se guarda igual.
-        </div>
-    </div>
+        </x-slot:description>
+    </x-ui.alert>
 
 </x-domain.balanza.paso>

@@ -151,6 +151,58 @@ class AlertaModuleTest extends TestCase
     }
 
     #[Test]
+    public function update_config_saves_horario_operativo_for_gap_registro(): void
+    {
+        $admin = $this->admin();
+
+        $this->actingAs($admin)
+            ->put(route('admin.alertas.configuracion.update'), [
+                'config' => [
+                    'gap_registro' => ['activo' => '1', 'umbral_valor' => '120', 'hora_inicio' => '07:00', 'hora_fin' => '15:30'],
+                ],
+            ])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $gap = ConfigAlerta::withoutGlobalScopes()->where('tipo', 'gap_registro')->firstOrFail();
+        $this->assertSame('07:00', $gap->hora_inicio);
+        $this->assertSame('15:30', $gap->hora_fin);
+    }
+
+    #[Test]
+    public function update_config_rejects_hora_fin_not_after_hora_inicio(): void
+    {
+        $admin = $this->admin();
+
+        $this->actingAs($admin)
+            ->put(route('admin.alertas.configuracion.update'), [
+                'config' => [
+                    'gap_registro' => ['activo' => '1', 'umbral_valor' => '120', 'hora_inicio' => '18:00', 'hora_fin' => '08:00'],
+                ],
+            ])
+            ->assertSessionHasErrors('config.gap_registro.hora_fin');
+
+        // La request rechazada no persiste nada
+        $this->assertSame(0, ConfigAlerta::withoutGlobalScopes()->where('tipo', 'gap_registro')->count());
+    }
+
+    #[Test]
+    public function update_config_rejects_invalid_hora_format(): void
+    {
+        $admin = $this->admin();
+
+        $this->actingAs($admin)
+            ->put(route('admin.alertas.configuracion.update'), [
+                'config' => [
+                    'gap_registro' => ['activo' => '1', 'umbral_valor' => '120', 'hora_inicio' => '25:99', 'hora_fin' => '18:00'],
+                ],
+            ])
+            ->assertSessionHasErrors('config.gap_registro.hora_inicio');
+
+        $this->assertSame(0, ConfigAlerta::withoutGlobalScopes()->where('tipo', 'gap_registro')->count());
+    }
+
+    #[Test]
     public function update_config_is_forbidden_for_operador(): void
     {
         $this->actingAs($this->operador())

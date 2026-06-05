@@ -16,7 +16,11 @@ No reemplaza revisar los pesajes uno por uno — para eso está el módulo de Pe
 
 ## Horario operativo
 
-El sistema considera como horario operativo el rango **8:00 a 18:00**. Algunos indicadores y alertas se calculan en función de ese rango. Fuera de ese horario, la ausencia de pesajes no genera alertas.
+El sistema usa un **horario operativo configurable** (por defecto **8:00 a 18:00**) para una sola cosa: la alarma de inactividad ("gap de pesajes"). Dentro de ese rango, si pasa demasiado tiempo sin pesajes, se genera una alarma; fuera de él, la ausencia de pesajes nunca genera alarma.
+
+Los KPIs y desgloses del Dashboard **no** dependen de este horario: cuentan todos los pesajes del día sin importar la hora.
+
+Podés ajustar el horario operativo en **Sistema → Alertas → Configuración**, en la tarjeta "Sin actividad en horario operativo".
 
 ---
 

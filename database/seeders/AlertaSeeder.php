@@ -34,9 +34,16 @@ class AlertaSeeder extends Seeder
     private function seedConfigAlertas(int $orgId): void
     {
         foreach (ConfigAlerta::defaults() as $tipo => $defaults) {
+            $valores = ['activo' => $defaults['activo'], 'umbral_valor' => $defaults['umbral_valor']];
+
+            if (\array_key_exists('hora_inicio', $defaults)) {
+                $valores['hora_inicio'] = $defaults['hora_inicio'];
+                $valores['hora_fin'] = $defaults['hora_fin'];
+            }
+
             ConfigAlerta::updateOrCreate(
                 ['organizacion_id' => $orgId, 'tipo' => $tipo],
-                ['activo' => $defaults['activo'], 'umbral_valor' => $defaults['umbral_valor']],
+                $valores,
             );
         }
     }

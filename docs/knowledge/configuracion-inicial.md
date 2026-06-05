@@ -2,6 +2,7 @@
 ## Checklist pre-go-live
 
 **Dirigido a:** Administrador
+
 **Cuándo usarlo:** Antes de que el sistema entre en operación real. Este checklist debe completarse en orden — cada paso depende del anterior.
 
 ---
@@ -17,7 +18,7 @@ El sistema está diseñado para que el operador no tenga que tipear nada que ya 
 ## Paso 1 — Ingresar al sistema por primera vez
 
 1. Abrí el navegador e ingresá a la dirección del sistema (te la provee el equipo de EVOLVERE).
-2. Ingresá con el usuario y contraseña que te entregaron.
+2. Ingresá con el usuario y contraseña que te entregaron o te llegó por email.
 3. El sistema te va a mostrar el panel de administración.
 
 Si no podés ingresar, contactá al equipo de soporte de EVOLVERE.
@@ -49,10 +50,10 @@ Ir a **Padrón → Servicios** y verificar que estén cargados:
 
 | Servicio | Tipo de vehículo sugerido |
 |----------|--------------------------|
-| Domiciliario | Compactador |
+| Domiciliario | Compactador, Volcador |
 | Voluminoso | Volquete |
 | Barrido | Volcador |
-| Servicios Especiales | Compactador |
+| Servicios Especiales | Compactador, Volquete |
 | Centros de Transferencia | Compactador |
 
 > Los turnos no se configuran acá. Se configuran en el Paso 4 cuando asignás cada servicio a sus zonas.

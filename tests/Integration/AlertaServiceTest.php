@@ -187,6 +187,84 @@ class AlertaServiceTest extends TestCase
         $this->assertNull($peso->umbral_valor);
     }
 
+    // ── Horario operativo configurable ────────────────────────────────
+
+    #[Test]
+    public function get_config_con_defaults_includes_horario_operativo_only_for_gap_registro(): void
+    {
+        $config = $this->service->getConfigConDefaults(app('organizacion')->id);
+
+        $this->assertSame('08:00', $config['gap_registro']['hora_inicio']);
+        $this->assertSame('18:00', $config['gap_registro']['hora_fin']);
+
+        // El resto de los tipos no expone horario operativo
+        $this->assertArrayNotHasKey('hora_inicio', $config['peso_fuera_rango']);
+        $this->assertArrayNotHasKey('hora_inicio', $config['volumen_diario_atipico']);
+        $this->assertArrayNotHasKey('hora_inicio', $config['frecuencia_zona_atipica']);
+    }
+
+    #[Test]
+    public function get_config_con_defaults_merges_saved_horario_operativo_over_defaults(): void
+    {
+        $org = app('organizacion');
+
+        ConfigAlerta::create([
+            'organizacion_id' => $org->id,
+            'tipo'            => 'gap_registro',
+            'activo'          => true,
+            'umbral_valor'    => 120.0,
+            'hora_inicio'     => '07:30',
+            'hora_fin'        => '15:00',
+        ]);
+
+        $config = $this->service->getConfigConDefaults($org->id);
+
+        $this->assertSame('07:30', $config['gap_registro']['hora_inicio']);
+        $this->assertSame('15:00', $config['gap_registro']['hora_fin']);
+    }
+
+    #[Test]
+    public function guardar_config_persists_horario_operativo_for_gap_registro(): void
+    {
+        $org = app('organizacion');
+
+        $this->service->guardarConfig($org->id, [
+            'gap_registro' => ['activo' => true, 'umbral_valor' => '120', 'hora_inicio' => '06:00', 'hora_fin' => '22:00'],
+        ]);
+
+        $gap = ConfigAlerta::withoutGlobalScopes()
+            ->where('organizacion_id', $org->id)
+            ->where('tipo', 'gap_registro')
+            ->firstOrFail();
+
+        $this->assertSame('06:00', $gap->hora_inicio);
+        $this->assertSame('22:00', $gap->hora_fin);
+    }
+
+    #[Test]
+    public function guardar_config_leaves_horario_operativo_untouched_when_not_submitted(): void
+    {
+        $org = app('organizacion');
+
+        // Sin claves de horario en el payload → no debe escribirlas (quedan null → caen al default)
+        $this->service->guardarConfig($org->id, [
+            'gap_registro' => ['activo' => false, 'umbral_valor' => '45'],
+        ]);
+
+        $gap = ConfigAlerta::withoutGlobalScopes()
+            ->where('organizacion_id', $org->id)
+            ->where('tipo', 'gap_registro')
+            ->firstOrFail();
+
+        $this->assertNull($gap->hora_inicio);
+        $this->assertNull($gap->hora_fin);
+
+        // El service rellena el default al leer
+        $config = $this->service->getConfigConDefaults($org->id);
+        $this->assertSame('08:00', $config['gap_registro']['hora_inicio']);
+        $this->assertSame('18:00', $config['gap_registro']['hora_fin']);
+    }
+
     // ── UUID auto-generado ────────────────────────────────────────────
 
     #[Test]

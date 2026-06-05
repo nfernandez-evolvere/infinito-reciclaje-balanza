@@ -14,6 +14,51 @@
             }
             @media (prefers-reduced-motion: reduce) {
                 .reveal { opacity: 1; transform: none; transition: none; }
+                .landing-bubble { animation: none !important; }
+            }
+            @keyframes lnd-hero-a {
+                0%, 100% { transform: translateX(-50%) translateY(0); }
+                50%       { transform: translateX(-50%) translateY(-16px); }
+            }
+            @keyframes lnd-hero-b {
+                0%, 100% { transform: translateY(-50%); }
+                50%       { transform: translate(-12px, calc(-50% - 14px)); }
+            }
+            @keyframes lnd-hero-c {
+                0%, 100% { transform: translate(50%, -50%); }
+                50%       { transform: translate(calc(50% + 10px), calc(-50% - 18px)); }
+            }
+            @keyframes lnd-hero-d {
+                0%, 100% { transform: translate(0, 0); }
+                50%       { transform: translate(14px, -18px); }
+            }
+            @keyframes lnd-hero-e {
+                0%, 100% { transform: translate(0, 0); }
+                50%       { transform: translate(-10px, 14px); }
+            }
+            @keyframes lnd-cta-a {
+                0%, 100% { transform: translate(0, 0); }
+                50%       { transform: translate(10px, -20px); }
+            }
+            @keyframes lnd-cta-b {
+                0%, 100% { transform: translate(0, 0); }
+                50%       { transform: translate(-12px, 16px); }
+            }
+            @keyframes lnd-cta-c {
+                0%, 100% { transform: translate(50%, -50%); }
+                50%       { transform: translate(calc(50% + 8px), calc(-50% - 14px)); }
+            }
+            @keyframes lnd-bg-a {
+                0%   { transform: translate(0, 0); }
+                33%  { transform: translate(24px, -30px); }
+                66%  { transform: translate(-18px, 20px); }
+                100% { transform: translate(0, 0); }
+            }
+            @keyframes lnd-bg-b {
+                0%   { transform: translate(0, 0); }
+                33%  { transform: translate(-22px, 26px); }
+                66%  { transform: translate(16px, -22px); }
+                100% { transform: translate(0, 0); }
             }
         </style>
     </x-slot:head>
@@ -46,9 +91,16 @@
         <section class="relative overflow-hidden py-20 md:py-28">
 
             <div class="pointer-events-none absolute inset-0" aria-hidden="true">
-                <div class="absolute -top-40 left-1/2 size-160 -translate-x-1/2 rounded-full bg-primary/5"></div>
-                <div class="absolute bottom-0 left-1/4 size-80 -translate-y-1/2 rounded-full bg-primary/5"></div>
-                <div class="absolute right-0 top-1/2 size-64 -translate-y-1/2 translate-x-1/2 rounded-full bg-primary/5"></div>
+                <div class="absolute -top-40 left-1/2 size-160 rounded-full bg-primary/5 landing-bubble"
+                     style="animation: lnd-hero-a 7s ease-in-out infinite;"></div>
+                <div class="absolute bottom-0 left-1/4 size-80 rounded-full bg-primary/5 landing-bubble"
+                     style="animation: lnd-hero-b 9s ease-in-out infinite; animation-delay: -3s;"></div>
+                <div class="absolute right-0 top-1/2 size-64 rounded-full bg-primary/5 landing-bubble"
+                     style="animation: lnd-hero-c 5s ease-in-out infinite; animation-delay: -2s;"></div>
+                <div class="absolute top-1/3 -left-10 size-44 rounded-full bg-primary/5 landing-bubble"
+                     style="animation: lnd-hero-d 4s ease-in-out infinite; animation-delay: -1s;"></div>
+                <div class="absolute bottom-1/4 right-1/3 size-32 rounded-full bg-primary/5 landing-bubble"
+                     style="animation: lnd-hero-e 6s ease-in-out infinite; animation-delay: -2s;"></div>
             </div>
 
             <div class="relative mx-auto max-w-6xl px-4 sm:px-6">
@@ -86,7 +138,15 @@
         </section>
 
         {{-- Features --}}
-        <section class="py-16 md:py-24">
+        <section class="relative overflow-hidden py-16 md:py-24">
+            <div class="pointer-events-none absolute inset-0" aria-hidden="true">
+                <div class="absolute -top-24 right-1/4 size-72 rounded-full bg-primary/5 landing-bubble"
+                     style="animation: lnd-bg-a 8s ease-in-out infinite; animation-delay: -2s;"></div>
+                <div class="absolute top-1/2 -left-20 size-80 rounded-full bg-primary/5 landing-bubble"
+                     style="animation: lnd-bg-b 11s ease-in-out infinite; animation-delay: -5s;"></div>
+                <div class="absolute -bottom-16 right-1/3 size-56 rounded-full bg-primary/5 landing-bubble"
+                     style="animation: lnd-hero-e 7s ease-in-out infinite; animation-delay: -3s;"></div>
+            </div>
             <div class="mx-auto max-w-6xl space-y-24 px-4 sm:px-6">
 
                 {{-- Feature 1: Balanza --}}
@@ -307,7 +367,15 @@
         </section>
 
         {{-- CTA final --}}
-        <section class="bg-primary py-16">
+        <section class="relative overflow-hidden bg-primary py-16">
+            <div class="pointer-events-none absolute inset-0" aria-hidden="true">
+                <div class="absolute -top-16 -right-16 size-64 rounded-full bg-white/5 landing-bubble"
+                     style="animation: lnd-cta-a 4s ease-in-out infinite;"></div>
+                <div class="absolute -bottom-16 -left-16 size-72 rounded-full bg-white/5 landing-bubble"
+                     style="animation: lnd-cta-b 6s ease-in-out infinite; animation-delay: -2s;"></div>
+                <div class="absolute top-1/2 right-0 size-36 rounded-full bg-white/5 landing-bubble"
+                     style="animation: lnd-cta-c 3s ease-in-out infinite; animation-delay: -1s;"></div>
+            </div>
             <div class="mx-auto max-w-2xl px-4 text-center sm:px-6 reveal">
                 <h2 class="text-3xl font-bold tracking-tight text-primary-foreground">Listo para digitalizar la operación</h2>
                 <p class="mt-4 text-lg text-primary-foreground/70">

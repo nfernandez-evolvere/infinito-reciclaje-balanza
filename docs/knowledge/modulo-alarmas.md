@@ -29,9 +29,11 @@ Las alarmas aparecen en dos lugares:
 
 ### Tipo 1 — Gap de pesajes
 
-**Qué es:** No se registraron pesajes durante un período prolongado dentro del horario operativo (8:00–18:00).
+**Qué es:** No se registraron pesajes durante un período prolongado dentro del horario operativo configurado.
 
 **Ejemplo:** Pasaron 90 minutos en horario operativo sin ningún pesaje registrado.
+
+> El horario operativo (hora de inicio y de fin) lo definís vos en la configuración de la alarma. Por defecto es de 8:00 a 18:00. Fuera de ese rango, la ausencia de pesajes no genera esta alarma.
 
 **Causas posibles:**
 - El operador está registrando pesajes en papel y olvidó cargarlos al sistema
@@ -114,13 +116,17 @@ Los umbrales que disparan las alarmas son configurables. Para acceder a la confi
 
 ### Umbral de gap de pesajes
 
-Define cuántos minutos sin pesajes (durante horario operativo) se necesitan para generar una alarma.
+Define cuántos minutos sin pesajes (durante el horario operativo) se necesitan para generar una alarma, y el horario operativo mismo.
 
 | Configuración | Descripción |
 |---------------|-------------|
-| Tiempo mínimo de gap | Minutos sin pesajes para disparar la alarma (default: 60 minutos) |
+| Minutos sin actividad | Minutos sin pesajes para disparar la alarma (default: 120 minutos) |
+| Horario operativo — Desde | Hora a partir de la cual se empieza a evaluar la actividad (default: 8:00) |
+| Horario operativo — Hasta | Hora hasta la cual se evalúa la actividad (default: 18:00) |
 
-Si el valor es muy bajo (ej: 20 minutos), se van a generar muchas alarmas falsas durante pausas normales como el almuerzo. Si es muy alto (ej: 3 horas), se pueden perder situaciones problemáticas. El valor por defecto de 60 minutos es un punto de equilibrio razonable para empezar.
+Si los minutos son muy pocos (ej: 20), se van a generar muchas alarmas falsas durante pausas normales como el almuerzo. Si son demasiados (ej: 3 horas), se pueden perder situaciones problemáticas.
+
+Ajustá el **horario operativo** a la realidad de tu predio: si trabajás de 7 a 15, ponelo así y no recibirás alarmas por la tarde cuando no hay operación. Fuera del horario configurado, la falta de pesajes nunca dispara esta alarma.
 
 ### Umbrales de peso inusual
 

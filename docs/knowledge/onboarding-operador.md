@@ -114,12 +114,12 @@ El estado del registro pasa de **EN PREDIO** a **CERRADO**.
 
 ---
 
-## El Historial del turno
+## El Historial
 
-La pantalla de **Historial** muestra todos los pesajes que registraste en el turno de hoy.
+La pantalla de **Historial** muestra todos los pesajes registrados en la organización. Por defecto aparecen los más recientes primero, pero podés filtrar por fecha, patente, estado u operario para buscar cualquier registro.
 
-Arriba ves un resumen del turno:
-- Cuántos pesajes registraste
+Arriba ves un resumen del turno actual:
+- Cuántos pesajes se registraron hoy
 - Total de toneladas netas
 - Promedio por viaje
 - Cuántos camiones están en el predio en este momento

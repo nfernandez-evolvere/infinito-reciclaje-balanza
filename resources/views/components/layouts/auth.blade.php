@@ -70,10 +70,28 @@
                     {{-- Right: branded panel (hidden on mobile) --}}
                     <div class="relative hidden flex-col items-center justify-center overflow-hidden bg-primary p-10 text-primary-foreground md:flex">
 
+                        <style>
+                            @keyframes auth-bubble-a {
+                                0%, 100% { transform: translate(0, 0); }
+                                50%       { transform: translate(10px, -20px); }
+                            }
+                            @keyframes auth-bubble-b {
+                                0%, 100% { transform: translate(0, 0); }
+                                50%       { transform: translate(-12px, 16px); }
+                            }
+                            @keyframes auth-bubble-c {
+                                0%, 100% { transform: translate(50%, -50%); }
+                                50%       { transform: translate(calc(50% + 8px), calc(-50% - 14px)); }
+                            }
+                        </style>
+
                         {{-- Decorative circles --}}
-                        <div class="absolute -top-24 -right-24 size-72 rounded-full bg-white/5"></div>
-                        <div class="absolute -bottom-24 -left-24 size-80 rounded-full bg-white/5"></div>
-                        <div class="absolute top-1/2 right-0 size-40 -translate-y-1/2 translate-x-1/2 rounded-full bg-white/5"></div>
+                        <div class="absolute -top-24 -right-24 size-72 rounded-full bg-white/5"
+                             style="animation: auth-bubble-a 5s ease-in-out infinite;"></div>
+                        <div class="absolute -bottom-24 -left-24 size-80 rounded-full bg-white/5"
+                             style="animation: auth-bubble-b 7s ease-in-out infinite; animation-delay: -2s;"></div>
+                        <div class="absolute top-1/2 right-0 size-40 rounded-full bg-white/5"
+                             style="animation: auth-bubble-c 4s ease-in-out infinite; animation-delay: -1s;"></div>
 
                         {{-- Brand mark --}}
                         <div class="relative z-10 flex flex-col items-center gap-6 text-center">

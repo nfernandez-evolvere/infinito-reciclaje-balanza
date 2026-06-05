@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateConfigAlertaRequest;
 use App\Models\Alerta;
 use App\Repositories\AlertaRepository;
 use App\Services\AlertaService;
@@ -59,11 +60,11 @@ class AlertaController extends Controller
         ]);
     }
 
-    public function updateConfig(Request $request): RedirectResponse
+    public function updateConfig(UpdateConfigAlertaRequest $request): RedirectResponse
     {
         $this->alertaService->guardarConfig(
             app('organizacion')->id,
-            $request->input('config', []),
+            $request->validated('config', []),
         );
 
         return back()->with('toast', [

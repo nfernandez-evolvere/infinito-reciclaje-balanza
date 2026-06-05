@@ -7,10 +7,8 @@
         class="space-y-2"
         x-data="loginForm({ initialEmail: @js(old('email', '')) })"
     >
-        @if (!empty($usuariosPrueba) && $usuariosPrueba->isNotEmpty())
-            <x-ui.alert state="info">
-                <x-lucide-info class="size-3.5" />
-                <x-ui.alert.title>Usuarios de prueba</x-ui.alert.title>
+{{--         @if (!empty($usuariosPrueba) && $usuariosPrueba->isNotEmpty())
+            <x-ui.alert state="info" title="Usuarios de prueba">
                 <x-ui.alert.description class="flex flex-col gap-0.5 text-xs">
                     @foreach ($usuariosPrueba as $u)
                         @php $label = match($u->role) { 'super_admin' => 'Super Admin', 'admin' => 'Admin', default => 'Operador' } @endphp
@@ -18,20 +16,18 @@
                             type="button"
                             class="text-left hover:text-foreground transition-colors"
                             @click="emailVal = @js($u->email)"
-                        ><b>{{ $label }}</b> — {{ $u->email }} · pass: 1234</button>
+                        ><b>{{ $label }}</b> — {{ $u->email }} · pass: Evolvere123!@</button>
                     @endforeach
                 </x-ui.alert.description>
             </x-ui.alert>
-        @endif
+        @endif --}}
 
         @if ($errors->any())
-            <x-ui.alert state="destructive">
-                <x-lucide-circle-alert class="size-4" />
-                <x-ui.alert.title>No pudimos iniciar sesión</x-ui.alert.title>
-                <x-ui.alert.description>
-                    Verificá la organización, correo y contraseña e intentá de nuevo.
-                </x-ui.alert.description>
-            </x-ui.alert>
+            <x-ui.alert
+                state="destructive"
+                title="No pudimos iniciar sesión"
+                description="Verificá la organización, correo y contraseña e intentá de nuevo."
+            />
         @endif
 
         <form method="POST" action="{{ route('login') }}">

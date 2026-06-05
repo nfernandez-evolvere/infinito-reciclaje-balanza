@@ -1,23 +1,23 @@
-# #!/bin/sh
-# #
-# # Gate local pre-push: formato + análisis estático + tests sobre SQL Server.
-# # Bloquea el push si algo falla.
-# #
-# # Activar una vez por clon:
-# #   git config core.hooksPath .githooks
-# #
-# # Equivale a `composer check`; usa php directo para no depender de composer en PATH.
-# set -e
+#!/bin/sh
+#
+# Gate local pre-push: formato + análisis estático + tests sobre SQL Server.
+# Bloquea el push si algo falla.
+#
+# Activar una vez por clon:
+#   git config core.hooksPath .githooks
+#
+# Equivale a `composer check`; usa php directo para no depender de composer en PATH.
+set -e
 
-# echo "── Pre-push gate ─────────────────────────────"
+echo "── Pre-push gate ─────────────────────────────"
 
-# echo "▸ Pint (formato)"
-# php vendor/bin/pint --test
+echo "▸ Pint (formato)"
+php vendor/bin/pint --test
 
-# echo "▸ Larastan (análisis estático)"
-# php vendor/bin/phpstan analyse --memory-limit=512M
+echo "▸ Larastan (análisis estático)"
+php vendor/bin/phpstan analyse --memory-limit=512M
 
-# echo "▸ Tests + cobertura (SQL Server, min 68%)"
-# php artisan test --coverage --min=68
+echo "▸ Tests + cobertura (SQL Server, min 68%)"
+php artisan test --coverage --min=68
 
-# echo "✓ Gate OK — push permitido"
+echo "✓ Gate OK — push permitido"

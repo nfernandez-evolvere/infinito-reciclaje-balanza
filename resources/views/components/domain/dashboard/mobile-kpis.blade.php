@@ -10,7 +10,10 @@
             {{-- Hoy --}}
             <div x-show="active === 'hoy'" class="space-y-4">
                 <p class="text-label text-base">KPIs del día</p>
-                <div class="grid grid-cols-1 gap-3">
+                <div x-show="sinDatos" x-cloak>
+                    <x-domain.dashboard.kpis-vacio />
+                </div>
+                <div class="grid grid-cols-1 gap-3" x-show="!sinDatos">
                     <x-ui.kpi title="Pesajes hoy" icon="scale" variant="primary">
                         <span x-text="fmt(kpisDia.total)"></span>
                         <x-ui.popover side="top" align="start" width="w-52" class="mt-1.5 block">
@@ -111,7 +114,10 @@
             {{-- Este mes --}}
             <div x-show="active === 'mes'" class="space-y-4">
                 <p class="text-label text-base">KPIs del mes</p>
-                <div class="grid grid-cols-1 gap-3">
+                <div x-show="sinDatos" x-cloak>
+                    <x-domain.dashboard.kpis-vacio />
+                </div>
+                <div class="grid grid-cols-1 gap-3" x-show="!sinDatos">
                     <x-ui.kpi title="Pesajes del mes" icon="calendar-check" variant="primary">
                         <span x-text="fmt(kpisMes.total)"></span>
                         <x-ui.popover side="top" align="start" width="w-52" class="mt-1.5 block">

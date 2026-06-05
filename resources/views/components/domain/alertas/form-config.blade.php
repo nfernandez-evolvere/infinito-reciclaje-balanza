@@ -45,19 +45,61 @@
                     </div>
                 </x-ui.card.header>
 
-                @if($cfg['umbral_label'])
+                @if($cfg['umbral_label'] || isset($cfg['hora_inicio']))
                     <x-ui.card.content class="pt-0">
                         <x-ui.separator class="mb-4" />
-                        <x-ui.form-field class="max-w-xs">
-                            <x-ui.label>{{ $cfg['umbral_label'] }}</x-ui.label>
-                            <x-ui.input
-                                type="number"
-                                step="0.1"
-                                min="0"
-                                name="config[{{ $tipo }}][umbral_valor]"
-                                :value="$cfg['umbral_valor'] ?? ''"
-                            />
-                        </x-ui.form-field>
+                        <div class="flex flex-col gap-4">
+                            @if($cfg['umbral_label'])
+                                <x-ui.form-field class="max-w-xs">
+                                    <x-ui.label>{{ $cfg['umbral_label'] }}</x-ui.label>
+                                    <x-ui.input
+                                        type="number"
+                                        step="0.1"
+                                        min="0"
+                                        name="config[{{ $tipo }}][umbral_valor]"
+                                        :value="$cfg['umbral_valor'] ?? ''"
+                                    />
+                                </x-ui.form-field>
+                            @endif
+
+                            @isset($cfg['hora_inicio'])
+                                @php
+                                    $errorHorario = $errors->first('config.'.$tipo.'.hora_inicio')
+                                        ?: $errors->first('config.'.$tipo.'.hora_fin');
+                                @endphp
+                                <div class="space-y-2">
+                                    <div>
+                                        <x-ui.label>Horario operativo</x-ui.label>
+                                        <p class="text-caption mt-0.5">Rango horario en el que se evalúa la falta de actividad. Fuera de este horario, la ausencia de pesajes no genera alertas.</p>
+                                    </div>
+                                    <div class="flex items-end gap-3">
+                                        <div class="grid gap-1.5">
+                                            <x-ui.label class="text-muted-foreground font-normal">Desde</x-ui.label>
+                                            <x-ui.input
+                                                type="time"
+                                                class="w-32"
+                                                :state="$errorHorario ? 'destructive' : null"
+                                                name="config[{{ $tipo }}][hora_inicio]"
+                                                :value="old('config.'.$tipo.'.hora_inicio', $cfg['hora_inicio'])"
+                                            />
+                                        </div>
+                                        <div class="grid gap-1.5">
+                                            <x-ui.label class="text-muted-foreground font-normal">Hasta</x-ui.label>
+                                            <x-ui.input
+                                                type="time"
+                                                class="w-32"
+                                                :state="$errorHorario ? 'destructive' : null"
+                                                name="config[{{ $tipo }}][hora_fin]"
+                                                :value="old('config.'.$tipo.'.hora_fin', $cfg['hora_fin'])"
+                                            />
+                                        </div>
+                                    </div>
+                                    @if($errorHorario)
+                                        <x-ui.helper-text state="destructive" :message="$errorHorario" />
+                                    @endif
+                                </div>
+                            @endisset
+                        </div>
                     </x-ui.card.content>
                 @endif
             </x-ui.card>

@@ -146,12 +146,12 @@
         <x-ui.tabs.content value="hoy">
             <div class="flex flex-col gap-4">
                 <x-domain.dashboard.kpis-dia />
-                {{-- Empty state: sin pesajes hoy --}}
-                <div x-show="kpisDia.total === 0" x-cloak>
+                {{-- Empty state: sin pesajes hoy (pero sí hay actividad en el mes) --}}
+                <div x-show="kpisDia.total === 0 && !sinDatos" x-cloak>
                     <x-ui.card variant="elevated">
                         <x-ui.card.content>
                             <div class="flex flex-col items-center justify-center py-10 text-center gap-3">
-                                <x-lucide-scale class="size-8 text-muted-foreground" />
+                                <x-lucide-scale class="size-8 text-primary" />
                                 <div class="space-y-1">
                                     <p class="text-sm font-medium">Sin pesajes registrados hoy todavía.</p>
                                     <p class="text-xs text-muted-foreground">Los desgloses de flota y zona aparecerán con el primer pesaje del día.</p>
@@ -173,7 +173,7 @@
             <div class="flex flex-col gap-4">
                 <x-domain.dashboard.kpis-mes />
                 <x-domain.dashboard.evolucion />
-                <div x-show="kpisMes.total === 0" x-cloak>
+                <div x-show="kpisMes.total === 0 && !sinDatos" x-cloak>
                     <x-ui.card variant="elevated">
                         <x-ui.card.content>
                             <div class="flex flex-col items-center justify-center py-10 text-center gap-3">
