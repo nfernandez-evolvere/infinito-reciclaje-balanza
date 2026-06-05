@@ -99,6 +99,8 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     command: ["supervisord", "-c", "/etc/supervisor/conf.d/worker.conf", "-n"]
+    healthcheck:
+      disable: true
     restart: unless-stopped
     depends_on:
       - app

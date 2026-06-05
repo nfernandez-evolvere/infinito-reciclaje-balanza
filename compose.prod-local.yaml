@@ -1,0 +1,69 @@
+# Compose para testear la imagen de PRODUCCIÓN localmente.
+# Construye desde el código local y corre en modo production,
+# apuntando al SQL Server del host Windows (el mismo que usa compose.dev.yaml).
+#
+# Diferencias respecto a compose.dev.yaml:
+#   - APP_ENV=production → entrypoint corre config:cache / view:cache / event:cache
+#   - Sin bind mounts    → el código y los assets son los del build (imagen inmutable)
+#   - Sin Vite           → los assets vienen del npm run build incluido en la imagen
+#   - Puerto 8001        → no colisiona con compose.dev.yaml (8000)
+#
+# Prerrequisito: SQLEXPRESS con TCP/IP habilitado en puerto 1433 (igual que dev).
+#
+# Uso:
+#   Primera vez (o cuando cambian deps/assets/código):
+#     docker compose -f compose.prod-local.yaml up --build
+#   Siguientes veces (sin cambios de imagen):
+#     docker compose -f compose.prod-local.yaml up
+
+services:
+  app:
+    build:
+      context: .
+      target: runtime
+    image: balanza:prod-local
+    # Reutilizar el .env de dev — el compose sobreescribe lo que difiere en prod
+    env_file: .env
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: "http://localhost:8001"
+      ASSET_URL: "http://localhost:8001"
+      AUTO_MIGRATE: "false"
+      DB_CONNECTION: sqlsrv
+      DB_HOST: host.docker.internal
+      DB_PORT: "1433"
+      DB_ENCRYPT: "no"
+      DB_TRUST_SERVER_CERTIFICATE: "yes"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8001:8080"
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      target: runtime
+    image: balanza:prod-local
+    env_file: .env
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: "http://localhost:8001"
+      AUTO_MIGRATE: "false"
+      DB_CONNECTION: sqlsrv
+      DB_HOST: host.docker.internal
+      DB_PORT: "1433"
+      DB_ENCRYPT: "no"
+      DB_TRUST_SERVER_CERTIFICATE: "yes"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: ["supervisord", "-c", "/etc/supervisor/conf.d/worker.conf", "-n"]
+    # El HEALTHCHECK del Dockerfile hace curl a :8080/up (nginx). El worker no
+    # corre nginx → el check siempre fallaría. Se desactiva acá.
+    healthcheck:
+      disable: true
+    restart: unless-stopped
+    depends_on:
+      - app

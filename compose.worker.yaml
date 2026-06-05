@@ -17,6 +17,10 @@ services:
       APP_DEBUG: "false"
       AUTO_MIGRATE: "false"
     command: ["supervisord", "-c", "/etc/supervisor/conf.d/worker.conf", "-n"]
+    # El HEALTHCHECK del Dockerfile hace curl a :8080/up (nginx). El worker no
+    # corre nginx → el check siempre fallaría. Se desactiva acá.
+    healthcheck:
+      disable: true
     networks:
       - balanza-net
     restart: unless-stopped

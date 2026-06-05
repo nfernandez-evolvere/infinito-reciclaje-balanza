@@ -46,6 +46,11 @@ infection.log
 *.md
 !README.md
 
+# Base de conocimiento del manual (ManualController la lee en runtime desde
+# docs/knowledge/*.md). Re-incluir pese a /docs y *.md de arriba — last-match-wins.
+!/docs/knowledge/
+!/docs/knowledge/*.md
+
 # Plataforma host
 .DS_Store
 Thumbs.db
