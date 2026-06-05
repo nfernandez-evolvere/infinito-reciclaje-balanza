@@ -6,12 +6,14 @@
         'volumen_diario_atipico'  => 'Volumen diario atípico',
         'gap_registro'            => 'Sin actividad en horario operativo',
         'frecuencia_zona_atipica' => 'Frecuencia por zona atípica',
+        'vehiculo_no_habitual'    => 'Vehículo no habitual',
     ];
     $iconos = [
         'peso_fuera_rango'        => 'scale',
         'volumen_diario_atipico'  => 'trending-up',
         'gap_registro'            => 'clock',
         'frecuencia_zona_atipica' => 'map-pin',
+        'vehiculo_no_habitual'    => 'truck',
     ];
 @endphp
 

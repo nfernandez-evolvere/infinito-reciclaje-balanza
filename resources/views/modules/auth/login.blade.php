@@ -27,6 +27,7 @@
                 state="destructive"
                 title="No pudimos iniciar sesión"
                 description="Verificá la organización, correo y contraseña e intentá de nuevo."
+                dismissible
             />
         @endif
 
@@ -96,21 +97,24 @@
             </x-ui.form-field>
 
             {{-- Super admin indicator --}}
-            <div
+            <x-ui.alert
+                state="info"
+                icon="shield"
+                title="Administración del sistema"
                 x-show="isSuperAdmin && !loading"
                 x-cloak
-                class="flex items-center gap-2 rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground mb-4"
-            >
-                <x-lucide-shield class="size-4 shrink-0" />
-                <span>Administración del sistema</span>
-            </div>
+                class="mb-4"
+            />
 
             {{-- No results --}}
-            <div
+            <x-ui.alert
+                state="warning"
+                title="Sin organizaciones"
+                description="No encontramos organizaciones para este correo."
                 x-show="fetched && !loading && !isSuperAdmin && orgs.length === 0"
                 x-cloak
-                class="text-sm text-muted-foreground"
-            >No se encontraron organizaciones para este correo.</div>
+                class="mb-4"
+            />
 
             {{-- Password --}}
             <x-ui.form-field
