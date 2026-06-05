@@ -87,7 +87,7 @@
 
     <main>
 
-        {{-- Hero --}}
+        {{-- Herooo --}}
         <section class="relative overflow-hidden py-20 md:py-28">
 
             <div class="pointer-events-none absolute inset-0" aria-hidden="true">
