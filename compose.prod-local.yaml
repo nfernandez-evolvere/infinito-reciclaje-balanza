@@ -29,7 +29,6 @@ services:
       APP_DEBUG: "false"
       APP_URL: "http://localhost:8001"
       ASSET_URL: "http://localhost:8001"
-      AUTO_MIGRATE: "false"
       DB_CONNECTION: sqlsrv
       DB_HOST: host.docker.internal
       DB_PORT: "1433"
@@ -51,7 +50,6 @@ services:
       APP_ENV: production
       APP_DEBUG: "false"
       APP_URL: "http://localhost:8001"
-      AUTO_MIGRATE: "false"
       DB_CONNECTION: sqlsrv
       DB_HOST: host.docker.internal
       DB_PORT: "1433"

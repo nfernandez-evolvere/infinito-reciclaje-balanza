@@ -1,29 +1,32 @@
-# Compose de PRODUCCIÓN — stack WEB de un color (blue o green).
-# Se lanza dos veces, una por color, con distinto project name, puerto y color:
+# Compose de PRODUCCIÓN/STAGING — stack WEB de un color (blue o green).
+# Se lanza dos veces por entorno, una por color, con project name, puerto y color:
 #
-#   COLOR=blue  HTTP_PORT=8081 TAG=<sha> docker compose -p app-blue  -f compose.prod.yaml up -d
-#   COLOR=green HTTP_PORT=8082 TAG=<sha> docker compose -p app-green -f compose.prod.yaml up -d
+#   # Producción (ENV_PREFIX=prod, ports 8081/8082)
+#   ENV_PREFIX=prod  COLOR=blue  HTTP_PORT=8081 TAG=<sha> docker compose -p prod-blue  -f compose.prod.yaml up -d
+#   ENV_PREFIX=prod  COLOR=green HTTP_PORT=8082 TAG=<sha> docker compose -p prod-green -f compose.prod.yaml up -d
 #
-# El nginx EDGE (compose.edge.yaml) alcanza estos contenedores por nombre
-# (balanza-app-blue / balanza-app-green) a través de la red compartida.
+#   # Staging (ENV_PREFIX=staging, ports 8083/8084)
+#   ENV_PREFIX=staging COLOR=blue  HTTP_PORT=8083 TAG=<sha> docker compose -p staging-blue  -f compose.prod.yaml up -d
+#   ENV_PREFIX=staging COLOR=green HTTP_PORT=8084 TAG=<sha> docker compose -p staging-green -f compose.prod.yaml up -d
+#
+# El nginx EDGE (compose.edge.yaml) alcanza los contenedores por nombre
+# (balanza-{ENV_PREFIX}-app-{COLOR}) a través de la red compartida balanza-net.
 # El scheduler y la cola NO van acá → ver compose.worker.yaml.
 
 services:
   app:
     image: ghcr.io/nfernandez-evolvere/infinito-reciclaje-balanza:${TAG:-latest}
-    container_name: balanza-app-${COLOR}
-    env_file: .env.prod
+    container_name: balanza-${ENV_PREFIX:-prod}-app-${COLOR}
+    env_file: .env.${ENV_PREFIX:-prod}
     environment:
       APP_ENV: production
       APP_DEBUG: "false"
-      AUTO_MIGRATE: "false"   # migraciones NUNCA automáticas; deliberadas (RUN_MIGRATIONS=true en deploy.sh)
     # Publicado solo a loopback: lo usa deploy.sh para el health-check del color nuevo
     ports:
       - "127.0.0.1:${HTTP_PORT}:8080"
     networks:
       - balanza-net
     restart: unless-stopped
-    # CMD por defecto de la imagen = grupo web (nginx + php-fpm)
 
 networks:
   balanza-net:

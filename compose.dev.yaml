@@ -32,10 +32,8 @@ services:
       # - ASSET_URL: usada por asset() y @vite() para los assets (CSS/JS)
       APP_URL: "http://localhost:8000"
       ASSET_URL: "http://localhost:8000"
-      # NUNCA migrar automáticamente: en dev el contenedor apunta al SQL Server
-      # del host, que es la base COMPARTIDA entre proyectos. Las migraciones se
-      # corren a mano y de forma deliberada (ver CLAUDE.md → política de DB).
-      AUTO_MIGRATE: "false"
+      # Migraciones: siempre manuales — `php artisan migrate` desde la terminal.
+      # El contenedor no tiene ningún mecanismo para migrar automáticamente.
       # Conexión al SQL Server del host (ver prerrequisito arriba)
       DB_CONNECTION: sqlsrv
       DB_HOST: host.docker.internal
@@ -84,7 +82,6 @@ services:
       APP_DEBUG: "true"
       APP_URL: "http://localhost:8000"
       ASSET_URL: "http://localhost:8000"
-      AUTO_MIGRATE: "false"
       DB_CONNECTION: sqlsrv
       DB_HOST: host.docker.internal
       DB_PORT: "1433"

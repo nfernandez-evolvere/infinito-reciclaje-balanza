@@ -10,15 +10,13 @@ echo "[entrypoint] Preparando la aplicación… (APP_ENV=${APP_ENV:-production})
 # --- Symlink de storage público (idempotente) -------------------------------
 php artisan storage:link --no-interaction 2>/dev/null || true
 
-# --- Migraciones — NUNCA automáticas en ningún ambiente ----------------------
-# Política de DB (CLAUDE.md): base COMPARTIDA entre proyectos → las migraciones
-# son SIEMPRE deliberadas. AUTO_MIGRATE queda en false en dev y en prod.
-# Las migraciones se corren a mano: `php artisan migrate` (o RUN_MIGRATIONS=true
-# en docker/deploy.sh para un deploy con schema nuevo).
-if [ "${AUTO_MIGRATE:-false}" = "true" ]; then
-    echo "[entrypoint] AUTO_MIGRATE=true → php artisan migrate --force"
-    php artisan migrate --force
-fi
+# --- Migraciones — BLOQUEADAS en el entrypoint --------------------------------
+# El contenedor NUNCA migra al arrancar. La base es compartida entre proyectos
+# y las migraciones son siempre una acción manual del operador:
+#
+#   docker exec <contenedor> php artisan migrate --force
+#
+# No existe ninguna variable de entorno que habilite migraciones aquí.
 
 # --- Caches de framework ------------------------------------------------------
 # En LOCAL: NO cachear. Laravel lee env y config frescos en cada request.

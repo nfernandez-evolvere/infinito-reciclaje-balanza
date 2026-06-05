@@ -14,11 +14,21 @@ GitHub Actions.
 3. [La imagen — Dockerfile multi-stage](#3-la-imagen--dockerfile-multi-stage)
 4. [Modelo de procesos (supervisord)](#4-modelo-de-procesos-supervisord)
 5. [Desarrollo local](#5-desarrollo-local)
-6. [Producción — topología blue-green](#6-producción--topología-blue-green)
+   - [compose.dev.yaml — con hot-reload](#composedevelopmentyaml--desarrollo-con-hot-reload)
+   - [compose.prod-local.yaml — probar imagen de producción localmente](#composeprod-localyaml--probar-la-imagen-de-producción-localmente)
+6. [Topología — dos entornos, un solo host](#6-topología--dos-entornos-un-solo-host)
 7. [Los dos nginx (el de la app y el edge)](#7-los-dos-nginx-el-de-la-app-y-el-edge)
 8. [El script de deploy](#8-el-script-de-deploy)
 9. [CI/CD con GitHub Actions](#9-cicd-con-github-actions)
 10. [Setup inicial del servidor (runbook)](#10-setup-inicial-del-servidor-runbook)
+    - [10.1 Instalar Docker](#101-instalar-docker-en-la-vps)
+    - [10.2 Clonar el repo](#102-clonar-el-repo)
+    - [10.3 Crear .env.prod](#103-crear-envprod)
+    - [10.4 Configurar GitHub Secrets](#104-configurar-github-secrets)
+    - [10.5 Crear red compartida](#105-crear-la-red-compartida)
+    - [10.6 Login a GHCR](#106-login-a-ghcr)
+    - [10.7 Levantar el edge](#107-levantar-el-edge-router-del-blue-green)
+    - [10.8 Primer deploy](#108-primer-deploy)
 11. [Secrets y variables de entorno](#11-secrets-y-variables-de-entorno)
 12. [Gotchas y troubleshooting](#12-gotchas-y-troubleshooting)
 13. [Cómo extender (TLS, escalado, rollback)](#13-cómo-extender-tls-escalado-rollback)
@@ -45,15 +55,17 @@ GitHub Actions.
 ├── Dockerfile                     # imagen multi-stage de producción
 ├── .dockerignore                  # qué NO entra al contexto de build
 ├── .env.docker.example            # plantilla de .env.prod (copiar en el server)
+├── .env.staging.example           # plantilla de .env.staging (copiar en el server)
 │
-├── compose.dev.yaml               # desarrollo: imagen prod contra SQL Server del host
-├── compose.prod.yaml              # producción: stack WEB de un color (blue|green)
-├── compose.worker.yaml            # producción: cola + scheduler (instancia única)
-├── compose.edge.yaml              # producción: nginx router persistente (blue-green)
+├── compose.dev.yaml               # desarrollo: bind mount + Vite dev server + SQL Server del host
+├── compose.prod-local.yaml        # testear imagen de producción localmente (sin bind mounts, APP_ENV=production)
+├── compose.prod.yaml              # prod/staging: stack WEB de un color — parametrizado por ENV_PREFIX/COLOR/HTTP_PORT/TAG
+├── compose.worker.yaml            # prod/staging: cola + scheduler — parametrizado por ENV_PREFIX/TAG
+├── compose.edge.yaml              # nginx router persistente (único, maneja ambos entornos)
 │
 ├── docker/
 │   ├── entrypoint.sh              # prepara la app y arranca el CMD
-│   ├── deploy.sh                  # orquesta el swap blue-green (corre en el host)
+│   ├── deploy.sh                  # orquesta el swap blue-green: deploy.sh <TAG> [prod|staging]
 │   ├── nginx/default.conf         # nginx de la APP (horneado en la imagen)
 │   ├── php/php.ini                # ajustes PHP de producción
 │   ├── php/opcache.ini            # OPcache (validate_timestamps=0)
@@ -61,14 +73,19 @@ GitHub Actions.
 │   ├── supervisor/web.conf        # grupo WEB: nginx + php-fpm
 │   ├── supervisor/worker.conf     # grupo WORKER: queue + scheduler
 │   └── edge/
-│       ├── nginx.conf             # nginx EDGE / router del blue-green
-│       ├── upstream-blue.conf     # upstream → balanza-app-blue
-│       ├── upstream-green.conf    # upstream → balanza-app-green
-│       └── active-upstream.conf   # upstream ACTIVO (lo reescribe deploy.sh)
+│       ├── nginx.conf             # nginx EDGE: dos server{} (prod + staging)
+│       ├── prod/
+│       │   ├── upstream-blue.conf   # upstream balanza_prod_app → balanza-prod-app-blue
+│       │   ├── upstream-green.conf  # upstream balanza_prod_app → balanza-prod-app-green
+│       │   └── active-upstream.conf # upstream activo de prod (lo reescribe deploy.sh)
+│       └── staging/
+│           ├── upstream-blue.conf   # upstream balanza_staging_app → balanza-staging-app-blue
+│           ├── upstream-green.conf  # upstream balanza_staging_app → balanza-staging-app-green
+│           └── active-upstream.conf # upstream activo de staging (lo reescribe deploy.sh)
 │
 └── .github/workflows/
-    ├── ci.yml                     # pint + larastan + tests (SQL Server service)
-    └── deploy.yml                 # build/push GHCR + deploy SSH
+    └── deploy.yml                 # build/push GHCR + deploy SSH (main→prod, staging→staging)
+                                   # (el gate pint+larastan+tests corre local en pre-push, no en CI)
 ```
 
 ---
@@ -136,33 +153,91 @@ El worker lo sobreescribe:  command: [..., worker.conf, ...]
 > así que los reportes programados (cada 15 min) y la detección de alertas diaria
 > (`routes/console.php`) **no se disparaban** en contenedores. Ahora sí.
 
+### Socket de supervisord y `supervisorctl`
+
+Ambos archivos de conf (`web.conf` y `worker.conf`) incluyen las secciones necesarias
+para que `supervisorctl status` funcione desde dentro del contenedor:
+
+```ini
+[unix_http_server]
+file = /run/supervisor.sock
+chmod = 0700
+
+[rpcinterface:supervisor]
+supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
+
+[supervisorctl]
+serverurl = unix:///run/supervisor.sock
+```
+
+Sin estas secciones, `supervisorctl` devuelve `Error: .ini file does not include
+supervisorctl section` y no puede consultar el estado de los procesos.
+
+```bash
+# Verificar procesos dentro del contenedor web o worker:
+docker exec <contenedor> supervisorctl status
+```
+
+### HEALTHCHECK y contenedores worker
+
+El `HEALTHCHECK` de la imagen hace `curl http://127.0.0.1:8080/up`. Ese endpoint solo
+existe cuando nginx está corriendo (grupo `web`). El contenedor worker no corre nginx,
+así que el check siempre fallaría y Docker lo marcaría `unhealthy`.
+
+**Solución:** todos los servicios `worker` en los compose files tienen:
+
+```yaml
+healthcheck:
+  disable: true
+```
+
+Esto no afecta al funcionamiento del worker — solo evita que Docker lo marque
+incorrectamente. Para verificar que `queue:work` y `schedule:work` están corriendo:
+
+```bash
+docker exec <contenedor-worker> supervisorctl status
+# o directamente:
+docker exec <contenedor-worker> ps aux | grep artisan
+```
+
 ### `entrypoint.sh` (corre como root antes del CMD)
 
 1. `php artisan storage:link` (idempotente).
 2. `config:cache` + `view:cache` + `event:cache`.
 3. `chown` de caches a `www-data` y `exec "$@"`.
 
-> **Migraciones — nunca automáticas (en ningún ambiente).** La base es compartida
-> entre proyectos, así que aplicar el schema es **siempre** una acción deliberada del
-> operador. `AUTO_MIGRATE` queda en `false` en dev y prod, y el deploy **no** migra por
-> defecto. Ver [sección 8](#8-el-script-de-deploy).
+> **Migraciones — siempre manuales, sin excepción.** La base es compartida entre
+> proyectos, así que aplicar el schema es **siempre** una acción deliberada del operador:
+> `docker exec <contenedor> php artisan migrate --force`. El entrypoint y el deploy
+> **no tienen ningún mecanismo** que ejecute migraciones. Ver [sección 8](#8-el-script-de-deploy).
 
 ---
 
 ## 5. Desarrollo local
 
-`compose.dev.yaml` corre **la misma imagen de producción**, construida localmente,
-apuntando al **SQL Server (SQLEXPRESS) instalado en el host Windows**.
+### `compose.dev.yaml` — desarrollo con hot-reload
+
+Corre la imagen de producción con **bind mount del código fuente** y un servicio
+**Vite** dedicado para HMR (recarga automática del browser al cambiar archivos).
 
 ```powershell
+# Primera vez o cuando cambian deps/assets:
 docker compose -f compose.dev.yaml up --build
-# App en http://localhost:8000
+
+# Día a día (solo cambios de código PHP/Blade):
+docker compose -f compose.dev.yaml up
+
+# App → http://localhost:8000
+# Vite HMR → http://localhost:5173 (el browser se conecta solo)
 ```
 
-Dos servicios: `app` (grupo web, `APP_DEBUG=true`) y `worker` (cola + scheduler).
-Ambos usan `extra_hosts: host.docker.internal:host-gateway` para alcanzar la base del
-host, y ambos con `AUTO_MIGRATE=false` — el contenedor **nunca** migra solo (la base del
-host es la compartida; las migraciones se corren a mano y deliberadamente).
+Tres servicios: `app` (web, `APP_DEBUG=true`), `worker` (cola + scheduler) y `vite`
+(Node 22 + `npm run dev` con polling de filesystem para Docker Desktop en Windows).
+
+El bind mount monta todo el código en `/app`. Tres volúmenes anónimos preservan los
+artefactos de la imagen sobre el bind mount: `vendor/` (Composer sin dev-deps),
+`public/build/` (assets de Vite de producción) y `bootstrap/cache/` (evita que el
+`packages.php` del host —con providers de require-dev— rompa el contenedor).
 
 > **Prerrequisito (una sola vez):** habilitar **TCP/IP** en SQLEXPRESS, fijarle el
 > **puerto 1433 estático** y abrir el firewall. Por eso el compose setea
@@ -177,42 +252,114 @@ host es la compartida; las migraciones se corren a mano y deliberadamente).
 > no el único. (En el dev nativo `DB_PORT=` vacío funciona porque PHP corre en el mismo
 > Windows que SQL Server, donde la resolución por nombre es trivial.)
 
+#### Vite y auto-refresh en Docker Desktop (Windows)
+
+WSL2 no propaga eventos `inotify` al filesystem del contenedor, así que Vite nunca
+detecta cambios sin polling. `vite.config.js` tiene:
+
+```js
+server: {
+    host: '0.0.0.0',       // escucha en todas las interfaces del contenedor
+    hmr: { host: 'localhost', port: 5173 },  // el browser se conecta al host mapeado
+    watch: { usePolling: true, interval: 1000 },
+}
+```
+
+Al cargar la página por primera vez después de levantar los servicios, el browser
+recibe el cliente HMR de `localhost:5173` y establece el WebSocket. A partir de ahí
+cualquier cambio en Blade, CSS o JS dispara la recarga en ~1 segundo.
+
+Para confirmar que está conectado: DevTools → Network → WS → debe verse una conexión
+a `localhost:5173`.
+
+#### Diferencias entre `compose.dev.yaml` y `compose.prod-local.yaml`
+
+| | `compose.dev.yaml` (`:8000`) | `compose.prod-local.yaml` (`:8001`) |
+|---|---|---|
+| `APP_ENV` | `local` | `production` |
+| `config:cache` / `view:cache` | No (se limpian) | Sí (se generan en entrypoint) |
+| `opcache.validate_timestamps` | `1` (detecta cambios) | `0` (máxima performance) |
+| Código fuente | bind mount (cambios inmediatos) | baked en la imagen |
+| Assets CSS/JS | Vite dev server en `:5173` | `npm run build` dentro de la imagen |
+| Cambios PHP | Visibles al instante | Requieren `--build` |
+| Cuándo usarlo | Desarrollo diario | Validar que la imagen de prod funciona |
+
+### `compose.prod-local.yaml` — probar la imagen de producción localmente
+
+Construye la imagen exacta de producción (sin bind mounts, con `config:cache`,
+`opcache` agresivo, assets compilados) apuntando al SQL Server del host. Útil para
+detectar problemas que solo se manifiestan en modo `production` antes de hacer un deploy.
+
+```powershell
+# Primera vez o cuando cambia el código:
+docker compose -f compose.prod-local.yaml up --build
+
+# App → http://localhost:8001  (puerto distinto para no chocar con :8000 de dev)
+```
+
+Reutiliza el `.env` local pero sobreescribe `APP_ENV=production`, `APP_DEBUG=false`,
+`APP_URL=http://localhost:8001` y la conexión a la DB. No tiene Vite ni bind mounts.
+
 ---
 
-## 6. Producción — topología blue-green
+## 6. Topología — dos entornos, un solo host
+
+Producción y staging conviven en el mismo host. Un único nginx edge rutea por
+`server_name`. Cada entorno tiene su propio par blue/green y su propio worker.
 
 ```
-                    Internet :80/:443
-                          │
-              ┌───────────▼────────────┐   compose.edge.yaml (persistente)
-              │   nginx EDGE (router)   │   balanza-edge
-              │   include active-upstream.conf ─┐
-              └───────────┬────────────┘        │ upstream activo
-                 cutover  │ (reload)             ▼
-            ┌─────────────┴─────────────┐   blue ⇄ green
-            ▼                           ▼
-   ┌─────────────────┐        ┌─────────────────┐   compose.prod.yaml
-   │ balanza-app-blue│        │balanza-app-green│   (un proyecto compose por color)
-   │   :8081 (web)   │        │  :8082 (web)    │   image: ghcr.io/.../<sha>
-   └────────┬────────┘        └────────┬────────┘
-            └────────────┬─────────────┘
-                         ▼
-              ┌─────────────────────┐   compose.worker.yaml
-              │  balanza-worker     │   queue:work + schedule:work
-              │  (instancia única)  │   NO participa del blue-green
-              └──────────┬──────────┘
-                         ▼
-         SQL Server externo compartido (prefijo de tabla del proyecto)
+                        Internet :80/:443
+                               │
+               ┌───────────────▼────────────────┐  compose.edge.yaml (persistente, único)
+               │         nginx EDGE              │  balanza-edge
+               │  server_name=balanza.dom.com    │
+               │  server_name=staging.balanza.…  │
+               └──────────┬────────────┬─────────┘
+                          │            │
+               prod/active │            │ staging/active
+               upstream.conf│            │upstream.conf
+                          ▼            ▼
+              ┌───────────────┐   ┌─────────────────┐
+              │  PRODUCCIÓN   │   │    STAGING        │
+              │ blue  :8081   │   │ blue  :8083       │  compose.prod.yaml
+              │ green :8082   │   │ green :8084       │  ENV_PREFIX=prod|staging
+              └──────┬────────┘   └────────┬──────────┘
+                     ▼                     ▼
+         ┌──────────────────┐  ┌──────────────────────┐  compose.worker.yaml
+         │ balanza-prod-    │  │ balanza-staging-      │  ENV_PREFIX=prod|staging
+         │ worker           │  │ worker                │  queue:work + schedule:work
+         └────────┬─────────┘  └──────────┬────────────┘
+                  └───────────────┬────────┘
+                                  ▼
+              SQL Server externo compartido
+              (prefijo de tabla por entorno: prod_ / stg_)
 ```
 
-- Cada **color** es un proyecto compose independiente (`-p app-blue` / `-p app-green`)
-  con la misma imagen y distinto puerto loopback (8081/8082) y `container_name`.
-- El **worker** es único y persistente; se actualiza tras el cutover (su reinicio es
-  un parpadeo invisible — los jobs se reintentan).
-- Todos comparten la red Docker externa **`balanza-net`** para resolverse por nombre.
+### Nombres de contenedores y puertos
 
-**Por qué el worker separado:** si blue y green corrieran cada uno `schedule:work`
-contra la DB compartida, los reportes se enviarían **dos veces** durante el solape.
+| Entorno | Color | Contenedor | Puerto loopback |
+|---------|-------|-----------|-----------------|
+| prod | blue | `balanza-prod-app-blue` | `127.0.0.1:8081` |
+| prod | green | `balanza-prod-app-green` | `127.0.0.1:8082` |
+| staging | blue | `balanza-staging-app-blue` | `127.0.0.1:8083` |
+| staging | green | `balanza-staging-app-green` | `127.0.0.1:8084` |
+| prod | — | `balanza-prod-worker` | — |
+| staging | — | `balanza-staging-worker` | — |
+| edge | — | `balanza-edge` | `0.0.0.0:80` |
+
+### Variables de parametrización de `compose.prod.yaml` y `compose.worker.yaml`
+
+| Variable | prod | staging |
+|----------|------|---------|
+| `ENV_PREFIX` | `prod` | `staging` |
+| `HTTP_PORT` | `8081` ó `8082` | `8083` ó `8084` |
+| `COLOR` | `blue` ó `green` | `blue` ó `green` |
+| `TAG` | SHA del commit | SHA del commit |
+| `env_file` usado | `.env.prod` | `.env.staging` |
+
+**Por qué un worker por entorno:** si staging y prod compartieran scheduler, los
+reportes programados podrían dispararse dos veces contra distintas bases de datos.
+Cada entorno necesita su propio ciclo de jobs aislado.
 
 ---
 
@@ -244,38 +391,49 @@ y atiende las nuevas con la nueva. Cero conexiones cortadas.
 
 ## 8. El script de deploy
 
-`docker/deploy.sh <TAG>` corre **en el host** (lo invoca el workflow por SSH). Flujo:
+`docker/deploy.sh <TAG> [prod|staging]` corre **en el host** (lo invoca el workflow
+por SSH). El segundo argumento determina el entorno; por defecto es `prod`.
 
 ```
 1. docker login ghcr.io + docker pull <imagen>:<TAG>
-2. Detecta color ACTIVO (lee active-upstream.conf) → INACTIVO = el otro
-3. Migraciones: SOLO si RUN_MIGRATIONS=true (opt-in deliberado). Por defecto NO migra
+2. Detecta color ACTIVO (lee docker/edge/<ENV_PREFIX>/active-upstream.conf)
+3. Migraciones: BLOQUEADAS — el deploy nunca toca el schema (ver más abajo)
 4. Levanta el color INACTIVO con la imagen nueva
 5. Health-check loop:  curl http://127.0.0.1:<puerto>/up   (timeout 60s)
       └─ si falla → baja el inactivo y ABORTA (el viejo sigue sirviendo)
-6. CUTOVER:  cp upstream-<inactivo>.conf active-upstream.conf
+6. CUTOVER:  cp docker/edge/<ENV_PREFIX>/upstream-<inactivo>.conf active-upstream.conf
              docker exec balanza-edge nginx -t && nginx -s reload
 7. Baja el color viejo
-8. Actualiza el worker a la imagen nueva
+8. Actualiza el worker del entorno a la imagen nueva
 9. docker image prune
 ```
 
-**Garantía de cero-downtime:** si el color nuevo no pasa el health-check, no hay
-cutover; el deploy aborta dejando el color viejo intacto y sirviendo.
-
-**Migraciones — nunca automáticas.** Por defecto el deploy **no toca el schema** (la
-base es compartida entre proyectos; aplicarlo es siempre deliberado). Cuando un release
-incluya migraciones —ya revisadas y backward-compatible (expand/contract)— se corre el
-deploy con el opt-in explícito:
+**Ejemplos de invocación:**
 
 ```bash
-RUN_MIGRATIONS=true bash docker/deploy.sh <TAG>
+# Deploy a producción (desde main):
+bash docker/deploy.sh abc1234 prod
+
+# Deploy a staging (desde rama staging):
+bash docker/deploy.sh abc1234 staging
 ```
 
-Alternativa equivalente, fuera del deploy, en cualquier momento controlado:
+**Garantía de cero-downtime:** si el color nuevo no pasa el health-check, no hay
+cutover; el deploy aborta dejando el color viejo intacto y sirviendo. El entorno
+opuesto (ej: staging) no se ve afectado en ningún caso.
+
+**Migraciones — siempre manuales, sin excepción.** El deploy no tiene ningún mecanismo
+para migrar (ni opt-in ni opt-out). Cuando un release trae cambios de schema, el operador
+los aplica manualmente antes o después del deploy:
 
 ```bash
-docker compose -p app-blue -f compose.prod.yaml run --rm app php artisan migrate
+# Migrar en producción:
+ENV_PREFIX=prod COLOR=blue HTTP_PORT=8081 TAG=latest \
+  docker compose -p prod-blue -f compose.prod.yaml run --rm app php artisan migrate --force
+
+# Migrar en staging:
+ENV_PREFIX=staging COLOR=blue HTTP_PORT=8083 TAG=latest \
+  docker compose -p staging-blue -f compose.prod.yaml run --rm app php artisan migrate --force
 ```
 
 > **Bind-mount safe:** el cutover usa `cp` (sobrescribe el inodo in-place), no `mv`
@@ -285,99 +443,217 @@ docker compose -p app-blue -f compose.prod.yaml run --rm app php artisan migrate
 
 ## 9. CI/CD con GitHub Actions
 
-### `ci.yml` — gate de calidad (en cada PR, y reusable)
+### Gate de calidad — local en `pre-push`, no en CI
+
+El gate (pint + larastan + tests con cobertura ≥ 68% sobre SQL Server) **no corre
+en GitHub Actions**: se ejecuta localmente antes de cada push mediante el hook
+[`.githooks/pre-push`](../.githooks/pre-push), que bloquea el push si algo falla.
 
 ```
-services: mssql (mcr.microsoft.com/mssql/server:2022)
-─ setup-php 8.4 (sqlsrv, pdo_sqlsrv, …, coverage: pcov)
-─ composer install
-─ cp .env.testing.example .env.testing      # .env.testing está gitignoreado
-─ esperar SQL Server + crear DB infinito_balanza_testing (vía PDO)
-─ pint --test
-─ composer analyse        (larastan)
+git config core.hooksPath .githooks      # activar una vez por clon
+─ php vendor/bin/pint --test
+─ php vendor/bin/phpstan analyse --memory-limit=512M
 ─ php artisan test --coverage --min=68
 ```
 
-Las variables `DB_*` se pasan por `env:` del job y **pisan** a `.env.testing`
-(phpdotenv en modo immutable no sobrescribe variables ya presentes en el entorno),
-apuntando la suite al service container en vez de la instancia nombrada local.
-La guardia en `tests/TestCase.php` exige que el nombre de la base contenga "test".
+Equivale a `composer check`. El push asume código ya verificado, así que el deploy
+no vuelve a correr el gate en la nube (evita levantar un SQL Server efímero por cada
+merge y duplicar el costo del que ya pasó localmente).
 
-### `deploy.yml` — despliegue (en push a `main`)
+### `deploy.yml` — despliegue (push a `main` o `staging`)
 
 ```
-job tests   → uses: ./.github/workflows/ci.yml   (corre el gate completo)
-job build   → docker build → push a ghcr.io/<repo>:<sha> y :latest  (cache gha)
+on: push  →  branches: [main, staging]
+
+concurrency: deploy-<rama>   (prod y staging son independientes, no se bloquean)
+
+job build   → resuelve ENV_PREFIX (main→prod, staging→staging)
+            → docker build → push a ghcr.io/<repo>:<sha>
+                                         y :<ENV_PREFIX>-latest
 job deploy  → appleboy/ssh-action → en el host:
                 git reset --hard <sha>
-                GHCR_TOKEN=… bash docker/deploy.sh <sha>
+                GHCR_TOKEN=… bash docker/deploy.sh <sha> <ENV_PREFIX>
 ```
 
-`concurrency: deploy-production` con `cancel-in-progress: false` → nunca se cancela
-un deploy a mitad del cutover. Como `ci.yml` solo se dispara en `pull_request` y
-`workflow_call`, no hay corridas duplicadas al mergear.
-
-> **Branch protection recomendado:** en `main`, exigir el check **CI** para poder
-> mergear. Así el gate corre en el PR y el deploy asume código ya verificado.
+El job `deploy` usa `environment: prod` o `environment: staging` (GitHub Environments),
+lo que permite definir secrets distintos por entorno si la VPS es diferente.
 
 ---
 
 ## 10. Setup inicial del servidor (runbook)
 
-En el host Linux de producción, **una sola vez**:
+Todo lo siguiente se hace **una sola vez** en la VPS de producción. Los deploys
+posteriores son automáticos vía GitHub Actions.
+
+### 10.1 Instalar Docker y git en la VPS
 
 ```bash
-# 1. Clonar el repo (trae compose, docker/edge, deploy.sh)
-git clone https://github.com/nfernandez-evolvere/infinito-reciclaje-balanza.git
-cd infinito-reciclaje-balanza
+# git: las imágenes cloud minimal no lo traen, y el host lo necesita tanto para
+# el clone inicial como para el deploy automático (git fetch + git reset --hard).
+sudo apt-get update && sudo apt-get install -y git
 
-# 2. Red compartida entre edge / blue / green / worker
-docker network create balanza-net
-
-# 3. Variables de entorno de producción
-cp .env.docker.example .env.prod
-#   editar .env.prod: APP_KEY, DB_HOST/DATABASE/USERNAME/PASSWORD, RESEND_KEY, …
-#   APP_KEY:  docker run --rm <imagen> php artisan key:generate --show
-
-# 4. Login a GHCR (PAT con read:packages)
-echo "$GHCR_TOKEN" | docker login ghcr.io -u <usuario> --password-stdin
-
-# 5. Edge persistente (router del blue-green)
-docker compose -p app-edge -f compose.edge.yaml up -d
-
-# 6. Primer deploy. El schema arranca vacío, así que ESTE deploy sí migra
-#    (paso deliberado, opt-in explícito):
-RUN_MIGRATIONS=true GHCR_TOKEN=… GHCR_USER=… bash docker/deploy.sh <sha-o-latest>
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker $USER
+newgrp docker    # aplicar sin cerrar sesión
 ```
 
-A partir de acá cada push a `main` despliega solo, **sin tocar el schema**. Cuando un
-release traiga migraciones, se corre ese deploy con `RUN_MIGRATIONS=true` de forma
-deliberada (ver sección 8).
+### 10.2 Clonar el repo
+
+```bash
+git clone https://github.com/nfernandez-evolvere/infinito-reciclaje-balanza.git
+cd infinito-reciclaje-balanza
+```
+
+### 10.3 Crear `.env.prod`
+
+```bash
+cp .env.docker.example .env.prod
+nano .env.prod   # o el editor preferido
+```
+
+Variables críticas a completar:
+
+| Variable | Cómo obtenerla |
+|----------|----------------|
+| `APP_KEY` | `docker run --rm ghcr.io/nfernandez-evolvere/infinito-reciclaje-balanza:latest php artisan key:generate --show` (una vez que la imagen exista en GHCR) |
+| `APP_URL` | URL pública de la app, ej: `https://balanza.tudominio.com` |
+| `DB_HOST` | IP o hostname del SQL Server compartido |
+| `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | credenciales del SQL Server |
+| `RESEND_KEY` | API key de Resend para el envío de emails |
+
+### 10.4 Configurar GitHub Secrets
+
+En el repo → **Settings → Secrets and variables → Actions**:
+
+| Secret | Valor |
+|--------|-------|
+| `SSH_HOST` | IP pública de la VPS |
+| `SSH_USER` | usuario SSH (ej: `ubuntu`, `deploy`) |
+| `SSH_KEY` | clave privada SSH (`cat ~/.ssh/id_rsa`). El public key debe estar en `~/.ssh/authorized_keys` en la VPS |
+| `SSH_PORT` | opcional, si no es 22 |
+| `APP_DIR` | ruta al repo en la VPS, ej: `/home/ubuntu/infinito-reciclaje-balanza` |
+| `GHCR_TOKEN` | PAT de GitHub con permiso `read:packages` (Settings → Developer settings → Personal access tokens) |
+
+> El **push** a GHCR usa `GITHUB_TOKEN` automático del runner (permiso `packages: write`
+> declarado en el workflow). El **pull** desde la VPS necesita un PAT propio porque el
+> `GITHUB_TOKEN` del runner es efímero y no tiene acceso fuera de la ejecución del job.
+
+### 10.5 Crear la red compartida
+
+```bash
+docker network create balanza-net
+```
+
+Todos los contenedores (`balanza-edge`, `balanza-app-blue`, `balanza-app-green`,
+`balanza-worker`) se comunican a través de esta red por nombre.
+
+### 10.6 Login a GHCR
+
+```bash
+export GHCR_TOKEN="<PAT con read:packages>"
+echo "$GHCR_TOKEN" | docker login ghcr.io -u <usuario-github> --password-stdin
+```
+
+### 10.7 Levantar el edge (router del blue-green)
+
+```bash
+docker compose -p app-edge -f compose.edge.yaml up -d
+```
+
+Este contenedor (`balanza-edge`) es **permanente**: no participa del swap blue-green y
+nunca se baja en deploys normales. Es el único que escucha en el puerto 80 (y 443 si
+hay TLS).
+
+### 10.8 Primer deploy de producción
+
+```bash
+GHCR_TOKEN="$GHCR_TOKEN" \
+  GHCR_USER="<usuario-github>" \
+  bash docker/deploy.sh prod-latest prod
+```
+
+Esto: pull de la imagen, levanta blue en `:8081`, health-check en `/up`, conecta el
+edge al upstream de prod, levanta el worker de prod.
+
+Luego, **por separado**, el operador aplica las migraciones si el release las trae:
+
+```bash
+docker exec balanza-prod-app-blue php artisan migrate --force
+```
+
+### 10.9 Primer deploy de staging
+
+```bash
+# 1. Crear .env.staging en el servidor (igual que .env.prod pero con base de staging)
+cp .env.staging.example .env.staging
+nano .env.staging    # APP_URL, DB_DATABASE=infinito_reciclaje_staging, etc.
+
+# 2. Deploy
+GHCR_TOKEN="$GHCR_TOKEN" \
+  GHCR_USER="<usuario-github>" \
+  bash docker/deploy.sh staging-latest staging
+
+# 3. Migraciones (separadas del deploy)
+docker exec balanza-staging-app-blue php artisan migrate --force
+```
+
+Staging queda en `http://staging.balanza.tudominio.com` (manejado por el mismo edge).
+
+### 10.10 Deploys posteriores (automáticos)
+
+| Push a | Despliega en | Tags de imagen |
+|--------|-------------|----------------|
+| `main` | producción | `:<sha>` + `:prod-latest` |
+| `staging` | staging | `:<sha>` + `:staging-latest` |
+
+Ambos deploys son independientes — uno no bloquea ni afecta al otro.
+
+Cuando un release trae cambios de schema, el operador los aplica manualmente:
+
+```bash
+# Después del deploy automático, si hay migraciones pendientes:
+docker exec balanza-prod-app-blue php artisan migrate --force
+docker exec balanza-staging-app-blue php artisan migrate --force
+```
 
 ---
 
 ## 11. Secrets y variables de entorno
 
-### GitHub → Settings → Secrets and variables → Actions
+### GitHub Environments y Secrets
+
+El workflow usa `environment: prod` o `environment: staging` para el job de deploy.
+Esto habilita **GitHub Environments** (Settings → Environments), que permiten:
+- Secrets distintos por entorno (útil si staging y prod están en VPS diferentes)
+- Reglas de aprobación manual antes de deploys a prod
+- Historial de deployments por entorno en la UI de GitHub
+
+**Secrets a configurar** (Settings → Environments → `prod` / `staging`):
 
 | Secret | Uso |
 |--------|-----|
-| `SSH_HOST` | host del server de producción |
+| `SSH_HOST` | IP o hostname de la VPS |
 | `SSH_USER` | usuario SSH |
-| `SSH_KEY` | clave privada SSH (el público va en el server) |
-| `SSH_PORT` | *(opcional)* puerto SSH, default 22 |
-| `APP_DIR` | *(opcional)* ruta del repo en el server |
-| `GHCR_TOKEN` | PAT con `read:packages` (el host hace pull de GHCR) |
+| `SSH_KEY` | clave privada SSH (el public key en `~/.ssh/authorized_keys` de la VPS) |
+| `SSH_PORT` | opcional, default 22 |
+| `APP_DIR` | ruta del repo en la VPS, ej: `/home/ubuntu/infinito-reciclaje-balanza` |
+| `GHCR_TOKEN` | PAT con `read:packages` para pull desde el host |
 
-> El push a GHCR usa `GITHUB_TOKEN` automático (con `packages: write`). El **pull**
-> desde el host necesita un PAT propio (`GHCR_TOKEN`) porque el `GITHUB_TOKEN` del
-> runner es efímero.
+Si prod y staging están en el **mismo VPS**, los secrets pueden ser idénticos en ambos
+environments. Si están en VPS distintas, cada environment tiene sus propios valores.
 
-### `.env.prod` (en el server, NO se commitea)
+### `.env.prod` y `.env.staging` (en el server, NO se commitean)
 
-Ver `.env.docker.example`. Claves críticas: `APP_KEY`, conexión `DB_*` al SQL Server
-externo, `DB_ENCRYPT`/`DB_TRUST_SERVER_CERTIFICATE` según el certificado del server,
-`RESEND_KEY` para mails.
+| Variable crítica | prod | staging |
+|-----------------|------|---------|
+| `APP_URL` | `https://balanza.tudominio.com` | `https://staging.balanza.tudominio.com` |
+| `DB_DATABASE` | base de producción | base de staging (nunca la misma) |
+| `DB_TABLE_PREFIX` | `prod_` | `stg_` |
+| `LOG_LEVEL` | `warning` | `debug` |
+| `MAIL_MAILER` | Resend (emails reales) | Mailtrap o Resend con dominio de test |
+| `APP_KEY` | clave propia de prod | clave propia de staging (distinta) |
+
+Ver `.env.docker.example` y `.env.staging.example` para la lista completa.
 
 ---
 
@@ -386,27 +662,62 @@ externo, `DB_ENCRYPT`/`DB_TRUST_SERVER_CERTIFICATE` según el certificado del se
 | Síntoma | Causa | Solución |
 |---------|-------|----------|
 | `could not find driver` / no conecta a la DB | faltaba `pdo_sqlsrv` | ya incluido; verificar con `docker run --rm <img> php -m \| grep sqlsrv` |
-| Error SSL al conectar a SQL Server | `msodbcsql18` cifra por defecto | `DB_ENCRYPT=no` o `DB_TRUST_SERVER_CERTIFICATE=yes` |
+| Error SSL al conectar a SQL Server | `msodbcsql18` cifra por defecto | `DB_ENCRYPT=no` o `DB_TRUST_SERVER_CERTIFICATE=yes` en `.env` |
 | Dev no conecta a SQLEXPRESS | instancia nombrada no resoluble desde el contenedor | TCP/IP + puerto 1433 estático en SQLEXPRESS; `DB_HOST=host.docker.internal` |
+| Worker marcado `unhealthy` | HEALTHCHECK hace `curl :8080/up`; el worker no corre nginx | `healthcheck: disable: true` en el servicio worker del compose (ya aplicado) |
+| `supervisorctl` devuelve `does not include supervisorctl section` | faltaban `[unix_http_server]` y `[supervisorctl]` en el conf | ya incluidas en `web.conf` y `worker.conf`; verificar con `docker exec <contenedor> supervisorctl status` |
+| Emails/reportes no se envían | worker no levantado, scheduler no corriendo, o `RESEND_KEY` no seteada | ver diagnóstico de emails más abajo |
 | Reportes duplicados | dos schedulers corriendo | el scheduler va **solo** en el worker único, no en blue/green |
 | El cutover no cambia el tráfico | edge no recargó | `docker exec balanza-edge nginx -t && nginx -s reload` |
 | Deploy aborta en health-check | el color nuevo no levanta `/up` | revisar `docker compose -p app-<color> logs app`; el viejo sigue sirviendo |
-| `route:cache` falla | rutas con Closure | no se cachean rutas a propósito; no ejecutar `route:cache` |
+| `route:cache` falla | rutas con Closure | no se cachean rutas a propósito; nunca ejecutar `route:cache` |
 | Build de la imagen en Mac ARM | ODBC + mssql exigen amd64 | `docker build --platform=linux/amd64` |
+| Auto-refresh Vite no funciona (Windows) | WSL2 no propaga inotify al bind mount | `usePolling: true, interval: 1000` en `vite.config.js` (ya configurado) |
+| `Class "Laravel\Pail\PailServiceProvider" not found` | `packages.php` del host (con require-dev) montado en el contenedor sin dev-deps | volumen anónimo `/app/bootstrap/cache` preserva el `packages.php` de la imagen (ya configurado en compose.dev.yaml) |
 
-Comandos útiles:
+### Diagnóstico de emails/reportes no enviados
+
+```bash
+# 1. Verificar que el worker está corriendo y sus procesos están activos
+docker exec <contenedor-worker> supervisorctl status
+# Debe mostrar: queue RUNNING  y  scheduler RUNNING
+
+# 2. Ver los logs del worker en tiempo real
+docker logs <contenedor-worker> --tail=100 -f
+
+# 3. Ver si hay jobs fallidos en la cola
+docker exec <contenedor-worker> php artisan queue:failed
+
+# 4. Ver las tareas programadas y cuándo se ejecutan
+docker exec <contenedor-worker> php artisan schedule:list
+
+# 5. Probar envío de email directamente
+docker exec <contenedor-worker> php artisan tinker \
+  --execute="Mail::raw('test', fn(\$m) => \$m->to('tu@email.com')->subject('test'));"
+```
+
+### Comandos útiles
 
 ```bash
 # Ver qué color está activo
 grep balanza-app docker/edge/active-upstream.conf
+
+# Estado de todos los contenedores del proyecto
+docker ps --filter name=balanza --format "table {{.Names}}\t{{.Status}}\t{{.Image}}"
 
 # Logs de un color / del worker / del edge
 docker compose -p app-blue   -f compose.prod.yaml   logs -f app
 docker compose -p app-worker -f compose.worker.yaml logs -f worker
 docker logs -f balanza-edge
 
-# Estado de los contenedores
-docker ps --filter name=balanza
+# Reintentar jobs fallidos
+docker exec <contenedor-worker> php artisan queue:retry all
+
+# Rollback rápido al color anterior (sin deploy)
+COLOR=blue HTTP_PORT=8081 TAG=<sha-anterior> \
+  docker compose -p app-blue -f compose.prod.yaml up -d
+cp docker/edge/upstream-blue.conf docker/edge/active-upstream.conf
+docker exec balanza-edge nginx -s reload
 ```
 
 ---
@@ -417,12 +728,18 @@ docker ps --filter name=balanza
   `docker/edge/nginx.conf`, montar los certificados en `docker/edge/certs/` y abrir
   el `443` en `compose.edge.yaml`. (Alternativa: poner Caddy/Traefik como edge para
   certificados automáticos de Let's Encrypt.)
-- **Rollback manual**: como el color viejo se baja pero la imagen anterior queda en
-  el host, para volver atrás basta levantar el color previo con el TAG anterior y
-  reapuntar el edge:
+- **Rollback manual**: la imagen anterior queda en el host tras el deploy. Para volver:
   ```bash
-  COLOR=blue HTTP_PORT=8081 TAG=<sha-anterior> docker compose -p app-blue -f compose.prod.yaml up -d
-  cp docker/edge/upstream-blue.conf docker/edge/active-upstream.conf
+  # Rollback en prod a blue con SHA anterior:
+  ENV_PREFIX=prod COLOR=blue HTTP_PORT=8081 TAG=<sha-anterior> \
+    docker compose -p prod-blue -f compose.prod.yaml up -d
+  cp docker/edge/prod/upstream-blue.conf docker/edge/prod/active-upstream.conf
+  docker exec balanza-edge nginx -s reload
+
+  # Rollback en staging:
+  ENV_PREFIX=staging COLOR=blue HTTP_PORT=8083 TAG=<sha-anterior> \
+    docker compose -p staging-blue -f compose.prod.yaml up -d
+  cp docker/edge/staging/upstream-blue.conf docker/edge/staging/active-upstream.conf
   docker exec balanza-edge nginx -s reload
   ```
 - **Escalar php-fpm**: ajustar `pm.max_children` en `docker/php-fpm/www.conf` según la
