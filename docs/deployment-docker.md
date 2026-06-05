@@ -21,7 +21,7 @@ GitHub Actions.
 8. [El script de deploy](#8-el-script-de-deploy)
 9. [CI/CD con GitHub Actions](#9-cicd-con-github-actions)
 10. [Setup inicial del servidor (runbook)](#10-setup-inicial-del-servidor-runbook)
-    - [10.1 Instalar Docker](#101-instalar-docker-en-la-vps)
+    - [10.1 Instalar Docker y git](#101-instalar-docker-y-git-en-la-vps)
     - [10.2 Clonar el repo](#102-clonar-el-repo)
     - [10.3 Crear .env.prod](#103-crear-envprod)
     - [10.4 Configurar GitHub Secrets](#104-configurar-github-secrets)
@@ -523,20 +523,94 @@ Variables críticas a completar:
 
 ### 10.4 Configurar GitHub Secrets
 
-En el repo → **Settings → Secrets and variables → Actions**:
+En el repo → **Settings → Secrets and variables → Actions → New repository secret**:
 
 | Secret | Valor |
 |--------|-------|
 | `SSH_HOST` | IP pública de la VPS |
 | `SSH_USER` | usuario SSH (ej: `ubuntu`, `deploy`) |
-| `SSH_KEY` | clave privada SSH (`cat ~/.ssh/id_rsa`). El public key debe estar en `~/.ssh/authorized_keys` en la VPS |
+| `SSH_KEY` | **clave privada** del par de deploy (ver [abajo](#ssh_key--cómo-funcionan-la-clave-pública-y-la-privada)). La **pública** va en `~/.ssh/authorized_keys` de la VPS — no es un secret |
 | `SSH_PORT` | opcional, si no es 22 |
-| `APP_DIR` | ruta al repo en la VPS, ej: `/home/ubuntu/infinito-reciclaje-balanza` |
+| `APP_DIR` | **ruta absoluta** al repo en la VPS (ver [abajo](#app_dir--la-ruta-del-repo-en-la-vps)), ej: `/home/ubuntu/infinito-reciclaje-balanza` |
 | `GHCR_TOKEN` | PAT de GitHub con permiso `read:packages` (Settings → Developer settings → Personal access tokens) |
 
 > El **push** a GHCR usa `GITHUB_TOKEN` automático del runner (permiso `packages: write`
 > declarado en el workflow). El **pull** desde la VPS necesita un PAT propio porque el
 > `GITHUB_TOKEN` del runner es efímero y no tiene acceso fuera de la ejecución del job.
+
+#### `SSH_KEY` — cómo funcionan la clave pública y la privada
+
+Una clave SSH son **dos archivos que van juntos**:
+
+- 🔒 **Privada** — secreta, nunca se comparte. La tiene **quien se conecta** (el runner de GitHub).
+- 🔑 **Pública** — se reparte libremente. Va en **la máquina a la que te conectás** (la VPS).
+
+El runner es el **cliente** y la VPS el **servidor**. El server le manda un desafío, el runner lo firma con la privada, el server lo verifica con la pública guardada en `authorized_keys`; si coincide, entra sin contraseña.
+
+```
+   GitHub Actions runner                          VPS (servidor)
+   ┌─────────────────────┐                      ┌────────────────────────┐
+   │  Secret SSH_KEY      │   ssh usuario@IP     │ ~/.ssh/authorized_keys │
+   │  = CLAVE PRIVADA 🔒  │ ───────────────────► │ = CLAVE PÚBLICA 🔑     │
+   └─────────────────────┘   firma con privada   └────────────────────────┘
+                              server verifica con la pública
+```
+
+> **Regla de oro:** la **pública** va en la máquina a la que entrás (la VPS). La **privada** se queda con quien entra (el Secret `SSH_KEY`). La pública **no** es un secret.
+
+**1. Generar un par dedicado para el deploy** — no reuses tu clave personal; así es revocable sin afectar otros accesos:
+
+```bash
+ssh-keygen -t ed25519 -C "deploy-balanza-ci" -f ~/.ssh/balanza_deploy
+# Cuando pida passphrase → Enter dos veces (sin passphrase: el runner no puede tipearla).
+```
+
+> En Windows (PowerShell) la ruta es `$env:USERPROFILE\.ssh\balanza_deploy`; el resto del comando es igual.
+
+Genera dos archivos: `balanza_deploy` (🔒 privada) y `balanza_deploy.pub` (🔑 pública).
+
+**2. Instalar la pública en la VPS** — agregar la línea de `balanza_deploy.pub` al `authorized_keys` del `SSH_USER`:
+
+```bash
+mkdir -p ~/.ssh && chmod 700 ~/.ssh
+echo "ssh-ed25519 AAAA... deploy-balanza-ci" >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+```
+
+**3. Cargar la privada en el Secret `SSH_KEY`** — copiar el contenido **completo** de `balanza_deploy`, incluyendo las líneas `-----BEGIN OPENSSH PRIVATE KEY-----` y `-----END OPENSSH PRIVATE KEY-----`, y pegarlo en el secret.
+
+**4. Probar el par antes de confiar en el runner:**
+
+```bash
+ssh -i ~/.ssh/balanza_deploy <SSH_USER>@<SSH_HOST>
+```
+
+Si entra **sin pedir contraseña**, el par está bien y el runner va a poder igual.
+
+**Errores comunes:**
+
+| Síntoma | Causa |
+|---|---|
+| `Permission denied (publickey)` | La pública no quedó en `authorized_keys`, o permisos mal (`.ssh` = 700, `authorized_keys` = 600) |
+| El runner pide contraseña / cuelga | La privada tiene passphrase, o el Secret quedó incompleto (sin las líneas BEGIN/END) |
+| Funciona local pero no el runner | Se pegó solo parte de la privada en el secret |
+
+#### `APP_DIR` — la ruta del repo en la VPS
+
+Es la **ruta absoluta** donde quedó clonado el repo (paso [10.2](#102-clonar-el-repo)). El deploy hace `cd $APP_DIR` antes de `git reset --hard` y `docker/deploy.sh`, así que debe apuntar a la carpeta que contiene `.git/`, `docker/` y los `compose.*.yaml`.
+
+Para obtener el valor exacto, parate dentro del repo en la VPS y pedí la ruta:
+
+```bash
+cd infinito-reciclaje-balanza
+pwd     # → /home/ubuntu/infinito-reciclaje-balanza
+```
+
+Ese string es el valor del secret.
+
+> - Usá siempre la **ruta absoluta** (`/home/usuario/...`), nunca relativa.
+> - Tiene que ser accesible por el `SSH_USER`.
+> - Es **opcional**: si no lo seteás, el workflow usa `~/infinito-reciclaje-balanza` por default, que funciona solo si clonaste el repo en el home del `SSH_USER` con ese nombre exacto.
 
 ### 10.5 Crear la red compartida
 
