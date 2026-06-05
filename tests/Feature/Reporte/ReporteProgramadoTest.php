@@ -3,6 +3,7 @@
 namespace Tests\Feature\Reporte;
 
 use App\Jobs\GenerarEnviarReporteJob;
+use App\Models\ReporteConfiguracion;
 use App\Models\ReporteProgramado;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
@@ -144,6 +145,10 @@ class ReporteProgramadoTest extends TestCase
     #[Test]
     public function store_alertas_no_requiere_formatos_y_queda_en_pdf(): void
     {
+        // El tipo "alertas" solo es un tipo válido si la organización lo habilitó
+        // en su configuración de reportes (default en la migración: deshabilitado).
+        ReporteConfiguracion::create(['tipo_alertas_activo' => true]);
+
         $this->actingAs($this->admin())
             ->post(route('admin.reportes.programados.store'), $this->payload([
                 'nombre'   => 'Alertas Norte',
