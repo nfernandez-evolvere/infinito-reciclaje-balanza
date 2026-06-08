@@ -61,45 +61,9 @@ parameters:
 			path: app/Http/Controllers/Shared/PesajeController.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Shared/VehiculoController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$numero_interno\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Shared/VehiculoController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$patente\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Shared/VehiculoController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$tara_kg\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Shared/VehiculoController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$tipoVehiculo\.$#'
-			identifier: property.notFound
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\TipoVehiculo\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
 			count: 3
-			path: app/Http/Controllers/Shared/VehiculoController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$titular\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Shared/VehiculoController.php
-
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\),Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 1
 			path: app/Http/Controllers/Shared/VehiculoController.php
 
 		-
