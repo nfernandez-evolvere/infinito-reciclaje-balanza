@@ -16,12 +16,17 @@ class UpdateTipoServicioRequest extends FormRequest
     {
         $tipoId = $this->route('tipos_servicio')?->id;
 
+        // La unicidad es por organización (espeja el unique compuesto de la BD:
+        // unique(organizacion_id, nombre)). Sin el scope, el nombre de otra
+        // organización dispararía un falso "ya en uso" al editar.
         return [
             'nombre' => [
                 'required',
                 'string',
                 'max:100',
-                Rule::unique('tipos_servicio', 'nombre')->ignore($tipoId),
+                Rule::unique('tipos_servicio', 'nombre')
+                    ->where('organizacion_id', app('organizacion')?->id)
+                    ->ignore($tipoId),
             ],
             'tipo_vehiculo_ids'   => ['nullable', 'array'],
             'tipo_vehiculo_ids.*' => ['integer', 'exists:tipos_vehiculo,id'],

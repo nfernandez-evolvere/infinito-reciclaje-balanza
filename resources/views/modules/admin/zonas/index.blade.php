@@ -2,17 +2,28 @@
     $hasErrors = $errors->any();
     $isEditing = old('_mode') === 'edit';
 
-    $initial = $hasErrors ? [
-        'modalOpen' => true,
-        'modalMode' => $isEditing ? 'edit' : 'create',
-        'form'      => [
-            'id'         => (int) old('_editing_id', 0) ?: null,
-            'nombre'     => old('nombre', ''),
-            'hectareas'  => old('hectareas', ''),
-            'barrios'    => old('barrios', ''),
-            'habitantes' => old('habitantes', ''),
-        ],
-    ] : [];
+    $zonasGuia = $zonas
+        ->filter(fn($z) => $z->geojson !== null && $z->geojson !== '')
+        ->map(fn($z) => ['id' => $z->id, 'nombre' => $z->nombre, 'geojson' => $z->geojson])
+        ->values();
+
+    $initial = array_merge(
+        $hasErrors ? [
+            'modalOpen' => true,
+            'modalMode' => $isEditing ? 'edit' : 'create',
+            'form'      => [
+                'id'         => (int) old('_editing_id', 0) ?: null,
+                'nombre'     => old('nombre', ''),
+                'hectareas'  => old('hectareas', ''),
+                'barrios'    => old('barrios', ''),
+                'habitantes' => old('habitantes', ''),
+                'geojson'    => old('geojson', ''),
+                'centro_lat' => old('centro_lat', ''),
+                'centro_lng' => old('centro_lng', ''),
+            ],
+        ] : [],
+        ['zonasGuia' => $zonasGuia],
+    );
 
     $totalHa       = $zonas->sum('hectareas');
     $haFormateadas = $totalHa > 0 ? number_format($totalHa, 2, ',', '.') . ' ha en total' : null;

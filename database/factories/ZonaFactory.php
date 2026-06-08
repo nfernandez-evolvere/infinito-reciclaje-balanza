@@ -27,4 +27,29 @@ class ZonaFactory extends Factory
     {
         return $this->state(fn (array $attrs) => ['activo' => false]);
     }
+
+    public function conGeometria(): static
+    {
+        return $this->state(fn (array $attrs) => [
+            'geojson'    => json_encode([
+                'type'     => 'FeatureCollection',
+                'features' => [[
+                    'type'       => 'Feature',
+                    'properties' => (object) [],
+                    'geometry'   => [
+                        'type'        => 'Polygon',
+                        'coordinates' => [[
+                            [-58.84, -27.47],
+                            [-58.82, -27.47],
+                            [-58.82, -27.45],
+                            [-58.84, -27.45],
+                            [-58.84, -27.47],
+                        ]],
+                    ],
+                ]],
+            ]),
+            'centro_lat' => -27.46,
+            'centro_lng' => -58.83,
+        ]);
+    }
 }

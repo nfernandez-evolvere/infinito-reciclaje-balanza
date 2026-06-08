@@ -1,12 +1,20 @@
+import { createZonaMapEditor } from '../../maps/zona-map-editor.js';
+
 const DIAS_CORTO = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 const DIAS_LARGO = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 const initHorarios = () => Array.from({ length: 7 }, () => []);
+const emptyForm = () => ({ id: null, nombre: '', hectareas: '', barrios: '', habitantes: '', geojson: '', centro_lat: '', centro_lng: '' });
 
-export default (initial = {}) => ({
+export default (initial = {}) => {
+    // El mapa de Leaflet vive fuera del estado reactivo de Alpine.
+    let mapEditor = null;
+
+    return {
     // — modal crear/editar zona —
     modalOpen: false,
     modalMode: 'create',
-    form: { id: null, nombre: '', hectareas: '', barrios: '', habitantes: '' },
+    form: emptyForm(),
+    zonasGuia: [],
 
     // — drawer filtros —
     filterOpen: false,
@@ -50,16 +58,48 @@ export default (initial = {}) => ({
 
     ...initial,
 
+    // mapa (Leaflet + Geoman) — editor del polígono de la zona
+    initZonaMap() {
+        if (mapEditor) return;
+        const el = document.getElementById('zona-map');
+        if (!el) return;
+        mapEditor = createZonaMapEditor({
+            onChange: ({ geojson, lat, lng }) => {
+                this.form.geojson    = geojson;
+                this.form.centro_lat = lat;
+                this.form.centro_lng = lng;
+            },
+        });
+        mapEditor.mount(el);
+    },
+
+    // Se llama al abrir el modal: inicializa el mapa (lazy) y carga la geometría del form.
+    syncMapToForm() {
+        this.$nextTick(() => {
+            this.initZonaMap();
+            if (mapEditor) mapEditor.show(this.form.geojson || null, this.zonasGuia || [], this.form.id);
+        });
+    },
+
     // zona CRUD
     openCreate() {
         this.modalMode = 'create';
-        this.form      = { id: null, nombre: '', hectareas: '', barrios: '', habitantes: '' };
+        this.form      = emptyForm();
         this.modalOpen = true;
     },
 
-    openEdit(id, nombre, hectareas, barrios, habitantes) {
+    openEdit(id, nombre, hectareas, barrios, habitantes, geojson, centroLat, centroLng) {
         this.modalMode = 'edit';
-        this.form      = { id, nombre, hectareas: hectareas ?? '', barrios: barrios ?? '', habitantes: habitantes ?? '' };
+        this.form      = {
+            id,
+            nombre,
+            hectareas:  hectareas ?? '',
+            barrios:    barrios ?? '',
+            habitantes: habitantes ?? '',
+            geojson:    geojson ? (typeof geojson === 'string' ? geojson : JSON.stringify(geojson)) : '',
+            centro_lat: centroLat ?? '',
+            centro_lng: centroLng ?? '',
+        };
         this.modalOpen = true;
     },
 
@@ -153,4 +193,5 @@ export default (initial = {}) => ({
     executeQuitarServicio() {
         document.getElementById('quitar-' + this.quitarZonaId + '-' + this.quitarServicioId).submit();
     },
-});
+    };
+};

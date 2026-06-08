@@ -395,4 +395,87 @@ class DashboardServiceTest extends TestCase
 
         $this->assertCount(1, $zonaQueries);
     }
+
+    // ── metricasPorZona (mapa de calor) ───────────────────────────────
+
+    #[Test]
+    public function metricasPorZona_calcula_las_cuatro_metricas(): void
+    {
+        $zona = Zona::factory()->conGeometria()->create([
+            'nombre'     => 'Zona Calor',
+            'hectareas'  => 100.0,
+            'habitantes' => 5000,
+        ]);
+
+        Pesaje::factory()->create(['created_at' => today(), 'zona_id' => $zona->id, 'peso_neto_kg' => 4000]);
+        Pesaje::factory()->create(['created_at' => today(), 'zona_id' => $zona->id, 'peso_neto_kg' => 6000]);
+
+        $fila = $this->service->metricasPorZona(today(), today())->firstWhere('id', $zona->id);
+
+        $this->assertNotNull($fila);
+        $this->assertTrue($fila['tiene_geometria']);
+        $this->assertSame(2, $fila['metricas']['pesajes']);
+        $this->assertSame(10.0, $fila['metricas']['toneladas']);   // 10 000 / 1000
+        $this->assertSame(2.0, $fila['metricas']['per_capita']);    // 10 000 / 5000
+        $this->assertSame(100.0, $fila['metricas']['densidad']);    // 10 000 / 100
+    }
+
+    #[Test]
+    public function metricasPorZona_per_capita_y_densidad_son_null_sin_datos_demograficos(): void
+    {
+        // Borde exacto: 0 NO es > 0 → ambas métricas deben quedar en null (no división por cero).
+        $zona = Zona::factory()->create(['hectareas' => 0, 'habitantes' => 0]);
+
+        Pesaje::factory()->create(['created_at' => today(), 'zona_id' => $zona->id, 'peso_neto_kg' => 5000]);
+
+        $fila = $this->service->metricasPorZona(today(), today())->firstWhere('id', $zona->id);
+
+        $this->assertSame(5.0, $fila['metricas']['toneladas']);
+        $this->assertNull($fila['metricas']['per_capita']);
+        $this->assertNull($fila['metricas']['densidad']);
+    }
+
+    #[Test]
+    public function metricasPorZona_incluye_zonas_sin_geometria_con_la_bandera_en_false(): void
+    {
+        $conGeo = Zona::factory()->conGeometria()->create(['nombre' => 'Con Geo']);
+        $sinGeo = Zona::factory()->create(['nombre' => 'Sin Geo', 'geojson' => null]);
+
+        $res = $this->service->metricasPorZona(today(), today());
+
+        $this->assertTrue($res->firstWhere('id', $conGeo->id)['tiene_geometria']);
+        $this->assertNotNull($res->firstWhere('id', $conGeo->id)['geojson']);
+
+        $this->assertFalse($res->firstWhere('id', $sinGeo->id)['tiene_geometria']);
+        $this->assertNull($res->firstWhere('id', $sinGeo->id)['geojson']);
+    }
+
+    #[Test]
+    public function metricasPorZona_excluye_pesajes_cancelados(): void
+    {
+        $zona = Zona::factory()->create();
+
+        Pesaje::factory()->create(['created_at' => today(), 'zona_id' => $zona->id, 'peso_neto_kg' => 5000]);
+        Pesaje::factory()->cancelado()->create(['created_at' => today(), 'zona_id' => $zona->id, 'peso_neto_kg' => 9000]);
+
+        $fila = $this->service->metricasPorZona(today(), today())->firstWhere('id', $zona->id);
+
+        $this->assertSame(1, $fila['metricas']['pesajes']);
+        $this->assertSame(5.0, $fila['metricas']['toneladas']);
+    }
+
+    #[Test]
+    public function metricasPorZona_respeta_el_rango_de_fechas(): void
+    {
+        $zona = Zona::factory()->create();
+
+        Pesaje::factory()->create(['created_at' => today(), 'zona_id' => $zona->id, 'peso_neto_kg' => 5000]);
+        // Fuera del rango — no debe contarse
+        Pesaje::factory()->create(['created_at' => today()->subDays(10), 'zona_id' => $zona->id, 'peso_neto_kg' => 8000]);
+
+        $fila = $this->service->metricasPorZona(today(), today())->firstWhere('id', $zona->id);
+
+        $this->assertSame(1, $fila['metricas']['pesajes']);
+        $this->assertSame(5.0, $fila['metricas']['toneladas']);
+    }
 }

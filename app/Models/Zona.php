@@ -24,11 +24,16 @@ class Zona extends Model
         'barrios',
         'habitantes',
         'activo',
+        'geojson',
+        'centro_lat',
+        'centro_lng',
     ];
 
     protected $casts = [
-        'hectareas' => 'float',
-        'activo'    => 'boolean',
+        'hectareas'  => 'float',
+        'activo'     => 'boolean',
+        'centro_lat' => 'float',
+        'centro_lng' => 'float',
     ];
 
     public function zonaServicios(): HasMany

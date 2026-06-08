@@ -240,6 +240,57 @@ class VehiculoTest extends TestCase
             ->assertSessionHasErrors('patente');
     }
 
+    // — Aislamiento multi-tenant ————————————————————————————————
+    // La unicidad de patente y número interno es por organización (unique compuesto
+    // en la BD). Un valor de otra organización no debe interferir en la validación.
+
+    #[Test]
+    public function test_store_permite_misma_patente_y_numero_en_otra_organizacion(): void
+    {
+        // Otra organización ya usa esa patente y ese número interno.
+        $otraOrg = $this->createOrganizacion('Otra Organización');
+        $this->actingInOrg($otraOrg, fn () => Vehiculo::factory()->create([
+            'patente' => 'DUP001', 'numero_interno' => '777',
+        ]));
+
+        $this->actingAs($this->admin())
+            ->post(route('admin.vehiculos.store'), $this->payload([
+                'patente' => 'DUP001', 'numero_interno' => '777',
+            ]))
+            ->assertRedirect(route('admin.vehiculos.index'))
+            ->assertSessionHasNoErrors();
+
+        // Un vehículo con esa patente en cada organización: dos filas, distinta org.
+        $this->assertSame(2, Vehiculo::withoutGlobalScopes()->where('patente', 'DUP001')->count());
+        $this->assertSame(2, Vehiculo::withoutGlobalScopes()->where('numero_interno', '777')->count());
+    }
+
+    #[Test]
+    public function test_update_permite_patente_y_numero_que_existen_en_otra_organizacion(): void
+    {
+        $otraOrg = $this->createOrganizacion('Otra Organización');
+        $this->actingInOrg($otraOrg, fn () => Vehiculo::factory()->create([
+            'patente' => 'COMPART', 'numero_interno' => '555',
+        ]));
+
+        // La org actual tiene un vehículo con esos mismos valores (permitido: distinta org).
+        $vehiculo = Vehiculo::factory()->create(['patente' => 'COMPART', 'numero_interno' => '555']);
+
+        // Editar conservando patente y número (cambiando sólo el titular) no debe chocar.
+        $this->actingAs($this->admin())
+            ->put(route('admin.vehiculos.update', $vehiculo), [
+                'patente'          => 'COMPART',
+                'numero_interno'   => '555',
+                'tara_kg'          => $vehiculo->tara_kg,
+                'tipo_vehiculo_id' => $vehiculo->tipo_vehiculo_id,
+                'titular'          => 'Municipalidad Actualizada',
+            ])
+            ->assertRedirect(route('admin.vehiculos.index'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('vehiculos', ['id' => $vehiculo->id, 'titular' => 'Municipalidad Actualizada']);
+    }
+
     // — Update: corrección de tara ————————————————————————————————
 
     #[Test]

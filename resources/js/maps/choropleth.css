@@ -1,0 +1,47 @@
+/* Etiqueta permanente con el nombre de la zona, centrada dentro del polígono.
+   Texto blanco con contorno oscuro para que sea legible sobre toda la rampa
+   de calor (del amarillo claro al rojo oscuro). */
+.zona-label.leaflet-tooltip {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 11px;
+    line-height: 1.1;
+    white-space: nowrap;
+    pointer-events: none;
+    text-shadow:
+        -1px -1px 0 rgba(0, 0, 0, 0.55),
+         1px -1px 0 rgba(0, 0, 0, 0.55),
+        -1px  1px 0 rgba(0, 0, 0, 0.55),
+         1px  1px 0 rgba(0, 0, 0, 0.55),
+         0    0   3px rgba(0, 0, 0, 0.4);
+}
+
+/* Quita la flecha direccional del tooltip de Leaflet */
+.zona-label.leaflet-tooltip::before {
+    display: none;
+}
+
+/* Etiqueta de zona guía en el editor de polígono.
+   Texto sutil y centrado — sirve de referencia sin competir con el polígono editable. */
+.zona-guide-label.leaflet-tooltip {
+    background: rgba(59, 130, 246, 0.55);
+    border: none;
+    box-shadow: none;
+    border-radius: 3px;
+    padding: 1px 5px;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 11px;
+    line-height: 1.1;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 1;
+}
+
+.zona-guide-label.leaflet-tooltip::before {
+    display: none;
+}

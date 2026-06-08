@@ -48,6 +48,9 @@
                                 @else
                                     <x-ui.badge variant="secondary">Inactivo</x-ui.badge>
                                 @endif
+                                @unless($zona->geojson)
+                                    <x-ui.badge variant="outline">Sin área en el mapa</x-ui.badge>
+                                @endunless
                             </div>
                             <p class="text-sm text-muted-foreground">
                                 @if($zona->hectareas) {{ number_format($zona->hectareas, 2, ',', '.') }} ha @endif
@@ -81,7 +84,10 @@
                                             {{ Js::from($zona->nombre) }},
                                             {{ Js::from($zona->hectareas) }},
                                             {{ Js::from($zona->barrios) }},
-                                            {{ Js::from($zona->habitantes) }}
+                                            {{ Js::from($zona->habitantes) }},
+                                            {{ Js::from($zona->geojson) }},
+                                            {{ Js::from($zona->centro_lat) }},
+                                            {{ Js::from($zona->centro_lng) }}
                                         )"
                                     >
                                         <x-lucide-pencil class="size-4" />

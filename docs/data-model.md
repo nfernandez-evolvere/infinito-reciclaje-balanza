@@ -144,6 +144,9 @@ Entidad geográfica pura. No tiene relación directa con tipos de servicio — l
 | `hectareas` | `decimal(10,2)` | SÍ | NULL | CHECK >= 0 | NULL = dato no disponible. 0 = verificado como cero. |
 | `barrios` | `int` | SÍ | NULL | CHECK >= 0 | — |
 | `habitantes` | `int` | SÍ | NULL | CHECK >= 0 | NULL = dato no disponible. 0 = verificado como cero. Afecta cálculo per cápita en reportes. |
+| `geojson` | `nvarchar(max)` | SÍ | NULL | — | Geometría del área de la zona como `FeatureCollection` GeoJSON (un polígono). NULL = zona sin área dibujada. Se dibuja/edita con Leaflet + Geoman en el ABM. |
+| `centro_lat` | `decimal(10,7)` | SÍ | NULL | — | Latitud del centro del polígono (derivado en el cliente). Para centrar el mapa sin parsear la geometría. |
+| `centro_lng` | `decimal(10,7)` | SÍ | NULL | — | Longitud del centro del polígono. |
 | `activo` | `bit` | NO | `1` | — | — |
 | `created_at` | `datetime2(0)` | SÍ | NULL | — | — |
 | `updated_at` | `datetime2(0)` | SÍ | NULL | — | — |
@@ -154,6 +157,8 @@ PK   id
 UQ   nombre
 IX   activo    -- selects del formulario de pesaje
 ```
+
+**Geometría (`geojson`):** se guarda el `FeatureCollection` serializado tal cual lo emite Leaflet, sin cast en el modelo (`Zona::$geojson` es `string|null`). Para consumirlo en PHP usar `json_decode($zona->geojson, true)`. A este volumen (un puñado de zonas por organización) no se usa el tipo `geography` ni índices espaciales — el choropleth se arma en el cliente. La asignación de zona a cada pesaje sigue siendo manual (`zona_id`); el polígono es para visualización (mapas de calor), no para point-in-polygon automático en Etapa 1.
 
 **Semántica NULL vs 0:**
 `hectareas = NULL` → dato no cargado, indicadores de densidad no se calculan.
