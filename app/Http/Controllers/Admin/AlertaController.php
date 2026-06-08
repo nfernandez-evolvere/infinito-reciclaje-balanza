@@ -88,7 +88,7 @@ class AlertaController extends Controller
                 'titulo'       => $a->titulo,
                 'descripcion'  => $a->descripcion,
                 'hace'         => $a->created_at->diffForHumans(),
-                'url_pesaje'   => $a->pesaje_id ? route('admin.pesajes.index', ['search' => $a->pesaje?->vehiculo?->patente]) : null,
+                'url_pesaje'   => $a->pesaje ? route('pesajes.show', $a->pesaje) : null,
             ]),
         ]);
     }

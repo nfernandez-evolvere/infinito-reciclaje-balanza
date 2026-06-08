@@ -28,9 +28,11 @@
                 <div class="flex flex-col gap-1 min-w-0">
                     <span class="font-semibold text-sm truncate">{{ $tipoLabels[$g->tipo] ?? $g->tipo }}</span>
                     <div class="flex flex-wrap items-center gap-1.5">
-                        <x-ui.badge variant="{{ $estadoVariants[$g->estado] ?? 'secondary' }}" class="text-xs">
-                            {{ $estadoLabels[$g->estado] ?? $g->estado }}
-                        </x-ui.badge>
+                        @if($g->estado === 'fallido' && $g->error)
+                            <x-ui.badge state="destructive">{{ $estadoLabels[$g->estado] }}</x-ui.badge>
+                        @else
+                            <x-ui.badge variant="{{ $estadoVariants[$g->estado] ?? 'secondary' }}">{{ $estadoLabels[$g->estado] ?? $g->estado }}</x-ui.badge>
+                        @endif
                         <x-ui.badge variant="outline" class="text-xs">{{ $origenLabels[$g->origen] ?? $g->origen }}</x-ui.badge>
                     </div>
                 </div>
@@ -56,12 +58,6 @@
                     <x-lucide-clock class="size-3.5 shrink-0 text-primary" />
                     <span>{{ $g->created_at->format('d/m/Y H:i') }} · {{ $autor($g) }}</span>
                 </div>
-                @if($g->estado === 'fallido' && $g->error)
-                    <div class="flex items-start gap-1.5 text-destructive">
-                        <x-lucide-circle-alert class="size-3.5 shrink-0 mt-0.5" />
-                        <span class="line-clamp-2">{{ $g->error }}</span>
-                    </div>
-                @endif
             </x-ui.card.content>
         </x-ui.card>
         @endforeach
@@ -105,9 +101,7 @@
                     </x-ui.table.cell>
                     <x-ui.table.cell>
                         @if($g->estado === 'fallido' && $g->error)
-                            <x-ui.tooltip :content="$g->error" side="left">
-                                <x-ui.badge variant="{{ $estadoVariants[$g->estado] }}">{{ $estadoLabels[$g->estado] }}</x-ui.badge>
-                            </x-ui.tooltip>
+                            <x-ui.badge state="destructive">{{ $estadoLabels[$g->estado] }}</x-ui.badge>
                         @else
                             <x-ui.badge variant="{{ $estadoVariants[$g->estado] ?? 'secondary' }}">{{ $estadoLabels[$g->estado] ?? $g->estado }}</x-ui.badge>
                         @endif

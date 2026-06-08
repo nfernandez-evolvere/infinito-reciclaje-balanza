@@ -26,6 +26,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/manual/{slug?}', [ManualController::class, 'show'])->name('manual.show');
 
     Route::get('/vehiculos/buscar', [VehiculoController::class, 'buscar'])->name('vehiculos.buscar');
+    Route::get('/vehiculos/activos', [VehiculoController::class, 'activos'])->name('vehiculos.activos');
     Route::get('/servicios/{servicio}/zonas', [TipoServicioController::class, 'zonas'])->name('servicios.zonas');
     Route::get('/pesajes/{pesaje}', [PesajeController::class, 'show'])->name('pesajes.show');
     Route::get('/pesajes/{pesaje}/edit', [PesajeController::class, 'edit'])->name('pesajes.edit');

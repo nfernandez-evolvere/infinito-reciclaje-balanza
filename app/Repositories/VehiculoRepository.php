@@ -34,6 +34,11 @@ class VehiculoRepository
             ->appends(array_filter($filters, fn ($v) => $v !== '' && $v !== null));
     }
 
+    public function activos(): Collection
+    {
+        return Vehiculo::activos()->orderBy('patente')->get();
+    }
+
     public function buscar(string $q, int $limit = 6): Collection
     {
         return Vehiculo::query()

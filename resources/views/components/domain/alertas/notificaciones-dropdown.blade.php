@@ -1,38 +1,7 @@
 @props(['count' => 0])
 
-<div x-data="{
-    open: false,
-    count: {{ $count }},
-    items: [],
-    loading: false,
-    get esMobile() { return window.innerWidth < 640; },
-    get sheetOpen() { return this.open && this.esMobile; },
-    set sheetOpen(v) { if (!v) this.open = false; },
-    async toggle() {
-        this.open = !this.open;
-        if (this.open && this.items.length === 0) await this.cargar();
-    },
-    async cargar() {
-        this.loading = true;
-        try {
-            const r = await fetch('{{ route('admin.alertas.novedades') }}');
-            const d = await r.json();
-            this.count = d.count;
-            this.items = d.items;
-        } finally {
-            this.loading = false;
-        }
-    },
-    async marcarTodas() {
-        await fetch('{{ route('admin.alertas.leer-todas') }}', {
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Content-Type': 'application/json' },
-        });
-        this.count = 0;
-        this.items = [];
-        this.open = false;
-    }
-}" @keydown.escape.window="open = false" class="relative">
+<div x-data="notificaciones({ count: {{ $count }}, urls: { novedades: '{{ route('admin.alertas.novedades') }}', leerTodas: '{{ route('admin.alertas.leer-todas') }}' } })"
+    @keydown.escape.window="open = false" class="relative">
 
     {{-- Trigger — mismo patrón que tema y logout en el header --}}
     <x-ui.tooltip content="Alertas" side="bottom">
@@ -86,13 +55,16 @@
                 class="border-0 bg-transparent shadow-none py-8 px-4" />
             <template x-for="item in items" :key="item.id">
                 <div class="flex gap-3 border-b border-border/50 px-4 py-3 last:border-0 hover:bg-accent/50 transition-colors">
-                    <div class="mt-0.5 shrink-0 flex size-7 items-center justify-center rounded-full bg-warning/15">
-                        <x-lucide-triangle-alert class="size-3.5 text-warning" />
-                    </div>
                     <div class="min-w-0 flex-1">
                         <p class="text-xs font-medium truncate" x-text="item.titulo"></p>
                         <p class="text-xs text-muted-foreground mt-0.5 line-clamp-2" x-text="item.descripcion"></p>
-                        <p class="text-[11px] text-muted-foreground/70 mt-1" x-text="item.hace"></p>
+                        <div class="flex items-center justify-between gap-2 mt-1">
+                            <p class="text-[11px] text-muted-foreground/70" x-text="item.hace"></p>
+                            <a x-show="item.url_pesaje" x-cloak :href="item.url_pesaje" @click="open = false"
+                               class="text-[11px] font-medium text-primary hover:underline shrink-0">
+                                Ver pesaje →
+                            </a>
+                        </div>
                     </div>
                 </div>
             </template>
@@ -143,7 +115,13 @@
                     <div class="min-w-0 flex-1">
                         <p class="text-sm font-medium" x-text="item.titulo"></p>
                         <p class="text-xs text-muted-foreground mt-0.5" x-text="item.descripcion"></p>
-                        <p class="text-xs text-muted-foreground/70 mt-1" x-text="item.hace"></p>
+                        <div class="flex items-center justify-between gap-2 mt-1">
+                            <p class="text-xs text-muted-foreground/70" x-text="item.hace"></p>
+                            <a x-show="item.url_pesaje" x-cloak :href="item.url_pesaje" @click="sheetOpen = false"
+                               class="text-xs font-medium text-primary hover:underline shrink-0">
+                                Ver pesaje →
+                            </a>
+                        </div>
                     </div>
                 </div>
             </template>

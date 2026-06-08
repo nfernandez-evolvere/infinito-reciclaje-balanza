@@ -10,16 +10,16 @@ $base = 'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text
 $colorClass = $state
     ? ($subtle
         ? match($state) {
-            'success' => 'border-success-border bg-success-subtle text-success-subtle-foreground',
-            'warning' => 'border-warning-border bg-warning-subtle text-warning-subtle-foreground',
-            'info'    => 'border-info-border bg-info-subtle text-info-subtle-foreground',
-            default   => 'border-destructive-border bg-destructive-subtle text-destructive-subtle-foreground',
+            'success'     => 'border-success-border bg-success-subtle text-success-subtle-foreground',
+            'warning'     => 'border-warning-border bg-warning-subtle text-warning-subtle-foreground',
+            'info'        => 'border-info-border bg-info-subtle text-info-subtle-foreground',
+            'destructive' => 'border-destructive-border bg-destructive-subtle text-destructive-subtle-foreground',
         }
         : match($state) {
-            'success' => 'border-transparent bg-success text-success-foreground',
-            'warning' => 'border-transparent bg-warning text-warning-foreground',
-            'info'    => 'border-transparent bg-info text-info-foreground',
-            default   => 'border-transparent bg-destructive text-destructive-foreground',
+            'success'     => 'border-transparent bg-success text-success-foreground',
+            'warning'     => 'border-transparent bg-warning text-warning-foreground',
+            'info'        => 'border-transparent bg-info text-info-foreground',
+            'destructive' => 'border-transparent bg-destructive text-destructive-foreground',
         })
     : match($variant) {
         'secondary' => 'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',

@@ -11,6 +11,17 @@ class VehiculoController extends Controller
 {
     public function __construct(protected VehiculoRepository $vehiculoRepository) {}
 
+    public function activos(): JsonResponse
+    {
+        return response()->json(
+            $this->vehiculoRepository->activos()->map(fn ($v) => [
+                'id'      => $v->id,
+                'patente' => $v->patente,
+                'interno' => $v->numero_interno,
+            ])
+        );
+    }
+
     public function buscar(Request $request): JsonResponse
     {
         $q = trim($request->query('q', ''));

@@ -1,6 +1,6 @@
 <x-layouts.app title="Pesaje registrado">
 
-<div class="flex flex-col gap-6">
+<div class="flex flex-col gap-4">
 
     {{-- Encabezado --}}
     <div class="flex items-start justify-between gap-4">
@@ -14,10 +14,6 @@
 
     {{-- Acciones --}}
     <div class="flex items-center gap-3 flex-1 justify-end">
-        <x-ui.button variant="secondary" href="{{ $routeHistorial }}" class="w-full md:w-auto">
-            <x-lucide-list />
-            <span>Ver historial</span>
-        </x-ui.button>
         @unless($isAdmin)
             <x-ui.button href="{{ route('balanza') }}" class="w-full md:w-auto">
                 <x-lucide-plus />

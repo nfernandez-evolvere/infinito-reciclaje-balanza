@@ -73,7 +73,7 @@
                 {{-- Resumen del período · en mobile/tablet vive en el drawer del header --}}
                 <section class="hidden xl:flex xl:flex-col gap-4">
                     <p class="text-overline">Resumen del período</p>
-                    <x-domain.reportes.kpis :kpis="$reporte['kpis']" gridClass="grid grid-cols-5 gap-4" />
+                    <x-domain.reportes.kpis :kpis="$reporte['kpis']" />
                 </section>
 
                 @if(!empty($reporte['evolucion']['datos']))

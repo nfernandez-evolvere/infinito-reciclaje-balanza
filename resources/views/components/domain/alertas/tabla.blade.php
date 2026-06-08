@@ -159,7 +159,7 @@
                             </div>
                         @endif
                         @if($alerta->pesaje)
-                            <a href="{{ route('admin.pesajes.index', ['search' => $alerta->pesaje->vehiculo?->patente]) }}"
+                            <a href="{{ route('pesajes.show', $alerta->pesaje) }}"
                                class="text-primary hover:underline">
                                 Ver pesaje →
                             </a>
@@ -203,7 +203,7 @@
                                     <p class="text-caption mt-0.5">{{ $alerta->descripcion }}</p>
                                 @endif
                                 @if($alerta->pesaje)
-                                    <a href="{{ route('admin.pesajes.index', ['search' => $alerta->pesaje->vehiculo?->patente]) }}"
+                                    <a href="{{ route('pesajes.show', $alerta->pesaje) }}"
                                        class="text-xs text-primary hover:underline mt-0.5 inline-block">
                                         Ver pesaje →
                                     </a>

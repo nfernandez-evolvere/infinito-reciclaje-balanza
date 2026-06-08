@@ -29,12 +29,12 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class ReporteExcelExport
 {
-    // Paleta tomada del reporte de referencia.
-    private const C_TITLE = 'FF1F4E79';        // azul oscuro — banner de título
+    // Paleta verde — misma identidad visual que los PDF (design-tokens.css, escala green-*).
+    private const C_TITLE = 'FF1E461F';        // verde oscuro (green-900) — banner de título
 
-    private const C_SECTION = 'FF2E75B6';      // azul medio — barras de sección
+    private const C_SECTION = 'FF2E7D32';      // verde primario (green-700) — barras de sección
 
-    private const C_COLHEAD = 'FFD6E4F0';      // azul claro — encabezados de tabla
+    private const C_COLHEAD = 'FFDBF7DA';      // verde claro (green-100) — encabezados de tabla
 
     private const C_TOTAL_LIGHT = 'FFE2EFDA';  // verde claro — fila TOTAL (vehículos)
 
