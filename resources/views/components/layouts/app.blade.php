@@ -4,10 +4,9 @@
     $user = auth()->user();
 
     $operacionItems = [
-        ['route' => 'admin.dashboard',            'icon' => 'layout-dashboard', 'label' => 'Dashboard'],
-        ['route' => 'admin.pesajes.index',        'icon' => 'scale',            'label' => 'Pesajes'],
-        ['route' => 'admin.modificaciones.index', 'icon' => 'file-pen-line',    'label' => 'Modificaciones', 'match' => 'admin.modificaciones.*'],
-        ['route' => 'admin.reportes.index',       'icon' => 'file-bar-chart',   'label' => 'Reportes',       'match' => 'admin.reportes.*'],
+        ['route' => 'admin.dashboard',      'icon' => 'layout-dashboard', 'label' => 'Dashboard'],
+        ['route' => 'admin.pesajes.index',  'icon' => 'scale',            'label' => 'Pesajes',  'match' => 'admin.pesajes.*'],
+        ['route' => 'admin.reportes.index', 'icon' => 'file-bar-chart',   'label' => 'Reportes', 'match' => 'admin.reportes.*'],
     ];
 
     $alertasNoLeidas = $user?->isAdmin()
@@ -44,7 +43,7 @@
     };
 
     $section = match(true) {
-        request()->routeIs('admin.pesajes.*', 'admin.modificaciones.*') => 'Operación',
+        request()->routeIs('admin.pesajes.*')                                               => 'Operación',
         request()->routeIs('admin.reportes.*')                                               => 'Reportes',
         request()->routeIs('admin.zonas.*', 'admin.tipos-servicio.*', 'admin.vehiculos.*')  => 'Padrón',
         request()->routeIs('admin.usuarios.*')                                               => 'Sistema',

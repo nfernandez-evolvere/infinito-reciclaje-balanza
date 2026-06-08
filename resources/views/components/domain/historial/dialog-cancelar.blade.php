@@ -11,6 +11,7 @@
             @csrf
             @method('PATCH')
             <input type="hidden" name="origen" value="{{ request()->route()?->getName() }}">
+            <input type="hidden" name="tab" :value="cancelarTab">
             <x-ui.label for="motivo-cancelar">Motivo</x-ui.label>
             <x-ui.textarea
                 id="motivo-cancelar"

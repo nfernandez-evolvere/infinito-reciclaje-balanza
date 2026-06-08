@@ -69,11 +69,11 @@ class PesajeRepository
             ->get();
     }
 
-    public function filtrado(array $filtros, int $perPage = 20): LengthAwarePaginator
+    public function filtrado(array $filtros, int $perPage = 20, string $pageName = 'page'): LengthAwarePaginator
     {
         return $this->buildQuery($filtros)
             ->with(['vehiculo.tipoVehiculo', 'tipoServicio', 'zona', 'operador'])
-            ->paginate($perPage)
+            ->paginate($perPage, ['*'], $pageName)
             ->withQueryString();
     }
 

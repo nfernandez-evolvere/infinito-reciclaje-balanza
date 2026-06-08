@@ -3,10 +3,22 @@
     'hayFiltros',
     'routeHistorial',
     'sortDirection' => 'desc',
+    'pageParam' => 'page',
+    'directionParam' => 'direction',
+    'returnTab' => 'pesajes',
     'emptyIcon' => 'scale',
     'emptyTitle' => 'Sin pesajes en este turno',
     'emptyDescription' => 'Los pesajes aparecerán acá una vez que se registre el primero.',
 ])
+
+@php
+    // Params del link «Editar»: conserva la pantalla de origen y, si la fila pertenece
+    // al tab «Modificaciones», el tab para volver a él tras guardar.
+    $editParams = fn ($pesaje) => array_merge(
+        ['pesaje' => $pesaje, 'origen' => request()->route()?->getName()],
+        $returnTab !== 'pesajes' ? ['tab' => $returnTab] : [],
+    );
+@endphp
 
 @if($pesajes->isEmpty())
     @if($hayFiltros)
@@ -60,14 +72,14 @@
                                     Detalles
                                 </x-ui.dropdown-menu.item>
                                 @if(!$pesaje->estaCancelado())
-                                    <x-ui.dropdown-menu.item href="{{ route('pesajes.edit', ['pesaje' => $pesaje, 'origen' => request()->route()?->getName()]) }}">
+                                    <x-ui.dropdown-menu.item href="{{ route('pesajes.edit', $editParams($pesaje)) }}">
                                         <x-lucide-pencil class="size-4" />
                                         Editar
                                     </x-ui.dropdown-menu.item>
                                 @endif
                                 @if($pesaje->estaEnPredio())
                                     <x-ui.dropdown-menu.item
-                                        @click="abrirEgreso('{{ $pesaje->uuid }}', '{{ addslashes($pesaje->vehiculo->patente) }}')"
+                                        @click="abrirEgreso('{{ $pesaje->uuid }}', '{{ addslashes($pesaje->vehiculo->patente) }}', '{{ $returnTab }}')"
                                     >
                                         <x-lucide-log-out class="size-4" />
                                         Marcar egreso
@@ -85,7 +97,7 @@
                                     <x-ui.dropdown-menu.separator />
                                     <x-ui.dropdown-menu.item
                                         variant="destructive"
-                                        @click="abrirCancelar('{{ $pesaje->uuid }}', '{{ addslashes($pesaje->vehiculo->patente) }}')"
+                                        @click="abrirCancelar('{{ $pesaje->uuid }}', '{{ addslashes($pesaje->vehiculo->patente) }}', '{{ $returnTab }}')"
                                     >
                                         <x-lucide-ban class="size-4" />
                                         Cancelar pesaje
@@ -180,7 +192,7 @@
                 <x-ui.table.head>
                     @php
                         $nextDirection = $sortDirection === 'desc' ? 'asc' : 'desc';
-                        $sortUrl = request()->fullUrlWithQuery(['direction' => $nextDirection, 'page' => null]);
+                        $sortUrl = request()->fullUrlWithQuery([$directionParam => $nextDirection, $pageParam => null]);
                     @endphp
                     <a href="{{ $sortUrl }}" class="inline-flex items-center justify-center gap-1 hover:text-foreground transition-colors">
                         Ingreso

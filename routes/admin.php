@@ -23,7 +23,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/data', [DashboardController::class, 'data'])->name('dashboard.data');
     Route::get('/pesajes', [PesajeController::class, 'index'])->name('pesajes.index');
-    Route::get('/modificaciones', [PesajeController::class, 'modificaciones'])->name('modificaciones.index');
     Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
     Route::get('/reportes/preview-pdf', function () {
         abort_unless(app()->isLocal(), 404);

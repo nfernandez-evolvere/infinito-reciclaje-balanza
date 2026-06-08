@@ -7,6 +7,7 @@
         <form id="form-egreso" :action="'/pesajes/' + egresoId + '/egreso'" method="POST" class="px-6 space-y-4 pb-2">
             @csrf
             <input type="hidden" name="origen" value="{{ request()->route()?->getName() }}">
+            <input type="hidden" name="tab" :value="egresoTab">
             <div class="space-y-2">
                 <x-ui.label>Hora de egreso</x-ui.label>
                 <div class="text-sm font-semibold" x-text="horaActual"></div>

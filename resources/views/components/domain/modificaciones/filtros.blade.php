@@ -1,19 +1,20 @@
-@props(['filtros', 'operarios', 'hayFiltros', 'routeModificaciones', 'zonas' => collect(), 'tiposServicio' => collect(), 'sortDirection' => 'desc'])
+@props(['filtros', 'operarios', 'hayFiltros', 'zonas' => collect(), 'tiposServicio' => collect(), 'sortDirection' => 'desc', 'control' => 'filterOpen'])
 
 @php
-    $merge = fn(array $overrides) => $routeModificaciones . '?' . http_build_query(
-        array_filter(
-            array_merge(\Illuminate\Support\Arr::except($filtros, ['modificaciones']), $overrides),
-            fn($v) => $v !== null && $v !== ''
-        )
-    );
+    // Tab «Modificaciones» de la pantalla de Pesajes: usa parámetros con prefijo `m_`
+    // para no colisionar con el tab «Pesajes». Las claves de $filtros siguen siendo
+    // canónicas (las arma el controller); sólo los names de inputs y de la URL son `m_*`.
+    $route = route('admin.pesajes.index', ['tab' => 'modificaciones']);
+
+    // Quita un filtro preservando el resto del query string (incluido el estado del tab Pesajes).
+    $removeUrl = fn (array $overrides) => request()->fullUrlWithQuery(array_merge($overrides, ['m_page' => null]));
 
     $chips = [];
 
     if (!empty($filtros['tipo'])) {
         $chips[] = [
             'label' => $filtros['tipo'] === 'editado' ? 'Editados' : 'Cancelados',
-            'url'   => $merge(['tipo' => null]),
+            'url'   => $removeUrl(['m_tipo' => null]),
         ];
     }
 
@@ -30,27 +31,27 @@
         };
         $chips[] = [
             'label' => $label,
-            'url'   => $merge(['desde' => null, 'hasta' => null]),
+            'url'   => $removeUrl(['m_desde' => null, 'm_hasta' => null]),
         ];
     }
 
     if (!empty($filtros['patente'])) {
-        $chips[] = ['label' => strtoupper($filtros['patente']), 'url' => $merge(['patente' => null])];
+        $chips[] = ['label' => strtoupper($filtros['patente']), 'url' => $removeUrl(['m_patente' => null])];
     }
 
     if (!empty($filtros['operario_id'])) {
         $op = $operarios->firstWhere('id', $filtros['operario_id']);
-        $chips[] = ['label' => $op?->name ?? 'Operario', 'url' => $merge(['operario_id' => null])];
+        $chips[] = ['label' => $op?->name ?? 'Operario', 'url' => $removeUrl(['m_operario_id' => null])];
     }
 
     if (!empty($filtros['zona_id'])) {
         $zona = $zonas->firstWhere('id', $filtros['zona_id']);
-        $chips[] = ['label' => $zona?->nombre ?? 'Origen', 'url' => $merge(['zona_id' => null])];
+        $chips[] = ['label' => $zona?->nombre ?? 'Origen', 'url' => $removeUrl(['m_zona_id' => null])];
     }
 
     if (!empty($filtros['tipo_servicio_id'])) {
         $ts = $tiposServicio->firstWhere('id', $filtros['tipo_servicio_id']);
-        $chips[] = ['label' => $ts?->nombre ?? 'Servicio', 'url' => $merge(['tipo_servicio_id' => null])];
+        $chips[] = ['label' => $ts?->nombre ?? 'Servicio', 'url' => $removeUrl(['m_tipo_servicio_id' => null])];
     }
 @endphp
 
@@ -58,14 +59,14 @@
     <x-ui.tooltip content="Filtros" class="sm:hidden">
         <x-ui.button
             variant="ghost"
-            @click="filterOpen = true"
+            @click="{{ $control }} = true"
         >
             <x-lucide-sliders-horizontal class="size-4" />
         </x-ui.button>
     </x-ui.tooltip>
     <x-ui.button
         class="hidden sm:flex gap-1.5"
-        @click="filterOpen = true"
+        @click="{{ $control }} = true"
     >
         <x-lucide-sliders-horizontal class="size-4" />
         Filtros
@@ -78,23 +79,25 @@
 </div>
 
 <x-ui.filter-sheet
-    controlledBy="filterOpen"
-    action="{{ $routeModificaciones }}"
-    resetUrl="{{ $routeModificaciones }}"
+    controlledBy="{{ $control }}"
+    action="{{ $route }}"
+    resetUrl="{{ $route }}"
 >
+    <input type="hidden" name="tab" value="modificaciones">
+
     <x-ui.form-field>
         <x-ui.label>Desde</x-ui.label>
-        <x-ui.date-picker name="desde" value="{{ $filtros['desde'] }}" placeholder="Desde" />
+        <x-ui.date-picker name="m_desde" value="{{ $filtros['desde'] }}" placeholder="Desde" />
     </x-ui.form-field>
 
     <x-ui.form-field>
         <x-ui.label>Hasta</x-ui.label>
-        <x-ui.date-picker name="hasta" value="{{ $filtros['hasta'] }}" placeholder="Hasta" />
+        <x-ui.date-picker name="m_hasta" value="{{ $filtros['hasta'] }}" placeholder="Hasta" />
     </x-ui.form-field>
 
     <x-ui.form-field>
         <x-ui.label>Tipo</x-ui.label>
-        <x-ui.select name="tipo" value="{{ $filtros['tipo'] ?? '' }}">
+        <x-ui.select name="m_tipo" value="{{ $filtros['tipo'] ?? '' }}">
             <x-ui.select.trigger>
                 <x-ui.select.value placeholder="Todos" />
             </x-ui.select.trigger>
@@ -112,7 +115,7 @@
             <div class="relative">
                 <x-ui.input
                     type="text"
-                    name="patente"
+                    name="m_patente"
                     x-model="query"
                     @focus="cargar()"
                     @blur="setTimeout(() => showSugg = false, 150)"
@@ -140,7 +143,7 @@
 
     <x-ui.form-field>
         <x-ui.label>Operario</x-ui.label>
-        <x-ui.select name="operario_id" value="{{ $filtros['operario_id'] ?? '' }}">
+        <x-ui.select name="m_operario_id" value="{{ $filtros['operario_id'] ?? '' }}">
             <x-ui.select.trigger>
                 <x-ui.select.value placeholder="Todos" />
             </x-ui.select.trigger>
@@ -156,7 +159,7 @@
     @if($zonas->isNotEmpty())
         <x-ui.form-field>
             <x-ui.label>Origen</x-ui.label>
-            <x-ui.select name="zona_id" value="{{ $filtros['zona_id'] ?? '' }}">
+            <x-ui.select name="m_zona_id" value="{{ $filtros['zona_id'] ?? '' }}">
                 <x-ui.select.trigger>
                     <x-ui.select.value placeholder="Todos" />
                 </x-ui.select.trigger>
@@ -173,7 +176,7 @@
     @if($tiposServicio->isNotEmpty())
         <x-ui.form-field>
             <x-ui.label>Servicio</x-ui.label>
-            <x-ui.select name="tipo_servicio_id" value="{{ $filtros['tipo_servicio_id'] ?? '' }}">
+            <x-ui.select name="m_tipo_servicio_id" value="{{ $filtros['tipo_servicio_id'] ?? '' }}">
                 <x-ui.select.trigger>
                     <x-ui.select.value placeholder="Todos" />
                 </x-ui.select.trigger>
@@ -189,7 +192,7 @@
 
     <x-ui.form-field>
         <x-ui.label>Orden de fecha</x-ui.label>
-        <x-ui.select name="direction" value="{{ $sortDirection }}">
+        <x-ui.select name="m_direction" value="{{ $sortDirection }}">
             <x-ui.select.trigger>
                 <x-ui.select.value placeholder="Seleccionar" />
             </x-ui.select.trigger>
