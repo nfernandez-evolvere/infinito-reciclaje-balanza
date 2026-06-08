@@ -214,7 +214,7 @@
                      y el vehículo ya tiene pesajes. Reemplaza a los demás campos hasta
                      que se confirme la acción. --}}
                 <div x-show="mostrarDecisionTara" x-cloak x-collapse>
-                    <x-ui.alert state="warning" title="Cambiaste la tara de este vehículo">
+                    <x-ui.alert state="warning" title="Cambiaste la tara de este vehículo" hideIcon="true">
                         <div class="space-y-1">
                             <p class="text-sm">
                                 <span x-text="Number(form._tara_original || 0).toLocaleString('es-AR')"></span> kg
@@ -230,14 +230,12 @@
                         <div class="mt-4 space-y-4">
                             <x-domain.vehiculos.opcion-tara
                                 value="corregir_dato"
-                                titulo="Corregir un dato mal cargado"
-                                descripcion="La tara estaba mal. Se recalcula el peso neto de los pesajes anteriores y queda registrado en el historial de cada uno."
+                                titulo="Corregir tara mal cargada — recalcula los pesajes anteriores"
                             />
 
                             <x-domain.vehiculos.opcion-tara
                                 value="cambio_real"
-                                titulo="Cambio real del vehículo"
-                                descripcion="El vehículo cambió de peso. Los pesajes anteriores no se modifican; solo los nuevos usarán la tara nueva."
+                                titulo="Cambio real del vehículo — solo afecta los pesajes nuevos"
                             />
 
                             @error('_intencion_tara')
