@@ -8,7 +8,6 @@
         ['route' => 'admin.pesajes.index',        'icon' => 'scale',            'label' => 'Pesajes'],
         ['route' => 'admin.modificaciones.index', 'icon' => 'file-pen-line',    'label' => 'Modificaciones', 'match' => 'admin.modificaciones.*'],
         ['route' => 'admin.reportes.index',       'icon' => 'file-bar-chart',   'label' => 'Reportes',       'match' => 'admin.reportes.*'],
-        ['route' => 'admin.mapa-calor.index',     'icon' => 'map',              'label' => 'Mapa de calor',  'match' => 'admin.mapa-calor.*'],
     ];
 
     $alertasNoLeidas = $user?->isAdmin()
@@ -45,7 +44,7 @@
     };
 
     $section = match(true) {
-        request()->routeIs('admin.pesajes.*', 'admin.modificaciones.*', 'admin.mapa-calor.*') => 'Operación',
+        request()->routeIs('admin.pesajes.*', 'admin.modificaciones.*') => 'Operación',
         request()->routeIs('admin.reportes.*')                                               => 'Reportes',
         request()->routeIs('admin.zonas.*', 'admin.tipos-servicio.*', 'admin.vehiculos.*')  => 'Padrón',
         request()->routeIs('admin.usuarios.*')                                               => 'Sistema',

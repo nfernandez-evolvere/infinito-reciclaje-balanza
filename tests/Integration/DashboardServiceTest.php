@@ -478,4 +478,26 @@ class DashboardServiceTest extends TestCase
         $this->assertSame(1, $fila['metricas']['pesajes']);
         $this->assertSame(5.0, $fila['metricas']['toneladas']);
     }
+
+    #[Test]
+    public function metricasPorZona_con_filtro_de_zona_limita_la_agregacion(): void
+    {
+        // El mapa embebido en Reportes respeta los filtros del informe: con un
+        // filtro de zona solo esa zona agrega kg; el resto queda en cero pero
+        // sigue listada (el mapa muestra todas las zonas activas).
+        $zona1 = Zona::factory()->create();
+        $zona2 = Zona::factory()->create();
+
+        Pesaje::factory()->create(['created_at' => today(), 'zona_id' => $zona1->id, 'peso_neto_kg' => 7000]);
+        Pesaje::factory()->create(['created_at' => today(), 'zona_id' => $zona2->id, 'peso_neto_kg' => 3000]);
+
+        $res = $this->service->metricasPorZona(today(), today(), ['zona_id' => $zona1->id]);
+
+        $this->assertSame(1, $res->firstWhere('id', $zona1->id)['metricas']['pesajes']);
+        $this->assertSame(7.0, $res->firstWhere('id', $zona1->id)['metricas']['toneladas']);
+
+        $vacia = $res->firstWhere('id', $zona2->id);
+        $this->assertSame(0, $vacia['metricas']['pesajes']);
+        $this->assertSame(0.0, $vacia['metricas']['toneladas']);
+    }
 }

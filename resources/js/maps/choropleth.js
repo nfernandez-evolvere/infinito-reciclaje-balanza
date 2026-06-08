@@ -63,5 +63,15 @@ export function createChoroplethMap(el) {
         });
     }
 
-    return { setZonas, recolor };
+    // Re-mide el contenedor y reencuadra. Necesario cuando el mapa estuvo dentro
+    // de un tab oculto (display:none → 0px): al revelarlo hay que invalidar el
+    // tamaño cacheado por Leaflet y volver a ajustar los límites.
+    function resize() {
+        map.invalidateSize();
+        if (entries.length) {
+            map.fitBounds(group.getBounds(), { padding: [24, 24], maxZoom: 15 });
+        }
+    }
+
+    return { setZonas, recolor, resize };
 }

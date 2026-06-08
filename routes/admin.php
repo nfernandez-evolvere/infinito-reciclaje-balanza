@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Admin\AlertaController;
 use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\MapaCalorController;
 use App\Http\Controllers\Admin\OnboardingController;
 use App\Http\Controllers\Admin\ReporteController;
 use App\Http\Controllers\Admin\TipoServicioController;
@@ -26,7 +25,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/pesajes', [PesajeController::class, 'index'])->name('pesajes.index');
     Route::get('/modificaciones', [PesajeController::class, 'modificaciones'])->name('modificaciones.index');
     Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
-    Route::get('/mapa-calor', [MapaCalorController::class, 'index'])->name('mapa-calor.index');
     Route::get('/reportes/preview-pdf', function () {
         abort_unless(app()->isLocal(), 404);
 

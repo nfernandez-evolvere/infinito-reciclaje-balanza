@@ -11,19 +11,31 @@ const METRICAS = [
     { key: 'densidad',   label: 'Densidad',   unidad: 'kg/ha',  decimales: 1 },
 ];
 
-export default (zonas = []) => {
-    // La instancia Leaflet vive fuera del estado reactivo de Alpine.
+/**
+ * Panel de mapa de calor embebible. Dos modos:
+ *  - { source: 'metricasPorZonaMes' }  → Dashboard: lee el dato inicial de
+ *    window.__dashboardData[source] y se reactualiza con el evento
+ *    'dashboard-refreshed' (mismo patrón que desgloseChart).
+ *  - { zonas: [...] }                  → Reportes: dataset estático del informe.
+ */
+export default (opts = {}) => {
+    const dashInit = window.__dashboardData ?? {};
+    const sourceKey = opts.source ?? null;
+    const initialZonas = sourceKey ? (dashInit[sourceKey] ?? []) : (opts.zonas ?? []);
+
+    // La instancia Leaflet y el flag de visibilidad viven fuera del estado reactivo.
     let mapa = null;
+    let visible = false;
 
     return {
-        zonas,
+        zonas: initialZonas,
+        sourceKey,
         metricas: METRICAS,
         ramp: RAMP,
         metric: 'toneladas',
         buckets: [],
         min: 0,
         max: 0,
-        filterOpen: false,
 
         get conGeometria() {
             return this.zonas.filter((z) => z.tiene_geometria);
@@ -44,16 +56,56 @@ export default (zonas = []) => {
         },
 
         init() {
-            this.$nextTick(() => this.initMapa());
+            // Colores de la leyenda y el ranking, correctos desde el primer render
+            // (incluso antes de que el mapa se cree al hacerse visible).
+            this.computeBuckets();
+
+            // Dashboard: el dataset se renueva con cada refresh (botón, intervalo
+            // o aplicar rango). El detalle del evento trae todas las claves.
+            if (this.sourceKey) {
+                this._onRefresh = (e) => {
+                    this.zonas = e.detail?.[this.sourceKey] ?? [];
+                    this.syncMapa();
+                };
+                window.addEventListener('dashboard-refreshed', this._onRefresh);
+            }
+
+            // El mapa se crea recién cuando el panel entra en viewport: Leaflet
+            // renderiza 0px dentro de un tab oculto (display:none). En revelados
+            // posteriores se reajusta el tamaño.
+            this._io = new IntersectionObserver((entries) => {
+                visible = entries.some((en) => en.isIntersecting);
+                if (!visible) return;
+                if (!mapa) this.initMapa();
+                else mapa.resize();
+            }, { threshold: 0.01 });
+            this._io.observe(this.$el);
+
+            this.$cleanup(() => {
+                this._io?.disconnect();
+                if (this._onRefresh) window.removeEventListener('dashboard-refreshed', this._onRefresh);
+            });
         },
 
         initMapa() {
             if (mapa || !this.hayMapa) return;
-            const el = document.getElementById('mapa-calor-map');
+            const el = this.$refs.map;
             if (!el) return;
             mapa = createChoroplethMap(el);
             mapa.setZonas(this.conGeometria);
             this.recolor();
+        },
+
+        // Reaplica el dataset al cambiar (refresh del dashboard). Si el mapa todavía
+        // no existe, mantiene la leyenda/ranking en sync y lo crea si ya es visible.
+        syncMapa() {
+            if (mapa) {
+                mapa.setZonas(this.conGeometria);
+                this.recolor();
+            } else {
+                this.computeBuckets();
+                if (visible) this.initMapa();
+            }
         },
 
         setMetric(key) {

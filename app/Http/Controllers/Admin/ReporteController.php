@@ -21,6 +21,7 @@ use App\Repositories\TipoServicioRepository;
 use App\Repositories\TipoVehiculoRepository;
 use App\Repositories\ZonaRepository;
 use App\Services\ConclusionesAIService;
+use App\Services\DashboardService;
 use App\Services\PdfService;
 use App\Services\ReporteConfiguracionService;
 use App\Services\ReporteGeneradoService;
@@ -52,6 +53,7 @@ class ReporteController extends Controller
         protected TipoServicioRepository $tipoServicioRepository,
         protected ReporteGeneradoRepository $generadoRepository,
         protected ReporteGeneradoService $generadoService,
+        protected DashboardService $dashboardService,
     ) {}
 
     // ── Index ──────────────────────────────────────────────────────────────
@@ -82,22 +84,25 @@ class ReporteController extends Controller
         ]));
 
         $reporte = null;
+        $mapaZonas = collect();
 
         if ($request->filled('desde') && $request->filled('hasta')) {
             $desde = Carbon::parse($filters['desde']);
             $hasta = Carbon::parse($filters['hasta']);
 
             if ($desde->lte($hasta)) {
-                $reporte = $this->reporteService->generar(
-                    $desde,
-                    $hasta,
-                    array_filter($request->only(['zona_id', 'tipo_servicio_id', 'tipo_vehiculo_id']))
-                );
+                $filtrosReporte = array_filter($request->only(['zona_id', 'tipo_servicio_id', 'tipo_vehiculo_id']));
+
+                $reporte = $this->reporteService->generar($desde, $hasta, $filtrosReporte);
+
+                // Datos del mapa de calor embebido: métricas por zona respetando los
+                // mismos filtros que las tablas del informe.
+                $mapaZonas = $this->dashboardService->metricasPorZona($desde, $hasta, $filtrosReporte);
             }
         }
 
         return view('modules.admin.reportes.index', compact(
-            'tab', 'reporte', 'zonas', 'tiposServicio', 'tiposVehiculo', 'filters', 'activeFilters',
+            'tab', 'reporte', 'mapaZonas', 'zonas', 'tiposServicio', 'tiposVehiculo', 'filters', 'activeFilters',
             'programados', 'historial', 'config'
         ));
     }

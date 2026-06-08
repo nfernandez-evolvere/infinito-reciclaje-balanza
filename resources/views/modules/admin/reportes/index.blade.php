@@ -80,6 +80,11 @@
                     <x-domain.reportes.evolucion :evolucion="$reporte['evolucion']" />
                 @endif
 
+                <x-domain.mapa-calor.panel
+                    :zonas="$mapaZonas"
+                    description="Intensidad de recolección del período por zona, según los filtros aplicados."
+                />
+
                 <section class="flex flex-col gap-4">
                     <p class="text-overline">Desglose por segmento</p>
                     <div class="flex flex-col gap-6">

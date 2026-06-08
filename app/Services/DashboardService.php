@@ -211,10 +211,19 @@ class DashboardService
      * incluya o no geometría — la vista muestra en el mapa las que tienen polígono y
      * lista el resto. Las 4 métricas son: toneladas, viajes, per cápita (kg/hab) y
      * densidad (kg/ha), calculadas sobre el peso neto del rango.
+     *
+     * Con $filtros (zona_id, tipo_servicio_id, tipo_vehiculo_id) la agregación se
+     * limita al subconjunto filtrado — usado por el mapa embebido en Reportes, que
+     * respeta los mismos filtros que las tablas del informe. Sin filtros (Dashboard)
+     * usa la consulta liviana paraDesglosePorZona.
+     *
+     * @param  array<string, int>  $filtros
      */
-    public function metricasPorZona(Carbon $desde, Carbon $hasta): SupportCollection
+    public function metricasPorZona(Carbon $desde, Carbon $hasta, array $filtros = []): SupportCollection
     {
-        $pesajes = $this->pesajeRepository->paraDesglosePorZona($desde, $hasta);
+        $pesajes = empty($filtros)
+            ? $this->pesajeRepository->paraDesglosePorZona($desde, $hasta)
+            : $this->pesajeRepository->paraReporte($desde, $hasta, $filtros);
 
         $porZona = $pesajes
             ->filter(fn ($p) => $p->zona_id !== null)

@@ -1,12 +1,13 @@
-{{-- Ranking de zonas por la métrica activa. Vive bajo el x-data="mapaCalor" del padre. --}}
-<x-ui.card variant="elevated">
-    <x-ui.card.header class="pb-3">
-        <x-ui.card.title>Ranking de zonas</x-ui.card.title>
-        <x-ui.card.description>
+{{-- Ranking de zonas por la métrica activa. Vive bajo el x-data="mapaCalor" del
+     padre. Sin card propia: es una sub-sección dentro de la card del panel. --}}
+<div class="flex h-full flex-col gap-3">
+    <div class="space-y-1">
+        <p class="text-sm font-semibold leading-none">Ranking de zonas</p>
+        <p class="text-xs text-muted-foreground">
             Ordenado por <span x-text="metricaActual().label.toLowerCase()"></span>.
-        </x-ui.card.description>
-    </x-ui.card.header>
-    <x-ui.card.content class="space-y-1.5">
+        </p>
+    </div>
+    <div class="space-y-1.5">
         <template x-for="z in listaOrdenada" :key="z.id">
             <div class="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2">
                 <div class="flex min-w-0 items-center gap-2">
@@ -26,5 +27,5 @@
                 <span class="shrink-0 text-sm font-semibold tabular-nums" x-text="valorMetrica(z)"></span>
             </div>
         </template>
-    </x-ui.card.content>
-</x-ui.card>
+    </div>
+</div>
