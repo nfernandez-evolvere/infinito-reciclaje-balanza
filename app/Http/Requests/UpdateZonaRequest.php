@@ -24,7 +24,7 @@ class UpdateZonaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nombre'     => [
+            'nombre' => [
                 'required', 'string', 'max:150',
                 // La unicidad es por organización (espeja el unique compuesto de la BD:
                 // unique(organizacion_id, nombre)). Sin el scope, el nombre de otra

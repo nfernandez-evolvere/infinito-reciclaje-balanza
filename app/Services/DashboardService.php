@@ -239,9 +239,9 @@ class DashboardService
                     'centro'          => ($zona->centro_lat !== null && $zona->centro_lng !== null)
                         ? ['lat' => $zona->centro_lat, 'lng' => $zona->centro_lng]
                         : null,
-                    'hectareas'       => $zona->hectareas,
-                    'habitantes'      => $zona->habitantes,
-                    'metricas'        => [
+                    'hectareas'  => $zona->hectareas,
+                    'habitantes' => $zona->habitantes,
+                    'metricas'   => [
                         'toneladas'  => round($kg / 1000, 2),
                         'pesajes'    => $datos['pesajes'],
                         'per_capita' => ($zona->habitantes > 0) ? round($kg / $zona->habitantes, 2) : null,

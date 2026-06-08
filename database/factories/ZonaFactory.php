@@ -31,7 +31,7 @@ class ZonaFactory extends Factory
     public function conGeometria(): static
     {
         return $this->state(fn (array $attrs) => [
-            'geojson'    => json_encode([
+            'geojson' => json_encode([
                 'type'     => 'FeatureCollection',
                 'features' => [[
                     'type'       => 'Feature',
