@@ -1,4 +1,12 @@
-@props(['pesajes', 'hayFiltros', 'routeHistorial', 'sortDirection' => 'desc'])
+@props([
+    'pesajes',
+    'hayFiltros',
+    'routeHistorial',
+    'sortDirection' => 'desc',
+    'emptyIcon' => 'scale',
+    'emptyTitle' => 'Sin pesajes en este turno',
+    'emptyDescription' => 'Los pesajes aparecerán acá una vez que se registre el primero.',
+])
 
 @if($pesajes->isEmpty())
     @if($hayFiltros)
@@ -14,9 +22,9 @@
         </x-ui.empty-state>
     @else
         <x-ui.empty-state
-            icon="scale"
-            title="Sin pesajes en este turno"
-            description="Los pesajes aparecerán acá una vez que se registre el primero."
+            :icon="$emptyIcon"
+            :title="$emptyTitle"
+            :description="$emptyDescription"
         />
     @endif
 @else
@@ -52,7 +60,7 @@
                                     Detalles
                                 </x-ui.dropdown-menu.item>
                                 @if(!$pesaje->estaCancelado())
-                                    <x-ui.dropdown-menu.item href="{{ route('pesajes.edit', $pesaje) }}">
+                                    <x-ui.dropdown-menu.item href="{{ route('pesajes.edit', ['pesaje' => $pesaje, 'origen' => request()->route()?->getName()]) }}">
                                         <x-lucide-pencil class="size-4" />
                                         Editar
                                     </x-ui.dropdown-menu.item>
@@ -299,7 +307,7 @@
                                 Detalles
                             </x-ui.dropdown-menu.item>
                             @if(!$pesaje->estaCancelado())
-                                <x-ui.dropdown-menu.item href="{{ route('pesajes.edit', $pesaje) }}">
+                                <x-ui.dropdown-menu.item href="{{ route('pesajes.edit', ['pesaje' => $pesaje, 'origen' => request()->route()?->getName()]) }}">
                                     <x-lucide-pencil class="size-4" />
                                     Editar
                                 </x-ui.dropdown-menu.item>

@@ -75,6 +75,24 @@ class PesajeController extends Controller
         return view('modules.shared.historial', $viewData);
     }
 
+    public function modificaciones(Request $request): View
+    {
+        $filtros = $this->buildFiltrosModificaciones($request);
+
+        $pesajes = $this->pesajeRepository->filtrado($filtros);
+        $operarios = $this->usuarioRepository->getOperadoresDeLaOrg();
+
+        return view('modules.admin.modificaciones', [
+            'pesajes'             => $pesajes,
+            'filtros'             => $filtros,
+            'operarios'           => $operarios,
+            'titulo'              => 'Modificaciones',
+            'routeModificaciones' => route('admin.modificaciones.index'),
+            'zonas'               => $this->zonaRepository->activos(),
+            'tiposServicio'       => $this->tipoServicioRepository->activos(),
+        ]);
+    }
+
     public function show(Pesaje $pesaje): View
     {
         $pesaje->load(['vehiculo.tipoVehiculo', 'tipoServicio', 'zona', 'operador']);
@@ -130,7 +148,7 @@ class PesajeController extends Controller
 
         $pesaje->loadMissing('vehiculo');
 
-        $route = auth()->user()->isAdmin() ? 'admin.pesajes.index' : 'historial';
+        $route = $this->rutaRetorno();
 
         return redirect()->route($route)
             ->with('toast', [
@@ -145,7 +163,7 @@ class PesajeController extends Controller
         $this->pesajeService->marcarEgreso($pesaje, $request->validated());
 
         $pesaje->loadMissing('vehiculo');
-        $route = auth()->user()->isAdmin() ? 'admin.pesajes.index' : 'historial';
+        $route = $this->rutaRetorno();
 
         return redirect()->route($route)
             ->with('toast', [
@@ -160,7 +178,7 @@ class PesajeController extends Controller
         $this->pesajeService->cancelar($pesaje, $request->validated(), auth()->user());
 
         $pesaje->loadMissing('vehiculo');
-        $route = auth()->user()->isAdmin() ? 'admin.pesajes.index' : 'historial';
+        $route = $this->rutaRetorno();
 
         return redirect()->route($route)
             ->with('toast', [
@@ -207,6 +225,36 @@ class PesajeController extends Controller
             'solo_editados'    => $isAdmin ? ($request->boolean('solo_editados') ?: null) : null,
             'direction'        => in_array($request->input('direction'), ['asc', 'desc']) ? $request->input('direction') : 'desc',
         ];
+    }
+
+    private function buildFiltrosModificaciones(Request $request): array
+    {
+        return [
+            'modificaciones'   => true,
+            'tipo'             => in_array($request->input('tipo'), ['editado', 'cancelado'], true) ? $request->input('tipo') : null,
+            'desde'            => $request->input('desde') ?: null,
+            'hasta'            => $request->input('hasta') ?: null,
+            'patente'          => $request->input('patente') ?: null,
+            'operario_id'      => $request->input('operario_id') ?: null,
+            'zona_id'          => $request->input('zona_id') ?: null,
+            'tipo_servicio_id' => $request->input('tipo_servicio_id') ?: null,
+            'direction'        => in_array($request->input('direction'), ['asc', 'desc']) ? $request->input('direction') : 'desc',
+        ];
+    }
+
+    /**
+     * Resuelve la ruta de retorno tras editar/cancelar/marcar egreso, según la pantalla de origen.
+     * Solo acepta rutas de listado conocidas (whitelist) para evitar redirecciones arbitrarias.
+     */
+    private function rutaRetorno(): string
+    {
+        $permitidas = ['historial', 'admin.pesajes.index', 'admin.modificaciones.index'];
+
+        if (in_array(request('origen'), $permitidas, true)) {
+            return request('origen');
+        }
+
+        return auth()->user()->isAdmin() ? 'admin.pesajes.index' : 'historial';
     }
 
     /**

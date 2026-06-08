@@ -96,6 +96,7 @@
 <form method="POST" action="{{ route('pesajes.update', $pesaje) }}" x-ref="form" class="hidden">
     @csrf
     @method('PUT')
+    <input type="hidden" name="origen" value="{{ request('origen') }}">
     <input type="hidden" name="tipo_servicio_id" x-bind:value="servicioId">
     <input type="hidden" name="zona_id"          x-bind:value="zonaId">
     <input type="hidden" name="turno"            x-bind:value="turno">

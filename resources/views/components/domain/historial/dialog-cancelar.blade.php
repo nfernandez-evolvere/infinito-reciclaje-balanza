@@ -10,6 +10,7 @@
         <form id="form-cancelar" :action="'/pesajes/' + cancelarId + '/cancelar'" method="POST" class="px-6 space-y-2 pb-2">
             @csrf
             @method('PATCH')
+            <input type="hidden" name="origen" value="{{ request()->route()?->getName() }}">
             <x-ui.label for="motivo-cancelar">Motivo</x-ui.label>
             <x-ui.textarea
                 id="motivo-cancelar"
