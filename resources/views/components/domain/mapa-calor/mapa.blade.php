@@ -1,7 +1,7 @@
 {{-- Mapa choropleth + leyenda. Vive bajo el x-data="mapaCalor" del padre.
      Sin sombra propia: la elevación la da la card del panel que lo contiene. --}}
 <div class="overflow-hidden rounded-xl border border-border">
-    <div x-ref="map" class="h-[480px] w-full"></div>
+    <div x-ref="map" class="h-120 w-full"></div>
 
     {{-- Leyenda --}}
     <div class="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border p-4">

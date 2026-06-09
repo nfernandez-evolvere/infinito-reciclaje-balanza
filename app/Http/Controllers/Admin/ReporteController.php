@@ -251,6 +251,7 @@ class ReporteController extends Controller
             $reporte['alertas'] = $this->consultarAlertas($desde, $hasta);
             $filename = 'alertas_'.$desde->format('Y-m-d').'.pdf';
         } else {
+            $reporte['mapaZonas'] = $this->dashboardService->metricasPorZona($desde, $hasta);
             $filename = 'informe_'.$desde->format('Y-m').'.pdf';
         }
 
@@ -318,6 +319,10 @@ class ReporteController extends Controller
 
             return $reporte;
         }
+
+        // Mapa de calor del informe: métricas por zona (con geometría) respetando
+        // los mismos filtros, para las páginas de choropleth del PDF.
+        $reporte['mapaZonas'] = $this->dashboardService->metricasPorZona($desde, $hasta, $filtros);
 
         if ($conclusionesPreservadas !== null) {
             $reporte['conclusiones'] = ['analisis' => $conclusionesPreservadas];

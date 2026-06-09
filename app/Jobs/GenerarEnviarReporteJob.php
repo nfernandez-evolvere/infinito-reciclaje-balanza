@@ -10,6 +10,7 @@ use App\Models\Organizacion;
 use App\Models\ReporteConfiguracion;
 use App\Models\ReporteProgramado;
 use App\Services\ConclusionesAIService;
+use App\Services\DashboardService;
 use App\Services\PdfService;
 use App\Services\ReporteGeneradoService;
 use App\Services\ReporteService;
@@ -32,7 +33,7 @@ class GenerarEnviarReporteJob implements ShouldQueue
         public readonly int $programadoId,
     ) {}
 
-    public function handle(ReporteService $reporteService, PdfService $pdfService, ReporteGeneradoService $generadoService): void
+    public function handle(ReporteService $reporteService, PdfService $pdfService, ReporteGeneradoService $generadoService, DashboardService $dashboardService): void
     {
         Log::info('GenerarEnviarReporteJob: iniciando', ['programado_id' => $this->programadoId]);
 
@@ -115,6 +116,9 @@ class GenerarEnviarReporteJob implements ShouldQueue
                 } else {
                     Log::info('GenerarEnviarReporteJob: AI omitida (deshabilitada o sin API key)');
                 }
+
+                // Mapa de calor por zona para las páginas de choropleth del PDF.
+                $reporte['mapaZonas'] = $dashboardService->metricasPorZona($desde, $hasta);
 
                 Log::info('GenerarEnviarReporteJob: generando PDF');
                 $adjuntos[] = [

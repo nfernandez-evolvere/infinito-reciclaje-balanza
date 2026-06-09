@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <title>Informe de Pesajes</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
@@ -44,7 +46,7 @@
 
     body {
         font-family: 'Inter', -apple-system, Arial, sans-serif;
-        font-size: 10px;
+        font-size: 12px;
         color: var(--n-700);
         background: #fff;
         line-height: 1.5;
@@ -118,7 +120,7 @@
         display: inline-flex;
         align-items: center;
         gap: 2.5mm;
-        font-size: 8px;
+        font-size: 9.5px;
         font-weight: 700;
         letter-spacing: 0.28em;
         text-transform: uppercase;
@@ -137,7 +139,7 @@
         display: inline-block;
         background: var(--p-700);
         color: var(--p-100);
-        font-size: 7.5px;
+        font-size: 9px;
         font-weight: 600;
         letter-spacing: 0.14em;
         text-transform: uppercase;
@@ -160,7 +162,7 @@
     }
 
     .cover-period {
-        font-size: 15px;
+        font-size: 18px;
         font-weight: 300;
         color: var(--p-200);
         letter-spacing: 0.02em;
@@ -177,14 +179,14 @@
     }
 
     .cover-muni {
-        font-size: 12px;
+        font-size: 14.5px;
         font-weight: 600;
         color: var(--p-100);
         margin-bottom: 1mm;
     }
 
     .cover-sub {
-        font-size: 8px;
+        font-size: 9.5px;
         color: var(--p-400);
         letter-spacing: 0.02em;
     }
@@ -194,7 +196,7 @@
         border: 1px solid var(--p-700);
         border-radius: 5px;
         padding: 2.5mm 4.5mm;
-        font-size: 7.5px;
+        font-size: 9px;
         font-weight: 600;
         letter-spacing: 0.1em;
         color: var(--p-300);
@@ -221,7 +223,7 @@
     }
 
     .slide-eyebrow {
-        font-size: 6.5px;
+        font-size: 8px;
         font-weight: 700;
         letter-spacing: 0.22em;
         text-transform: uppercase;
@@ -238,7 +240,7 @@
     }
 
     .slide-meta {
-        font-size: 8px;
+        font-size: 9.5px;
         color: var(--n-400);
         text-align: right;
         white-space: nowrap;
@@ -265,7 +267,7 @@
        QUIÉNES SOMOS
     ════════════════════════════════════════ */
     .intro-text {
-        font-size: 10.5px;
+        font-size: 12.5px;
         color: var(--n-600);
         line-height: 1.8;
         max-width: 200mm;
@@ -307,14 +309,14 @@
     }
 
     .svc-title {
-        font-size: 11px;
+        font-size: 13px;
         font-weight: 700;
         color: var(--p-900);
         margin-bottom: 2.5mm;
     }
 
     .svc-desc {
-        font-size: 9px;
+        font-size: 11px;
         color: var(--n-600);
         line-height: 1.65;
     }
@@ -368,7 +370,7 @@
 
     /* Variante: verde medio */
     .kpi-card.v-mid {
-        --kc-bg:       var(--p-800);
+        --kc-bg:       var(--p-600);
         --kc-icon-bg:  var(--p-700);
         --kc-stroke:   var(--p-100);
         --kc-circle:   var(--p-700);
@@ -425,7 +427,7 @@
     }
 
     .kpi-label {
-        font-size: 6.5px;
+        font-size: 9.5px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.14em;
@@ -437,7 +439,7 @@
     }
 
     .kpi-value {
-        font-size: 26px;
+        font-size: 32px;
         font-weight: 800;
         line-height: 1;
         color: var(--kc-value);
@@ -445,7 +447,7 @@
     }
 
     .kpi-unit {
-        font-size: 7px;
+        font-size: 12px;
         color: var(--kc-unit);
         margin-top: 2mm;
     }
@@ -465,7 +467,7 @@
     .insight.red   { border-left-color: var(--red-600);   background: var(--red-50);   }
 
     .insight-label {
-        font-size: 6.5px;
+        font-size: 8px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.12em;
@@ -477,7 +479,7 @@
     .insight.red   .insight-label { color: var(--red-600); }
 
     .insight-text {
-        font-size: 9.5px;
+        font-size: 11.5px;
         color: var(--n-600);
         line-height: 1.65;
     }
@@ -494,7 +496,7 @@
     }
 
     .chart-label {
-        font-size: 7px;
+        font-size: 8.5px;
         font-weight: 600;
         color: var(--n-500);
         letter-spacing: 0.06em;
@@ -519,13 +521,15 @@
     }
 
     .bar-val {
-        font-size: 5px;
-        color: var(--n-500);
+        font-size: 8px;
+        font-weight: 600;
+        color: var(--n-600);
         margin-bottom: 1px;
         white-space: nowrap;
     }
 
     .bar-bar {
+        position: relative;
         width: 100%;
         border-radius: 2px 2px 0 0;
         min-height: 2px;
@@ -534,9 +538,22 @@
 
     .bar-bar.low { background: var(--red-600); }
 
+    /* Valor dentro del tope de la barra (barras altas) */
+    .bar-val-in {
+        position: absolute;
+        top: 1.5px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 8px;
+        font-weight: 700;
+        color: #fff;
+        white-space: nowrap;
+        text-shadow: 0 0 2px rgba(0,0,0,0.55), 0 1px 1px rgba(0,0,0,0.45);
+    }
+
     .bar-label {
-        font-size: 5px;
-        color: var(--n-400);
+        font-size: 8px;
+        color: var(--n-500);
         margin-top: 1.5px;
         white-space: nowrap;
         overflow: hidden;
@@ -558,7 +575,7 @@
     }
 
     .avg-text {
-        font-size: 7px;
+        font-size: 9.5px;
         color: var(--n-500);
     }
 
@@ -574,7 +591,7 @@
     }
 
     .hbar-label {
-        font-size: 8px;
+        font-size: 10.5px;
         color: var(--n-700);
         white-space: nowrap;
         overflow: hidden;
@@ -586,7 +603,9 @@
 
     .hbar-track {
         flex: 1;
-        height: 5.5mm;
+        display: flex;
+        align-items: center;
+        height: 6mm;
         background: var(--n-100);
         border-radius: 3px;
         overflow: hidden;
@@ -597,19 +616,30 @@
         border-radius: 3px;
         display: flex;
         align-items: center;
-        padding-left: 2mm;
+        justify-content: flex-end;
+        padding: 0 2mm;
         background: var(--p-700);
+        flex-shrink: 0;
     }
 
     .hbar-fill-val {
-        font-size: 7px;
-        font-weight: 600;
+        font-size: 10px;
+        font-weight: 700;
         color: #fff;
         white-space: nowrap;
     }
 
+    /* Valor afuera de la barra cuando es muy corta para contenerlo */
+    .hbar-out-val {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--p-950);
+        white-space: nowrap;
+        padding-left: 2mm;
+    }
+
     .hbar-after {
-        font-size: 7.5px;
+        font-size: 10px;
         color: var(--n-500);
         white-space: nowrap;
         width: 11mm;
@@ -630,7 +660,7 @@
     table.data {
         width: 100%;
         border-collapse: collapse;
-        font-size: 8.5px;
+        font-size: 10px;
     }
 
     table.data thead th {
@@ -639,7 +669,7 @@
         padding: 3.5mm 4mm;
         text-align: left;
         font-weight: 600;
-        font-size: 7px;
+        font-size: 8.5px;
         text-transform: uppercase;
         letter-spacing: 0.09em;
     }
@@ -691,7 +721,7 @@
         border-radius: 20px;
         background: var(--p-100);
         color: var(--p-800);
-        font-size: 7px;
+        font-size: 8.5px;
         font-weight: 600;
     }
 
@@ -709,10 +739,116 @@
         display: flex;
         align-items: center;
         gap: 1.5mm;
-        font-size: 7.5px;
+        font-size: 9px;
         color: var(--n-500);
         white-space: nowrap;
     }
+
+    /* ════════════════════════════════════════
+       MAPA DE CALOR (Leaflet + ranking)
+    ════════════════════════════════════════ */
+    .map-grid {
+        display: grid;
+        grid-template-columns: 62fr 38fr;
+        gap: 6mm;
+        align-items: start;
+    }
+
+    .map-frame {
+        border: 1px solid var(--n-200);
+        border-radius: 10px;
+        overflow: hidden;
+        background: var(--n-100);
+    }
+
+    .pdf-map {
+        width: 100%;
+        height: 118mm;
+    }
+
+    .map-legend {
+        display: flex;
+        align-items: center;
+        gap: 3mm 4mm;
+        flex-wrap: wrap;
+        margin-top: 3.5mm;
+    }
+
+    .map-legend .legend-scale {
+        font-size: 10.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--n-500);
+    }
+
+    .map-legend .swatch {
+        display: inline-block;
+        width: 11px; height: 11px;
+        border-radius: 2px;
+        margin-right: 1.5mm;
+        vertical-align: middle;
+        flex-shrink: 0;
+    }
+
+    .map-legend .legend-item { font-size: 10px; }
+
+    /* Ranking lateral de zonas (réplica de la lista de la web) */
+    .map-rank-title { font-size: 12.5px; font-weight: 700; color: var(--p-950); }
+    .map-rank-sub   { font-size: 10px; color: var(--n-400); margin-bottom: 2.5mm; }
+
+    .rank-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 2.5mm;
+        border: 1px solid var(--n-200);
+        border-radius: 6px;
+        padding: 1.3mm 2.5mm;
+        margin-bottom: 1.2mm;
+    }
+
+    .rank-left { display: flex; align-items: center; gap: 2mm; min-width: 0; }
+
+    .rank-dot {
+        width: 11px; height: 11px;
+        border-radius: 2px;
+        flex-shrink: 0;
+    }
+
+    .rank-name { font-size: 11px; font-weight: 600; color: var(--p-950); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rank-sub  { font-size: 9.5px; color: var(--n-400); }
+    .rank-val  { font-size: 11px; font-weight: 700; color: var(--p-950); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+    .rank-pill {
+        font-size: 8px;
+        font-weight: 600;
+        color: var(--n-500);
+        background: var(--n-100);
+        border-radius: 10px;
+        padding: 0.3mm 1.5mm;
+        margin-left: 1.5mm;
+    }
+
+    .rank-more { font-size: 10px; color: var(--n-400); margin-top: 1.5mm; }
+
+    /* Etiqueta permanente con el nombre de la zona dentro del polígono */
+    .zona-label.leaflet-tooltip {
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 13px;
+        line-height: 1.1;
+        white-space: nowrap;
+        text-shadow:
+            -1px -1px 0 rgba(0,0,0,0.55), 1px -1px 0 rgba(0,0,0,0.55),
+            -1px  1px 0 rgba(0,0,0,0.55), 1px  1px 0 rgba(0,0,0,0.55),
+             0 0 3px rgba(0,0,0,0.4);
+    }
+    .zona-label.leaflet-tooltip::before { display: none; }
 
     /* ════════════════════════════════════════
        PIE DE PÁGINA
@@ -728,9 +864,9 @@
         align-items: center;
     }
 
-    .foot-left { font-size: 7px; color: var(--n-400); }
+    .foot-left { font-size: 8.5px; color: var(--n-400); }
     .foot-brand { font-weight: 600; color: var(--p-700); }
-    .foot-right { font-size: 7px; color: var(--n-400); text-align: right; }
+    .foot-right { font-size: 8.5px; color: var(--n-400); text-align: right; }
 
     /* ════════════════════════════════════════
        CIERRE — cards oscuras (estilo portada)
@@ -759,14 +895,14 @@
     }
 
     .closing-card-title {
-        font-size: 10px;
+        font-size: 12px;
         font-weight: 700;
         color: var(--p-100);
         margin-bottom: 2mm;
     }
 
     .closing-card-desc {
-        font-size: 8.5px;
+        font-size: 10px;
         color: var(--p-400);
         line-height: 1.6;
     }
@@ -791,7 +927,7 @@
     }
 
     .alerta-tipo-label {
-        font-size: 8.5px;
+        font-size: 10px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.12em;
@@ -800,7 +936,7 @@
 
     .alerta-tipo-count {
         margin-left: auto;
-        font-size: 7.5px;
+        font-size: 9px;
         font-weight: 600;
         color: var(--n-400);
     }
@@ -816,7 +952,7 @@
     .alerta-row:nth-child(even) { background: var(--p-50); }
 
     .alerta-fecha {
-        font-size: 7.5px;
+        font-size: 9px;
         color: var(--n-500);
         white-space: nowrap;
         flex-shrink: 0;
@@ -827,20 +963,20 @@
     .alerta-body { flex: 1; min-width: 0; }
 
     .alerta-titulo {
-        font-size: 8.5px;
+        font-size: 10px;
         font-weight: 600;
         color: var(--p-950);
         margin-bottom: 1mm;
     }
 
     .alerta-desc {
-        font-size: 7.5px;
+        font-size: 9px;
         color: var(--n-600);
         line-height: 1.5;
     }
 
     .alerta-zona {
-        font-size: 7px;
+        font-size: 8.5px;
         color: var(--p-700);
         font-weight: 500;
         margin-top: 0.8mm;
@@ -881,7 +1017,7 @@
     }
 
     .resumen-alerta-label {
-        font-size: 7.5px;
+        font-size: 9px;
         color: var(--n-600);
         line-height: 1.4;
     }
@@ -938,7 +1074,7 @@
     }
 
     .ai-eyebrow {
-        font-size: 7px;
+        font-size: 8.5px;
         font-weight: 700;
         letter-spacing: 0.24em;
         text-transform: uppercase;
@@ -993,7 +1129,7 @@
     }
 
     .ai-section-label {
-        font-size: 7px;
+        font-size: 8.5px;
         font-weight: 700;
         letter-spacing: 0.18em;
         text-transform: uppercase;
@@ -1002,7 +1138,7 @@
     }
 
     .ai-section-text {
-        font-size: 9.5px;
+        font-size: 11.5px;
         color: var(--p-100);
         line-height: 1.75;
     }
@@ -1015,7 +1151,7 @@
         border: 1px solid var(--p-800);
         border-radius: 4px;
         padding: 1mm 2.5mm;
-        font-size: 6.5px;
+        font-size: 8px;
         font-weight: 600;
         letter-spacing: 0.1em;
         text-transform: uppercase;
@@ -1106,7 +1242,7 @@
     }
 
     .thank-eyebrow {
-        font-size: 7px;
+        font-size: 8.5px;
         font-weight: 700;
         letter-spacing: 0.26em;
         text-transform: uppercase;
@@ -1132,7 +1268,7 @@
     }
 
     .thank-org {
-        font-size: 14px;
+        font-size: 17px;
         font-weight: 300;
         color: var(--n-500);
         letter-spacing: 0.01em;
@@ -1140,7 +1276,7 @@
     }
 
     .thank-caption {
-        font-size: 9.5px;
+        font-size: 11.5px;
         color: var(--n-400);
         line-height: 1.75;
         max-width: 140mm;
@@ -1158,14 +1294,14 @@
     }
 
     .thank-footer-org {
-        font-size: 10px;
+        font-size: 12px;
         font-weight: 600;
         color: var(--p-100);
         margin-bottom: 1mm;
     }
 
     .thank-footer-sub {
-        font-size: 7.5px;
+        font-size: 9px;
         color: var(--p-500);
         letter-spacing: 0.02em;
     }
@@ -1175,7 +1311,7 @@
         border: 1px solid var(--p-700);
         border-radius: 5px;
         padding: 2.5mm 4.5mm;
-        font-size: 7px;
+        font-size: 8.5px;
         font-weight: 600;
         letter-spacing: 0.1em;
         color: var(--p-300);
@@ -1399,7 +1535,7 @@
                     <div class="slide-title">
                         {{ $tipoNombre }}
                         @if($grupo->count() > 20)
-                            <span style="font-size:12px;color:oklch(0.708 0 0);font-weight:400;">({{ $chunkIdx + 1 }}/{{ $grupo->chunk(20)->count() }})</span>
+                            <span style="font-size:14.5px;color:oklch(0.708 0 0);font-weight:400;">({{ $chunkIdx + 1 }}/{{ $grupo->chunk(20)->count() }})</span>
                         @endif
                     </div>
                 </div>
@@ -1423,9 +1559,9 @@
                 </div>
                 <div style="flex-shrink:0;margin-left:3mm;">
                     @if($alerta->leida)
-                        <span style="font-size:7px;color:oklch(0.592 0.153 144);font-weight:600;">Leída</span>
+                        <span style="font-size:8.5px;color:oklch(0.592 0.153 144);font-weight:600;">Leída</span>
                     @else
-                        <span style="font-size:7px;color:var(--amber-500);font-weight:600;">Sin leer</span>
+                        <span style="font-size:8.5px;color:var(--amber-500);font-weight:600;">Sin leer</span>
                     @endif
                 </div>
             </div>
@@ -1463,15 +1599,7 @@
         <div class="slide-content">
             <div class="kpi-grid">
                 {{-- Toneladas netas — default (verde profundo) — icon: package --}}
-                <div class="kpi-card">
-                    <div class="kpi-icon">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/>
-                            <path d="M12 22V12"/>
-                            <path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"/>
-                            <path d="m7.5 4.27 9 5.15"/>
-                        </svg>
-                    </div>
+                <div class="kpi-card v-mid">
                     <div class="kpi-body">
                         <div class="kpi-label">Toneladas netas</div>
                         <div class="kpi-value">{{ number_format($kpis['toneladas'], 0, ',', '.') }}</div>
@@ -1479,17 +1607,8 @@
                     </div>
                 </div>
 
-                {{-- Total viajes — v-slate (neutral) — icon: scale --}}
-                <div class="kpi-card v-slate">
-                    <div class="kpi-icon">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
-                            <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
-                            <path d="M7 21h10"/>
-                            <path d="M12 3v18"/>
-                            <path d="M3 7h2c2 0 4-1 7-1s5 1 7 1h2"/>
-                        </svg>
-                    </div>
+                {{-- Total viajes — v-mid (verde medio) — icon: scale --}}
+                <div class="kpi-card v-mid">
                     <div class="kpi-body">
                         <div class="kpi-label">Total viajes</div>
                         <div class="kpi-value">{{ number_format($kpis['total'], 0, ',', '.') }}</div>
@@ -1497,17 +1616,8 @@
                     </div>
                 </div>
 
-                {{-- Días operativos — v-blue (temporal) — icon: calendar-days --}}
-                <div class="kpi-card v-blue">
-                    <div class="kpi-icon">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M8 2v4"/><path d="M16 2v4"/>
-                            <rect width="18" height="18" x="3" y="4" rx="2"/>
-                            <path d="M3 10h18"/>
-                            <path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/>
-                            <path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/>
-                        </svg>
-                    </div>
+                {{-- Días operativos — v-mid (verde medio) — icon: calendar-days --}}
+                <div class="kpi-card v-mid">
                     <div class="kpi-body">
                         <div class="kpi-label">Días operativos</div>
                         <div class="kpi-value">{{ $kpis['dias_op'] }}</div>
@@ -1517,12 +1627,6 @@
 
                 {{-- Promedio diario — v-mid (verde medio) — icon: trending-up --}}
                 <div class="kpi-card v-mid">
-                    <div class="kpi-icon">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="m22 7-8.5 8.5-5-5L2 17"/>
-                            <path d="M16 7h6v6"/>
-                        </svg>
-                    </div>
                     <div class="kpi-body">
                         <div class="kpi-label">Promedio diario</div>
                         <div class="kpi-value">{{ number_format($kpis['promedio_ton_dia'], 1, ',', '.') }}</div>
@@ -1530,8 +1634,8 @@
                     </div>
                 </div>
 
-                {{-- Promedio por viaje — v-slate (neutral) — icon: truck --}}
-                <div class="kpi-card v-slate">
+                {{-- Promedio por viaje — v-mid (verde medio) — icon: truck --}}
+                <div class="kpi-card v-mid">
                     <div class="kpi-icon">
                         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/>
@@ -1600,7 +1704,7 @@
                 </div>
 
                 {{-- Máximo — default (verde profundo) — icon: arrow-up --}}
-                <div class="kpi-card">
+                <div class="kpi-card v-mid">
                     <div class="kpi-icon">
                         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path d="m5 12 7-7 7 7"/>
@@ -1615,7 +1719,7 @@
                 </div>
 
                 {{-- Mínimo — v-slate (neutral) — icon: arrow-down --}}
-                <div class="kpi-card v-slate">
+                <div class="kpi-card v-mid">
                     <div class="kpi-icon">
                         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path d="M12 5v14"/>
@@ -1630,7 +1734,7 @@
                 </div>
 
                 {{-- Días con datos — v-blue (temporal) — icon: calendar-days --}}
-                <div class="kpi-card v-blue">
+                <div class="kpi-card v-mid">
                     <div class="kpi-icon">
                         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path d="M8 2v4"/><path d="M16 2v4"/>
@@ -1658,11 +1762,15 @@
                         $showL = ($i % $showEvery === 0);
                     @endphp
                     <div class="bar-col">
-                        @if($d['toneladas'] > 0 && $pct > 5)
+                        @if($d['toneladas'] > 0 && $pct < 16)
                             <div class="bar-val">{{ number_format($d['toneladas'], 1) }}</div>
                         @endif
                         <div class="bar-bar {{ $isLow ? 'low' : '' }}"
-                             style="height: {{ max($pct, $d['toneladas'] > 0 ? 1.5 : 0) }}%;"></div>
+                             style="height: {{ max($pct, $d['toneladas'] > 0 ? 1.5 : 0) }}%;">
+                            @if($d['toneladas'] > 0 && $pct >= 16)
+                                <div class="bar-val-in">{{ number_format($d['toneladas'], 1) }}</div>
+                            @endif
+                        </div>
                         @if($showL)
                             <div class="bar-label">{{ $d['fecha'] }}</div>
                         @else
@@ -1713,10 +1821,13 @@
                             <div class="hbar-label">{{ $v['nombre'] }}</div>
                             <div class="hbar-track">
                                 <div class="hbar-fill" style="width: {{ $pct }}%; background: {{ $color }};">
-                                    @if($pct > 22)
+                                    @if($pct >= 18)
                                     <span class="hbar-fill-val">{{ number_format($v['viajes'], 0, ',', '.') }}</span>
                                     @endif
                                 </div>
+                                @if($pct < 18)
+                                <span class="hbar-out-val">{{ number_format($v['viajes'], 0, ',', '.') }}</span>
+                                @endif
                             </div>
                             <div class="hbar-after">{{ number_format($v['porcentaje'], 1) }}%</div>
                         </div>
@@ -1786,7 +1897,7 @@
                     <div class="slide-title">
                         Toneladas Netas por Zona
                         @if($totalSlides > 1)
-                            <span style="font-size: 12px; color: oklch(0.708 0 0); font-weight: 400;">({{ $chunkIdx + 1 }}/{{ $totalSlides }})</span>
+                            <span style="font-size: 14.5px; color: oklch(0.708 0 0); font-weight: 400;">({{ $chunkIdx + 1 }}/{{ $totalSlides }})</span>
                         @endif
                     </div>
                 </div>
@@ -1864,6 +1975,95 @@
 </div>
 @endforeach
 
+{{-- ═══════════ MAPAS DE CALOR (choropleth por métrica) ═══════════ --}}
+@php
+    $mapaZonas  = $reporte['mapaZonas'] ?? collect();
+    $mapaConGeo = $mapaZonas->filter(fn ($z) => $z['tiene_geometria'] ?? false);
+
+    $mapasMetricas = [
+        ['metric' => 'toneladas',  'eyebrow' => 'Concentración territorial', 'desc' => 'Toneladas netas recolectadas por zona. Las áreas más oscuras concentran mayor volumen de recolección.'],
+        ['metric' => 'pesajes',    'eyebrow' => 'Frecuencia de recolección', 'desc' => 'Cantidad de viajes registrados por zona en el período.'],
+        ['metric' => 'per_capita', 'eyebrow' => 'Generación por habitante',  'desc' => 'Kilos recolectados por habitante (kg/hab). Solo se colorean las zonas con población cargada.'],
+        ['metric' => 'densidad',   'eyebrow' => 'Intensidad por superficie', 'desc' => 'Kilos recolectados por hectárea (kg/ha). Solo se colorean las zonas con superficie cargada.'],
+    ];
+@endphp
+
+@if($mapaConGeo->isNotEmpty())
+@inject('choropleth', 'App\Services\ChoroplethMapService')
+@foreach($mapasMetricas as $mm)
+@php
+    $mapa = $choropleth->mapData($mapaZonas, $mm['metric']);
+    $mapId = 'mapa-'.$mm['metric'];
+    $rankTop = array_slice($mapa['filas'], 0, 11);
+    $rankRest = count($mapa['filas']) - count($rankTop);
+@endphp
+@if($mapa['hayMapa'])
+<div class="page">
+    <div class="slide-wrap">
+        <div class="slide-head">
+            <div class="slide-header-row">
+                <div>
+                    <div class="slide-eyebrow">{{ $mm['eyebrow'] }}</div>
+                    <div class="slide-title">Mapa de Calor · {{ $mapa['metrica']['label'] }}</div>
+                </div>
+                <div class="slide-meta">{{ $periodo }}</div>
+            </div>
+            <div class="slide-rule"></div>
+        </div>
+
+        <div class="slide-content">
+            <p class="intro-text" style="margin-bottom: 4mm;">{{ $mm['desc'] }}</p>
+
+            <div class="map-grid">
+                {{-- Mapa Leaflet (calles OSM + zonas coloreadas) + leyenda --}}
+                <div>
+                    <div class="map-frame">
+                        <div class="pdf-map" id="{{ $mapId }}" data-choropleth="{{ $mapId }}-data"></div>
+                    </div>
+                    <script type="application/json" id="{{ $mapId }}-data">@json($mapa['mapa'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP)</script>
+
+                    <div class="map-legend">
+                        <span class="legend-scale">Escala · {{ $mapa['metrica']['label'] }}@if($mapa['metrica']['unidad'] !== 'viajes') ({{ $mapa['metrica']['unidad'] }})@endif</span>
+                        @foreach($mapa['buckets'] as $b)
+                        <span class="legend-item"><span class="swatch" style="background: {{ $b['color'] }};"></span>{{ $b['label'] }}</span>
+                        @endforeach
+                        <span class="legend-item"><span class="swatch" style="background: #cbd5e1;"></span>Sin actividad</span>
+                    </div>
+                </div>
+
+                {{-- Ranking de zonas por la métrica (réplica de la lista de la web) --}}
+                <div>
+                    <div class="map-rank-title">Ranking de zonas</div>
+                    <div class="map-rank-sub">Ordenado por {{ mb_strtolower($mapa['metrica']['label']) }}.</div>
+                    @foreach($rankTop as $f)
+                    <div class="rank-row">
+                        <div class="rank-left">
+                            <span class="rank-dot" style="background: {{ $f['color'] }};"></span>
+                            <div style="min-width:0;">
+                                <div class="rank-name">{{ $f['nombre'] }}@unless($f['tiene_geometria'])<span class="rank-pill">sin área</span>@endunless</div>
+                                <div class="rank-sub">{{ $f['sub'] }}</div>
+                            </div>
+                        </div>
+                        <span class="rank-val">{{ $f['valor'] }}</span>
+                    </div>
+                    @endforeach
+                    @if($rankRest > 0)
+                    <div class="rank-more">y {{ $rankRest }} {{ $rankRest === 1 ? 'zona más' : 'zonas más' }}…</div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <div class="foot">
+            <div class="foot-left"><span class="foot-brand">Infinito Reciclaje</span> · Gestión Integral de Residuos</div>
+            <div class="foot-right">{{ $organizacion }} · {{ $periodo }}</div>
+        </div>
+    </div>
+</div>
+@endif
+@endforeach
+@endif
+
 {{-- ═══════════ DENSIDAD kg/ha ═══════════ --}}
 @if($zonasConHa->isNotEmpty())
 <div class="page">
@@ -1900,12 +2100,14 @@
                             <div class="hbar-label">{{ mb_strimwidth($label, 0, 18, '…') }}</div>
                             <div class="hbar-track">
                                 <div class="hbar-fill" style="width: {{ $pct }}%; background: {{ $color }};">
-                                    @if($pct > 22)
+                                    @if($pct >= 18)
                                     <span class="hbar-fill-val">{{ number_format($z['kg_ha'], 0) }}</span>
                                     @endif
                                 </div>
+                                @if($pct < 18)
+                                <span class="hbar-out-val">{{ number_format($z['kg_ha'], 0) }}</span>
+                                @endif
                             </div>
-                            <div class="hbar-after">{{ number_format($z['kg_ha'], 0) }}</div>
                         </div>
                         @endforeach
                     </div>
@@ -2029,6 +2231,55 @@
         <div class="thank-footer-badge">Gestión Integral de Residuos</div>
     </div>
 </div>
+
+
+{{-- Inicializa los mapas Leaflet del PDF. Browsershot (Chromium real) ejecuta
+     este script y espera waitUntilNetworkIdle(), dando tiempo a que carguen los
+     tiles de OpenStreetMap antes de imprimir. Cada .pdf-map lee su dataset del
+     <script type="application/json"> contiguo (zonas con geojson + color). --}}
+<script>
+(function () {
+    function initMaps() {
+        if (typeof L === 'undefined') return;
+        document.querySelectorAll('.pdf-map[data-choropleth]').forEach(function (el) {
+            var src = document.getElementById(el.getAttribute('data-choropleth'));
+            if (!src) return;
+            var zonas;
+            try { zonas = JSON.parse(src.textContent); } catch (e) { zonas = []; }
+
+            var map = L.map(el, {
+                zoomControl: false, attributionControl: false, dragging: false,
+                scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false,
+                keyboard: false, touchZoom: false,
+            });
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+            var group = L.featureGroup().addTo(map);
+            zonas.forEach(function (z) {
+                if (!z.geojson) return;
+                var layer = L.geoJSON(z.geojson, {
+                    style: { color: '#475569', weight: 2, fillColor: z.color, fillOpacity: 0.7 },
+                });
+                layer.addTo(group);
+                L.tooltip({ permanent: true, direction: 'center', className: 'zona-label', interactive: false })
+                    .setLatLng(layer.getBounds().getCenter()).setContent(z.nombre).addTo(group);
+            });
+
+            map.invalidateSize();
+            if (group.getLayers().length) {
+                map.fitBounds(group.getBounds(), { padding: [16, 16], maxZoom: 15 });
+            } else {
+                map.setView([-27.4698, -58.8306], 12);
+            }
+        });
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initMaps);
+    } else {
+        initMaps();
+    }
+})();
+</script>
 
 </body>
 </html>

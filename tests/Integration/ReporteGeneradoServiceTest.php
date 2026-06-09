@@ -4,6 +4,7 @@ namespace Tests\Integration;
 
 use App\Jobs\GenerarEnviarReporteJob;
 use App\Models\ReporteProgramado;
+use App\Services\DashboardService;
 use App\Services\PdfService;
 use App\Services\ReporteGeneradoService;
 use App\Services\ReporteService;
@@ -132,6 +133,7 @@ class ReporteGeneradoServiceTest extends TestCase
             app(ReporteService::class),
             app(PdfService::class),
             app(ReporteGeneradoService::class),
+            app(DashboardService::class),
         );
 
         $this->assertDatabaseHas('reportes_generados', [
