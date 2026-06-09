@@ -263,6 +263,15 @@
 
     .slide-content { flex: 1; }
 
+    /* Bajada explicativa bajo el título de cada sección */
+    .slide-desc {
+        font-size: 13px;
+        color: var(--n-600);
+        line-height: 1.6;
+        max-width: 220mm;
+        margin-bottom: 5mm;
+    }
+
     /* ════════════════════════════════════════
        QUIÉNES SOMOS
     ════════════════════════════════════════ */
@@ -521,8 +530,8 @@
     }
 
     .bar-val {
-        font-size: 8px;
-        font-weight: 600;
+        font-size: 10.5px;
+        font-weight: 700;
         color: var(--n-600);
         margin-bottom: 1px;
         white-space: nowrap;
@@ -544,7 +553,7 @@
         top: 1.5px;
         left: 50%;
         transform: translateX(-50%);
-        font-size: 8px;
+        font-size: 10.5px;
         font-weight: 700;
         color: #fff;
         white-space: nowrap;
@@ -730,8 +739,9 @@
     ════════════════════════════════════════ */
     .legend {
         display: flex;
-        gap: 5mm;
-        margin-bottom: 4mm;
+        align-items: center;
+        gap: 3mm 6mm;
+        margin-bottom: 5mm;
         flex-wrap: wrap;
     }
 
@@ -742,6 +752,36 @@
         font-size: 9px;
         color: var(--n-500);
         white-space: nowrap;
+    }
+
+    /* Escala de toneladas (leyenda de la tabla por zona) — agrandada y rotulada */
+    .legend-scale-label {
+        font-size: 10.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--n-600);
+    }
+
+    .legend .legend-item {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--n-700);
+        gap: 2mm;
+    }
+
+    .legend .dot {
+        width: 13px;
+        height: 13px;
+        border-radius: 3px;
+    }
+
+    /* Guía de continuación cuando una sección sigue en la página siguiente */
+    .slide-continued {
+        font-size: 9.5px;
+        font-style: italic;
+        color: var(--n-400);
+        margin-top: 1.5mm;
     }
 
     /* ════════════════════════════════════════
@@ -1341,6 +1381,13 @@
         'gap_registro'            => 'Sin actividad',
         'frecuencia_zona_atipica' => 'Frecuencia atípica',
     ];
+
+    $tipoDesc = [
+        'peso_fuera_rango'        => 'Pesajes por fuera del rango habitual configurado para el tipo de vehículo.',
+        'volumen_diario_atipico'  => 'Días cuyo volumen total se aparta del patrón del período.',
+        'gap_registro'            => 'Lapsos sin pesajes durante un turno activo.',
+        'frecuencia_zona_atipica' => 'Zonas con una frecuencia de recolección distinta a su patrón habitual.',
+    ];
     $alertasAgrupadas = $alertas->groupBy('tipo');
 
     $periodo      = ucfirst($desde->translatedFormat('F Y'));
@@ -1473,6 +1520,7 @@
         </div>
 
         <div class="slide-content">
+            <p class="slide-desc">Eventos detectados automáticamente durante el período. Cada tarjeta agrupa un tipo de alerta; el detalle de cada una está en las páginas siguientes.</p>
 
             @php
                 $colores = [
@@ -1545,6 +1593,7 @@
         </div>
 
         <div class="slide-content">
+            <p class="slide-desc">{{ $tipoDesc[$tipoKey] ?? '' }}</p>
             @foreach($chunk as $alerta)
             <div class="alerta-row">
                 <div class="alerta-fecha">{{ $alerta->fecha_deteccion->format('d/m/Y') }}</div>
@@ -1597,6 +1646,7 @@
         </div>
 
         <div class="slide-content">
+            <p class="slide-desc">Indicadores principales del período: total recolectado, viajes registrados y promedios por jornada operativa.</p>
             <div class="kpi-grid">
                 {{-- Toneladas netas — default (verde profundo) — icon: package --}}
                 <div class="kpi-card v-mid">
@@ -1636,15 +1686,6 @@
 
                 {{-- Promedio por viaje — v-mid (verde medio) — icon: truck --}}
                 <div class="kpi-card v-mid">
-                    <div class="kpi-icon">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/>
-                            <path d="M15 18H9"/>
-                            <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/>
-                            <circle cx="17" cy="18" r="2"/>
-                            <circle cx="7" cy="18" r="2"/>
-                        </svg>
-                    </div>
                     <div class="kpi-body">
                         <div class="kpi-label">Promedio por viaje</div>
                         <div class="kpi-value">{{ number_format($kpis['promedio_kg_viaje'], 0, ',', '.') }}</div>
@@ -1656,10 +1697,12 @@
             <div class="insight">
                 <div class="insight-label">Lectura del período</div>
                 <div class="insight-text">
-                    Durante {{ $periodo }} se registraron <strong>{{ number_format($kpis['total'], 0, ',', '.') }} viajes</strong>
-                    que totalizaron <strong>{{ number_format($kpis['toneladas'], 1, ',', '.') }} toneladas netas</strong>,
-                    con actividad en <strong>{{ $kpis['dias_op'] }} de {{ $kpis['dias_rango'] }} días</strong> y un promedio
-                    de {{ number_format($kpis['promedio_ton_dia'], 1, ',', '.') }} toneladas por jornada operativa.
+                    @php $diasSin = max($kpis['dias_rango'] - $kpis['dias_op'], 0); @endphp
+                    En {{ $periodo }} se registraron <strong>{{ number_format($kpis['total'], 0, ',', '.') }} viajes</strong>
+                    por <strong>{{ number_format($kpis['toneladas'], 1, ',', '.') }} t netas</strong>, con actividad en
+                    <strong>{{ $kpis['dias_op'] }} de {{ $kpis['dias_rango'] }} días</strong>
+                    @if($diasSin > 0)(<strong>{{ $diasSin }}</strong> {{ $diasSin === 1 ? 'jornada sin registros' : 'jornadas sin registros' }}) @endif
+                    y un promedio de {{ number_format($kpis['promedio_ton_dia'], 1, ',', '.') }} t por jornada operativa.
                 </div>
             </div>
         </div>
@@ -1672,13 +1715,27 @@
 </div>
 
 {{-- ═══════════ EVOLUCIÓN DIARIA ═══════════ --}}
+@php
+    // Paginar el gráfico en chunks de <=15 barras para que no se compriman.
+    // Reparto balanceado: 31 días → 3 páginas de 11/11/9, no 15/15/1.
+    $evTotalChunks = max(1, (int) ceil(count($evDatos) / 15));
+    $evChunkSize   = max(1, (int) ceil(count($evDatos) / $evTotalChunks));
+    $evChunks      = array_chunk($evDatos, $evChunkSize);
+    $evTotalChunks = count($evChunks);
+@endphp
+@foreach($evChunks as $chunkIdx => $evChunk)
 <div class="page">
     <div class="slide-wrap">
         <div class="slide-head">
             <div class="slide-header-row">
                 <div>
                     <div class="slide-eyebrow">Tendencia</div>
-                    <div class="slide-title">Evolución Diaria de Toneladas</div>
+                    <div class="slide-title">
+                        Evolución Diaria de Toneladas
+                        @if($evTotalChunks > 1)
+                            <span style="font-size: 14.5px; color: oklch(0.708 0 0); font-weight: 400;">({{ $chunkIdx + 1 }}/{{ $evTotalChunks }})</span>
+                        @endif
+                    </div>
                 </div>
                 <div class="slide-meta">{{ $periodo }}</div>
             </div>
@@ -1686,6 +1743,9 @@
         </div>
 
         <div class="slide-content">
+            @if($chunkIdx === 0)
+            <p class="slide-desc">Toneladas netas recolectadas por día. La línea de promedio marca la media de las jornadas con actividad; en rojo, los días por debajo del 30% de ese promedio.</p>
+            {{-- KPIs del período: solo en la primera página del gráfico --}}
             <div class="kpi-grid-4">
                 {{-- Promedio — v-mid (verde medio) — icon: bar-chart-2 --}}
                 <div class="kpi-card v-mid">
@@ -1751,11 +1811,13 @@
                     </div>
                 </div>
             </div>
+            @endif
 
             <div class="chart-wrap">
-                <div class="chart-label">Toneladas por día</div>
+                <div class="chart-label">Toneladas por día @if($evTotalChunks > 1)· {{ $evChunk[0]['fecha'] }} a {{ $evChunk[count($evChunk) - 1]['fecha'] }}@endif</div>
                 <div class="bar-chart-vertical">
-                    @foreach($evDatos as $i => $d)
+                    @php $showEvery = max(1, (int) ceil(count($evChunk) / 20)); @endphp
+                    @foreach($evChunk as $i => $d)
                     @php
                         $pct   = $evMax > 0 ? ($d['toneladas'] / $evMax) * 100 : 0;
                         $isLow = $d['toneladas'] > 0 && $d['toneladas'] < ($evAvg * 0.3);
@@ -1792,6 +1854,7 @@
         </div>
     </div>
 </div>
+@endforeach
 
 {{-- ═══════════ POR TIPO DE VEHÍCULO ═══════════ --}}
 <div class="page">
@@ -1808,6 +1871,7 @@
         </div>
 
         <div class="slide-content">
+            <p class="slide-desc">Reparto de viajes y toneladas según el tipo de vehículo. Muestra qué parte de la flota concentra la recolección.</p>
             <div class="two-col two-col-4-6">
                 <div class="chart-wrap" style="padding: 4.5mm;">
                     <div class="chart-label">Viajes por tipo</div>
@@ -1842,8 +1906,8 @@
                                 <th>Tipo de vehículo</th>
                                 <th class="r">Viajes</th>
                                 <th class="r">Toneladas</th>
-                                <th class="r">% Total</th>
-                                <th class="r">kg / viaje</th>
+                                <th class="r">% del total</th>
+                                <th class="r">kg/viaje</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1854,7 +1918,7 @@
                                     {{ $v['nombre'] }}
                                 </td>
                                 <td class="num">{{ number_format($v['viajes'], 0, ',', '.') }}</td>
-                                <td class="num">{{ number_format($v['toneladas'], 1, ',', '.') }}</td>
+                                <td class="num">{{ number_format($v['toneladas'], 1, ',', '.') }} t</td>
                                 <td class="muted">{{ number_format($v['porcentaje'], 1, ',', '.') }}%</td>
                                 <td class="num">{{ number_format($v['kg_viaje'], 0, ',', '.') }}</td>
                             </tr>
@@ -1864,7 +1928,7 @@
                             <tr>
                                 <td>Total</td>
                                 <td class="r">{{ number_format($vehiculos->sum('viajes'), 0, ',', '.') }}</td>
-                                <td class="r">{{ number_format($vehiculos->sum('toneladas'), 1, ',', '.') }}</td>
+                                <td class="r">{{ number_format($vehiculos->sum('toneladas'), 1, ',', '.') }} t</td>
                                 <td class="r">100%</td>
                                 <td class="r">—</td>
                             </tr>
@@ -1883,7 +1947,7 @@
 
 {{-- ═══════════ POR ZONA ═══════════ --}}
 @php
-    $zonasChunks = $zonas->chunk(16);
+    $zonasChunks = $zonas->chunk(14);
     $totalSlides = $zonasChunks->count();
 @endphp
 
@@ -1900,6 +1964,9 @@
                             <span style="font-size: 14.5px; color: oklch(0.708 0 0); font-weight: 400;">({{ $chunkIdx + 1 }}/{{ $totalSlides }})</span>
                         @endif
                     </div>
+                    @if($chunkIdx > 0)
+                        <div class="slide-continued">Continuación de la página anterior</div>
+                    @endif
                 </div>
                 <div class="slide-meta">{{ $periodo }}</div>
             </div>
@@ -1908,7 +1975,9 @@
 
         <div class="slide-content">
             @if($chunkIdx === 0)
+            <p class="slide-desc">Volumen recolectado por zona y turno, con kg por viaje, por hectárea y por habitante. El color indica el rango de toneladas de cada zona.</p>
             <div class="legend">
+                <span class="legend-scale-label">Escala · toneladas netas</span>
                 <div class="legend-item"><span class="dot" style="background:#dc2626;"></span> Más de 500 t</div>
                 <div class="legend-item"><span class="dot" style="background:#ea580c;"></span> 150 – 500 t</div>
                 <div class="legend-item"><span class="dot" style="background:#f59e0b;"></span> 80 – 150 t</div>
@@ -1924,10 +1993,10 @@
                         <th>Turno</th>
                         <th class="r">Viajes</th>
                         <th class="r">Toneladas</th>
-                        <th class="r">kg / viaje</th>
-                        <th class="r">% Total</th>
-                        <th class="r">kg / ha</th>
-                        <th class="r">kg / hab</th>
+                        <th class="r">kg/viaje</th>
+                        <th class="r">% del total</th>
+                        <th class="r">kg/ha</th>
+                        <th class="r">kg/hab</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1946,7 +2015,7 @@
                             @endif
                         </td>
                         <td class="num">{{ number_format($zona['viajes'], 0, ',', '.') }}</td>
-                        <td class="num" style="color: {{ $dotColor }};">{{ number_format($zona['toneladas'], 1, ',', '.') }}</td>
+                        <td class="num" style="color: {{ $dotColor }};">{{ number_format($zona['toneladas'], 1, ',', '.') }} t</td>
                         <td class="muted">{{ number_format($zona['kg_viaje'], 0, ',', '.') }}</td>
                         <td class="muted">{{ number_format($zona['porcentaje'], 1, ',', '.') }}%</td>
                         <td class="num">{{ $zona['kg_ha'] !== null ? number_format($zona['kg_ha'], 1, ',', '.') : '—' }}</td>
@@ -1959,7 +2028,7 @@
                     <tr>
                         <td colspan="2">Total general</td>
                         <td class="r">{{ number_format($zonas->sum('viajes'), 0, ',', '.') }}</td>
-                        <td class="r">{{ number_format($zonas->sum('toneladas'), 1, ',', '.') }}</td>
+                        <td class="r">{{ number_format($zonas->sum('toneladas'), 1, ',', '.') }} t</td>
                         <td colspan="4"></td>
                     </tr>
                 </tfoot>
@@ -2012,7 +2081,7 @@
         </div>
 
         <div class="slide-content">
-            <p class="intro-text" style="margin-bottom: 4mm;">{{ $mm['desc'] }}</p>
+            <p class="slide-desc">{{ $mm['desc'] }}</p>
 
             <div class="map-grid">
                 {{-- Mapa Leaflet (calles OSM + zonas coloreadas) + leyenda --}}
@@ -2080,6 +2149,7 @@
         </div>
 
         <div class="slide-content">
+            <p class="slide-desc">Kilos recolectados por hectárea en cada zona. Mide la intensidad de generación según la superficie, sin depender del tamaño de la zona.</p>
             <div class="two-col two-col-5-5">
                 <div class="chart-wrap" style="padding: 4.5mm;">
                     <div class="chart-label">kg por hectárea</div>
@@ -2122,17 +2192,17 @@
                     <div class="insight">
                         <div class="insight-label">Zonas de mayor densidad</div>
                         <div class="insight-text">
-                            {{ $topZonas }} presentan los valores más altos de generación por hectárea,
-                            lo que sugiere mayor frecuencia de recolección o mayor concentración de actividad.
+                            {{ $topZonas }} concentran la mayor generación por hectárea del período. Una densidad alta
+                            suele reflejar más frecuencia de recolección o mayor actividad sobre esa superficie.
                         </div>
                     </div>
                     @if($bottom && $bottom['kg_ha'] < $topVal * 0.2)
                     <div class="insight amber">
                         <div class="insight-label">Zona de baja densidad</div>
                         <div class="insight-text">
-                            {{ $bottom['nombre'] }} registra una densidad relativa baja
-                            ({{ number_format($bottom['kg_ha'], 1, ',', '.') }} kg/ha). Conviene evaluar
-                            la optimización de su ruta de recolección.
+                            {{ $bottom['nombre'] }} registra <strong>{{ number_format($bottom['kg_ha'], 1, ',', '.') }} kg/ha</strong>,
+                            muy por debajo del resto. Conviene verificar si la superficie y la frecuencia de recolección
+                            cargadas para la zona reflejan su realidad antes de sacar conclusiones.
                         </div>
                     </div>
                     @endif
@@ -2215,10 +2285,9 @@
         <div class="thank-rule"></div>
         <div class="thank-org">{{ $organizacion }}</div>
         <p class="thank-caption">
-            Agradecemos la confianza depositada en nuestro servicio durante {{ $periodo }}.<br>
-            Este informe refleja el trabajo comprometido de todo el equipo operativo.<br>
-            Seguimos trabajando cada jornada para mejorar la eficiencia,
-            la trazabilidad y el impacto ambiental de la recolección.
+            Informe correspondiente a {{ $periodo }}, generado a partir de los registros del sistema de balanza digital.<br>
+            Cada pesaje queda trazado con fecha, vehículo, zona y peso neto: eso permite auditar la operación
+            y comparar la evolución entre períodos.
         </p>
     </div>
 
