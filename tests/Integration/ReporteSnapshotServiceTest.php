@@ -40,11 +40,11 @@ class ReporteSnapshotServiceTest extends TestCase
             'conclusiones'   => [],
             'kg_netos_total' => 5000,
             'detalle'        => [[
-                'fecha' => '10/03/2026', 'hora' => '08:00', 'patente' => 'ABC123',
+                'fecha'         => '10/03/2026', 'hora' => '08:00', 'patente' => 'ABC123',
                 'tipo_vehiculo' => 'Compactador', 'tipo_servicio' => '—', 'zona' => 'Centro',
-                'turno' => 'Diurna', 'operador' => '—', 'peso_bruto_kg' => 5800,
-                'peso_tara_kg' => 800, 'peso_neto_kg' => 5000, 'estado' => 'Cerrado',
-                'editado' => false, 'alerta_peso' => false,
+                'turno'         => 'Diurna', 'operador' => '—', 'peso_bruto_kg' => 5800,
+                'peso_tara_kg'  => 800, 'peso_neto_kg' => 5000, 'estado' => 'Cerrado',
+                'editado'       => false, 'alerta_peso' => false,
             ]],
             'pivots' => [
                 'tipos'  => collect([['id' => 1, 'nombre' => 'Compactador']]),
@@ -132,13 +132,13 @@ class ReporteSnapshotServiceTest extends TestCase
     public function round_trip_preserves_alertas_as_objects_with_carbon_and_zona(): void
     {
         $reporte = [
-            'kpis'      => ['total' => 0, 'toneladas' => 0.0, 'dias_op' => 0, 'dias_rango' => 31, 'promedio_ton_dia' => 0, 'promedio_kg_viaje' => 0],
-            'evolucion' => ['datos' => [], 'promedio' => 0, 'maximo' => 0, 'minimo' => 0],
-            'zonas'     => collect(),
-            'vehiculos' => collect(),
-            'config'    => null,
+            'kpis'         => ['total' => 0, 'toneladas' => 0.0, 'dias_op' => 0, 'dias_rango' => 31, 'promedio_ton_dia' => 0, 'promedio_kg_viaje' => 0],
+            'evolucion'    => ['datos' => [], 'promedio' => 0, 'maximo' => 0, 'minimo' => 0],
+            'zonas'        => collect(),
+            'vehiculos'    => collect(),
+            'config'       => null,
             'conclusiones' => [],
-            'alertas'   => collect([
+            'alertas'      => collect([
                 (object) [
                     'tipo'            => 'peso_fuera_rango',
                     'titulo'          => 'Peso fuera de rango — ABC123',
