@@ -21,6 +21,7 @@ GitHub Actions.
 8. [El script de deploy](#8-el-script-de-deploy)
 9. [CI/CD con GitHub Actions](#9-cicd-con-github-actions)
 10. [Setup inicial del servidor (runbook)](#10-setup-inicial-del-servidor-runbook)
+    - [Checklist — qué se hace dónde](#checklist--qué-se-hace-dónde)
     - [10.1 Instalar Docker y git](#101-instalar-docker-y-git-en-la-vps)
     - [10.2 Clonar el repo](#102-clonar-el-repo)
     - [10.3 Crear .env.prod](#103-crear-envprod)
@@ -28,7 +29,9 @@ GitHub Actions.
     - [10.5 Crear red compartida](#105-crear-la-red-compartida)
     - [10.6 Login a GHCR](#106-login-a-ghcr)
     - [10.7 Levantar el edge](#107-levantar-el-edge-router-del-blue-green)
-    - [10.8 Primer deploy](#108-primer-deploy)
+    - [10.8 Primer deploy de producción](#108-primer-deploy-de-producción)
+    - [10.9 Primer deploy de staging](#109-primer-deploy-de-staging)
+    - [10.10 Deploys posteriores](#1010-deploys-posteriores-automáticos)
 11. [Secrets y variables de entorno](#11-secrets-y-variables-de-entorno)
 12. [Gotchas y troubleshooting](#12-gotchas-y-troubleshooting)
 13. [Cómo extender (TLS, escalado, rollback)](#13-cómo-extender-tls-escalado-rollback)
@@ -377,11 +380,12 @@ La confusión clásica del blue-green es mezclarlos. Son **roles distintos**:
 El edge hace el blue-green así:
 
 ```
-docker/edge/nginx.conf  →  include /etc/nginx/edge/active-upstream.conf
+docker/edge/nginx.conf  →  include /etc/nginx/edge/prod/active-upstream.conf
+                           include /etc/nginx/edge/staging/active-upstream.conf
                                           │
-active-upstream.conf  =  copia de  upstream-blue.conf  |  upstream-green.conf
+<env>/active-upstream.conf  =  copia de  upstream-blue.conf  |  upstream-green.conf
                                           │
-deploy.sh:  cp upstream-green.conf active-upstream.conf  &&  nginx -s reload
+deploy.sh:  cp <env>/upstream-green.conf <env>/active-upstream.conf  &&  nginx -s reload
 ```
 
 El `reload` es **graceful**: nginx termina las requests en vuelo con la config vieja
@@ -482,8 +486,31 @@ lo que permite definir secrets distintos por entorno si la VPS es diferente.
 
 ## 10. Setup inicial del servidor (runbook)
 
-Todo lo siguiente se hace **una sola vez** en la VPS de producción. Los deploys
-posteriores son automáticos vía GitHub Actions.
+Todo lo siguiente se hace **una sola vez**. Los deploys posteriores son
+automáticos vía GitHub Actions.
+
+### Checklist — qué se hace dónde
+
+No todo el setup ocurre en la VPS:
+
+| Paso | Dónde se ejecuta |
+|------|------------------|
+| Generar el par de claves SSH (`ssh-keygen`) | Tu máquina local |
+| Configurar los GitHub Secrets ([10.4](#104-configurar-github-secrets)) | Web de GitHub |
+| Cambiar los `server_name` de `docker/edge/nginx.conf` a los dominios reales | El repo (commit + push — ver nota en [10.7](#107-levantar-el-edge-router-del-blue-green)) |
+| Todo el resto | **VPS** |
+
+**Orden exacto de los pasos en la VPS:**
+
+1. Instalar git y Docker → [10.1](#101-instalar-docker-y-git-en-la-vps)
+2. Instalar la clave pública del deploy en `~/.ssh/authorized_keys` → [10.4, paso 2](#ssh_key--cómo-funcionan-la-clave-pública-y-la-privada)
+3. Clonar el repo (anotar `pwd` → valor del secret `APP_DIR`) → [10.2](#102-clonar-el-repo)
+4. Crear `.env.prod` y `.env.staging` → [10.3](#103-crear-envprod) y [10.9](#109-primer-deploy-de-staging)
+5. Crear la red `balanza-net` → [10.5](#105-crear-la-red-compartida)
+6. Login a GHCR → [10.6](#106-login-a-ghcr)
+7. Levantar el edge → [10.7](#107-levantar-el-edge-router-del-blue-green)
+8. Primer deploy de producción + migraciones manuales → [10.8](#108-primer-deploy-de-producción)
+9. Primer deploy de staging + migraciones manuales → [10.9](#109-primer-deploy-de-staging)
 
 ### 10.1 Instalar Docker y git en la VPS
 
@@ -618,8 +645,9 @@ Ese string es el valor del secret.
 docker network create balanza-net
 ```
 
-Todos los contenedores (`balanza-edge`, `balanza-app-blue`, `balanza-app-green`,
-`balanza-worker`) se comunican a través de esta red por nombre.
+Todos los contenedores (`balanza-edge`, `balanza-prod-app-blue/green`,
+`balanza-staging-app-blue/green`, `balanza-prod-worker`, `balanza-staging-worker`)
+se comunican a través de esta red por nombre.
 
 ### 10.6 Login a GHCR
 
@@ -637,6 +665,13 @@ docker compose -p app-edge -f compose.edge.yaml up -d
 Este contenedor (`balanza-edge`) es **permanente**: no participa del swap blue-green y
 nunca se baja en deploys normales. Es el único que escucha en el puerto 80 (y 443 si
 hay TLS).
+
+> **Dominios reales — cambiarlos en el repo, no en la VPS.** Los `server_name` de
+> `docker/edge/nginx.conf` traen placeholders (`balanza.tudominio.com`,
+> `staging.balanza.tudominio.com`). Hay que reemplazarlos por los dominios reales
+> **con un commit en el repo** antes de levantar el edge: el deploy automático hace
+> `git reset --hard` en la VPS, así que cualquier edición manual del archivo en el
+> servidor se pierde en el siguiente deploy.
 
 ### 10.8 Primer deploy de producción
 
@@ -742,8 +777,8 @@ Ver `.env.docker.example` y `.env.staging.example` para la lista completa.
 | `supervisorctl` devuelve `does not include supervisorctl section` | faltaban `[unix_http_server]` y `[supervisorctl]` en el conf | ya incluidas en `web.conf` y `worker.conf`; verificar con `docker exec <contenedor> supervisorctl status` |
 | Emails/reportes no se envían | worker no levantado, scheduler no corriendo, o `RESEND_KEY` no seteada | ver diagnóstico de emails más abajo |
 | Reportes duplicados | dos schedulers corriendo | el scheduler va **solo** en el worker único, no en blue/green |
-| El cutover no cambia el tráfico | edge no recargó | `docker exec balanza-edge nginx -t && nginx -s reload` |
-| Deploy aborta en health-check | el color nuevo no levanta `/up` | revisar `docker compose -p app-<color> logs app`; el viejo sigue sirviendo |
+| El cutover no cambia el tráfico | edge no recargó | `docker exec balanza-edge nginx -t && docker exec balanza-edge nginx -s reload` |
+| Deploy aborta en health-check | el color nuevo no levanta `/up` | revisar `docker logs balanza-<entorno>-app-<color>`; el viejo sigue sirviendo |
 | `route:cache` falla | rutas con Closure | no se cachean rutas a propósito; nunca ejecutar `route:cache` |
 | Build de la imagen en Mac ARM | ODBC + mssql exigen amd64 | `docker build --platform=linux/amd64` |
 | Auto-refresh Vite no funciona (Windows) | WSL2 no propaga inotify al bind mount | `usePolling: true, interval: 1000` en `vite.config.js` (ya configurado) |
@@ -773,24 +808,25 @@ docker exec <contenedor-worker> php artisan tinker \
 ### Comandos útiles
 
 ```bash
-# Ver qué color está activo
-grep balanza-app docker/edge/active-upstream.conf
+# Ver qué color está activo (por entorno)
+cat docker/edge/prod/active-upstream.conf
+cat docker/edge/staging/active-upstream.conf
 
 # Estado de todos los contenedores del proyecto
 docker ps --filter name=balanza --format "table {{.Names}}\t{{.Status}}\t{{.Image}}"
 
-# Logs de un color / del worker / del edge
-docker compose -p app-blue   -f compose.prod.yaml   logs -f app
-docker compose -p app-worker -f compose.worker.yaml logs -f worker
+# Logs de un color / del worker / del edge (ejemplos con prod)
+docker logs -f balanza-prod-app-blue
+docker logs -f balanza-prod-worker
 docker logs -f balanza-edge
 
 # Reintentar jobs fallidos
-docker exec <contenedor-worker> php artisan queue:retry all
+docker exec balanza-prod-worker php artisan queue:retry all
 
-# Rollback rápido al color anterior (sin deploy)
-COLOR=blue HTTP_PORT=8081 TAG=<sha-anterior> \
-  docker compose -p app-blue -f compose.prod.yaml up -d
-cp docker/edge/upstream-blue.conf docker/edge/active-upstream.conf
+# Rollback rápido al color anterior (sin deploy) — ver §13 para ambos entornos
+ENV_PREFIX=prod COLOR=blue HTTP_PORT=8081 TAG=<sha-anterior> \
+  docker compose -p prod-blue -f compose.prod.yaml up -d
+cp docker/edge/prod/upstream-blue.conf docker/edge/prod/active-upstream.conf
 docker exec balanza-edge nginx -s reload
 ```
 

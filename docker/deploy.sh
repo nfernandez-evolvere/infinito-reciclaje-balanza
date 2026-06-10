@@ -7,11 +7,13 @@
 #
 #  Flujo:
 #    1. pull de la imagen nueva
-#    2. migraciones (una vez, deben ser backward-compatible / expand-contract)
-#    3. levanta el color INACTIVO con la imagen nueva
-#    4. health-check del color nuevo  (si falla → aborta, el viejo sigue sirviendo)
-#    5. cutover: reescribe el upstream del edge + nginx -s reload (graceful)
-#    6. baja el color viejo y actualiza el worker
+#    2. levanta el color INACTIVO con la imagen nueva
+#    3. health-check del color nuevo  (si falla → aborta, el viejo sigue sirviendo)
+#    4. cutover: reescribe el upstream del edge + nginx -s reload (graceful)
+#    5. baja el color viejo y actualiza el worker
+#
+#  Migraciones: NUNCA se ejecutan acá — la base es compartida entre proyectos,
+#  el operador las aplica a mano (docker exec ... php artisan migrate --force).
 #
 #  Resultado: el usuario nunca ve downtime. Si el color nuevo no pasa el health
 #  check, no hay cutover y el deploy se aborta dejando el color viejo intacto.
