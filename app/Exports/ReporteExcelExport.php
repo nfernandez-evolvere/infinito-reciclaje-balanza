@@ -24,8 +24,11 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  *  - Hoja "Detalle":  pesajes crudos del período.
  *
  * El array $reporte recibe, además de la salida de ReporteService::generar(),
- * las claves 'config' (ReporteConfiguracion|null) y 'pivots' (salida de
- * ReporteService::pivotsParaExcel()).
+ * las claves: 'config' (ReporteConfiguracion|object|null), 'pivots' (salida de
+ * ReporteService::pivotsParaExcel()), 'detalle' aplanado (salida de
+ * ReporteService::detalleParaExcel(): filas escalares, no modelos Eloquent) y
+ * 'kg_netos_total' (int). Esa forma serializable es la que se congela en el
+ * snapshot del historial y la que se reusa al re-descargar.
  */
 class ReporteExcelExport
 {
@@ -156,7 +159,7 @@ class ReporteExcelExport
     private function buildResumenGeneral(Worksheet $sheet, int $row): int
     {
         $kpis = $this->reporte['kpis'];
-        $kgNetos = (int) $this->reporte['detalle']->sum('peso_neto_kg');
+        $kgNetos = (int) ($this->reporte['kg_netos_total'] ?? 0);
         $promedioKgDia = $kpis['dias_op'] > 0 ? (int) round($kgNetos / $kpis['dias_op']) : 0;
 
         $this->bar($sheet, $row, self::C0 + 4, 'RESUMEN GENERAL');
@@ -185,7 +188,7 @@ class ReporteExcelExport
     private function buildPorVehiculo(Worksheet $sheet, int $row): int
     {
         $vehiculos = $this->reporte['vehiculos'];
-        $granTotal = (int) $this->reporte['detalle']->sum('peso_neto_kg');
+        $granTotal = (int) ($this->reporte['kg_netos_total'] ?? 0);
 
         $this->bar($sheet, $row, self::C0 + 4, 'DESGLOSE POR TIPO DE VEHÍCULO');
         $row++;
@@ -447,20 +450,20 @@ class ReporteExcelExport
 
         $row = 2;
         foreach ($this->reporte['detalle'] as $p) {
-            $sheet->setCellValue([1, $row], $p->created_at->format('d/m/Y'));
-            $sheet->setCellValue([2, $row], $p->created_at->format('H:i'));
-            $sheet->setCellValue([3, $row], $p->vehiculo?->patente ?? '—');
-            $sheet->setCellValue([4, $row], $p->vehiculo?->tipoVehiculo?->nombre ?? '—');
-            $sheet->setCellValue([5, $row], $p->tipoServicio?->nombre ?? '—');
-            $sheet->setCellValue([6, $row], $p->zona?->nombre ?? '—');
-            $sheet->setCellValue([7, $row], $p->turno ?? '—');
-            $sheet->setCellValue([8, $row], $p->operador?->name ?? '—');
-            $this->num($sheet, 9, $row, (int) $p->peso_bruto_kg, self::FMT_INT);
-            $this->num($sheet, 10, $row, (int) $p->peso_tara_kg, self::FMT_INT);
-            $this->num($sheet, 11, $row, (int) $p->peso_neto_kg, self::FMT_INT);
-            $sheet->setCellValue([12, $row], $p->estado);
-            $sheet->setCellValue([13, $row], $p->editado ? 'Sí' : 'No');
-            $sheet->setCellValue([14, $row], $p->alerta_peso ? 'Sí' : 'No');
+            $sheet->setCellValue([1, $row], $p['fecha']);
+            $sheet->setCellValue([2, $row], $p['hora']);
+            $sheet->setCellValue([3, $row], $p['patente']);
+            $sheet->setCellValue([4, $row], $p['tipo_vehiculo']);
+            $sheet->setCellValue([5, $row], $p['tipo_servicio']);
+            $sheet->setCellValue([6, $row], $p['zona']);
+            $sheet->setCellValue([7, $row], $p['turno']);
+            $sheet->setCellValue([8, $row], $p['operador']);
+            $this->num($sheet, 9, $row, $p['peso_bruto_kg'], self::FMT_INT);
+            $this->num($sheet, 10, $row, $p['peso_tara_kg'], self::FMT_INT);
+            $this->num($sheet, 11, $row, $p['peso_neto_kg'], self::FMT_INT);
+            $sheet->setCellValue([12, $row], $p['estado']);
+            $sheet->setCellValue([13, $row], $p['editado'] ? 'Sí' : 'No');
+            $sheet->setCellValue([14, $row], $p['alerta_peso'] ? 'Sí' : 'No');
             $row++;
         }
 

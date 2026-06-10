@@ -37,11 +37,24 @@
                     </div>
                 </div>
                 <x-slot:actions>
-                    <x-ui.tooltip content="Volver a abrir">
-                        <x-ui.button href="{{ route('admin.reportes.historial.download', $g) }}" variant="ghost" size="icon" class="size-7 -mr-1">
-                            <x-lucide-download class="size-4" />
-                        </x-ui.button>
-                    </x-ui.tooltip>
+                    <x-ui.dropdown-menu>
+                        <x-ui.dropdown-menu.trigger>
+                            <x-ui.button variant="ghost" size="icon" class="size-7 -mr-1">
+                                <x-lucide-ellipsis class="size-4" />
+                            </x-ui.button>
+                        </x-ui.dropdown-menu.trigger>
+                        <x-ui.dropdown-menu.content align="end">
+                            @foreach(explode('+', $g->formato) as $f)
+                                <x-ui.dropdown-menu.item href="{{ route('admin.reportes.historial.download', ['generado' => $g, 'formato' => $f]) }}">
+                                    @if($f === 'excel')
+                                        <x-lucide-file-spreadsheet class="size-4" /> Descargar Excel
+                                    @else
+                                        <x-lucide-file-text class="size-4" /> Descargar PDF
+                                    @endif
+                                </x-ui.dropdown-menu.item>
+                            @endforeach
+                        </x-ui.dropdown-menu.content>
+                    </x-ui.dropdown-menu>
                 </x-slot:actions>
             </x-ui.card.header>
 
@@ -74,7 +87,7 @@
                     <x-ui.table.head>Formato</x-ui.table.head>
                     <x-ui.table.head>Origen</x-ui.table.head>
                     <x-ui.table.head>Estado</x-ui.table.head>
-                    <x-ui.table.head>Acciones</x-ui.table.head>
+                    <x-ui.table.head>Accionses</x-ui.table.head>
                 </x-ui.table.row>
             </x-ui.table.header>
             <x-ui.table.body>
@@ -110,11 +123,24 @@
                         @endif
                     </x-ui.table.cell>
                     <x-ui.table.cell class="text-right">
-                        <x-ui.tooltip content="Volver a abrir" side="left">
-                            <x-ui.button href="{{ route('admin.reportes.historial.download', $g) }}" variant="ghost" size="icon" class="size-8">
-                                <x-lucide-download class="size-4" />
-                            </x-ui.button>
-                        </x-ui.tooltip>
+                        <x-ui.dropdown-menu>
+                            <x-ui.dropdown-menu.trigger>
+                                <x-ui.button variant="ghost" size="icon" class="size-8">
+                                    <x-lucide-ellipsis class="size-4" />
+                                </x-ui.button>
+                            </x-ui.dropdown-menu.trigger>
+                            <x-ui.dropdown-menu.content align="end">
+                                @foreach(explode('+', $g->formato) as $f)
+                                    <x-ui.dropdown-menu.item href="{{ route('admin.reportes.historial.download', ['generado' => $g, 'formato' => $f]) }}">
+                                        @if($f === 'excel')
+                                            <x-lucide-file-spreadsheet class="size-4" /> Descargar Excel
+                                        @else
+                                            <x-lucide-file-text class="size-4" /> Descargar PDF
+                                        @endif
+                                    </x-ui.dropdown-menu.item>
+                                @endforeach
+                            </x-ui.dropdown-menu.content>
+                        </x-ui.dropdown-menu>
                     </x-ui.table.cell>
                 </x-ui.table.row>
                 @endforeach

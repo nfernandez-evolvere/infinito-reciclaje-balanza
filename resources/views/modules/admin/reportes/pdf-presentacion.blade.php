@@ -1573,7 +1573,14 @@
 @foreach($tipoLabels as $tipoKey => $tipoNombre)
 @php $grupo = $alertasAgrupadas[$tipoKey] ?? collect(); @endphp
 @if($grupo->isNotEmpty())
-@foreach($grupo->chunk(20) as $chunkIdx => $chunk)
+@php
+    // Las filas de alerta son altas (título + descripción + zona): entran ~10 por
+    // hoja A4 apaisada. Reparto balanceado para que ninguna página desborde (y la
+    // continuación respete su margen superior) sin dejar una alerta huérfana.
+    $alertasTotalChunks = max(1, (int) ceil($grupo->count() / 10));
+    $alertasChunks      = $grupo->chunk(max(1, (int) ceil($grupo->count() / $alertasTotalChunks)));
+@endphp
+@foreach($alertasChunks as $chunkIdx => $chunk)
 <div class="page">
     <div class="slide-wrap">
         <div class="slide-head">
@@ -1582,8 +1589,8 @@
                     <div class="slide-eyebrow">Alertas — {{ $tipoNombre }}</div>
                     <div class="slide-title">
                         {{ $tipoNombre }}
-                        @if($grupo->count() > 20)
-                            <span style="font-size:14.5px;color:oklch(0.708 0 0);font-weight:400;">({{ $chunkIdx + 1 }}/{{ $grupo->chunk(20)->count() }})</span>
+                        @if($alertasChunks->count() > 1)
+                            <span style="font-size:14.5px;color:oklch(0.708 0 0);font-weight:400;">({{ $chunkIdx + 1 }}/{{ $alertasChunks->count() }})</span>
                         @endif
                     </div>
                 </div>
@@ -1749,13 +1756,6 @@
             <div class="kpi-grid-4">
                 {{-- Promedio — v-mid (verde medio) — icon: bar-chart-2 --}}
                 <div class="kpi-card v-mid">
-                    <div class="kpi-icon">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <line x1="18" x2="18" y1="20" y2="10"/>
-                            <line x1="12" x2="12" y1="20" y2="4"/>
-                            <line x1="6" x2="6" y1="20" y2="14"/>
-                        </svg>
-                    </div>
                     <div class="kpi-body">
                         <div class="kpi-label">Promedio</div>
                         <div class="kpi-value">{{ number_format($evolucion['promedio'], 1, ',', '.') }}</div>
@@ -1765,12 +1765,6 @@
 
                 {{-- Máximo — default (verde profundo) — icon: arrow-up --}}
                 <div class="kpi-card v-mid">
-                    <div class="kpi-icon">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="m5 12 7-7 7 7"/>
-                            <path d="M12 19V5"/>
-                        </svg>
-                    </div>
                     <div class="kpi-body">
                         <div class="kpi-label">Máximo</div>
                         <div class="kpi-value">{{ number_format($evolucion['maximo'], 1, ',', '.') }}</div>
@@ -1780,12 +1774,6 @@
 
                 {{-- Mínimo — v-slate (neutral) — icon: arrow-down --}}
                 <div class="kpi-card v-mid">
-                    <div class="kpi-icon">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 5v14"/>
-                            <path d="m19 12-7 7-7-7"/>
-                        </svg>
-                    </div>
                     <div class="kpi-body">
                         <div class="kpi-label">Mínimo</div>
                         <div class="kpi-value">{{ number_format($evolucion['minimo'], 1, ',', '.') }}</div>
@@ -1795,15 +1783,6 @@
 
                 {{-- Días con datos — v-blue (temporal) — icon: calendar-days --}}
                 <div class="kpi-card v-mid">
-                    <div class="kpi-icon">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M8 2v4"/><path d="M16 2v4"/>
-                            <rect width="18" height="18" x="3" y="4" rx="2"/>
-                            <path d="M3 10h18"/>
-                            <path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/>
-                            <path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/>
-                        </svg>
-                    </div>
                     <div class="kpi-body">
                         <div class="kpi-label">Días con datos</div>
                         <div class="kpi-value">{{ $diasConDatos }}</div>
@@ -1857,13 +1836,50 @@
 @endforeach
 
 {{-- ═══════════ POR TIPO DE VEHÍCULO ═══════════ --}}
+@php
+    // Mismo criterio que la tabla por zona: paginamos para que cada .page entre
+    // en una hoja A4 apaisada. La tabla (columna derecha) es la más alta y manda.
+    //  · 1ª página: bajada + gráfico + tabla.
+    //  · continuación: la tabla a ancho completo.
+    //  · el "Total" (tfoot) va en la última y necesita ~2 filas libres.
+    // Las flotas reales tienen pocos tipos → con ≤11 entra todo en una página
+    // (salida sin cambios); el mecanismo solo pagina si hubiera muchos tipos.
+    $vehArray  = $vehiculos->values()->all();
+    $vehN      = count($vehArray);
+    $vCapPrim  = 13;
+    $vCapResto = 14;
+    $vCapTotal = 2;
+
+    $vehChunks = [];
+    $i = 0;
+    do {
+        $cap = empty($vehChunks) ? $vCapPrim : $vCapResto;
+        if ($vehN - $i <= $cap) {              // última página → reservar lugar para el total
+            $cap = max(1, $cap - $vCapTotal);
+        }
+        $vehChunks[] = ['offset' => $i, 'rows' => array_slice($vehArray, $i, $cap)];
+        $i += $cap;
+    } while ($i < $vehN);
+    $vehTotalSlides = count($vehChunks);
+@endphp
+
+@foreach($vehChunks as $vehIdx => $vehChunk)
+@php $vehOffset = $vehChunk['offset']; $vehRows = $vehChunk['rows']; @endphp
 <div class="page">
     <div class="slide-wrap">
         <div class="slide-head">
             <div class="slide-header-row">
                 <div>
                     <div class="slide-eyebrow">Composición de flota</div>
-                    <div class="slide-title">Por Tipo de Vehículo</div>
+                    <div class="slide-title">
+                        Por Tipo de Vehículo
+                        @if($vehTotalSlides > 1)
+                            <span style="font-size: 14.5px; color: oklch(0.708 0 0); font-weight: 400;">({{ $vehIdx + 1 }}/{{ $vehTotalSlides }})</span>
+                        @endif
+                    </div>
+                    @if($vehIdx > 0)
+                        <div class="slide-continued">Continuación de la página anterior</div>
+                    @endif
                 </div>
                 <div class="slide-meta">{{ $periodo }}</div>
             </div>
@@ -1871,13 +1887,17 @@
         </div>
 
         <div class="slide-content">
+            @if($vehIdx === 0)
             <p class="slide-desc">Reparto de viajes y toneladas según el tipo de vehículo. Muestra qué parte de la flota concentra la recolección.</p>
-            <div class="two-col two-col-4-6">
+            @endif
+            <div class="{{ $vehIdx === 0 ? 'two-col two-col-4-6' : '' }}">
+                @if($vehIdx === 0)
                 <div class="chart-wrap" style="padding: 4.5mm;">
                     <div class="chart-label">Viajes por tipo</div>
                     <div class="hbar-chart">
-                        @foreach($vehiculos as $vi => $v)
+                        @foreach($vehRows as $li => $v)
                         @php
+                            $vi    = $vehOffset + $li;
                             $pct   = $vMax > 0 ? round(($v['viajes'] / $vMax) * 100) : 0;
                             $color = $vColors[$vi % count($vColors)];
                         @endphp
@@ -1898,6 +1918,7 @@
                         @endforeach
                     </div>
                 </div>
+                @endif
 
                 <div>
                     <table class="data">
@@ -1911,7 +1932,8 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($vehiculos as $vi => $v)
+                            @foreach($vehRows as $li => $v)
+                            @php $vi = $vehOffset + $li; @endphp
                             <tr>
                                 <td class="strong">
                                     <span class="dot" style="background: {{ $vColors[$vi % count($vColors)] }};"></span>
@@ -1924,6 +1946,7 @@
                             </tr>
                             @endforeach
                         </tbody>
+                        @if($vehIdx === $vehTotalSlides - 1)
                         <tfoot>
                             <tr>
                                 <td>Total</td>
@@ -1933,6 +1956,7 @@
                                 <td class="r">—</td>
                             </tr>
                         </tfoot>
+                        @endif
                     </table>
                 </div>
             </div>
@@ -1944,11 +1968,34 @@
         </div>
     </div>
 </div>
+@endforeach
 
 {{-- ═══════════ POR ZONA ═══════════ --}}
 @php
-    $zonasChunks = $zonas->chunk(14);
-    $totalSlides = $zonasChunks->count();
+    // Repartimos las zonas en chunks para que cada .page entre en una sola hoja
+    // física A4 apaisada (210mm) y no desborde. Si desbordara, Chromium parte la
+    // .page y la continuación arranca pegada al borde superior, sin margen.
+    //  · 1ª página: lleva además la bajada + la leyenda de escala → entra menos.
+    //  · páginas de continuación: solo el encabezado de la tabla.
+    //  · el "Total general" (tfoot) va en la última y necesita ~2 filas libres.
+    $zonasArray = $zonas->values()->all();
+    $n          = count($zonasArray);
+    $capPrimera = 10;
+    $capResto   = 13;
+    $capTotal   = 2;
+
+    $zonasChunks = [];
+    $i = 0;
+    do {
+        $cap = empty($zonasChunks) ? $capPrimera : $capResto;
+        if ($n - $i <= $cap) {              // última página → reservar lugar para el total
+            $cap = max(1, $cap - $capTotal);
+        }
+        $zonasChunks[] = array_slice($zonasArray, $i, $cap);
+        $i += $cap;
+    } while ($i < $n);
+
+    $totalSlides = count($zonasChunks);
 @endphp
 
 @foreach($zonasChunks as $chunkIdx => $chunk)
@@ -2135,13 +2182,49 @@
 
 {{-- ═══════════ DENSIDAD kg/ha ═══════════ --}}
 @if($zonasConHa->isNotEmpty())
+@php
+    // Mismo criterio que la tabla por zona: paginamos las barras para que cada
+    // .page entre en una sola hoja A4 apaisada y, si desbordara, la continuación
+    // respete el margen superior en vez de arrancar pegada al borde.
+    //  · 1ª página: lleva la bajada + los insights (columna derecha) → entra menos.
+    //  · páginas de continuación: solo las barras restantes, a ancho completo.
+    // Con el tope actual ($zonasConHa->take(15)) entra todo en una página: la
+    // salida no cambia, pero el mecanismo queda listo si se sube ese tope.
+    $haArray   = $zonasConHa->all();
+    $haN       = count($haArray);
+    $haPrimera = 15;
+    $haResto   = 20;
+
+    $haChunks = [];
+    $i = 0;
+    do {
+        $cap = empty($haChunks) ? $haPrimera : $haResto;
+        $haChunks[] = array_slice($haArray, $i, $cap);
+        $i += $cap;
+    } while ($i < $haN);
+    $haTotalSlides = count($haChunks);
+
+    $topZonas = $zonasConHa->take(3)->pluck('nombre')->join(', ');
+    $bottom   = $zonasConHa->last();
+    $topVal   = $zonasConHa->first()['kg_ha'] ?? 0;
+@endphp
+
+@foreach($haChunks as $haIdx => $haChunk)
 <div class="page">
     <div class="slide-wrap">
         <div class="slide-head">
             <div class="slide-header-row">
                 <div>
                     <div class="slide-eyebrow">Intensidad de generación</div>
-                    <div class="slide-title">Densidad por Hectárea</div>
+                    <div class="slide-title">
+                        Densidad por Hectárea
+                        @if($haTotalSlides > 1)
+                            <span style="font-size: 14.5px; color: oklch(0.708 0 0); font-weight: 400;">({{ $haIdx + 1 }}/{{ $haTotalSlides }})</span>
+                        @endif
+                    </div>
+                    @if($haIdx > 0)
+                        <div class="slide-continued">Continuación de la página anterior</div>
+                    @endif
                 </div>
                 <div class="slide-meta">Top {{ $zonasConHa->count() }} zonas · {{ $periodo }}</div>
             </div>
@@ -2149,12 +2232,14 @@
         </div>
 
         <div class="slide-content">
+            @if($haIdx === 0)
             <p class="slide-desc">Kilos recolectados por hectárea en cada zona. Mide la intensidad de generación según la superficie, sin depender del tamaño de la zona.</p>
-            <div class="two-col two-col-5-5">
+            @endif
+            <div class="{{ $haIdx === 0 ? 'two-col two-col-5-5' : '' }}">
                 <div class="chart-wrap" style="padding: 4.5mm;">
                     <div class="chart-label">kg por hectárea</div>
                     <div class="hbar-chart">
-                        @foreach($zonasConHa as $zi => $z)
+                        @foreach($haChunk as $z)
                         @php
                             $pct   = $haMax > 0 ? round(($z['kg_ha'] / $haMax) * 100) : 0;
                             $ratio = $haMax > 0 ? $z['kg_ha'] / $haMax : 0;
@@ -2183,12 +2268,8 @@
                     </div>
                 </div>
 
+                @if($haIdx === 0)
                 <div style="display: flex; flex-direction: column; gap: 4mm;">
-                    @php
-                        $topZonas = $zonasConHa->take(3)->pluck('nombre')->join(', ');
-                        $bottom   = $zonasConHa->last();
-                        $topVal   = $zonasConHa->first()['kg_ha'] ?? 0;
-                    @endphp
                     <div class="insight">
                         <div class="insight-label">Zonas de mayor densidad</div>
                         <div class="insight-text">
@@ -2207,6 +2288,7 @@
                     </div>
                     @endif
                 </div>
+                @endif
             </div>
         </div>
 
@@ -2216,6 +2298,7 @@
         </div>
     </div>
 </div>
+@endforeach
 @endif {{-- zonasConHa --}}
 
 @endif {{-- !esAlerta --}}
@@ -2228,30 +2311,67 @@
         fn($p) => trim($p) !== ''
     ));
     $labels = ['Diagnóstico', 'Posibilidades de mejora', 'Recomendaciones'];
+
+    // Empaquetamos los párrafos por alto estimado para que cada .ai-page entre en
+    // una hoja A4 apaisada y, si desbordara, la continuación arranque en una página
+    // nueva en vez de pegada al borde. El texto de IA está acotado (3 párrafos,
+    // máx 1024 tokens), así que el caso normal entra en una sola página: solo
+    // pagina si los párrafos fueran inusualmente largos.
+    $aiCharsLinea = 115;   // ~caracteres por línea a 11.5px en el ancho de la sección
+    $aiMmLinea    = 5.3;   // alto de línea (line-height 1.75)
+    $aiOverheadMm = 11;    // label + gap por sección
+    $aiBudgetMm   = 150;   // alto útil para secciones en una hoja
+
+    $aiPaginas  = [];
+    $actual     = [];
+    $altoActual = 0;
+    foreach ($parrafos as $idx => $p) {
+        $lineas  = max(1, (int) ceil(mb_strlen($p) / $aiCharsLinea));
+        $altoSec = $aiOverheadMm + $lineas * $aiMmLinea;
+        if (! empty($actual) && $altoActual + $altoSec > $aiBudgetMm) {
+            $aiPaginas[] = $actual;
+            $actual = [];
+            $altoActual = 0;
+        }
+        $actual[]    = ['idx' => $idx, 'texto' => $p];
+        $altoActual += $altoSec;
+    }
+    if (! empty($actual)) {
+        $aiPaginas[] = $actual;
+    }
+    $aiTotal = count($aiPaginas);
 @endphp
+
+@foreach($aiPaginas as $aiPagIdx => $aiPagina)
 <div class="page ai-page">
     <div class="ai-stripe"></div>
 
     <div class="ai-body">
         <div class="ai-header">
             <div class="ai-eyebrow">Informe · {{ $periodo }}</div>
-            <div class="ai-title">Análisis <span>Estratégico</span></div>
+            <div class="ai-title">
+                Análisis <span>Estratégico</span>
+                @if($aiTotal > 1)
+                    <span style="font-size: 15px; color: var(--p-400); font-weight: 400; letter-spacing: 0;">({{ $aiPagIdx + 1 }}/{{ $aiTotal }})</span>
+                @endif
+            </div>
             <div class="ai-rule"></div>
         </div>
 
         <div class="ai-sections">
-            @foreach($parrafos as $i => $parrafo)
+            @foreach($aiPagina as $sec)
             <div class="ai-section">
-                <div class="ai-section-num">0{{ $i + 1 }}</div>
+                <div class="ai-section-num">0{{ $sec['idx'] + 1 }}</div>
                 <div class="ai-section-content">
-                    <div class="ai-section-label">{{ $labels[$i] ?? 'Análisis' }}</div>
-                    <div class="ai-section-text">{{ $parrafo }}</div>
+                    <div class="ai-section-label">{{ $labels[$sec['idx']] ?? 'Análisis' }}</div>
+                    <div class="ai-section-text">{{ $sec['texto'] }}</div>
                 </div>
             </div>
             @endforeach
         </div>
     </div>
 
+    @if($aiPagIdx === $aiTotal - 1)
     <div class="cover-footer">
         <div class="ai-badge">
             <div class="ai-badge-dot"></div>
@@ -2262,7 +2382,9 @@
             <div class="cover-sub">Sistema de Balanza Digital · {{ $periodo }}</div>
         </div>
     </div>
+    @endif
 </div>
+@endforeach
 @endif
 
 {{-- ═══════════ CIERRE ═══════════ --}}

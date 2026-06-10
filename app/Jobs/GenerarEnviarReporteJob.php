@@ -14,6 +14,7 @@ use App\Services\DashboardService;
 use App\Services\PdfService;
 use App\Services\ReporteGeneradoService;
 use App\Services\ReporteService;
+use App\Services\ReporteSnapshotService;
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -33,7 +34,7 @@ class GenerarEnviarReporteJob implements ShouldQueue
         public readonly int $programadoId,
     ) {}
 
-    public function handle(ReporteService $reporteService, PdfService $pdfService, ReporteGeneradoService $generadoService, DashboardService $dashboardService): void
+    public function handle(ReporteService $reporteService, PdfService $pdfService, ReporteGeneradoService $generadoService, DashboardService $dashboardService, ReporteSnapshotService $snapshotService): void
     {
         Log::info('GenerarEnviarReporteJob: iniciando', ['programado_id' => $this->programadoId]);
 
@@ -128,10 +129,14 @@ class GenerarEnviarReporteJob implements ShouldQueue
                 ];
             }
 
-            // Excel — reutiliza los pivots del reporte municipal.
+            // Excel — reutiliza los pivots del reporte municipal. El detalle se
+            // aplana a escalares: es lo que consume el export y lo que se congela
+            // en el snapshot (preserva la tara/neto del momento).
             if (in_array('excel', $formatos, true)) {
                 Log::info('GenerarEnviarReporteJob: generando Excel');
                 $reporte['pivots'] = $reporteService->pivotsParaExcel($reporte['detalle'], $desde, $hasta);
+                $reporte['kg_netos_total'] = (int) $reporte['detalle']->sum('peso_neto_kg');
+                $reporte['detalle'] = $reporteService->detalleParaExcel($reporte['detalle']);
                 $adjuntos[] = [
                     'content'  => (new ReporteExcelExport($reporte))->contents(),
                     'filename' => 'informe_'.$desde->format('Y-m').'.xlsx',
@@ -157,13 +162,15 @@ class GenerarEnviarReporteJob implements ShouldQueue
             'proximo_envio_at' => $this->calcularProximoEnvio($programado->frecuencia),
         ]);
 
-        // Registrar el envío en el historial (preserva la narrativa IA si la hubo).
+        // Registrar el envío en el historial: preserva la narrativa IA si la hubo
+        // y congela el snapshot para re-descargar el reporte idéntico al enviado.
         $generadoService->registrarEnvio(
             $programado,
             $desde,
             $hasta,
             $programado->destinatarios,
             $analisisTexto ?? null,
+            $snapshotService->capturar($reporte),
         );
 
         Log::info('GenerarEnviarReporteJob: completado', ['programado_id' => $this->programadoId]);

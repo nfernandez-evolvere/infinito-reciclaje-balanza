@@ -8,6 +8,7 @@ use App\Services\DashboardService;
 use App\Services\PdfService;
 use App\Services\ReporteGeneradoService;
 use App\Services\ReporteService;
+use App\Services\ReporteSnapshotService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
@@ -134,6 +135,7 @@ class ReporteGeneradoServiceTest extends TestCase
             app(PdfService::class),
             app(ReporteGeneradoService::class),
             app(DashboardService::class),
+            app(ReporteSnapshotService::class),
         );
 
         $this->assertDatabaseHas('reportes_generados', [

@@ -103,6 +103,35 @@ class ReporteService
             ->values();
     }
 
+    /**
+     * Aplana los pesajes a las filas de la hoja "Detalle" del Excel: solo escalares
+     * (fechas/horas ya formateadas, nombres de relaciones resueltos), sin modelos
+     * Eloquent. Es la forma que consume ReporteExcelExport y la que se congela en
+     * el snapshot del historial — así la hoja Detalle preserva la tara y el neto del
+     * momento, aunque luego se recalcule la tara del vehículo.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function detalleParaExcel(Collection $pesajes): array
+    {
+        return $pesajes->map(fn ($p) => [
+            'fecha'         => $p->created_at->format('d/m/Y'),
+            'hora'          => $p->created_at->format('H:i'),
+            'patente'       => $p->vehiculo?->patente ?? '—',
+            'tipo_vehiculo' => $p->vehiculo?->tipoVehiculo?->nombre ?? '—',
+            'tipo_servicio' => $p->tipoServicio?->nombre ?? '—',
+            'zona'          => $p->zona?->nombre ?? '—',
+            'turno'         => $p->turno ?? '—',
+            'operador'      => $p->operador?->name ?? '—',
+            'peso_bruto_kg' => (int) $p->peso_bruto_kg,
+            'peso_tara_kg'  => (int) $p->peso_tara_kg,
+            'peso_neto_kg'  => (int) $p->peso_neto_kg,
+            'estado'        => $p->estado,
+            'editado'       => (bool) $p->editado,
+            'alerta_peso'   => (bool) $p->alerta_peso,
+        ])->all();
+    }
+
     // ── Pivots para el reporte municipal (Excel) ─────────────────────────────
     //
     // Estos métodos NO forman parte de generar(): son cálculos más pesados que

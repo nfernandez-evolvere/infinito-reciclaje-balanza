@@ -534,6 +534,7 @@ class GenerarEnviarReporteJobTest extends TestCase
         $this->instance(ReporteService::class, \Mockery::mock(ReporteService::class, function ($m) use ($reporte) {
             $m->shouldReceive('generar')->andReturn($reporte);
             $m->shouldReceive('pivotsParaExcel')->andReturn($this->emptyPivots());
+            $m->shouldReceive('detalleParaExcel')->andReturn([]);
         }));
 
         $this->instance(PdfService::class, \Mockery::mock(PdfService::class, function ($m) {

@@ -23,6 +23,7 @@ class ReporteGeneradoService
      * organizacion_id y usuario_id los resuelve el contexto HTTP.
      *
      * @param  array<string, int>  $filtros
+     * @param  array<string, mixed>|null  $snapshot  Datos congelados para re-descargar idéntico.
      */
     public function registrarDescarga(
         string $formato,
@@ -31,6 +32,7 @@ class ReporteGeneradoService
         Carbon $hasta,
         array $filtros = [],
         ?string $conclusiones = null,
+        ?array $snapshot = null,
     ): ReporteGenerado {
         return $this->repository->create([
             'usuario_id'    => auth()->id(),
@@ -42,6 +44,7 @@ class ReporteGeneradoService
             'filtros'       => $filtros ?: null,
             'estado'        => 'generado',
             'conclusiones'  => $conclusiones,
+            'snapshot'      => $snapshot,
         ]);
     }
 
@@ -50,6 +53,7 @@ class ReporteGeneradoService
      * HTTP: por eso organizacion_id se pasa explícito (no hay app('organizacion')).
      *
      * @param  list<string>  $destinatarios
+     * @param  array<string, mixed>|null  $snapshot  Datos congelados para re-descargar idéntico.
      */
     public function registrarEnvio(
         ReporteProgramado $programado,
@@ -57,12 +61,14 @@ class ReporteGeneradoService
         Carbon $hasta,
         array $destinatarios,
         ?string $conclusiones = null,
+        ?array $snapshot = null,
     ): ReporteGenerado {
         return $this->repository->create([
             ...$this->datosBase($programado, $desde, $hasta),
             'destinatarios' => $destinatarios,
             'estado'        => 'enviado',
             'conclusiones'  => $conclusiones,
+            'snapshot'      => $snapshot,
         ]);
     }
 

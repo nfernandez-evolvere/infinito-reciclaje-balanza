@@ -8,8 +8,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Registro inmutable de cada reporte producido: una descarga manual (Excel/PDF)
- * o un envío programado. Solo guarda metadatos (período, filtros, formato,
- * destinatarios); el contenido se regenera bajo demanda desde los pesajes.
+ * o un envío programado. Guarda los metadatos (período, filtros, formato,
+ * destinatarios) y un `snapshot` con los datos congelados tal como se generó:
+ * así una re-descarga reproduce el reporte idéntico al original, sin recalcular
+ * sobre los pesajes vivos (la tara de un vehículo puede cambiar después).
+ * Las entradas previas a la introducción del snapshot lo tienen en null y caen
+ * al recálculo bajo demanda.
  *
  * @mixin \Eloquent
  * @mixin IdeHelperReporteGenerado
@@ -34,6 +38,7 @@ class ReporteGenerado extends Model
         'estado',
         'error',
         'conclusiones',
+        'snapshot',
     ];
 
     protected $casts = [
@@ -41,6 +46,7 @@ class ReporteGenerado extends Model
         'periodo_hasta' => 'date',
         'filtros'       => 'array',
         'destinatarios' => 'array',
+        'snapshot'      => 'array',
     ];
 
     public function usuario(): BelongsTo

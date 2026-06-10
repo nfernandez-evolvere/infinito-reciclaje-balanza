@@ -27,6 +27,7 @@ use App\Services\ReporteConfiguracionService;
 use App\Services\ReporteGeneradoService;
 use App\Services\ReporteProgramadoService;
 use App\Services\ReporteService;
+use App\Services\ReporteSnapshotService;
 use App\Services\SvgChartService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -54,6 +55,7 @@ class ReporteController extends Controller
         protected ReporteGeneradoRepository $generadoRepository,
         protected ReporteGeneradoService $generadoService,
         protected DashboardService $dashboardService,
+        protected ReporteSnapshotService $snapshotService,
     ) {}
 
     // ── Index ──────────────────────────────────────────────────────────────
@@ -115,9 +117,13 @@ class ReporteController extends Controller
         $hasta = Carbon::parse($request->input('hasta'));
         $filtros = array_filter($request->only(['zona_id', 'tipo_servicio_id', 'tipo_vehiculo_id']));
 
-        $this->generadoService->registrarDescarga('excel', 'informe_mensual', $desde, $hasta, $filtros);
+        $reporte = $this->construirReporteExcel($desde, $hasta, $filtros);
 
-        return $this->descargarExcel($desde, $hasta, $filtros);
+        $this->generadoService->registrarDescarga(
+            'excel', 'informe_mensual', $desde, $hasta, $filtros, null, $this->snapshotService->capturar($reporte),
+        );
+
+        return $this->renderExcel($reporte);
     }
 
     public function exportPdfPresentacion(ExportReporteRequest $request): Response
@@ -129,30 +135,57 @@ class ReporteController extends Controller
 
         $reporte = $this->construirReportePdf($desde, $hasta, $filtros, $tipo);
 
+        if ($tipo !== 'alertas') {
+            $reporte['conclusiones'] = $this->generarConclusionesAI($reporte, $desde);
+        }
+
         $this->generadoService->registrarDescarga(
-            'pdf', $tipo, $desde, $hasta, $filtros, $reporte['conclusiones']['analisis'] ?? null,
+            'pdf', $tipo, $desde, $hasta, $filtros,
+            $reporte['conclusiones']['analisis'] ?? null,
+            $this->snapshotService->capturar($reporte),
         );
 
         return $this->responderPdf($reporte, $tipo, $desde);
     }
 
     /**
-     * Vuelve a generar y descargar un reporte del historial reusando el período,
-     * los filtros y el formato guardados. No registra una entrada nueva: es una
-     * re-descarga de algo ya producido. La narrativa IA preservada se reutiliza
-     * tal cual (no se vuelve a llamar al modelo).
+     * Vuelve a descargar un reporte del historial. No registra una entrada nueva:
+     * es una re-descarga de algo ya producido. Para entradas multi-formato
+     * (pdf+excel) el formato a bajar se elige con ?formato=; sin él se usa el
+     * primero. Si la entrada tiene snapshot, se reproduce idéntica desde los datos
+     * congelados (sin recalcular sobre los pesajes vivos). Las entradas previas al
+     * snapshot caen al recálculo, reusando la narrativa IA preservada tal cual.
      */
-    public function downloadHistorial(ReporteGenerado $generado): StreamedResponse|Response
+    public function downloadHistorial(Request $request, ReporteGenerado $generado): StreamedResponse|Response
     {
+        $formatos = explode('+', $generado->formato);
+        $formato = $request->input('formato', $formatos[0]);
+
+        // Solo se puede pedir un formato que esta entrada efectivamente produjo.
+        abort_unless(in_array($formato, $formatos, true), 404);
+
+        if ($generado->snapshot !== null) {
+            $reporte = $this->snapshotService->rehidratar($generado);
+
+            return $formato === 'excel'
+                ? $this->renderExcel($reporte)
+                : $this->responderPdf($reporte, $generado->tipo, $reporte['desde']);
+        }
+
+        // Legacy: entradas previas al snapshot → recálculo bajo demanda.
         $desde = $generado->periodo_desde->copy()->startOfDay();
         $hasta = $generado->periodo_hasta->copy()->endOfDay();
         $filtros = $generado->filtrosNormalizados();
 
-        if ($generado->formato === 'excel') {
-            return $this->descargarExcel($desde, $hasta, $filtros);
+        if ($formato === 'excel') {
+            return $this->renderExcel($this->construirReporteExcel($desde, $hasta, $filtros));
         }
 
-        $reporte = $this->construirReportePdf($desde, $hasta, $filtros, $generado->tipo, $generado->conclusiones);
+        $reporte = $this->construirReportePdf($desde, $hasta, $filtros, $generado->tipo);
+
+        if ($generado->conclusiones !== null) {
+            $reporte['conclusiones'] = ['analisis' => $generado->conclusiones];
+        }
 
         return $this->responderPdf($reporte, $generado->tipo, $desde);
     }
@@ -267,51 +300,24 @@ class ReporteController extends Controller
     {
         [$desde, $hasta] = $this->calcularPeriodoProgramado($programado->frecuencia);
 
-        return $this->descargarExcel($desde, $hasta, []);
+        return $this->renderExcel($this->construirReporteExcel($desde, $hasta, []));
     }
 
     // ── Helpers privados ───────────────────────────────────────────────────
 
     /**
-     * Arma y descarga el Excel municipal para un período/filtros dados.
-     *
-     * @param  array<string, int>  $filtros
-     */
-    private function descargarExcel(Carbon $desde, Carbon $hasta, array $filtros): StreamedResponse
-    {
-        $reporte = $this->reporteService->generar($desde, $hasta, $filtros);
-        $reporte['config'] = $this->configuracionRepository->first();
-        $reporte['pivots'] = $this->reporteService->pivotsParaExcel(
-            $reporte['detalle'],
-            $reporte['desde'],
-            $reporte['hasta'],
-        );
-
-        $filename = 'reporte_'.$desde->format('Y-m-d').'_'.$hasta->format('Y-m-d').'.xlsx';
-
-        return (new ReporteExcelExport($reporte))->download($filename);
-    }
-
-    /**
-     * Arma el array del reporte para la vista PDF: KPIs/zonas/vehículos + config,
-     * conclusiones (alertas o IA) y, para alertas, el listado deduplicado. Si se
-     * pasa $conclusionesPreservadas, se reutiliza esa narrativa en vez de llamar
-     * al modelo de IA (caso historial).
+     * Arma el reporte para el PDF de presentación: KPIs/zonas/vehículos + config +
+     * mapa de calor (informe) o el listado de alertas deduplicado (tipo alertas).
+     * No incluye pivots/detalle (el PDF no los usa) ni IA (eso lo agrega quien
+     * genera el PDF, para no llamar al modelo en re-descargas).
      *
      * @param  array<string, int>  $filtros
      * @return array<string, mixed>
      */
-    private function construirReportePdf(
-        Carbon $desde,
-        Carbon $hasta,
-        array $filtros,
-        string $tipo,
-        ?string $conclusionesPreservadas = null,
-    ): array {
+    private function construirReportePdf(Carbon $desde, Carbon $hasta, array $filtros, string $tipo): array
+    {
         $reporte = $this->reporteService->generar($desde, $hasta, $filtros);
-        $config = $this->configuracionRepository->first();
-
-        $reporte['config'] = $config;
+        $reporte['config'] = $this->configuracionRepository->first();
         $reporte['conclusiones'] = [];
 
         if ($tipo === 'alertas') {
@@ -324,16 +330,62 @@ class ReporteController extends Controller
         // los mismos filtros, para las páginas de choropleth del PDF.
         $reporte['mapaZonas'] = $this->dashboardService->metricasPorZona($desde, $hasta, $filtros);
 
-        if ($conclusionesPreservadas !== null) {
-            $reporte['conclusiones'] = ['analisis' => $conclusionesPreservadas];
-        } elseif ($config?->ai_enabled && $config?->ai_api_key) {
-            $aiService = new ConclusionesAIService($config->ai_api_key, $config->ai_modelo, $config->ai_prompt ?? '');
-            $reporte['conclusiones'] = [
-                'analisis' => $aiService->generarAnalisis($reporte['kpis'], $reporte['zonas'], $desde->translatedFormat('F Y')),
-            ];
-        }
+        return $reporte;
+    }
+
+    /**
+     * Arma el reporte para el Excel municipal: KPIs/vehículos + config + pivots +
+     * detalle aplanado + total de kg netos. No incluye el mapa de calor (el Excel
+     * no lo usa). El detalle se aplana a escalares para que sea serializable y se
+     * pueda congelar idéntico en el snapshot.
+     *
+     * @param  array<string, int>  $filtros
+     * @return array<string, mixed>
+     */
+    private function construirReporteExcel(Carbon $desde, Carbon $hasta, array $filtros): array
+    {
+        $reporte = $this->reporteService->generar($desde, $hasta, $filtros);
+        $reporte['config'] = $this->configuracionRepository->first();
+        $reporte['pivots'] = $this->reporteService->pivotsParaExcel($reporte['detalle'], $desde, $hasta);
+        $reporte['kg_netos_total'] = (int) $reporte['detalle']->sum('peso_neto_kg');
+        $reporte['detalle'] = $this->reporteService->detalleParaExcel($reporte['detalle']);
 
         return $reporte;
+    }
+
+    /**
+     * Genera la narrativa IA del informe si la IA está habilitada y configurada.
+     * Devuelve ['analisis' => ...] o [] (sin IA). Solo se llama al producir un PDF.
+     *
+     * @param  array<string, mixed>  $reporte
+     * @return array<string, string>
+     */
+    private function generarConclusionesAI(array $reporte, Carbon $desde): array
+    {
+        $config = $reporte['config'] ?? null;
+
+        if (! $config instanceof ReporteConfiguracion || ! $config->ai_enabled || ! $config->ai_api_key) {
+            return [];
+        }
+
+        $aiService = new ConclusionesAIService($config->ai_api_key, $config->ai_modelo, $config->ai_prompt ?? '');
+
+        return [
+            'analisis' => $aiService->generarAnalisis($reporte['kpis'], $reporte['zonas'], $desde->translatedFormat('F Y')),
+        ];
+    }
+
+    /**
+     * Arma y descarga el Excel municipal a partir de un reporte ya construido
+     * (vivo o rehidratado del snapshot).
+     *
+     * @param  array<string, mixed>  $reporte
+     */
+    private function renderExcel(array $reporte): StreamedResponse
+    {
+        $filename = 'reporte_'.$reporte['desde']->format('Y-m-d').'_'.$reporte['hasta']->format('Y-m-d').'.xlsx';
+
+        return (new ReporteExcelExport($reporte))->download($filename);
     }
 
     /**
