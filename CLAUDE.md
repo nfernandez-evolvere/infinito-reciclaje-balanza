@@ -23,7 +23,7 @@
 
 La base de datos de producción es **compartida entre múltiples proyectos**. Cada proyecto usa un prefijo de tabla para separar sus datos. Ejecutar comandos destructivos sobre la base **elimina las tablas de todos los proyectos**, no solo de este.
 
-**Nunca ejecutar bajo ninguna circunstancia:**
+**Nunca ejecutar bajo ninguna circunstancias:**
 
 ```bash
 php artisan migrate:fresh          # elimina TODAS las tablas y vuelve a migrar
