@@ -55,4 +55,31 @@ class ReporteProgramado extends Model
 
         return array_values(array_intersect(['pdf', 'excel'], $formatos)) ?: ['pdf'];
     }
+
+    /**
+     * Opción de revisión propia del programado, saneada contra los valores
+     * soportados. 'heredar' cubre los programados creados antes de esta opción.
+     */
+    public function revisionOpcion(): string
+    {
+        $opcion = $this->opciones['revision'] ?? 'heredar';
+
+        return in_array($opcion, ['heredar', 'revisar', 'directo'], true) ? $opcion : 'heredar';
+    }
+
+    /**
+     * Resuelve si el envío de este programado queda pendiente de revisión:
+     * la opción propia ('revisar'/'directo') sobreescribe el default global
+     * de la organización; 'heredar' cae a config.revision_requerida. Sin
+     * configuración creada también se revisa: ningún envío sale sin
+     * aprobación salvo decisión explícita.
+     */
+    public function requiereRevision(?ReporteConfiguracion $config): bool
+    {
+        return match ($this->revisionOpcion()) {
+            'revisar' => true,
+            'directo' => false,
+            default   => (bool) ($config->revision_requerida ?? true),
+        };
+    }
 }

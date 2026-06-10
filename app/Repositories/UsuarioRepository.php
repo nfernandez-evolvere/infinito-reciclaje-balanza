@@ -74,6 +74,21 @@ class UsuarioRepository
             ->get();
     }
 
+    /**
+     * Admins activos de una organización. El id se pasa explícito porque se
+     * invoca desde jobs, fuera del ciclo HTTP donde app('organizacion') existe.
+     *
+     * @return Collection<int, User>
+     */
+    public function adminsDeOrganizacion(int $organizacionId): Collection
+    {
+        return User::whereHas('organizaciones', fn ($q) => $q->where('organizaciones.id', $organizacionId))
+            ->where('role', 'admin')
+            ->where('activo', true)
+            ->orderBy('name')
+            ->get();
+    }
+
     public function searchByNameOrEmail(string $q, int $limit = 8): Collection
     {
         return User::query()

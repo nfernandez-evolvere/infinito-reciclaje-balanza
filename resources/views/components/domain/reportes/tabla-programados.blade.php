@@ -45,7 +45,7 @@
                         </x-ui.dropdown-menu.trigger>
                         <x-ui.dropdown-menu.content align="end">
                             <x-ui.dropdown-menu.item
-                                @click="openEdit({{ Js::from(['id' => $p->id, 'nombre' => $p->nombre, 'tipo' => $p->tipo, 'frecuencia' => $p->frecuencia, 'destinatarios_str' => implode(', ', $p->destinatarios), 'formatos' => $p->formatos(), 'activo' => $p->activo]) }})">
+                                @click="openEdit({{ Js::from(['id' => $p->id, 'nombre' => $p->nombre, 'tipo' => $p->tipo, 'frecuencia' => $p->frecuencia, 'destinatarios_str' => implode(', ', $p->destinatarios), 'formatos' => $p->formatos(), 'revision' => $p->revisionOpcion(), 'activo' => $p->activo]) }})">
                                 <x-lucide-pencil class="size-4" /> Editar
                             </x-ui.dropdown-menu.item>
                             <form id="enviar-{{ $p->id }}" method="POST" action="{{ route('admin.reportes.programados.enviar-ahora', $p) }}">
@@ -145,7 +145,7 @@
                             </x-ui.dropdown-menu.trigger>
                             <x-ui.dropdown-menu.content align="end">
                                 <x-ui.dropdown-menu.item
-                                    @click="openEdit({{ Js::from(['id' => $p->id, 'nombre' => $p->nombre, 'tipo' => $p->tipo, 'frecuencia' => $p->frecuencia, 'destinatarios_str' => implode(', ', $p->destinatarios), 'formatos' => $p->formatos(), 'activo' => $p->activo]) }})">
+                                    @click="openEdit({{ Js::from(['id' => $p->id, 'nombre' => $p->nombre, 'tipo' => $p->tipo, 'frecuencia' => $p->frecuencia, 'destinatarios_str' => implode(', ', $p->destinatarios), 'formatos' => $p->formatos(), 'revision' => $p->revisionOpcion(), 'activo' => $p->activo]) }})">
                                     <x-lucide-pencil class="size-4" /> Editar
                                 </x-ui.dropdown-menu.item>
                                 <x-ui.dropdown-menu.item @click="confirmEnviar({{ $p->id }}, '{{ addslashes($p->nombre) }}')">

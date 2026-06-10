@@ -22,13 +22,14 @@ El reporte principal es el **reporte mensual** que se entrega al municipio. Tamb
 
 ## Estructura del módulo
 
-El módulo de Reportes tiene tres pestañas:
+El módulo de Reportes tiene cuatro pestañas:
 
 | Pestaña | Para qué sirve |
 |---------|---------------|
-| **Generar** | Generar un reporte para un período específico y exportarlo en PDF o Excel |
 | **Programados** | Configurar el envío automático de reportes por email |
-| **Configuración** | Datos institucionales que aparecen en los PDFs (nombre del municipio, texto de presentación, servicios destacados) |
+| **Generar** | Generar un reporte para un período específico y exportarlo en PDF o Excel |
+| **Historial** | Ver todo lo generado y enviado, revisar y aprobar envíos pendientes, re-descargar reportes y reintentar fallos |
+| **Configuración** | Datos institucionales de los PDFs, análisis con IA, tipos de reporte activos y revisión de envíos |
 
 ---
 
@@ -159,6 +160,7 @@ La pestaña **Programados** te permite configurar el envío automático de repor
 | Frecuencia | **Diaria** (ayer), **Semanal** (últimos 7 días), **Quincenal** (últimos 15 días) o **Mensual** (últimos 30 días) |
 | Formatos del envío | Solo para **Informe mensual**: elegí en qué se adjunta el reporte al email — **PDF**, **Excel** o ambos. Tenés que dejar al menos uno marcado. Las **Alertas** se envían siempre en PDF, así que este campo no aparece. |
 | Destinatarios | Uno o más emails — presioná Enter o coma para confirmar cada uno |
+| Revisión antes de enviar | **Según configuración general** (heredar), **Revisar siempre** o **Enviar directo**. La opción del programado pisa la configuración global. Ver la sección "Revisión de envíos". |
 | Activo | Switch para activar o desactivar el envío automático |
 
 4. Guardar.
@@ -169,9 +171,9 @@ La pestaña **Programados** te permite configurar el envío automático de repor
 
 Desde el menú de acciones (⋯) de cada programado:
 - **Editar** — modificar cualquier campo
-- **Enviar ahora** — disparar el envío inmediatamente, sin esperar la próxima ejecución programada
+- **Enviar ahora** — generar el reporte ya mismo, sin esperar la próxima ejecución programada. Según la configuración de revisión, queda pendiente de aprobación en el Historial o se envía directo.
 - **Descargar PDF** — obtener el PDF del último período sin enviarlo por email
-- **Eliminar** — borrar el programado definitivamente
+- **Eliminar** — borrar el programado definitivamente. Los reportes ya generados o pendientes de revisión no se pierden: siguen en el Historial y se pueden aprobar igual.
 
 ### Cuándo ver el próximo envío
 
@@ -179,17 +181,69 @@ La tabla muestra **Último envío** y **Próximo envío** para cada programado. 
 
 ---
 
+## Revisión de envíos (aprobación manual)
+
+Por defecto, **ningún reporte programado se envía solo**: el sistema lo genera, lo deja **pendiente de revisión** en la pestaña Historial y espera tu aprobación. Recién cuando lo aprobás, el email sale hacia los destinatarios. Esto es especialmente importante cuando el informe incluye el análisis generado con IA: nada llega al municipio sin que alguien lo haya leído.
+
+### Cómo funciona el flujo
+
+1. El sistema genera el reporte en la fecha programada (o cuando usás "Enviar ahora") y congela su contenido.
+2. El reporte queda **En revisión** en el Historial. Los administradores reciben un email de aviso, y la pantalla de Reportes muestra un banner y un contador en la pestaña Historial.
+3. Desde la acción **Revisar** podés: ver el PDF y el Excel exactamente como se enviarían, corregir el texto del análisis (si el informe usa IA), aprobar el envío o descartarlo.
+4. Al aprobar, el envío sale en los próximos minutos hacia los destinatarios configurados.
+
+> Lo que ves en la revisión es exactamente lo que se envía: el contenido queda congelado al generarse. Si después se corrige un pesaje del período, el reporte aprobado no cambia.
+
+### Configurarlo
+
+- **Global** — pestaña Configuración, card "Revisión de envíos": el switch "Requerir revisión antes de enviar" viene **activado por defecto**. Si lo apagás, los programados se generan y envían directo, sin aprobación.
+- **Por reporte programado** — campo "Revisión antes de enviar" del formulario: cada programado puede seguir la configuración general (**heredar**), **revisar siempre** o **enviar directo**. La opción del programado pisa la global.
+
+### Editar el análisis de IA
+
+Si el informe incluye el análisis generado con IA, en el modal de revisión podés corregir el texto antes de aprobar. El texto original de la IA se conserva como registro interno. Mientras tengas cambios sin guardar, el botón **Aprobar y enviar** queda deshabilitado — guardá primero, después aprobá.
+
+### Descartar un reporte
+
+Si el contenido no corresponde (datos incompletos, período equivocado), podés **descartarlo** con un motivo opcional. El reporte no se envía y queda en el Historial como registro de la decisión. El próximo ciclo programado genera el período siguiente normalmente.
+
+### Estados del Historial
+
+| Estado | Qué significa |
+|--------|---------------|
+| **Generando…** | El sistema está armando el reporte |
+| **En revisión** | Generado y esperando aprobación — todavía no se envió |
+| **Enviando…** | Aprobado, el email está saliendo |
+| **Enviado** | Llegó a los destinatarios (la fila muestra quién lo aprobó) |
+| **Descargado** | Descarga manual desde la pestaña Generar |
+| **Descartado** | Un administrador decidió no enviarlo (la fila muestra el motivo) |
+| **Fallido** | La generación o el envío fallaron — usá **Reintentar** |
+
+### Si algo falla
+
+Los reportes **Fallidos** muestran el motivo del error y la acción **Reintentar** en su menú:
+
+- Si falló el **envío** (por ejemplo, un problema con el servidor de email), el reintento reenvía el mismo contenido ya generado, sin recalcular nada.
+- Si falló la **generación**, el reintento vuelve a generar el reporte usando el mismo período original — aunque hayan pasado días.
+
+Si un reporte queda más de 2 horas en "Generando…" o "Enviando…" (por ejemplo, por un corte del servidor), el sistema lo marca automáticamente como Fallido para que puedas reintentarlo.
+
+---
+
 ## Configuración del reporte
 
-La pestaña **Configuración** define los datos institucionales que aparecen en los PDFs exportados.
+La pestaña **Configuración** define los datos institucionales de los PDFs y el comportamiento de los envíos.
 
-| Campo | Descripción |
-|-------|-------------|
+| Sección | Descripción |
+|---------|-------------|
 | Nombre del municipio | Aparece en la portada y pie de página del informe |
-| Texto de presentación | Descripción de la empresa para la sección "Quiénes Somos" del informe PPT |
+| Texto de presentación | Descripción de la empresa para la sección "Quiénes Somos" del informe |
 | Servicios destacados | Cards de servicios que aparecen en la sección "Quiénes Somos" (máximo 6) |
+| Inteligencia Artificial | Genera automáticamente la sección de análisis del informe PDF (requiere una API key de Google AI Studio) |
+| Tipos de reporte activos | Qué tipos se pueden generar y programar: Informe mensual y/o Alertas |
+| Revisión de envíos | Si los reportes programados requieren aprobación manual antes de enviarse — **activado por defecto** |
 
-Completar estos datos antes de generar el primer PDF formal para el municipio.
+Completar los datos institucionales antes de generar el primer PDF formal para el municipio.
 
 ---
 
@@ -234,6 +288,18 @@ Sí, en los programados de tipo **Informe mensual**. Al crear o editar el progra
 **¿Puedo configurar el logo y los datos del municipio en el PDF?**
 Los datos institucionales (nombre del municipio, texto de presentación, servicios destacados) se configuran en la pestaña **Configuración** del módulo de Reportes.
 
+**¿Por qué mi reporte programado no llegó a los destinatarios?**
+Lo más probable es que esté esperando tu aprobación: por defecto, los envíos programados quedan **En revisión** en la pestaña Historial hasta que alguien los apruebe. Revisá el banner de la pantalla de Reportes o el contador del tab Historial. Si en cambio figura como **Fallido**, abrí su menú y usá **Reintentar**.
+
+**¿Puedo corregir el texto de la IA antes de que salga el informe?**
+Sí. Con la revisión activada, el reporte queda pendiente en el Historial: desde **Revisar** editás el análisis, lo guardás y recién entonces aprobás el envío. El texto original de la IA se conserva como registro.
+
+**¿La re-descarga desde el Historial recalcula los datos?**
+No. Cada entrada del Historial guarda su contenido congelado: re-descargar reproduce el reporte idéntico al que se generó o envió, aunque después se hayan corregido pesajes del período. Para un reporte con los datos actuales, generalo de nuevo desde la pestaña **Generar**.
+
+**¿Qué pasa con un reporte pendiente de revisión si elimino el programado?**
+Nada se pierde: el reporte pendiente sigue en el Historial con sus destinatarios y se puede aprobar, descartar o reintentar igual.
+
 ---
 
-*Documento actualizado: 04/06/2026 | Versión: 1.2*
+*Documento actualizado: 10/06/2026 | Versión: 1.3*

@@ -28,7 +28,10 @@ class StoreReporteProgramadoRequest extends FormRequest
             // se envían siempre en PDF, así que ahí el campo no es obligatorio.
             'formatos'   => [Rule::requiredIf($this->input('tipo') === 'informe_mensual'), 'array'],
             'formatos.*' => ['string', 'in:pdf,excel'],
-            'activo'     => ['boolean'],
+            // Revisión antes del envío: 'heredar' sigue el default global de la
+            // configuración; 'revisar'/'directo' lo sobreescriben por reporte.
+            'revision' => ['nullable', 'in:heredar,revisar,directo'],
+            'activo'   => ['boolean'],
         ];
     }
 
@@ -37,6 +40,7 @@ class StoreReporteProgramadoRequest extends FormRequest
         return [
             'formatos.required' => 'Elegí al menos un formato para el envío (PDF o Excel).',
             'formatos.*.in'     => 'El formato seleccionado no es válido.',
+            'revision.in'       => 'La opción de revisión seleccionada no es válida.',
         ];
     }
 

@@ -21,6 +21,7 @@ class UpdateReporteConfiguracionRequest extends FormRequest
             'ai_prompt'                   => ['nullable', 'string'],
             'tipo_informe_mensual_activo' => ['boolean'],
             'tipo_alertas_activo'         => ['boolean'],
+            'revision_requerida'          => ['boolean'],
         ];
     }
 
@@ -30,6 +31,7 @@ class UpdateReporteConfiguracionRequest extends FormRequest
             'ai_enabled'                  => $this->boolean('ai_enabled'),
             'tipo_informe_mensual_activo' => $this->boolean('tipo_informe_mensual_activo'),
             'tipo_alertas_activo'         => $this->boolean('tipo_alertas_activo'),
+            'revision_requerida'          => $this->boolean('revision_requerida'),
             'servicios'                   => array_values(array_filter(
                 $this->input('servicios', []),
                 fn ($s) => ! empty($s['titulo'])

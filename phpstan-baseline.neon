@@ -61,18 +61,6 @@ parameters:
 			path: app/Http/Requests/UpdatePesajeRequest.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>municipalidad_nombre" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: app/Jobs/GenerarEnviarReporteJob.php
-
-		-
-			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\ReporteConfiguracion\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Jobs/GenerarEnviarReporteJob.php
-
-		-
 			message: '#^Using nullsafe property access "\?\-\>nombre" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1

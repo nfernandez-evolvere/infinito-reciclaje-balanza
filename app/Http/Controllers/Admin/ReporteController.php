@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Exports\ReporteExcelExport;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\DescartarReporteGeneradoRequest;
 use App\Http\Requests\Admin\ExportReporteRequest;
 use App\Http\Requests\Admin\StoreReporteProgramadoRequest;
+use App\Http\Requests\Admin\UpdateConclusionesReporteGeneradoRequest;
 use App\Http\Requests\Admin\UpdateReporteConfiguracionRequest;
 use App\Http\Requests\Admin\UpdateReporteProgramadoRequest;
-use App\Jobs\GenerarEnviarReporteJob;
 use App\Models\Alerta;
 use App\Models\ReporteConfiguracion;
 use App\Models\ReporteGenerado;
@@ -69,6 +70,7 @@ class ReporteController extends Controller
         $tiposVehiculo = $this->tipoVehiculoRepository->activos();
         $programados = $this->programadoRepository->allOrdered();
         $historial = $this->generadoRepository->paginarHistorial()->appends(['tab' => 'historial']);
+        $pendientesRevision = $this->generadoRepository->contarPendientesRevision();
         $config = $this->configuracionRepository->first() ?? new ReporteConfiguracion;
 
         $filters = [
@@ -105,7 +107,7 @@ class ReporteController extends Controller
 
         return view('modules.admin.reportes.index', compact(
             'tab', 'reporte', 'mapaZonas', 'zonas', 'tiposServicio', 'tiposVehiculo', 'filters', 'activeFilters',
-            'programados', 'historial', 'config'
+            'programados', 'historial', 'pendientesRevision', 'config'
         ));
     }
 
@@ -234,15 +236,97 @@ class ReporteController extends Controller
 
     public function enviarAhoraProgramado(ReporteProgramado $programado): RedirectResponse
     {
-        GenerarEnviarReporteJob::dispatch($programado->id);
+        $generado = $this->generadoService->iniciarGeneracion($programado);
+
+        $config = $this->configuracionRepository->first();
 
         session()->flash('toast', [
-            'message'     => 'Envío en cola.',
-            'description' => 'El reporte se generará y enviará en los próximos minutos.',
-            'variant'     => 'success',
+            'message'     => 'Generación en cola.',
+            'description' => $programado->requiereRevision($config)
+                ? 'El reporte se generará en los próximos minutos y quedará pendiente de revisión en el historial.'
+                : 'El reporte se generará y enviará en los próximos minutos.',
+            'variant' => 'success',
         ]);
 
         return redirect()->route('admin.reportes.index', ['tab' => 'programados']);
+    }
+
+    // ── Revisión del historial ─────────────────────────────────────────────
+
+    public function aprobarHistorial(Request $request, ReporteGenerado $generado): RedirectResponse
+    {
+        $aprobado = $this->generadoService->aprobar($generado, $request->user());
+
+        session()->flash('toast', $aprobado
+            ? [
+                'message'     => 'Reporte aprobado.',
+                'description' => 'El envío está en cola y saldrá en los próximos minutos.',
+                'variant'     => 'success',
+            ]
+            : [
+                'message'     => 'No se pudo aprobar.',
+                'description' => 'El reporte ya fue procesado por otro usuario.',
+                'variant'     => 'destructive',
+            ]);
+
+        return redirect()->route('admin.reportes.index', ['tab' => 'historial']);
+    }
+
+    public function descartarHistorial(DescartarReporteGeneradoRequest $request, ReporteGenerado $generado): RedirectResponse
+    {
+        $descartado = $this->generadoService->descartar($generado, $request->user(), $request->validated('motivo'));
+
+        session()->flash('toast', $descartado
+            ? [
+                'message'     => 'Reporte descartado.',
+                'description' => 'No se enviará a los destinatarios. Queda en el historial como registro.',
+                'variant'     => 'destructive',
+            ]
+            : [
+                'message'     => 'No se pudo descartar.',
+                'description' => 'El reporte ya fue procesado por otro usuario.',
+                'variant'     => 'destructive',
+            ]);
+
+        return redirect()->route('admin.reportes.index', ['tab' => 'historial']);
+    }
+
+    public function reintentarHistorial(ReporteGenerado $generado): RedirectResponse
+    {
+        $reintentado = $this->generadoService->reintentar($generado);
+
+        session()->flash('toast', $reintentado
+            ? [
+                'message'     => 'Reintento en cola.',
+                'description' => 'El reporte se procesará en los próximos minutos.',
+                'variant'     => 'success',
+            ]
+            : [
+                'message'     => 'No se pudo reintentar.',
+                'description' => 'Solo los reportes fallidos admiten reintento.',
+                'variant'     => 'destructive',
+            ]);
+
+        return redirect()->route('admin.reportes.index', ['tab' => 'historial']);
+    }
+
+    public function updateConclusionesHistorial(UpdateConclusionesReporteGeneradoRequest $request, ReporteGenerado $generado): RedirectResponse
+    {
+        $actualizado = $this->generadoService->actualizarConclusiones($generado, $request->validated('conclusiones'));
+
+        session()->flash('toast', $actualizado
+            ? [
+                'message'     => 'Análisis actualizado.',
+                'description' => 'El texto editado se incluirá en el PDF cuando apruebes el envío.',
+                'variant'     => 'success',
+            ]
+            : [
+                'message'     => 'No se pudo guardar.',
+                'description' => 'Solo se puede editar el análisis mientras el reporte está en revisión.',
+                'variant'     => 'destructive',
+            ]);
+
+        return redirect()->route('admin.reportes.index', ['tab' => 'historial']);
     }
 
     // ── Configuración ──────────────────────────────────────────────────────
@@ -271,7 +355,7 @@ class ReporteController extends Controller
 
     public function downloadPdfProgramado(ReporteProgramado $programado): Response
     {
-        [$desde, $hasta] = $this->calcularPeriodoProgramado($programado->frecuencia);
+        [$desde, $hasta] = $this->programadoService->calcularPeriodo($programado->frecuencia);
         $tipo = $programado->tipo;
 
         $reporte = $this->reporteService->generar($desde, $hasta);
@@ -298,7 +382,7 @@ class ReporteController extends Controller
 
     public function downloadExcelProgramado(ReporteProgramado $programado): StreamedResponse
     {
-        [$desde, $hasta] = $this->calcularPeriodoProgramado($programado->frecuencia);
+        [$desde, $hasta] = $this->programadoService->calcularPeriodo($programado->frecuencia);
 
         return $this->renderExcel($this->construirReporteExcel($desde, $hasta, []));
     }
@@ -405,16 +489,6 @@ class ReporteController extends Controller
             'Content-Type'        => 'application/pdf',
             'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ]);
-    }
-
-    private function calcularPeriodoProgramado(string $frecuencia): array
-    {
-        return match ($frecuencia) {
-            'diaria'    => [now()->subDay()->startOfDay(),    now()->subDay()->endOfDay()],
-            'semanal'   => [now()->subDays(7)->startOfDay(),  now()->endOfDay()],
-            'quincenal' => [now()->subDays(15)->startOfDay(), now()->endOfDay()],
-            default     => [now()->subDays(30)->startOfDay(), now()->endOfDay()],
-        };
     }
 
     private function consultarAlertas(Carbon $desde, Carbon $hasta): Collection

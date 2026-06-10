@@ -153,7 +153,7 @@ tests/
     ├── Reporte/                       🆕
     │   ├── ReporteConfiguracionTest.php
     │   ├── ReporteProgramadoTest.php
-    │   └── GenerarEnviarReporteJobTest.php
+    │   └── GenerarReporteJobTest.php
     ├── Zona/                          🆕
     │   ├── ZonaCrudTest.php
     │   └── ZonaServicioTest.php
@@ -325,11 +325,11 @@ El entregable más importante. Cubre el corazón del sistema y la invariante de 
 
 Aislar dependencias externas (AI, mPDF, mail) con fakes/mocks.
 
-**`Feature/Reporte/GenerarEnviarReporteJobTest.php`** — [`GenerarEnviarReporteJob`](../app/Jobs/GenerarEnviarReporteJob.php):
+**`Feature/Reporte/GenerarReporteJobTest.php`** — [`GenerarReporteJob`](../app/Jobs/GenerarReporteJob.php) (+ `EnviarReporteJobTest`, `ReporteRevisionTest`, `ReporteProgramadoDispatchTest`):
 - `Mail::fake()` → se envía 1 mail por destinatario; clase correcta (`ReporteMensualMail` vs `ReporteAlertaMail` según `tipo`).
-- Actualiza `ultimo_envio_at` y `proximo_envio_at`.
-- Con `ai_enabled = false` no instancia el servicio de IA.
-- `calcularPeriodo` resuelve `mes_anterior`/`mes_actual`/`semana_actual`.
+- Flujo de revisión: global + override por programado, aprobar/descartar/reintentar, edición de narrativa IA, lock optimista ante aprobaciones concurrentes.
+- `iniciarGeneracion` congela período/destinatarios y avanza `proximo_envio_at` al despachar (anti re-despacho del scheduler); `ultimo_envio_at` solo con el envío real.
+- Con `ai_enabled = false` no instancia el servicio de IA; los reintentos de envío reusan el snapshot sin re-llamar a la IA.
 - (mockear `ReporteService`/`PdfService` para no generar PDF real).
 
 **`Feature/Reporte/ReporteConfiguracionTest.php`** / **`ReporteProgramadoTest.php`**:
