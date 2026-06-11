@@ -163,6 +163,23 @@
             </x-ui.card.content>
         </x-ui.card>
 
+        {{-- Revisión de envíos --}}
+        <x-ui.card>
+            <x-ui.card.header>
+                <x-ui.card.title>Revisión de envíos</x-ui.card.title>
+                <x-ui.card.description>Control manual de los reportes programados antes de que salgan por email.</x-ui.card.description>
+            </x-ui.card.header>
+            <x-ui.card.content>
+                <div class="flex items-center justify-between gap-2">
+                    <div>
+                        <p class="text-label">Requerir revisión antes de enviar</p>
+                        <p class="text-caption">Cada reporte generado queda pendiente en el historial hasta que lo apruebes. Cada programado puede sobreescribir esta opción.</p>
+                    </div>
+                    <x-ui.switch name="revision_requerida" :checked="$config->revision_requerida ?? true" />
+                </div>
+            </x-ui.card.content>
+        </x-ui.card>
+
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             @if(app()->isLocal())
                 <div class="flex flex-wrap items-center gap-2">

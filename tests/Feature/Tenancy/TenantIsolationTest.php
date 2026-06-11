@@ -2,9 +2,10 @@
 
 namespace Tests\Feature\Tenancy;
 
-use App\Jobs\GenerarEnviarReporteJob;
+use App\Jobs\GenerarReporteJob;
 use App\Models\Organizacion;
 use App\Models\Pesaje;
+use App\Models\ReporteGenerado;
 use App\Models\ReporteProgramado;
 use App\Models\TipoServicio;
 use App\Models\TipoVehiculo;
@@ -218,35 +219,49 @@ class TenantIsolationTest extends TestCase
             ]);
         });
 
-        $programado = $this->actingInOrg($orgA, fn () => ReporteProgramado::create([
-            'tipo'           => 'informe_mensual',
-            'nombre'         => 'Mensual Org A',
-            'frecuencia'     => 'mensual',
-            'cron_expresion' => '0 8 1 * *',
-            'destinatarios'  => ['a@test.com'],
-            'activo'         => true,
-            'opciones'       => ['formatos' => ['pdf']],
-        ]));
+        [$programado, $generado] = $this->actingInOrg($orgA, function () {
+            $programado = ReporteProgramado::create([
+                'tipo'           => 'informe_mensual',
+                'nombre'         => 'Mensual Org A',
+                'frecuencia'     => 'mensual',
+                'cron_expresion' => '0 8 1 * *',
+                'destinatarios'  => ['a@test.com'],
+                'activo'         => true,
+                'opciones'       => ['formatos' => ['pdf']],
+            ]);
 
-        $capturedKpis = null;
-        $this->instance(PdfService::class, \Mockery::mock(PdfService::class, function ($m) use (&$capturedKpis) {
-            $m->shouldReceive('fromView')->withArgs(function ($view, $data) use (&$capturedKpis) {
-                $capturedKpis = $data['reporte']['kpis'] ?? null;
+            // El registro lo crea iniciarGeneracion al despachar; acá lo armamos
+            // igual para invocar el job directamente con su id.
+            $generado = ReporteGenerado::create([
+                'reporte_programado_id' => $programado->id,
+                'origen'                => 'programado',
+                'tipo'                  => 'informe_mensual',
+                'formato'               => 'pdf',
+                'periodo_desde'         => now()->subDays(30)->toDateString(),
+                'periodo_hasta'         => now()->toDateString(),
+                'destinatarios'         => ['a@test.com'],
+                'estado'                => ReporteGenerado::ESTADO_GENERANDO,
+            ]);
 
-                return true;
-            })->andReturn('pdf');
+            return [$programado, $generado];
+        });
+
+        $this->instance(PdfService::class, \Mockery::mock(PdfService::class, function ($m) {
+            $m->shouldReceive('fromView')->andReturn('pdf');
         }));
 
         Mail::fake();
         // Sin binding de organización: replica el contexto del worker de cola
         app()->forgetInstance('organizacion');
 
-        GenerarEnviarReporteJob::dispatchSync($programado->id);
+        GenerarReporteJob::dispatchSync($generado->id);
 
-        // Solo los 4 pesajes de Org A deben aparecer; Org B no puede cruzar.
-        $this->assertSame(4, $capturedKpis['total']);
+        // Solo los 4 pesajes de Org A deben aparecer en el snapshot congelado;
+        // Org B no puede cruzar.
+        $kpis = ReporteGenerado::withoutGlobalScopes()->find($generado->id)->snapshot['kpis'];
+        $this->assertSame(4, $kpis['total']);
         // 4 × 1500 kg = 6000 kg = 6 t
-        $this->assertEqualsWithDelta(6.0, $capturedKpis['toneladas'], 0.01);
+        $this->assertEqualsWithDelta(6.0, $kpis['toneladas'], 0.01);
     }
 
     #[Test]

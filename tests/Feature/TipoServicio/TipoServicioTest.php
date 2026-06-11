@@ -262,6 +262,46 @@ class TipoServicioTest extends TestCase
             ->assertSessionHasErrors('nombre');
     }
 
+    // — Aislamiento multi-tenant ————————————————————————————————
+    // La unicidad de nombre es por organización (unique compuesto en la BD).
+    // El nombre de otra organización no debe interferir en la validación.
+
+    #[Test]
+    public function test_store_permite_mismo_nombre_en_otra_organizacion(): void
+    {
+        $otraOrg = $this->createOrganizacion('Otra Organización');
+        $this->actingInOrg($otraOrg, fn () => TipoServicio::factory()->create(['nombre' => 'Domiciliario']));
+
+        $this->actingAs($this->admin())
+            ->post(route('admin.tipos-servicio.store'), $this->payload(['nombre' => 'Domiciliario']))
+            ->assertRedirect(route('admin.tipos-servicio.index'))
+            ->assertSessionHasNoErrors();
+
+        // Un servicio "Domiciliario" en cada organización: dos filas, distinta org.
+        $this->assertSame(2, TipoServicio::withoutGlobalScopes()->where('nombre', 'Domiciliario')->count());
+    }
+
+    #[Test]
+    public function test_update_permite_nombre_que_existe_en_otra_organizacion(): void
+    {
+        $otraOrg = $this->createOrganizacion('Otra Organización');
+        $this->actingInOrg($otraOrg, fn () => TipoServicio::factory()->create(['nombre' => 'Domiciliario']));
+
+        // La org actual también tiene su "Domiciliario" (permitido: distinta org).
+        $tipo = TipoServicio::factory()->create(['nombre' => 'Domiciliario']);
+
+        // Editar conservando el nombre no debe chocar con la otra org.
+        $this->actingAs($this->admin())
+            ->put(route('admin.tipos-servicio.update', $tipo), [
+                'nombre'            => 'Domiciliario',
+                'tipo_vehiculo_ids' => [],
+            ])
+            ->assertRedirect(route('admin.tipos-servicio.index'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('tipos_servicio', ['id' => $tipo->id, 'nombre' => 'Domiciliario']);
+    }
+
     #[Test]
     public function test_update_puede_limpiar_tipos_vehiculo(): void
     {

@@ -1,30 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Exports/ReporteExcelExport.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>nombre" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 3
-			path: app/Exports/ReporteExcelExport.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>patente" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Exports/ReporteExcelExport.php
-
-		-
-			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\ReporteConfiguracion\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/Admin/ReporteController.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
 			identifier: property.notFound
 			count: 1
@@ -61,45 +37,9 @@ parameters:
 			path: app/Http/Controllers/Shared/PesajeController.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Shared/VehiculoController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$numero_interno\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Shared/VehiculoController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$patente\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Shared/VehiculoController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$tara_kg\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Shared/VehiculoController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$tipoVehiculo\.$#'
-			identifier: property.notFound
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\TipoVehiculo\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
 			count: 3
-			path: app/Http/Controllers/Shared/VehiculoController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$titular\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Shared/VehiculoController.php
-
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\),Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 1
 			path: app/Http/Controllers/Shared/VehiculoController.php
 
 		-
@@ -119,18 +59,6 @@ parameters:
 			identifier: nullCoalesce.expr
 			count: 1
 			path: app/Http/Requests/UpdatePesajeRequest.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>municipalidad_nombre" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: app/Jobs/GenerarEnviarReporteJob.php
-
-		-
-			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\ReporteConfiguracion\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Jobs/GenerarEnviarReporteJob.php
 
 		-
 			message: '#^Using nullsafe property access "\?\-\>nombre" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
@@ -193,21 +121,51 @@ parameters:
 			path: app/Services/AlertaService.php
 
 		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$centro_lat\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/DashboardService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$centro_lng\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/DashboardService.php
+
+		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$created_at\.$#'
 			identifier: property.notFound
 			count: 7
 			path: app/Services/DashboardService.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$geojson\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/DashboardService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$habitantes\.$#'
 			identifier: property.notFound
 			count: 2
 			path: app/Services/DashboardService.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$nombre\.$#'
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$hectareas\.$#'
 			identifier: property.notFound
 			count: 2
+			path: app/Services/DashboardService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Services/DashboardService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$nombre\.$#'
+			identifier: property.notFound
+			count: 3
 			path: app/Services/DashboardService.php
 
 		-
@@ -231,7 +189,7 @@ parameters:
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$zona_id\.$#'
 			identifier: property.notFound
-			count: 4
+			count: 5
 			path: app/Services/DashboardService.php
 
 		-
@@ -243,7 +201,7 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\),Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
-			count: 2
+			count: 3
 			path: app/Services/DashboardService.php
 
 		-
@@ -265,9 +223,21 @@ parameters:
 			path: app/Services/PesajeService.php
 
 		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Services/ReporteService.php
+
+		-
 			message: '#^Using nullsafe property access "\?\-\>nombre" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
-			count: 2
+			count: 5
+			path: app/Services/ReporteService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>patente" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
 			path: app/Services/ReporteService.php
 
 		-

@@ -69,11 +69,11 @@ class PesajeRepository
             ->get();
     }
 
-    public function filtrado(array $filtros, int $perPage = 20): LengthAwarePaginator
+    public function filtrado(array $filtros, int $perPage = 20, string $pageName = 'page'): LengthAwarePaginator
     {
         return $this->buildQuery($filtros)
             ->with(['vehiculo.tipoVehiculo', 'tipoServicio', 'zona', 'operador'])
-            ->paginate($perPage)
+            ->paginate($perPage, ['*'], $pageName)
             ->withQueryString();
     }
 
@@ -207,6 +207,14 @@ class PesajeRepository
             ->when($filtros['tipo_servicio_id'] ?? null, fn ($q, $id) => $q->where('tipo_servicio_id', $id))
             ->when($filtros['solo_alerta'] ?? null, fn ($q) => $q->where('alerta_peso', true))
             ->when($filtros['solo_editados'] ?? null, fn ($q) => $q->where('editado', true))
+            // Universo de "Modificaciones": pesajes editados o cancelados, con sub-filtro por tipo.
+            ->when($filtros['modificaciones'] ?? null, function ($q) use ($filtros) {
+                match ($filtros['tipo'] ?? null) {
+                    'editado'   => $q->where('editado', true),
+                    'cancelado' => $q->where('estado', 'Cancelado'),
+                    default     => $q->where(fn ($sub) => $sub->where('editado', true)->orWhere('estado', 'Cancelado')),
+                };
+            })
             ->orderBy('created_at', $filtros['direction'] ?? 'desc');
     }
 }

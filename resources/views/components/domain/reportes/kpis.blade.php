@@ -1,4 +1,4 @@
-@props(['kpis', 'gridClass' => 'grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4'])
+@props(['kpis', 'gridClass' => 'grid grid-cols-2 sm:grid-cols-3 gap-4'])
 
 <div class="{{ $gridClass }}">
 

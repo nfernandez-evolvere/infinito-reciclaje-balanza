@@ -34,6 +34,7 @@ class DashboardController extends Controller
                     $response['evolucionRango'] = $this->dashboardService->evolucionDelRango($desde, $hasta);
                     $response['desgloseVehiculoRango'] = $this->dashboardService->desgloseByTipoVehiculo($desde, $hasta);
                     $response['desgloseZonaRango'] = $this->dashboardService->desgloseByZona($desde, $hasta);
+                    $response['metricasPorZonaRango'] = $this->dashboardService->metricasPorZona($desde, $hasta);
                 }
             } catch (\Exception) {
                 // fechas inválidas, se ignoran
@@ -57,6 +58,8 @@ class DashboardController extends Controller
             'desgloseZona'        => $this->dashboardService->desgloseByZona(),
             'desgloseVehiculoMes' => $this->dashboardService->desgloseByTipoVehiculo($inicioMes, today()),
             'desgloseZonaMes'     => $this->dashboardService->desgloseByZona($inicioMes, today()),
+            'metricasPorZonaDia'  => $this->dashboardService->metricasPorZona(today(), today()),
+            'metricasPorZonaMes'  => $this->dashboardService->metricasPorZona($inicioMes, today()),
             'alertas'             => $this->dashboardService->alertasActivas(),
         ];
     }

@@ -5,6 +5,7 @@ const formVacio = () => ({
     frecuencia:     'mensual',
     cron_expresion: '0 8 1 * *',
     formatos:       ['pdf'],
+    revision:       'heredar',
     activo:         true,
 });
 
@@ -81,6 +82,7 @@ export default (initial = {}) => ({
             frecuencia:     p.frecuencia,
             cron_expresion: p.cron_expresion,
             formatos:       Array.isArray(p.formatos) && p.formatos.length ? p.formatos : ['pdf'],
+            revision:       p.revision || 'heredar',
             activo:         p.activo,
         };
         this.modalMode = 'edit';

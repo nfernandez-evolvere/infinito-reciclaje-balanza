@@ -66,7 +66,7 @@
         </x-ui.tabs.trigger>
         <x-ui.tabs.trigger value="tipos" class="flex-1 sm:flex-none">
             <x-lucide-car class="size-4" />
-            Tipos
+            Tipos de vehículo
         </x-ui.tabs.trigger>
     </x-ui.tabs.list>
 

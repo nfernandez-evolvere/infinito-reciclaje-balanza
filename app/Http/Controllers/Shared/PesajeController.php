@@ -53,26 +53,40 @@ class PesajeController extends Controller
         $ultimoPesaje = $this->pesajeRepository->ultimoDelTurno();
         $operarios = $this->usuarioRepository->getOperadoresDeLaOrg();
 
-        $viewData = [
-            'pesajes'      => $pesajes,
-            'kpis'         => $kpis,
-            'kpisHoy'      => $kpisHoy,
-            'ultimoPesaje' => $ultimoPesaje,
-            'filtros'      => $filtros,
-            'operarios'    => $operarios,
-        ];
-
-        if ($isAdmin) {
-            $viewData['titulo'] = 'Pesajes';
-            $viewData['routeHistorial'] = route('admin.pesajes.index');
-            $viewData['zonas'] = $this->zonaRepository->activos();
-            $viewData['tiposServicio'] = $this->tipoServicioRepository->activos();
-        } else {
-            $viewData['titulo'] = 'Pesajes';
-            $viewData['routeHistorial'] = route('historial');
+        if (! $isAdmin) {
+            return view('modules.shared.historial', [
+                'pesajes'        => $pesajes,
+                'kpis'           => $kpis,
+                'kpisHoy'        => $kpisHoy,
+                'ultimoPesaje'   => $ultimoPesaje,
+                'filtros'        => $filtros,
+                'operarios'      => $operarios,
+                'titulo'         => 'Pesajes',
+                'routeHistorial' => route('historial'),
+            ]);
         }
 
-        return view('modules.shared.historial', $viewData);
+        // Admin: pantalla unificada con tabs «Pesajes» (con KPIs) y «Modificaciones» (sin KPIs).
+        // Cada tab usa su propio namespace de parámetros (Modificaciones con prefijo `m_`)
+        // para que filtros, orden y paginación de ambas tablas coexistan sin colisionar.
+        $filtrosMod = $this->buildFiltrosModificaciones($request);
+        $modificaciones = $this->pesajeRepository->filtrado($filtrosMod, pageName: 'm_page');
+
+        return view('modules.admin.pesajes', [
+            'tab'            => $request->input('tab') === 'modificaciones' ? 'modificaciones' : 'pesajes',
+            'pesajes'        => $pesajes,
+            'modificaciones' => $modificaciones,
+            'kpis'           => $kpis,
+            'kpisHoy'        => $kpisHoy,
+            'ultimoPesaje'   => $ultimoPesaje,
+            'filtros'        => $filtros,
+            'filtrosMod'     => $filtrosMod,
+            'operarios'      => $operarios,
+            'titulo'         => 'Pesajes',
+            'routeHistorial' => route('admin.pesajes.index'),
+            'zonas'          => $this->zonaRepository->activos(),
+            'tiposServicio'  => $this->tipoServicioRepository->activos(),
+        ]);
     }
 
     public function show(Pesaje $pesaje): View
@@ -130,9 +144,9 @@ class PesajeController extends Controller
 
         $pesaje->loadMissing('vehiculo');
 
-        $route = auth()->user()->isAdmin() ? 'admin.pesajes.index' : 'historial';
+        $route = $this->rutaRetorno();
 
-        return redirect()->route($route)
+        return redirect()->route($route, $this->tabRetorno($route))
             ->with('toast', [
                 'message'     => 'Cambios guardados.',
                 'description' => 'El historial del pesaje de '.$pesaje->vehiculo->patente.' fue actualizado.',
@@ -145,9 +159,9 @@ class PesajeController extends Controller
         $this->pesajeService->marcarEgreso($pesaje, $request->validated());
 
         $pesaje->loadMissing('vehiculo');
-        $route = auth()->user()->isAdmin() ? 'admin.pesajes.index' : 'historial';
+        $route = $this->rutaRetorno();
 
-        return redirect()->route($route)
+        return redirect()->route($route, $this->tabRetorno($route))
             ->with('toast', [
                 'message'     => 'Egreso registrado.',
                 'description' => 'El egreso de '.$pesaje->vehiculo->patente.' fue registrado.',
@@ -160,9 +174,9 @@ class PesajeController extends Controller
         $this->pesajeService->cancelar($pesaje, $request->validated(), auth()->user());
 
         $pesaje->loadMissing('vehiculo');
-        $route = auth()->user()->isAdmin() ? 'admin.pesajes.index' : 'historial';
+        $route = $this->rutaRetorno();
 
-        return redirect()->route($route)
+        return redirect()->route($route, $this->tabRetorno($route))
             ->with('toast', [
                 'message'     => 'Pesaje cancelado.',
                 'description' => 'El pesaje de '.$pesaje->vehiculo->patente.' fue removido del turno.',
@@ -207,6 +221,54 @@ class PesajeController extends Controller
             'solo_editados'    => $isAdmin ? ($request->boolean('solo_editados') ?: null) : null,
             'direction'        => in_array($request->input('direction'), ['asc', 'desc']) ? $request->input('direction') : 'desc',
         ];
+    }
+
+    /**
+     * Filtros del tab «Modificaciones». Lee los inputs con prefijo `m_` para no
+     * colisionar con los del tab «Pesajes» (que comparten la misma pantalla),
+     * pero conserva las claves canónicas que entiende PesajeRepository::buildQuery().
+     */
+    private function buildFiltrosModificaciones(Request $request): array
+    {
+        return [
+            'modificaciones'   => true,
+            'tipo'             => in_array($request->input('m_tipo'), ['editado', 'cancelado'], true) ? $request->input('m_tipo') : null,
+            'desde'            => $request->input('m_desde') ?: null,
+            'hasta'            => $request->input('m_hasta') ?: null,
+            'patente'          => $request->input('m_patente') ?: null,
+            'operario_id'      => $request->input('m_operario_id') ?: null,
+            'zona_id'          => $request->input('m_zona_id') ?: null,
+            'tipo_servicio_id' => $request->input('m_tipo_servicio_id') ?: null,
+            'direction'        => in_array($request->input('m_direction'), ['asc', 'desc']) ? $request->input('m_direction') : 'desc',
+        ];
+    }
+
+    /**
+     * Resuelve la ruta de retorno tras editar/cancelar/marcar egreso, según la pantalla de origen.
+     * Solo acepta rutas de listado conocidas (whitelist) para evitar redirecciones arbitrarias.
+     */
+    private function rutaRetorno(): string
+    {
+        $permitidas = ['historial', 'admin.pesajes.index'];
+
+        if (in_array(request('origen'), $permitidas, true)) {
+            return request('origen');
+        }
+
+        return auth()->user()->isAdmin() ? 'admin.pesajes.index' : 'historial';
+    }
+
+    /**
+     * Parámetros extra del redirect de retorno: conserva el tab «Modificaciones»
+     * cuando la acción se originó en ese tab de la pantalla de Pesajes del admin.
+     *
+     * @return array<string, string>
+     */
+    private function tabRetorno(string $route): array
+    {
+        return $route === 'admin.pesajes.index' && request('tab') === 'modificaciones'
+            ? ['tab' => 'modificaciones']
+            : [];
     }
 
     /**

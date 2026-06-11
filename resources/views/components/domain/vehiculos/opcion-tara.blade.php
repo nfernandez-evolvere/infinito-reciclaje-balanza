@@ -1,7 +1,7 @@
 @props([
-    'value',        // valor de _intencion_tara que representa esta opción
-    'titulo',       // título de la opción
-    'descripcion',  // texto explicativo
+    'value',              // valor de _intencion_tara que representa esta opción
+    'titulo',             // título de la opción
+    'descripcion' => null, // texto explicativo (opcional)
 ])
 
 {{--

@@ -182,6 +182,186 @@ class ZonaCrudTest extends TestCase
             ->assertSessionHasErrors('nombre');
     }
 
+    // ── Aislamiento multi-tenant ──────────────────────────────────────
+    // La unicidad de nombre es por organización (unique compuesto en la BD).
+    // En la tabla compartida, el nombre de otra organización no debe interferir.
+
+    #[Test]
+    public function update_permite_editar_con_nombre_que_existe_en_otra_organizacion(): void
+    {
+        // Otra organización ya tiene una zona llamada "Zona Norte".
+        $otraOrg = $this->createOrganizacion('Otra Organización');
+        $this->actingInOrg($otraOrg, fn () => Zona::factory()->create(['nombre' => 'Zona Norte']));
+
+        // La organización actual también tiene su "Zona Norte" (permitido: distinta org).
+        $zona = Zona::factory()->create(['nombre' => 'Zona Norte', 'geojson' => null]);
+        $geojson = $this->validGeojson();
+
+        // Editar sólo el contorno, conservando el nombre, no debe chocar con la otra org.
+        $this->actingAs($this->admin())
+            ->put(route('admin.zonas.update', $zona), [
+                'nombre'     => 'Zona Norte',
+                'geojson'    => $geojson,
+                'centro_lat' => '-27.46',
+                'centro_lng' => '-58.83',
+            ])
+            ->assertRedirect(route('admin.zonas.index'))
+            ->assertSessionHasNoErrors();
+
+        $zona->refresh();
+        $this->assertSame($geojson, $zona->geojson);
+        $this->assertEquals(-27.46, $zona->centro_lat);
+    }
+
+    #[Test]
+    public function store_permite_mismo_nombre_en_otra_organizacion(): void
+    {
+        $otraOrg = $this->createOrganizacion('Otra Organización');
+        $this->actingInOrg($otraOrg, fn () => Zona::factory()->create(['nombre' => 'Zona Norte']));
+
+        $this->actingAs($this->admin())
+            ->post(route('admin.zonas.store'), $this->payload(['nombre' => 'Zona Norte']))
+            ->assertRedirect(route('admin.zonas.index'))
+            ->assertSessionHasNoErrors();
+
+        // Una zona "Zona Norte" en cada organización: dos filas, distinta org.
+        $this->assertSame(2, Zona::withoutGlobalScopes()->where('nombre', 'Zona Norte')->count());
+    }
+
+    // ── Geometría ─────────────────────────────────────────────────────
+
+    private function validGeojson(): string
+    {
+        return json_encode([
+            'type'     => 'FeatureCollection',
+            'features' => [[
+                'type'       => 'Feature',
+                'properties' => (object) [],
+                'geometry'   => [
+                    'type'        => 'Polygon',
+                    'coordinates' => [[
+                        [-58.84, -27.47],
+                        [-58.82, -27.47],
+                        [-58.82, -27.45],
+                        [-58.84, -27.45],
+                        [-58.84, -27.47],
+                    ]],
+                ],
+            ]],
+        ]);
+    }
+
+    #[Test]
+    public function store_persiste_geojson_y_centro(): void
+    {
+        $geojson = $this->validGeojson();
+
+        $this->actingAs($this->admin())
+            ->post(route('admin.zonas.store'), $this->payload([
+                'nombre'     => 'Zona Mapeada',
+                'geojson'    => $geojson,
+                'centro_lat' => '-27.46',
+                'centro_lng' => '-58.83',
+            ]))
+            ->assertRedirect(route('admin.zonas.index'))
+            ->assertSessionHasNoErrors();
+
+        $zona = Zona::where('nombre', 'Zona Mapeada')->firstOrFail();
+
+        $this->assertSame($geojson, $zona->geojson);
+        $this->assertEquals(-27.46, $zona->centro_lat);
+        $this->assertEquals(-58.83, $zona->centro_lng);
+    }
+
+    #[Test]
+    public function store_acepta_zona_sin_geometria(): void
+    {
+        $this->actingAs($this->admin())
+            ->post(route('admin.zonas.store'), $this->payload([
+                'nombre'     => 'Zona Sin Mapa',
+                'geojson'    => '',
+                'centro_lat' => '',
+                'centro_lng' => '',
+            ]))
+            ->assertRedirect(route('admin.zonas.index'))
+            ->assertSessionHasNoErrors();
+
+        $zona = Zona::where('nombre', 'Zona Sin Mapa')->firstOrFail();
+
+        $this->assertNull($zona->geojson);
+        $this->assertNull($zona->centro_lat);
+        $this->assertNull($zona->centro_lng);
+    }
+
+    #[Test]
+    public function store_validates_geojson_es_json(): void
+    {
+        $this->actingAs($this->admin())
+            ->post(route('admin.zonas.store'), $this->payload(['geojson' => 'no-es-json']))
+            ->assertSessionHasErrors('geojson');
+    }
+
+    #[Test]
+    public function store_validates_centro_lat_dentro_de_rango(): void
+    {
+        $this->actingAs($this->admin())
+            ->post(route('admin.zonas.store'), $this->payload(['centro_lat' => 91]))
+            ->assertSessionHasErrors('centro_lat');
+    }
+
+    #[Test]
+    public function store_validates_centro_lng_dentro_de_rango(): void
+    {
+        $this->actingAs($this->admin())
+            ->post(route('admin.zonas.store'), $this->payload(['centro_lng' => -181]))
+            ->assertSessionHasErrors('centro_lng');
+    }
+
+    #[Test]
+    public function update_persiste_la_geometria(): void
+    {
+        $zona = Zona::factory()->create(['nombre' => 'Zona Geo', 'geojson' => null]);
+        $geojson = $this->validGeojson();
+
+        $this->actingAs($this->admin())
+            ->put(route('admin.zonas.update', $zona), [
+                'nombre'     => 'Zona Geo',
+                'geojson'    => $geojson,
+                'centro_lat' => '-27.46',
+                'centro_lng' => '-58.83',
+            ])
+            ->assertRedirect(route('admin.zonas.index'))
+            ->assertSessionHasNoErrors();
+
+        $zona->refresh();
+
+        $this->assertSame($geojson, $zona->geojson);
+        $this->assertEquals(-27.46, $zona->centro_lat);
+        $this->assertEquals(-58.83, $zona->centro_lng);
+    }
+
+    #[Test]
+    public function update_puede_borrar_la_geometria(): void
+    {
+        $zona = Zona::factory()->conGeometria()->create(['nombre' => 'Zona Con Geo']);
+
+        $this->actingAs($this->admin())
+            ->put(route('admin.zonas.update', $zona), [
+                'nombre'     => 'Zona Con Geo',
+                'geojson'    => '',
+                'centro_lat' => '',
+                'centro_lng' => '',
+            ])
+            ->assertRedirect(route('admin.zonas.index'))
+            ->assertSessionHasNoErrors();
+
+        $zona->refresh();
+
+        $this->assertNull($zona->geojson);
+        $this->assertNull($zona->centro_lat);
+        $this->assertNull($zona->centro_lng);
+    }
+
     // ── Toggle ────────────────────────────────────────────────────────
 
     #[Test]

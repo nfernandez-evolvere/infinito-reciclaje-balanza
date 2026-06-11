@@ -24,7 +24,7 @@ Cuando ingresás como admin, ves el panel con una barra lateral izquierda. Los �
 **Operación**
 - **Dashboard** — vista en tiempo real de lo que está pasando hoy
 - **Pesajes** — log completo de todos los pesajes registrados
-- **Reportes** — generación, exportación y envío automático de reportes
+- **Reportes** — generación, exportación y envío automático de reportes, con revisión y aprobación previa de los envíos
 
 **Padrón**
 - **Zonas** — áreas geográficas de recolección, con servicios y turnos asignados

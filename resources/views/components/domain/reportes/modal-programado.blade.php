@@ -126,6 +126,25 @@
                     <p class="text-caption">Enter o coma para confirmar cada email.</p>
                 </x-ui.form-field>
 
+                <x-ui.form-field
+                    for="m-revision"
+                    :state="$errors->has('revision') ? 'destructive' : null"
+                    :message="$errors->first('revision')"
+                >
+                    <x-ui.label for="m-revision">Revisión antes de enviar</x-ui.label>
+                    <x-ui.select name="revision" x-modelable="value" x-model="form.revision">
+                        <x-ui.select.trigger id="m-revision" :state="$errors->has('revision') ? 'destructive' : null">
+                            <x-ui.select.value placeholder="Seleccionar" />
+                        </x-ui.select.trigger>
+                        <x-ui.select.content>
+                            <x-ui.select.item value="heredar">Según configuración general ({{ ($config->revision_requerida ?? true) ? 'con revisión' : 'envío directo' }})</x-ui.select.item>
+                            <x-ui.select.item value="revisar">Revisar siempre antes de enviar</x-ui.select.item>
+                            <x-ui.select.item value="directo">Enviar directo, sin revisión</x-ui.select.item>
+                        </x-ui.select.content>
+                    </x-ui.select>
+                    <p class="text-caption">Con revisión, el reporte queda pendiente en el historial hasta que lo apruebes.</p>
+                </x-ui.form-field>
+
                 <div class="flex items-center justify-between py-1">
                     <div>
                         <p class="text-label">Activo</p>

@@ -21,14 +21,11 @@ GitHub Actions.
 8. [El script de deploy](#8-el-script-de-deploy)
 9. [CI/CD con GitHub Actions](#9-cicd-con-github-actions)
 10. [Setup inicial del servidor (runbook)](#10-setup-inicial-del-servidor-runbook)
-    - [10.1 Instalar Docker](#101-instalar-docker-en-la-vps)
-    - [10.2 Clonar el repo](#102-clonar-el-repo)
-    - [10.3 Crear .env.prod](#103-crear-envprod)
-    - [10.4 Configurar GitHub Secrets](#104-configurar-github-secrets)
-    - [10.5 Crear red compartida](#105-crear-la-red-compartida)
-    - [10.6 Login a GHCR](#106-login-a-ghcr)
-    - [10.7 Levantar el edge](#107-levantar-el-edge-router-del-blue-green)
-    - [10.8 Primer deploy](#108-primer-deploy)
+    - [Fase 0 — Repo y GHCR](#fase-0--preparar-el-repo-y-poblar-ghcr)
+    - [Fase 1 — Clave SSH y Secrets](#fase-1--clave-ssh-y-github-secrets)
+    - [Fase 2 — Bootstrap de la VPS](#fase-2--bootstrap-de-la-vps)
+    - [Fase 3 — Primer deploy](#fase-3--primer-deploy)
+    - [Fase 4 — Deploys posteriores](#fase-4--deploys-posteriores-automáticos)
 11. [Secrets y variables de entorno](#11-secrets-y-variables-de-entorno)
 12. [Gotchas y troubleshooting](#12-gotchas-y-troubleshooting)
 13. [Cómo extender (TLS, escalado, rollback)](#13-cómo-extender-tls-escalado-rollback)
@@ -56,6 +53,7 @@ GitHub Actions.
 ├── .dockerignore                  # qué NO entra al contexto de build
 ├── .env.docker.example            # plantilla de .env.prod (copiar en el server)
 ├── .env.staging.example           # plantilla de .env.staging (copiar en el server)
+├── .env.edge.example              # plantilla de .env.edge: dominios del edge (copiar en el server)
 │
 ├── compose.dev.yaml               # desarrollo: bind mount + Vite dev server + SQL Server del host
 ├── compose.prod-local.yaml        # testear imagen de producción localmente (sin bind mounts, APP_ENV=production)
@@ -73,7 +71,7 @@ GitHub Actions.
 │   ├── supervisor/web.conf        # grupo WEB: nginx + php-fpm
 │   ├── supervisor/worker.conf     # grupo WORKER: queue + scheduler
 │   └── edge/
-│       ├── nginx.conf             # nginx EDGE: dos server{} (prod + staging)
+│       ├── default.conf.template  # nginx EDGE: dos server{} (prod + staging) — server_name = ${APP_DOMAIN}/${STAGE_DOMAIN}
 │       ├── prod/
 │       │   ├── upstream-blue.conf   # upstream balanza_prod_app → balanza-prod-app-blue
 │       │   ├── upstream-green.conf  # upstream balanza_prod_app → balanza-prod-app-green
@@ -369,7 +367,7 @@ La confusión clásica del blue-green es mezclarlos. Son **roles distintos**:
 
 | | nginx de la **app** | nginx **edge** / router |
 |--|--------------------|-------------------------|
-| Archivo | `docker/nginx/default.conf` | `docker/edge/nginx.conf` + `upstream-*.conf` |
+| Archivo | `docker/nginx/default.conf` | `docker/edge/default.conf.template` + `upstream-*.conf` |
 | Dónde vive | dentro de cada contenedor app | host, contenedor `balanza-edge` persistente |
 | ¿En la imagen? | **Sí**, horneado | **No** — sobrevive a los swaps |
 | Qué hace | sirve `/public`, FastCGI a php-fpm | TLS, conmuta blue↔green, balancea |
@@ -377,15 +375,25 @@ La confusión clásica del blue-green es mezclarlos. Son **roles distintos**:
 El edge hace el blue-green así:
 
 ```
-docker/edge/nginx.conf  →  include /etc/nginx/edge/active-upstream.conf
+default.conf.template  →  include /etc/nginx/edge/prod/active-upstream.conf
+   (renderizado a            include /etc/nginx/edge/staging/active-upstream.conf
+    conf.d/default.conf                       │
+    al arrancar)        <env>/active-upstream.conf  =  copia de  upstream-blue.conf | upstream-green.conf
                                           │
-active-upstream.conf  =  copia de  upstream-blue.conf  |  upstream-green.conf
-                                          │
-deploy.sh:  cp upstream-green.conf active-upstream.conf  &&  nginx -s reload
+deploy.sh:  cp <env>/upstream-green.conf <env>/active-upstream.conf  &&  nginx -s reload
 ```
 
 El `reload` es **graceful**: nginx termina las requests en vuelo con la config vieja
 y atiende las nuevas con la nueva. Cero conexiones cortadas.
+
+> **Dominios — única fuente de verdad: `.env.edge`.** Los `server_name` del edge no
+> están hardcodeados: el template usa `${APP_DOMAIN}` (prod) y `${STAGE_DOMAIN}` (staging),
+> que el entrypoint del image de nginx sustituye con `envsubst` al arrancar, leyéndolos de
+> `.env.edge` (en el host, no se commitea — sobrevive al `git reset --hard` del deploy).
+> `NGINX_ENVSUBST_FILTER` limita la sustitución a esas dos variables para no tocar las de
+> nginx (`$host`, `$scheme`, …). **El cutover (`nginx -s reload`) NO re-renderiza el
+> template** — solo recarga los `include`. Para cambiar un dominio: editar `.env.edge` y
+> recrear el edge: `docker compose -p app-edge -f compose.edge.yaml up -d`.
 
 ---
 
@@ -482,10 +490,142 @@ lo que permite definir secrets distintos por entorno si la VPS es diferente.
 
 ## 10. Setup inicial del servidor (runbook)
 
-Todo lo siguiente se hace **una sola vez** en la VPS de producción. Los deploys
-posteriores son automáticos vía GitHub Actions.
+Se hace **una sola vez**. Después, cada push a `main`/`staging` despliega solo.
 
-### 10.1 Instalar Docker y git en la VPS
+El setup son **4 fases, en este orden**, y no todas ocurren en la VPS:
+
+| Fase | Dónde | Qué |
+|------|-------|-----|
+| **[0 · Repo](#fase-0--preparar-el-repo-y-poblar-ghcr)** | Tu máquina + GitHub | Dominios reales + primer push (puebla GHCR con la imagen) |
+| **[1 · Acceso](#fase-1--clave-ssh-y-github-secrets)** | Tu máquina + web de GitHub | Par de claves SSH + GitHub Secrets |
+| **[2 · Bootstrap VPS](#fase-2--bootstrap-de-la-vps)** | VPS | git/docker, repo, `.env`, red, edge — el "piso fijo" |
+| **[3 · Primer deploy](#fase-3--primer-deploy)** | VPS | `deploy.sh` prod + staging + migraciones |
+| **[4 · En adelante](#fase-4--deploys-posteriores-automáticos)** | Automático | Push → deploy |
+
+> **El orden no se puede alterar:** la imagen debe existir en GHCR (fase 0) antes del
+> primer deploy (fase 3); y dentro de la VPS el orden es **red → edge → deploy** — el
+> edge necesita la red para arrancar, y el primer deploy necesita el edge arriba para el
+> cutover. Saltarse ese orden hace fallar el arranque.
+
+---
+
+### Fase 0 — Preparar el repo y poblar GHCR
+
+*(en tu máquina / el repo, una sola vez)*
+
+**1. Dominios → `.env.edge` en el servidor.** Los `server_name` del edge ya **no** se
+editan en ningún archivo del repo: el template `docker/edge/default.conf.template` usa
+`${APP_DOMAIN}` / `${STAGE_DOMAIN}` y los toma de `.env.edge`. Este paso se hace en la
+[fase 2.6](#fase-2--instalar-el-edge) (copiar `.env.edge.example` → `.env.edge` y completar).
+
+> **Por qué en `.env.edge` y no en el repo.** El deploy hace `git reset --hard` en el
+> servidor; un archivo trackeado con el dominio se sobrescribiría en cada deploy. `.env.edge`
+> **no** está trackeado (igual que `.env.prod` / `.env.staging`), así que sobrevive y permite
+> cambiar el dominio sin un commit ni un redeploy — ideal mientras se prueba con un dominio
+> provisorio. Solo hay que recrear el edge para re-renderizar el template (ver fase 2.6).
+
+**2. Primer push** a `main` y `staging`:
+
+```bash
+git push origin main
+git push origin staging
+```
+
+Esto dispara el workflow, que **construye y sube las imágenes a GHCR** (`:prod-latest` y
+`:staging-latest`). El job de *deploy* va a **fallar** —la VPS todavía no está lista—, y
+está bien: de este push solo necesitás que la imagen quede publicada. El primer deploy
+real es manual, en la [fase 3](#fase-3--primer-deploy).
+
+---
+
+### Fase 1 — Clave SSH y GitHub Secrets
+
+*(en tu máquina y en la web de GitHub, una sola vez)*
+
+GitHub Actions entra a la VPS por SSH sin que vos estés. Para eso necesita una **clave
+privada** (guardada como secret) cuya mitad **pública** vive en la VPS. Instalar la
+pública solo requiere el acceso SSH que ya te dio el proveedor del servidor — no hace
+falta tener Docker ni el repo todavía.
+
+Una clave SSH son **dos archivos que van juntos**:
+
+- 🔒 **Privada** — secreta, nunca se comparte. La tiene **quien se conecta** (el runner de GitHub).
+- 🔑 **Pública** — se reparte libremente. Va en **la máquina a la que te conectás** (la VPS).
+
+```
+   GitHub Actions runner                          VPS (servidor)
+   ┌─────────────────────┐                      ┌────────────────────────┐
+   │  Secret SSH_KEY      │   ssh usuario@IP     │ ~/.ssh/authorized_keys │
+   │  = CLAVE PRIVADA 🔒  │ ───────────────────► │ = CLAVE PÚBLICA 🔑     │
+   └─────────────────────┘   firma con privada   └────────────────────────┘
+                              server verifica con la pública
+```
+
+> **Regla de oro:** la **pública** va en la máquina a la que entrás (la VPS). La **privada** se queda con quien entra (el Secret `SSH_KEY`). La pública **no** es un secret.
+
+**1.1 — Generar un par dedicado** (no reuses tu clave personal; así es revocable sin afectar otros accesos):
+
+```bash
+ssh-keygen -t ed25519 -C "deploy-balanza-ci" -f "$HOME\.ssh\balanza_deploy"
+# Cuando pida passphrase → Enter dos veces (sin passphrase: el runner no puede tipearla).
+```
+
+> En Windows (PowerShell) la ruta es `$env:USERPROFILE\.ssh\balanza_deploy`; el resto del comando es igual.
+
+Genera dos archivos: `balanza_deploy` (🔒 privada) y `balanza_deploy.pub` (🔑 pública).
+
+**1.2 — Instalar la pública en la VPS** — agregar la línea **real** de `balanza_deploy.pub` al `authorized_keys` del `SSH_USER`:
+
+```bash
+mkdir -p ~/.ssh && chmod 700 ~/.ssh
+cat ~/.ssh/balanza_deploy.pub >> ~/.ssh/authorized_keys   # el contenido real, NO el texto de ejemplo
+chmod 600 ~/.ssh/authorized_keys
+```
+
+> Si generaste el par **en la VPS**, después de copiar la privada al secret (paso 1.3) borrala del server con `rm ~/.ssh/balanza_deploy`. La privada no debe quedar en la máquina que desbloquea.
+
+**1.3 — Cargar la privada en el Secret `SSH_KEY`** — copiar el contenido **completo** de `balanza_deploy`, incluyendo las líneas `-----BEGIN OPENSSH PRIVATE KEY-----` y `-----END OPENSSH PRIVATE KEY-----`, y pegarlo en el secret.
+
+**1.4 — Probar el par antes de confiar en el runner:**
+
+```bash
+ssh -i ~/.ssh/balanza_deploy <SSH_USER>@<SSH_HOST>
+```
+
+Si entra **sin pedir contraseña**, el par está bien y el runner va a poder igual.
+
+| Síntoma | Causa |
+|---|---|
+| `Permission denied (publickey)` | La pública no quedó en `authorized_keys`, o permisos mal (`.ssh` = 700, `authorized_keys` = 600) |
+| El runner pide contraseña / cuelga | La privada tiene passphrase, o el Secret quedó incompleto (sin las líneas BEGIN/END) |
+| Funciona local pero no el runner | Se pegó solo parte de la privada en el secret |
+
+**1.5 — Cargar el resto de los Secrets** en el repo → **Settings → Secrets and variables → Actions → New repository secret**:
+
+| Secret | Valor |
+|--------|-------|
+| `SSH_HOST` | IP pública de la VPS |
+| `SSH_USER` | usuario SSH (ej: `root`, `ubuntu`, `deploy`) |
+| `SSH_KEY` | la **clave privada** del paso 1.3 |
+| `SSH_PORT` | opcional, si no es 22 |
+| `APP_DIR` | **ruta absoluta** al repo en la VPS (la obtenés al clonar, en la [fase 2](#fase-2--bootstrap-de-la-vps)), ej: `/root/infinito-reciclaje-balanza` |
+| `GHCR_TOKEN` | PAT de GitHub con permiso `read:packages` (Settings → Developer settings → Personal access tokens) |
+
+> El **push** a GHCR usa el `GITHUB_TOKEN` automático del runner (permiso `packages: write`
+> declarado en el workflow). El **pull** desde la VPS necesita un PAT propio (`GHCR_TOKEN`)
+> porque el `GITHUB_TOKEN` del runner es efímero y no tiene acceso fuera del job.
+
+> **`APP_DIR`** es la ruta absoluta donde clonás el repo (fase 2). El deploy hace
+> `cd $APP_DIR` antes de `git reset --hard` y `docker/deploy.sh`, así que debe apuntar a
+> la carpeta con `.git/`, `docker/` y los `compose.*.yaml`. Si no lo seteás, el workflow
+> usa `~/infinito-reciclaje-balanza` por default. Siempre absoluta, nunca relativa, y
+> accesible por el `SSH_USER`.
+
+### Fase 2 — Bootstrap de la VPS
+
+*(en el servidor, una sola vez — este es el "piso fijo" que el workflow no recrea)*
+
+**2.1 — Instalar git y Docker:**
 
 ```bash
 # git: las imágenes cloud minimal no lo traen, y el host lo necesita tanto para
@@ -497,121 +637,119 @@ sudo usermod -aG docker $USER
 newgrp docker    # aplicar sin cerrar sesión
 ```
 
-### 10.2 Clonar el repo
+**2.2 — Clonar el repo** (y anotar la ruta → es el secret `APP_DIR` de la fase 1):
 
 ```bash
 git clone https://github.com/nfernandez-evolvere/infinito-reciclaje-balanza.git
 cd infinito-reciclaje-balanza
+pwd     # → ej. /root/infinito-reciclaje-balanza — ese string es APP_DIR
 ```
 
-### 10.3 Crear `.env.prod`
+**2.3 — Crear los `.env` de cada entorno** (no se commitean: viven solo en el server):
 
 ```bash
-cp .env.docker.example .env.prod
-nano .env.prod   # o el editor preferido
+cp .env.docker.example  .env.prod      && nano .env.prod
+cp .env.staging.example .env.staging   && nano .env.staging
 ```
 
-Variables críticas a completar:
+Variables críticas de `.env.prod`:
 
 | Variable | Cómo obtenerla |
 |----------|----------------|
-| `APP_KEY` | `docker run --rm ghcr.io/nfernandez-evolvere/infinito-reciclaje-balanza:latest php artisan key:generate --show` (una vez que la imagen exista en GHCR) |
-| `APP_URL` | URL pública de la app, ej: `https://balanza.tudominio.com` |
+| `APP_KEY` | `docker run --rm ghcr.io/nfernandez-evolvere/infinito-reciclaje-balanza:prod-latest php artisan key:generate --show` (la imagen ya está en GHCR desde la fase 0) |
+| `APP_URL` | URL pública, ej: `https://balanza.tudominio.com` |
 | `DB_HOST` | IP o hostname del SQL Server compartido |
 | `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | credenciales del SQL Server |
 | `RESEND_KEY` | API key de Resend para el envío de emails |
 
-### 10.4 Configurar GitHub Secrets
+`.env.staging` es igual pero **nunca comparte base ni clave** con prod: `APP_URL` de
+staging, `DB_DATABASE` propia, `DB_TABLE_PREFIX=stg_` y un `APP_KEY` distinto (generá
+otro con el mismo comando). Ver `.env.docker.example` / `.env.staging.example` y la
+[sección 11](#11-secrets-y-variables-de-entorno) para la lista completa.
 
-En el repo → **Settings → Secrets and variables → Actions**:
-
-| Secret | Valor |
-|--------|-------|
-| `SSH_HOST` | IP pública de la VPS |
-| `SSH_USER` | usuario SSH (ej: `ubuntu`, `deploy`) |
-| `SSH_KEY` | clave privada SSH (`cat ~/.ssh/id_rsa`). El public key debe estar en `~/.ssh/authorized_keys` en la VPS |
-| `SSH_PORT` | opcional, si no es 22 |
-| `APP_DIR` | ruta al repo en la VPS, ej: `/home/ubuntu/infinito-reciclaje-balanza` |
-| `GHCR_TOKEN` | PAT de GitHub con permiso `read:packages` (Settings → Developer settings → Personal access tokens) |
-
-> El **push** a GHCR usa `GITHUB_TOKEN` automático del runner (permiso `packages: write`
-> declarado en el workflow). El **pull** desde la VPS necesita un PAT propio porque el
-> `GITHUB_TOKEN` del runner es efímero y no tiene acceso fuera de la ejecución del job.
-
-### 10.5 Crear la red compartida
+**2.4 — Crear la red compartida** (el edge la necesita para arrancar):
 
 ```bash
 docker network create balanza-net
 ```
 
-Todos los contenedores (`balanza-edge`, `balanza-app-blue`, `balanza-app-green`,
-`balanza-worker`) se comunican a través de esta red por nombre.
+Por esta red se comunican todos los contenedores (`balanza-edge`,
+`balanza-prod-app-blue/green`, `balanza-staging-app-blue/green`, `balanza-prod-worker`,
+`balanza-staging-worker`). Es `external`: existe fuera de cualquier compose para que un
+`docker compose down` no la borre y deje incomunicados a los demás.
 
-### 10.6 Login a GHCR
+**2.5 — Login a GHCR** (para que la VPS pueda bajar la imagen):
 
 ```bash
 export GHCR_TOKEN="<PAT con read:packages>"
 echo "$GHCR_TOKEN" | docker login ghcr.io -u <usuario-github> --password-stdin
 ```
 
-### 10.7 Levantar el edge (router del blue-green)
+**2.6 — Definir los dominios y levantar el edge** (el router del blue-green):
 
 ```bash
+# Dominios del edge (única fuente de verdad — no se commitea):
+cp .env.edge.example .env.edge   && nano .env.edge   # completar APP_DOMAIN y STAGE_DOMAIN
+
 docker compose -p app-edge -f compose.edge.yaml up -d
 ```
 
-Este contenedor (`balanza-edge`) es **permanente**: no participa del swap blue-green y
-nunca se baja en deploys normales. Es el único que escucha en el puerto 80 (y 443 si
-hay TLS).
+Es **permanente**: no participa del swap blue-green y nunca se baja en deploys normales.
+Es el único que escucha en el puerto 80 (y 443 si hay TLS). Necesita la red del paso 2.4.
 
-### 10.8 Primer deploy de producción
+Al arrancar, el entrypoint de nginx renderiza `default.conf.template` sustituyendo
+`APP_DOMAIN` / `STAGE_DOMAIN` desde `.env.edge`, y deja servidos los dos dominios
+(prod + staging). **Si cambiás un dominio después**, editá `.env.edge` y volvé a correr
+`docker compose -p app-edge -f compose.edge.yaml up -d` (recrea el contenedor y re-renderiza
+el template — un `nginx -s reload` no alcanza).
+
+---
+
+### Fase 3 — Primer deploy
+
+*(en el servidor, una sola vez — el `deploy.sh` se corre a mano solo esta primera vez)*
+
+**3.1 — Producción:**
 
 ```bash
-GHCR_TOKEN="$GHCR_TOKEN" \
-  GHCR_USER="<usuario-github>" \
+GHCR_TOKEN="$GHCR_TOKEN" GHCR_USER="<usuario-github>" \
   bash docker/deploy.sh prod-latest prod
 ```
 
-Esto: pull de la imagen, levanta blue en `:8081`, health-check en `/up`, conecta el
-edge al upstream de prod, levanta el worker de prod.
-
-Luego, **por separado**, el operador aplica las migraciones si el release las trae:
+Hace pull de la imagen, levanta blue en `:8081`, health-check en `/up`, conmuta el edge
+al upstream de prod y levanta el worker de prod. Después, **por separado**, aplicás las
+migraciones (siempre manuales — la base es compartida):
 
 ```bash
 docker exec balanza-prod-app-blue php artisan migrate --force
 ```
 
-### 10.9 Primer deploy de staging
+**3.2 — Staging:**
 
 ```bash
-# 1. Crear .env.staging en el servidor (igual que .env.prod pero con base de staging)
-cp .env.staging.example .env.staging
-nano .env.staging    # APP_URL, DB_DATABASE=infinito_reciclaje_staging, etc.
-
-# 2. Deploy
-GHCR_TOKEN="$GHCR_TOKEN" \
-  GHCR_USER="<usuario-github>" \
+GHCR_TOKEN="$GHCR_TOKEN" GHCR_USER="<usuario-github>" \
   bash docker/deploy.sh staging-latest staging
 
-# 3. Migraciones (separadas del deploy)
 docker exec balanza-staging-app-blue php artisan migrate --force
 ```
 
-Staging queda en `http://staging.balanza.tudominio.com` (manejado por el mismo edge).
+Staging queda servido por el mismo edge en `https://staging.balanza.tudominio.com`.
 
-### 10.10 Deploys posteriores (automáticos)
+---
+
+### Fase 4 — Deploys posteriores (automáticos)
+
+Con el piso ya armado, cada push despliega solo:
 
 | Push a | Despliega en | Tags de imagen |
 |--------|-------------|----------------|
 | `main` | producción | `:<sha>` + `:prod-latest` |
 | `staging` | staging | `:<sha>` + `:staging-latest` |
 
-Ambos deploys son independientes — uno no bloquea ni afecta al otro.
-
-Cuando un release trae cambios de schema, el operador los aplica manualmente:
+Ambos deploys son independientes — uno no bloquea ni afecta al otro. Lo único que volvés
+a hacer a mano en la VPS son las **migraciones**, cuando un release trae cambios de schema:
 
 ```bash
-# Después del deploy automático, si hay migraciones pendientes:
 docker exec balanza-prod-app-blue php artisan migrate --force
 docker exec balanza-staging-app-blue php artisan migrate --force
 ```
@@ -668,8 +806,8 @@ Ver `.env.docker.example` y `.env.staging.example` para la lista completa.
 | `supervisorctl` devuelve `does not include supervisorctl section` | faltaban `[unix_http_server]` y `[supervisorctl]` en el conf | ya incluidas en `web.conf` y `worker.conf`; verificar con `docker exec <contenedor> supervisorctl status` |
 | Emails/reportes no se envían | worker no levantado, scheduler no corriendo, o `RESEND_KEY` no seteada | ver diagnóstico de emails más abajo |
 | Reportes duplicados | dos schedulers corriendo | el scheduler va **solo** en el worker único, no en blue/green |
-| El cutover no cambia el tráfico | edge no recargó | `docker exec balanza-edge nginx -t && nginx -s reload` |
-| Deploy aborta en health-check | el color nuevo no levanta `/up` | revisar `docker compose -p app-<color> logs app`; el viejo sigue sirviendo |
+| El cutover no cambia el tráfico | edge no recargó | `docker exec balanza-edge nginx -t && docker exec balanza-edge nginx -s reload` |
+| Deploy aborta en health-check | el color nuevo no levanta `/up` | revisar `docker logs balanza-<entorno>-app-<color>`; el viejo sigue sirviendo |
 | `route:cache` falla | rutas con Closure | no se cachean rutas a propósito; nunca ejecutar `route:cache` |
 | Build de la imagen en Mac ARM | ODBC + mssql exigen amd64 | `docker build --platform=linux/amd64` |
 | Auto-refresh Vite no funciona (Windows) | WSL2 no propaga inotify al bind mount | `usePolling: true, interval: 1000` en `vite.config.js` (ya configurado) |
@@ -699,24 +837,25 @@ docker exec <contenedor-worker> php artisan tinker \
 ### Comandos útiles
 
 ```bash
-# Ver qué color está activo
-grep balanza-app docker/edge/active-upstream.conf
+# Ver qué color está activo (por entorno)
+cat docker/edge/prod/active-upstream.conf
+cat docker/edge/staging/active-upstream.conf
 
 # Estado de todos los contenedores del proyecto
 docker ps --filter name=balanza --format "table {{.Names}}\t{{.Status}}\t{{.Image}}"
 
-# Logs de un color / del worker / del edge
-docker compose -p app-blue   -f compose.prod.yaml   logs -f app
-docker compose -p app-worker -f compose.worker.yaml logs -f worker
+# Logs de un color / del worker / del edge (ejemplos con prod)
+docker logs -f balanza-prod-app-blue
+docker logs -f balanza-prod-worker
 docker logs -f balanza-edge
 
 # Reintentar jobs fallidos
-docker exec <contenedor-worker> php artisan queue:retry all
+docker exec balanza-prod-worker php artisan queue:retry all
 
-# Rollback rápido al color anterior (sin deploy)
-COLOR=blue HTTP_PORT=8081 TAG=<sha-anterior> \
-  docker compose -p app-blue -f compose.prod.yaml up -d
-cp docker/edge/upstream-blue.conf docker/edge/active-upstream.conf
+# Rollback rápido al color anterior (sin deploy) — ver §13 para ambos entornos
+ENV_PREFIX=prod COLOR=blue HTTP_PORT=8081 TAG=<sha-anterior> \
+  docker compose -p prod-blue -f compose.prod.yaml up -d
+cp docker/edge/prod/upstream-blue.conf docker/edge/prod/active-upstream.conf
 docker exec balanza-edge nginx -s reload
 ```
 
@@ -725,9 +864,9 @@ docker exec balanza-edge nginx -s reload
 ## 13. Cómo extender (TLS, escalado, rollback)
 
 - **TLS / HTTPS**: descomentar el bloque `server { listen 443 ssl … }` en
-  `docker/edge/nginx.conf`, montar los certificados en `docker/edge/certs/` y abrir
-  el `443` en `compose.edge.yaml`. (Alternativa: poner Caddy/Traefik como edge para
-  certificados automáticos de Let's Encrypt.)
+  `docker/edge/default.conf.template` (su `server_name` ya usa `${APP_DOMAIN}`), montar los
+  certificados en `docker/edge/certs/` y abrir el `443` en `compose.edge.yaml`. (Alternativa:
+  poner Caddy/Traefik como edge para certificados automáticos de Let's Encrypt.)
 - **Rollback manual**: la imagen anterior queda en el host tras el deploy. Para volver:
   ```bash
   # Rollback en prod a blue con SHA anterior:

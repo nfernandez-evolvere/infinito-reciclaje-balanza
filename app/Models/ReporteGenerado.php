@@ -7,9 +7,17 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Registro inmutable de cada reporte producido: una descarga manual (Excel/PDF)
- * o un envío programado. Solo guarda metadatos (período, filtros, formato,
- * destinatarios); el contenido se regenera bajo demanda desde los pesajes.
+ * Registro de cada reporte producido: una descarga manual (Excel/PDF) o un
+ * envío programado. Guarda los metadatos (período, filtros, formato,
+ * destinatarios congelados) y un `snapshot` con los datos tal como se generó:
+ * así una re-descarga o un envío aprobado reproduce el reporte idéntico al
+ * original, sin recalcular sobre los pesajes vivos (la tara de un vehículo
+ * puede cambiar después). Las entradas previas a la introducción del snapshot
+ * lo tienen en null y caen al recálculo bajo demanda.
+ *
+ * Estados del flujo programado: generando → en_revision|enviando → enviado;
+ * en_revision → descartado; cualquier fase puede caer a fallido y reintentarse.
+ * Las descargas manuales usan el estado legacy `generado`.
  *
  * @mixin \Eloquent
  * @mixin IdeHelperReporteGenerado
@@ -17,6 +25,20 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ReporteGenerado extends Model
 {
     use BelongsToOrganizacion;
+
+    public const ESTADO_GENERANDO = 'generando';
+
+    public const ESTADO_EN_REVISION = 'en_revision';
+
+    public const ESTADO_ENVIANDO = 'enviando';
+
+    public const ESTADO_ENVIADO = 'enviado';
+
+    public const ESTADO_FALLIDO = 'fallido';
+
+    public const ESTADO_DESCARTADO = 'descartado';
+
+    public const ESTADO_GENERADO = 'generado';
 
     protected $table = 'reportes_generados';
 
@@ -34,6 +56,11 @@ class ReporteGenerado extends Model
         'estado',
         'error',
         'conclusiones',
+        'snapshot',
+        'revisado_por_id',
+        'revisado_at',
+        'enviado_at',
+        'motivo_descarte',
     ];
 
     protected $casts = [
@@ -41,11 +68,19 @@ class ReporteGenerado extends Model
         'periodo_hasta' => 'date',
         'filtros'       => 'array',
         'destinatarios' => 'array',
+        'snapshot'      => 'array',
+        'revisado_at'   => 'datetime',
+        'enviado_at'    => 'datetime',
     ];
 
     public function usuario(): BelongsTo
     {
         return $this->belongsTo(User::class, 'usuario_id');
+    }
+
+    public function revisadoPor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'revisado_por_id');
     }
 
     public function programado(): BelongsTo

@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <title>Informe de Pesajes</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
@@ -44,7 +46,7 @@
 
     body {
         font-family: 'Inter', -apple-system, Arial, sans-serif;
-        font-size: 10px;
+        font-size: 12px;
         color: var(--n-700);
         background: #fff;
         line-height: 1.5;
@@ -118,7 +120,7 @@
         display: inline-flex;
         align-items: center;
         gap: 2.5mm;
-        font-size: 8px;
+        font-size: 9.5px;
         font-weight: 700;
         letter-spacing: 0.28em;
         text-transform: uppercase;
@@ -137,7 +139,7 @@
         display: inline-block;
         background: var(--p-700);
         color: var(--p-100);
-        font-size: 7.5px;
+        font-size: 9px;
         font-weight: 600;
         letter-spacing: 0.14em;
         text-transform: uppercase;
@@ -160,7 +162,7 @@
     }
 
     .cover-period {
-        font-size: 15px;
+        font-size: 18px;
         font-weight: 300;
         color: var(--p-200);
         letter-spacing: 0.02em;
@@ -177,14 +179,14 @@
     }
 
     .cover-muni {
-        font-size: 12px;
+        font-size: 14.5px;
         font-weight: 600;
         color: var(--p-100);
         margin-bottom: 1mm;
     }
 
     .cover-sub {
-        font-size: 8px;
+        font-size: 9.5px;
         color: var(--p-400);
         letter-spacing: 0.02em;
     }
@@ -194,7 +196,7 @@
         border: 1px solid var(--p-700);
         border-radius: 5px;
         padding: 2.5mm 4.5mm;
-        font-size: 7.5px;
+        font-size: 9px;
         font-weight: 600;
         letter-spacing: 0.1em;
         color: var(--p-300);
@@ -221,7 +223,7 @@
     }
 
     .slide-eyebrow {
-        font-size: 6.5px;
+        font-size: 8px;
         font-weight: 700;
         letter-spacing: 0.22em;
         text-transform: uppercase;
@@ -238,7 +240,7 @@
     }
 
     .slide-meta {
-        font-size: 8px;
+        font-size: 9.5px;
         color: var(--n-400);
         text-align: right;
         white-space: nowrap;
@@ -261,11 +263,20 @@
 
     .slide-content { flex: 1; }
 
+    /* Bajada explicativa bajo el título de cada sección */
+    .slide-desc {
+        font-size: 13px;
+        color: var(--n-600);
+        line-height: 1.6;
+        max-width: 220mm;
+        margin-bottom: 5mm;
+    }
+
     /* ════════════════════════════════════════
        QUIÉNES SOMOS
     ════════════════════════════════════════ */
     .intro-text {
-        font-size: 10.5px;
+        font-size: 12.5px;
         color: var(--n-600);
         line-height: 1.8;
         max-width: 200mm;
@@ -307,14 +318,14 @@
     }
 
     .svc-title {
-        font-size: 11px;
+        font-size: 13px;
         font-weight: 700;
         color: var(--p-900);
         margin-bottom: 2.5mm;
     }
 
     .svc-desc {
-        font-size: 9px;
+        font-size: 11px;
         color: var(--n-600);
         line-height: 1.65;
     }
@@ -368,7 +379,7 @@
 
     /* Variante: verde medio */
     .kpi-card.v-mid {
-        --kc-bg:       var(--p-800);
+        --kc-bg:       var(--p-600);
         --kc-icon-bg:  var(--p-700);
         --kc-stroke:   var(--p-100);
         --kc-circle:   var(--p-700);
@@ -425,7 +436,7 @@
     }
 
     .kpi-label {
-        font-size: 6.5px;
+        font-size: 9.5px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.14em;
@@ -437,7 +448,7 @@
     }
 
     .kpi-value {
-        font-size: 26px;
+        font-size: 32px;
         font-weight: 800;
         line-height: 1;
         color: var(--kc-value);
@@ -445,7 +456,7 @@
     }
 
     .kpi-unit {
-        font-size: 7px;
+        font-size: 12px;
         color: var(--kc-unit);
         margin-top: 2mm;
     }
@@ -465,7 +476,7 @@
     .insight.red   { border-left-color: var(--red-600);   background: var(--red-50);   }
 
     .insight-label {
-        font-size: 6.5px;
+        font-size: 8px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.12em;
@@ -477,7 +488,7 @@
     .insight.red   .insight-label { color: var(--red-600); }
 
     .insight-text {
-        font-size: 9.5px;
+        font-size: 11.5px;
         color: var(--n-600);
         line-height: 1.65;
     }
@@ -494,7 +505,7 @@
     }
 
     .chart-label {
-        font-size: 7px;
+        font-size: 8.5px;
         font-weight: 600;
         color: var(--n-500);
         letter-spacing: 0.06em;
@@ -519,13 +530,15 @@
     }
 
     .bar-val {
-        font-size: 5px;
-        color: var(--n-500);
+        font-size: 10.5px;
+        font-weight: 700;
+        color: var(--n-600);
         margin-bottom: 1px;
         white-space: nowrap;
     }
 
     .bar-bar {
+        position: relative;
         width: 100%;
         border-radius: 2px 2px 0 0;
         min-height: 2px;
@@ -534,9 +547,22 @@
 
     .bar-bar.low { background: var(--red-600); }
 
+    /* Valor dentro del tope de la barra (barras altas) */
+    .bar-val-in {
+        position: absolute;
+        top: 1.5px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 10.5px;
+        font-weight: 700;
+        color: #fff;
+        white-space: nowrap;
+        text-shadow: 0 0 2px rgba(0,0,0,0.55), 0 1px 1px rgba(0,0,0,0.45);
+    }
+
     .bar-label {
-        font-size: 5px;
-        color: var(--n-400);
+        font-size: 8px;
+        color: var(--n-500);
         margin-top: 1.5px;
         white-space: nowrap;
         overflow: hidden;
@@ -558,7 +584,7 @@
     }
 
     .avg-text {
-        font-size: 7px;
+        font-size: 9.5px;
         color: var(--n-500);
     }
 
@@ -574,7 +600,7 @@
     }
 
     .hbar-label {
-        font-size: 8px;
+        font-size: 10.5px;
         color: var(--n-700);
         white-space: nowrap;
         overflow: hidden;
@@ -586,7 +612,9 @@
 
     .hbar-track {
         flex: 1;
-        height: 5.5mm;
+        display: flex;
+        align-items: center;
+        height: 6mm;
         background: var(--n-100);
         border-radius: 3px;
         overflow: hidden;
@@ -597,19 +625,30 @@
         border-radius: 3px;
         display: flex;
         align-items: center;
-        padding-left: 2mm;
+        justify-content: flex-end;
+        padding: 0 2mm;
         background: var(--p-700);
+        flex-shrink: 0;
     }
 
     .hbar-fill-val {
-        font-size: 7px;
-        font-weight: 600;
+        font-size: 10px;
+        font-weight: 700;
         color: #fff;
         white-space: nowrap;
     }
 
+    /* Valor afuera de la barra cuando es muy corta para contenerlo */
+    .hbar-out-val {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--p-950);
+        white-space: nowrap;
+        padding-left: 2mm;
+    }
+
     .hbar-after {
-        font-size: 7.5px;
+        font-size: 10px;
         color: var(--n-500);
         white-space: nowrap;
         width: 11mm;
@@ -630,7 +669,7 @@
     table.data {
         width: 100%;
         border-collapse: collapse;
-        font-size: 8.5px;
+        font-size: 10px;
     }
 
     table.data thead th {
@@ -639,7 +678,7 @@
         padding: 3.5mm 4mm;
         text-align: left;
         font-weight: 600;
-        font-size: 7px;
+        font-size: 8.5px;
         text-transform: uppercase;
         letter-spacing: 0.09em;
     }
@@ -691,7 +730,7 @@
         border-radius: 20px;
         background: var(--p-100);
         color: var(--p-800);
-        font-size: 7px;
+        font-size: 8.5px;
         font-weight: 600;
     }
 
@@ -700,8 +739,9 @@
     ════════════════════════════════════════ */
     .legend {
         display: flex;
-        gap: 5mm;
-        margin-bottom: 4mm;
+        align-items: center;
+        gap: 3mm 6mm;
+        margin-bottom: 5mm;
         flex-wrap: wrap;
     }
 
@@ -709,10 +749,146 @@
         display: flex;
         align-items: center;
         gap: 1.5mm;
-        font-size: 7.5px;
+        font-size: 9px;
         color: var(--n-500);
         white-space: nowrap;
     }
+
+    /* Escala de toneladas (leyenda de la tabla por zona) — agrandada y rotulada */
+    .legend-scale-label {
+        font-size: 10.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--n-600);
+    }
+
+    .legend .legend-item {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--n-700);
+        gap: 2mm;
+    }
+
+    .legend .dot {
+        width: 13px;
+        height: 13px;
+        border-radius: 3px;
+    }
+
+    /* Guía de continuación cuando una sección sigue en la página siguiente */
+    .slide-continued {
+        font-size: 9.5px;
+        font-style: italic;
+        color: var(--n-400);
+        margin-top: 1.5mm;
+    }
+
+    /* ════════════════════════════════════════
+       MAPA DE CALOR (Leaflet + ranking)
+    ════════════════════════════════════════ */
+    .map-grid {
+        display: grid;
+        grid-template-columns: 62fr 38fr;
+        gap: 6mm;
+        align-items: start;
+    }
+
+    .map-frame {
+        border: 1px solid var(--n-200);
+        border-radius: 10px;
+        overflow: hidden;
+        background: var(--n-100);
+    }
+
+    .pdf-map {
+        width: 100%;
+        height: 118mm;
+    }
+
+    .map-legend {
+        display: flex;
+        align-items: center;
+        gap: 3mm 4mm;
+        flex-wrap: wrap;
+        margin-top: 3.5mm;
+    }
+
+    .map-legend .legend-scale {
+        font-size: 10.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--n-500);
+    }
+
+    .map-legend .swatch {
+        display: inline-block;
+        width: 11px; height: 11px;
+        border-radius: 2px;
+        margin-right: 1.5mm;
+        vertical-align: middle;
+        flex-shrink: 0;
+    }
+
+    .map-legend .legend-item { font-size: 10px; }
+
+    /* Ranking lateral de zonas (réplica de la lista de la web) */
+    .map-rank-title { font-size: 12.5px; font-weight: 700; color: var(--p-950); }
+    .map-rank-sub   { font-size: 10px; color: var(--n-400); margin-bottom: 2.5mm; }
+
+    .rank-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 2.5mm;
+        border: 1px solid var(--n-200);
+        border-radius: 6px;
+        padding: 1.3mm 2.5mm;
+        margin-bottom: 1.2mm;
+    }
+
+    .rank-left { display: flex; align-items: center; gap: 2mm; min-width: 0; }
+
+    .rank-dot {
+        width: 11px; height: 11px;
+        border-radius: 2px;
+        flex-shrink: 0;
+    }
+
+    .rank-name { font-size: 11px; font-weight: 600; color: var(--p-950); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rank-sub  { font-size: 9.5px; color: var(--n-400); }
+    .rank-val  { font-size: 11px; font-weight: 700; color: var(--p-950); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+    .rank-pill {
+        font-size: 8px;
+        font-weight: 600;
+        color: var(--n-500);
+        background: var(--n-100);
+        border-radius: 10px;
+        padding: 0.3mm 1.5mm;
+        margin-left: 1.5mm;
+    }
+
+    .rank-more { font-size: 10px; color: var(--n-400); margin-top: 1.5mm; }
+
+    /* Etiqueta permanente con el nombre de la zona dentro del polígono */
+    .zona-label.leaflet-tooltip {
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 13px;
+        line-height: 1.1;
+        white-space: nowrap;
+        text-shadow:
+            -1px -1px 0 rgba(0,0,0,0.55), 1px -1px 0 rgba(0,0,0,0.55),
+            -1px  1px 0 rgba(0,0,0,0.55), 1px  1px 0 rgba(0,0,0,0.55),
+             0 0 3px rgba(0,0,0,0.4);
+    }
+    .zona-label.leaflet-tooltip::before { display: none; }
 
     /* ════════════════════════════════════════
        PIE DE PÁGINA
@@ -728,9 +904,9 @@
         align-items: center;
     }
 
-    .foot-left { font-size: 7px; color: var(--n-400); }
+    .foot-left { font-size: 8.5px; color: var(--n-400); }
     .foot-brand { font-weight: 600; color: var(--p-700); }
-    .foot-right { font-size: 7px; color: var(--n-400); text-align: right; }
+    .foot-right { font-size: 8.5px; color: var(--n-400); text-align: right; }
 
     /* ════════════════════════════════════════
        CIERRE — cards oscuras (estilo portada)
@@ -759,14 +935,14 @@
     }
 
     .closing-card-title {
-        font-size: 10px;
+        font-size: 12px;
         font-weight: 700;
         color: var(--p-100);
         margin-bottom: 2mm;
     }
 
     .closing-card-desc {
-        font-size: 8.5px;
+        font-size: 10px;
         color: var(--p-400);
         line-height: 1.6;
     }
@@ -791,7 +967,7 @@
     }
 
     .alerta-tipo-label {
-        font-size: 8.5px;
+        font-size: 10px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.12em;
@@ -800,7 +976,7 @@
 
     .alerta-tipo-count {
         margin-left: auto;
-        font-size: 7.5px;
+        font-size: 9px;
         font-weight: 600;
         color: var(--n-400);
     }
@@ -816,7 +992,7 @@
     .alerta-row:nth-child(even) { background: var(--p-50); }
 
     .alerta-fecha {
-        font-size: 7.5px;
+        font-size: 9px;
         color: var(--n-500);
         white-space: nowrap;
         flex-shrink: 0;
@@ -827,20 +1003,20 @@
     .alerta-body { flex: 1; min-width: 0; }
 
     .alerta-titulo {
-        font-size: 8.5px;
+        font-size: 10px;
         font-weight: 600;
         color: var(--p-950);
         margin-bottom: 1mm;
     }
 
     .alerta-desc {
-        font-size: 7.5px;
+        font-size: 9px;
         color: var(--n-600);
         line-height: 1.5;
     }
 
     .alerta-zona {
-        font-size: 7px;
+        font-size: 8.5px;
         color: var(--p-700);
         font-weight: 500;
         margin-top: 0.8mm;
@@ -881,7 +1057,7 @@
     }
 
     .resumen-alerta-label {
-        font-size: 7.5px;
+        font-size: 9px;
         color: var(--n-600);
         line-height: 1.4;
     }
@@ -938,7 +1114,7 @@
     }
 
     .ai-eyebrow {
-        font-size: 7px;
+        font-size: 8.5px;
         font-weight: 700;
         letter-spacing: 0.24em;
         text-transform: uppercase;
@@ -993,7 +1169,7 @@
     }
 
     .ai-section-label {
-        font-size: 7px;
+        font-size: 8.5px;
         font-weight: 700;
         letter-spacing: 0.18em;
         text-transform: uppercase;
@@ -1002,7 +1178,7 @@
     }
 
     .ai-section-text {
-        font-size: 9.5px;
+        font-size: 11.5px;
         color: var(--p-100);
         line-height: 1.75;
     }
@@ -1015,7 +1191,7 @@
         border: 1px solid var(--p-800);
         border-radius: 4px;
         padding: 1mm 2.5mm;
-        font-size: 6.5px;
+        font-size: 8px;
         font-weight: 600;
         letter-spacing: 0.1em;
         text-transform: uppercase;
@@ -1106,7 +1282,7 @@
     }
 
     .thank-eyebrow {
-        font-size: 7px;
+        font-size: 8.5px;
         font-weight: 700;
         letter-spacing: 0.26em;
         text-transform: uppercase;
@@ -1132,7 +1308,7 @@
     }
 
     .thank-org {
-        font-size: 14px;
+        font-size: 17px;
         font-weight: 300;
         color: var(--n-500);
         letter-spacing: 0.01em;
@@ -1140,7 +1316,7 @@
     }
 
     .thank-caption {
-        font-size: 9.5px;
+        font-size: 11.5px;
         color: var(--n-400);
         line-height: 1.75;
         max-width: 140mm;
@@ -1158,14 +1334,14 @@
     }
 
     .thank-footer-org {
-        font-size: 10px;
+        font-size: 12px;
         font-weight: 600;
         color: var(--p-100);
         margin-bottom: 1mm;
     }
 
     .thank-footer-sub {
-        font-size: 7.5px;
+        font-size: 9px;
         color: var(--p-500);
         letter-spacing: 0.02em;
     }
@@ -1175,7 +1351,7 @@
         border: 1px solid var(--p-700);
         border-radius: 5px;
         padding: 2.5mm 4.5mm;
-        font-size: 7px;
+        font-size: 8.5px;
         font-weight: 600;
         letter-spacing: 0.1em;
         color: var(--p-300);
@@ -1204,6 +1380,13 @@
         'volumen_diario_atipico'  => 'Volumen atípico',
         'gap_registro'            => 'Sin actividad',
         'frecuencia_zona_atipica' => 'Frecuencia atípica',
+    ];
+
+    $tipoDesc = [
+        'peso_fuera_rango'        => 'Pesajes por fuera del rango habitual configurado para el tipo de vehículo.',
+        'volumen_diario_atipico'  => 'Días cuyo volumen total se aparta del patrón del período.',
+        'gap_registro'            => 'Lapsos sin pesajes durante un turno activo.',
+        'frecuencia_zona_atipica' => 'Zonas con una frecuencia de recolección distinta a su patrón habitual.',
     ];
     $alertasAgrupadas = $alertas->groupBy('tipo');
 
@@ -1337,6 +1520,7 @@
         </div>
 
         <div class="slide-content">
+            <p class="slide-desc">Eventos detectados automáticamente durante el período. Cada tarjeta agrupa un tipo de alerta; el detalle de cada una está en las páginas siguientes.</p>
 
             @php
                 $colores = [
@@ -1389,7 +1573,14 @@
 @foreach($tipoLabels as $tipoKey => $tipoNombre)
 @php $grupo = $alertasAgrupadas[$tipoKey] ?? collect(); @endphp
 @if($grupo->isNotEmpty())
-@foreach($grupo->chunk(20) as $chunkIdx => $chunk)
+@php
+    // Las filas de alerta son altas (título + descripción + zona): entran ~10 por
+    // hoja A4 apaisada. Reparto balanceado para que ninguna página desborde (y la
+    // continuación respete su margen superior) sin dejar una alerta huérfana.
+    $alertasTotalChunks = max(1, (int) ceil($grupo->count() / 10));
+    $alertasChunks      = $grupo->chunk(max(1, (int) ceil($grupo->count() / $alertasTotalChunks)));
+@endphp
+@foreach($alertasChunks as $chunkIdx => $chunk)
 <div class="page">
     <div class="slide-wrap">
         <div class="slide-head">
@@ -1398,8 +1589,8 @@
                     <div class="slide-eyebrow">Alertas — {{ $tipoNombre }}</div>
                     <div class="slide-title">
                         {{ $tipoNombre }}
-                        @if($grupo->count() > 20)
-                            <span style="font-size:12px;color:oklch(0.708 0 0);font-weight:400;">({{ $chunkIdx + 1 }}/{{ $grupo->chunk(20)->count() }})</span>
+                        @if($alertasChunks->count() > 1)
+                            <span style="font-size:14.5px;color:oklch(0.708 0 0);font-weight:400;">({{ $chunkIdx + 1 }}/{{ $alertasChunks->count() }})</span>
                         @endif
                     </div>
                 </div>
@@ -1409,6 +1600,7 @@
         </div>
 
         <div class="slide-content">
+            <p class="slide-desc">{{ $tipoDesc[$tipoKey] ?? '' }}</p>
             @foreach($chunk as $alerta)
             <div class="alerta-row">
                 <div class="alerta-fecha">{{ $alerta->fecha_deteccion->format('d/m/Y') }}</div>
@@ -1423,9 +1615,9 @@
                 </div>
                 <div style="flex-shrink:0;margin-left:3mm;">
                     @if($alerta->leida)
-                        <span style="font-size:7px;color:oklch(0.592 0.153 144);font-weight:600;">Leída</span>
+                        <span style="font-size:8.5px;color:oklch(0.592 0.153 144);font-weight:600;">Leída</span>
                     @else
-                        <span style="font-size:7px;color:var(--amber-500);font-weight:600;">Sin leer</span>
+                        <span style="font-size:8.5px;color:var(--amber-500);font-weight:600;">Sin leer</span>
                     @endif
                 </div>
             </div>
@@ -1461,17 +1653,10 @@
         </div>
 
         <div class="slide-content">
+            <p class="slide-desc">Indicadores principales del período: total recolectado, viajes registrados y promedios por jornada operativa.</p>
             <div class="kpi-grid">
                 {{-- Toneladas netas — default (verde profundo) — icon: package --}}
-                <div class="kpi-card">
-                    <div class="kpi-icon">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/>
-                            <path d="M12 22V12"/>
-                            <path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"/>
-                            <path d="m7.5 4.27 9 5.15"/>
-                        </svg>
-                    </div>
+                <div class="kpi-card v-mid">
                     <div class="kpi-body">
                         <div class="kpi-label">Toneladas netas</div>
                         <div class="kpi-value">{{ number_format($kpis['toneladas'], 0, ',', '.') }}</div>
@@ -1479,17 +1664,8 @@
                     </div>
                 </div>
 
-                {{-- Total viajes — v-slate (neutral) — icon: scale --}}
-                <div class="kpi-card v-slate">
-                    <div class="kpi-icon">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
-                            <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
-                            <path d="M7 21h10"/>
-                            <path d="M12 3v18"/>
-                            <path d="M3 7h2c2 0 4-1 7-1s5 1 7 1h2"/>
-                        </svg>
-                    </div>
+                {{-- Total viajes — v-mid (verde medio) — icon: scale --}}
+                <div class="kpi-card v-mid">
                     <div class="kpi-body">
                         <div class="kpi-label">Total viajes</div>
                         <div class="kpi-value">{{ number_format($kpis['total'], 0, ',', '.') }}</div>
@@ -1497,17 +1673,8 @@
                     </div>
                 </div>
 
-                {{-- Días operativos — v-blue (temporal) — icon: calendar-days --}}
-                <div class="kpi-card v-blue">
-                    <div class="kpi-icon">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M8 2v4"/><path d="M16 2v4"/>
-                            <rect width="18" height="18" x="3" y="4" rx="2"/>
-                            <path d="M3 10h18"/>
-                            <path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/>
-                            <path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/>
-                        </svg>
-                    </div>
+                {{-- Días operativos — v-mid (verde medio) — icon: calendar-days --}}
+                <div class="kpi-card v-mid">
                     <div class="kpi-body">
                         <div class="kpi-label">Días operativos</div>
                         <div class="kpi-value">{{ $kpis['dias_op'] }}</div>
@@ -1517,12 +1684,6 @@
 
                 {{-- Promedio diario — v-mid (verde medio) — icon: trending-up --}}
                 <div class="kpi-card v-mid">
-                    <div class="kpi-icon">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="m22 7-8.5 8.5-5-5L2 17"/>
-                            <path d="M16 7h6v6"/>
-                        </svg>
-                    </div>
                     <div class="kpi-body">
                         <div class="kpi-label">Promedio diario</div>
                         <div class="kpi-value">{{ number_format($kpis['promedio_ton_dia'], 1, ',', '.') }}</div>
@@ -1530,17 +1691,8 @@
                     </div>
                 </div>
 
-                {{-- Promedio por viaje — v-slate (neutral) — icon: truck --}}
-                <div class="kpi-card v-slate">
-                    <div class="kpi-icon">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/>
-                            <path d="M15 18H9"/>
-                            <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/>
-                            <circle cx="17" cy="18" r="2"/>
-                            <circle cx="7" cy="18" r="2"/>
-                        </svg>
-                    </div>
+                {{-- Promedio por viaje — v-mid (verde medio) — icon: truck --}}
+                <div class="kpi-card v-mid">
                     <div class="kpi-body">
                         <div class="kpi-label">Promedio por viaje</div>
                         <div class="kpi-value">{{ number_format($kpis['promedio_kg_viaje'], 0, ',', '.') }}</div>
@@ -1552,10 +1704,12 @@
             <div class="insight">
                 <div class="insight-label">Lectura del período</div>
                 <div class="insight-text">
-                    Durante {{ $periodo }} se registraron <strong>{{ number_format($kpis['total'], 0, ',', '.') }} viajes</strong>
-                    que totalizaron <strong>{{ number_format($kpis['toneladas'], 1, ',', '.') }} toneladas netas</strong>,
-                    con actividad en <strong>{{ $kpis['dias_op'] }} de {{ $kpis['dias_rango'] }} días</strong> y un promedio
-                    de {{ number_format($kpis['promedio_ton_dia'], 1, ',', '.') }} toneladas por jornada operativa.
+                    @php $diasSin = max($kpis['dias_rango'] - $kpis['dias_op'], 0); @endphp
+                    En {{ $periodo }} se registraron <strong>{{ number_format($kpis['total'], 0, ',', '.') }} viajes</strong>
+                    por <strong>{{ number_format($kpis['toneladas'], 1, ',', '.') }} t netas</strong>, con actividad en
+                    <strong>{{ $kpis['dias_op'] }} de {{ $kpis['dias_rango'] }} días</strong>
+                    @if($diasSin > 0)(<strong>{{ $diasSin }}</strong> {{ $diasSin === 1 ? 'jornada sin registros' : 'jornadas sin registros' }}) @endif
+                    y un promedio de {{ number_format($kpis['promedio_ton_dia'], 1, ',', '.') }} t por jornada operativa.
                 </div>
             </div>
         </div>
@@ -1568,13 +1722,27 @@
 </div>
 
 {{-- ═══════════ EVOLUCIÓN DIARIA ═══════════ --}}
+@php
+    // Paginar el gráfico en chunks de <=15 barras para que no se compriman.
+    // Reparto balanceado: 31 días → 3 páginas de 11/11/9, no 15/15/1.
+    $evTotalChunks = max(1, (int) ceil(count($evDatos) / 15));
+    $evChunkSize   = max(1, (int) ceil(count($evDatos) / $evTotalChunks));
+    $evChunks      = array_chunk($evDatos, $evChunkSize);
+    $evTotalChunks = count($evChunks);
+@endphp
+@foreach($evChunks as $chunkIdx => $evChunk)
 <div class="page">
     <div class="slide-wrap">
         <div class="slide-head">
             <div class="slide-header-row">
                 <div>
                     <div class="slide-eyebrow">Tendencia</div>
-                    <div class="slide-title">Evolución Diaria de Toneladas</div>
+                    <div class="slide-title">
+                        Evolución Diaria de Toneladas
+                        @if($evTotalChunks > 1)
+                            <span style="font-size: 14.5px; color: oklch(0.708 0 0); font-weight: 400;">({{ $chunkIdx + 1 }}/{{ $evTotalChunks }})</span>
+                        @endif
+                    </div>
                 </div>
                 <div class="slide-meta">{{ $periodo }}</div>
             </div>
@@ -1582,16 +1750,12 @@
         </div>
 
         <div class="slide-content">
+            @if($chunkIdx === 0)
+            <p class="slide-desc">Toneladas netas recolectadas por día. La línea de promedio marca la media de las jornadas con actividad; en rojo, los días por debajo del 30% de ese promedio.</p>
+            {{-- KPIs del período: solo en la primera página del gráfico --}}
             <div class="kpi-grid-4">
                 {{-- Promedio — v-mid (verde medio) — icon: bar-chart-2 --}}
                 <div class="kpi-card v-mid">
-                    <div class="kpi-icon">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <line x1="18" x2="18" y1="20" y2="10"/>
-                            <line x1="12" x2="12" y1="20" y2="4"/>
-                            <line x1="6" x2="6" y1="20" y2="14"/>
-                        </svg>
-                    </div>
                     <div class="kpi-body">
                         <div class="kpi-label">Promedio</div>
                         <div class="kpi-value">{{ number_format($evolucion['promedio'], 1, ',', '.') }}</div>
@@ -1600,13 +1764,7 @@
                 </div>
 
                 {{-- Máximo — default (verde profundo) — icon: arrow-up --}}
-                <div class="kpi-card">
-                    <div class="kpi-icon">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="m5 12 7-7 7 7"/>
-                            <path d="M12 19V5"/>
-                        </svg>
-                    </div>
+                <div class="kpi-card v-mid">
                     <div class="kpi-body">
                         <div class="kpi-label">Máximo</div>
                         <div class="kpi-value">{{ number_format($evolucion['maximo'], 1, ',', '.') }}</div>
@@ -1615,13 +1773,7 @@
                 </div>
 
                 {{-- Mínimo — v-slate (neutral) — icon: arrow-down --}}
-                <div class="kpi-card v-slate">
-                    <div class="kpi-icon">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 5v14"/>
-                            <path d="m19 12-7 7-7-7"/>
-                        </svg>
-                    </div>
+                <div class="kpi-card v-mid">
                     <div class="kpi-body">
                         <div class="kpi-label">Mínimo</div>
                         <div class="kpi-value">{{ number_format($evolucion['minimo'], 1, ',', '.') }}</div>
@@ -1630,16 +1782,7 @@
                 </div>
 
                 {{-- Días con datos — v-blue (temporal) — icon: calendar-days --}}
-                <div class="kpi-card v-blue">
-                    <div class="kpi-icon">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M8 2v4"/><path d="M16 2v4"/>
-                            <rect width="18" height="18" x="3" y="4" rx="2"/>
-                            <path d="M3 10h18"/>
-                            <path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/>
-                            <path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/>
-                        </svg>
-                    </div>
+                <div class="kpi-card v-mid">
                     <div class="kpi-body">
                         <div class="kpi-label">Días con datos</div>
                         <div class="kpi-value">{{ $diasConDatos }}</div>
@@ -1647,22 +1790,28 @@
                     </div>
                 </div>
             </div>
+            @endif
 
             <div class="chart-wrap">
-                <div class="chart-label">Toneladas por día</div>
+                <div class="chart-label">Toneladas por día @if($evTotalChunks > 1)· {{ $evChunk[0]['fecha'] }} a {{ $evChunk[count($evChunk) - 1]['fecha'] }}@endif</div>
                 <div class="bar-chart-vertical">
-                    @foreach($evDatos as $i => $d)
+                    @php $showEvery = max(1, (int) ceil(count($evChunk) / 20)); @endphp
+                    @foreach($evChunk as $i => $d)
                     @php
                         $pct   = $evMax > 0 ? ($d['toneladas'] / $evMax) * 100 : 0;
                         $isLow = $d['toneladas'] > 0 && $d['toneladas'] < ($evAvg * 0.3);
                         $showL = ($i % $showEvery === 0);
                     @endphp
                     <div class="bar-col">
-                        @if($d['toneladas'] > 0 && $pct > 5)
+                        @if($d['toneladas'] > 0 && $pct < 16)
                             <div class="bar-val">{{ number_format($d['toneladas'], 1) }}</div>
                         @endif
                         <div class="bar-bar {{ $isLow ? 'low' : '' }}"
-                             style="height: {{ max($pct, $d['toneladas'] > 0 ? 1.5 : 0) }}%;"></div>
+                             style="height: {{ max($pct, $d['toneladas'] > 0 ? 1.5 : 0) }}%;">
+                            @if($d['toneladas'] > 0 && $pct >= 16)
+                                <div class="bar-val-in">{{ number_format($d['toneladas'], 1) }}</div>
+                            @endif
+                        </div>
                         @if($showL)
                             <div class="bar-label">{{ $d['fecha'] }}</div>
                         @else
@@ -1684,15 +1833,53 @@
         </div>
     </div>
 </div>
+@endforeach
 
 {{-- ═══════════ POR TIPO DE VEHÍCULO ═══════════ --}}
+@php
+    // Mismo criterio que la tabla por zona: paginamos para que cada .page entre
+    // en una hoja A4 apaisada. La tabla (columna derecha) es la más alta y manda.
+    //  · 1ª página: bajada + gráfico + tabla.
+    //  · continuación: la tabla a ancho completo.
+    //  · el "Total" (tfoot) va en la última y necesita ~2 filas libres.
+    // Las flotas reales tienen pocos tipos → con ≤11 entra todo en una página
+    // (salida sin cambios); el mecanismo solo pagina si hubiera muchos tipos.
+    $vehArray  = $vehiculos->values()->all();
+    $vehN      = count($vehArray);
+    $vCapPrim  = 13;
+    $vCapResto = 14;
+    $vCapTotal = 2;
+
+    $vehChunks = [];
+    $i = 0;
+    do {
+        $cap = empty($vehChunks) ? $vCapPrim : $vCapResto;
+        if ($vehN - $i <= $cap) {              // última página → reservar lugar para el total
+            $cap = max(1, $cap - $vCapTotal);
+        }
+        $vehChunks[] = ['offset' => $i, 'rows' => array_slice($vehArray, $i, $cap)];
+        $i += $cap;
+    } while ($i < $vehN);
+    $vehTotalSlides = count($vehChunks);
+@endphp
+
+@foreach($vehChunks as $vehIdx => $vehChunk)
+@php $vehOffset = $vehChunk['offset']; $vehRows = $vehChunk['rows']; @endphp
 <div class="page">
     <div class="slide-wrap">
         <div class="slide-head">
             <div class="slide-header-row">
                 <div>
                     <div class="slide-eyebrow">Composición de flota</div>
-                    <div class="slide-title">Por Tipo de Vehículo</div>
+                    <div class="slide-title">
+                        Por Tipo de Vehículo
+                        @if($vehTotalSlides > 1)
+                            <span style="font-size: 14.5px; color: oklch(0.708 0 0); font-weight: 400;">({{ $vehIdx + 1 }}/{{ $vehTotalSlides }})</span>
+                        @endif
+                    </div>
+                    @if($vehIdx > 0)
+                        <div class="slide-continued">Continuación de la página anterior</div>
+                    @endif
                 </div>
                 <div class="slide-meta">{{ $periodo }}</div>
             </div>
@@ -1700,12 +1887,17 @@
         </div>
 
         <div class="slide-content">
-            <div class="two-col two-col-4-6">
+            @if($vehIdx === 0)
+            <p class="slide-desc">Reparto de viajes y toneladas según el tipo de vehículo. Muestra qué parte de la flota concentra la recolección.</p>
+            @endif
+            <div class="{{ $vehIdx === 0 ? 'two-col two-col-4-6' : '' }}">
+                @if($vehIdx === 0)
                 <div class="chart-wrap" style="padding: 4.5mm;">
                     <div class="chart-label">Viajes por tipo</div>
                     <div class="hbar-chart">
-                        @foreach($vehiculos as $vi => $v)
+                        @foreach($vehRows as $li => $v)
                         @php
+                            $vi    = $vehOffset + $li;
                             $pct   = $vMax > 0 ? round(($v['viajes'] / $vMax) * 100) : 0;
                             $color = $vColors[$vi % count($vColors)];
                         @endphp
@@ -1713,16 +1905,20 @@
                             <div class="hbar-label">{{ $v['nombre'] }}</div>
                             <div class="hbar-track">
                                 <div class="hbar-fill" style="width: {{ $pct }}%; background: {{ $color }};">
-                                    @if($pct > 22)
+                                    @if($pct >= 18)
                                     <span class="hbar-fill-val">{{ number_format($v['viajes'], 0, ',', '.') }}</span>
                                     @endif
                                 </div>
+                                @if($pct < 18)
+                                <span class="hbar-out-val">{{ number_format($v['viajes'], 0, ',', '.') }}</span>
+                                @endif
                             </div>
                             <div class="hbar-after">{{ number_format($v['porcentaje'], 1) }}%</div>
                         </div>
                         @endforeach
                     </div>
                 </div>
+                @endif
 
                 <div>
                     <table class="data">
@@ -1731,33 +1927,36 @@
                                 <th>Tipo de vehículo</th>
                                 <th class="r">Viajes</th>
                                 <th class="r">Toneladas</th>
-                                <th class="r">% Total</th>
-                                <th class="r">kg / viaje</th>
+                                <th class="r">% del total</th>
+                                <th class="r">kg/viaje</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($vehiculos as $vi => $v)
+                            @foreach($vehRows as $li => $v)
+                            @php $vi = $vehOffset + $li; @endphp
                             <tr>
                                 <td class="strong">
                                     <span class="dot" style="background: {{ $vColors[$vi % count($vColors)] }};"></span>
                                     {{ $v['nombre'] }}
                                 </td>
                                 <td class="num">{{ number_format($v['viajes'], 0, ',', '.') }}</td>
-                                <td class="num">{{ number_format($v['toneladas'], 1, ',', '.') }}</td>
+                                <td class="num">{{ number_format($v['toneladas'], 1, ',', '.') }} t</td>
                                 <td class="muted">{{ number_format($v['porcentaje'], 1, ',', '.') }}%</td>
                                 <td class="num">{{ number_format($v['kg_viaje'], 0, ',', '.') }}</td>
                             </tr>
                             @endforeach
                         </tbody>
+                        @if($vehIdx === $vehTotalSlides - 1)
                         <tfoot>
                             <tr>
                                 <td>Total</td>
                                 <td class="r">{{ number_format($vehiculos->sum('viajes'), 0, ',', '.') }}</td>
-                                <td class="r">{{ number_format($vehiculos->sum('toneladas'), 1, ',', '.') }}</td>
+                                <td class="r">{{ number_format($vehiculos->sum('toneladas'), 1, ',', '.') }} t</td>
                                 <td class="r">100%</td>
                                 <td class="r">—</td>
                             </tr>
                         </tfoot>
+                        @endif
                     </table>
                 </div>
             </div>
@@ -1769,11 +1968,34 @@
         </div>
     </div>
 </div>
+@endforeach
 
 {{-- ═══════════ POR ZONA ═══════════ --}}
 @php
-    $zonasChunks = $zonas->chunk(16);
-    $totalSlides = $zonasChunks->count();
+    // Repartimos las zonas en chunks para que cada .page entre en una sola hoja
+    // física A4 apaisada (210mm) y no desborde. Si desbordara, Chromium parte la
+    // .page y la continuación arranca pegada al borde superior, sin margen.
+    //  · 1ª página: lleva además la bajada + la leyenda de escala → entra menos.
+    //  · páginas de continuación: solo el encabezado de la tabla.
+    //  · el "Total general" (tfoot) va en la última y necesita ~2 filas libres.
+    $zonasArray = $zonas->values()->all();
+    $n          = count($zonasArray);
+    $capPrimera = 10;
+    $capResto   = 13;
+    $capTotal   = 2;
+
+    $zonasChunks = [];
+    $i = 0;
+    do {
+        $cap = empty($zonasChunks) ? $capPrimera : $capResto;
+        if ($n - $i <= $cap) {              // última página → reservar lugar para el total
+            $cap = max(1, $cap - $capTotal);
+        }
+        $zonasChunks[] = array_slice($zonasArray, $i, $cap);
+        $i += $cap;
+    } while ($i < $n);
+
+    $totalSlides = count($zonasChunks);
 @endphp
 
 @foreach($zonasChunks as $chunkIdx => $chunk)
@@ -1786,9 +2008,12 @@
                     <div class="slide-title">
                         Toneladas Netas por Zona
                         @if($totalSlides > 1)
-                            <span style="font-size: 12px; color: oklch(0.708 0 0); font-weight: 400;">({{ $chunkIdx + 1 }}/{{ $totalSlides }})</span>
+                            <span style="font-size: 14.5px; color: oklch(0.708 0 0); font-weight: 400;">({{ $chunkIdx + 1 }}/{{ $totalSlides }})</span>
                         @endif
                     </div>
+                    @if($chunkIdx > 0)
+                        <div class="slide-continued">Continuación de la página anterior</div>
+                    @endif
                 </div>
                 <div class="slide-meta">{{ $periodo }}</div>
             </div>
@@ -1797,7 +2022,9 @@
 
         <div class="slide-content">
             @if($chunkIdx === 0)
+            <p class="slide-desc">Volumen recolectado por zona y turno, con kg por viaje, por hectárea y por habitante. El color indica el rango de toneladas de cada zona.</p>
             <div class="legend">
+                <span class="legend-scale-label">Escala · toneladas netas</span>
                 <div class="legend-item"><span class="dot" style="background:#dc2626;"></span> Más de 500 t</div>
                 <div class="legend-item"><span class="dot" style="background:#ea580c;"></span> 150 – 500 t</div>
                 <div class="legend-item"><span class="dot" style="background:#f59e0b;"></span> 80 – 150 t</div>
@@ -1813,10 +2040,10 @@
                         <th>Turno</th>
                         <th class="r">Viajes</th>
                         <th class="r">Toneladas</th>
-                        <th class="r">kg / viaje</th>
-                        <th class="r">% Total</th>
-                        <th class="r">kg / ha</th>
-                        <th class="r">kg / hab</th>
+                        <th class="r">kg/viaje</th>
+                        <th class="r">% del total</th>
+                        <th class="r">kg/ha</th>
+                        <th class="r">kg/hab</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1835,7 +2062,7 @@
                             @endif
                         </td>
                         <td class="num">{{ number_format($zona['viajes'], 0, ',', '.') }}</td>
-                        <td class="num" style="color: {{ $dotColor }};">{{ number_format($zona['toneladas'], 1, ',', '.') }}</td>
+                        <td class="num" style="color: {{ $dotColor }};">{{ number_format($zona['toneladas'], 1, ',', '.') }} t</td>
                         <td class="muted">{{ number_format($zona['kg_viaje'], 0, ',', '.') }}</td>
                         <td class="muted">{{ number_format($zona['porcentaje'], 1, ',', '.') }}%</td>
                         <td class="num">{{ $zona['kg_ha'] !== null ? number_format($zona['kg_ha'], 1, ',', '.') : '—' }}</td>
@@ -1848,7 +2075,7 @@
                     <tr>
                         <td colspan="2">Total general</td>
                         <td class="r">{{ number_format($zonas->sum('viajes'), 0, ',', '.') }}</td>
-                        <td class="r">{{ number_format($zonas->sum('toneladas'), 1, ',', '.') }}</td>
+                        <td class="r">{{ number_format($zonas->sum('toneladas'), 1, ',', '.') }} t</td>
                         <td colspan="4"></td>
                     </tr>
                 </tfoot>
@@ -1864,15 +2091,140 @@
 </div>
 @endforeach
 
+{{-- ═══════════ MAPAS DE CALOR (choropleth por métrica) ═══════════ --}}
+@php
+    $mapaZonas  = $reporte['mapaZonas'] ?? collect();
+    $mapaConGeo = $mapaZonas->filter(fn ($z) => $z['tiene_geometria'] ?? false);
+
+    $mapasMetricas = [
+        ['metric' => 'toneladas',  'eyebrow' => 'Concentración territorial', 'desc' => 'Toneladas netas recolectadas por zona. Las áreas más oscuras concentran mayor volumen de recolección.'],
+        ['metric' => 'pesajes',    'eyebrow' => 'Frecuencia de recolección', 'desc' => 'Cantidad de viajes registrados por zona en el período.'],
+        ['metric' => 'per_capita', 'eyebrow' => 'Generación por habitante',  'desc' => 'Kilos recolectados por habitante (kg/hab). Solo se colorean las zonas con población cargada.'],
+        ['metric' => 'densidad',   'eyebrow' => 'Intensidad por superficie', 'desc' => 'Kilos recolectados por hectárea (kg/ha). Solo se colorean las zonas con superficie cargada.'],
+    ];
+@endphp
+
+@if($mapaConGeo->isNotEmpty())
+@inject('choropleth', 'App\Services\ChoroplethMapService')
+@foreach($mapasMetricas as $mm)
+@php
+    $mapa = $choropleth->mapData($mapaZonas, $mm['metric']);
+    $mapId = 'mapa-'.$mm['metric'];
+    $rankTop = array_slice($mapa['filas'], 0, 11);
+    $rankRest = count($mapa['filas']) - count($rankTop);
+@endphp
+@if($mapa['hayMapa'])
+<div class="page">
+    <div class="slide-wrap">
+        <div class="slide-head">
+            <div class="slide-header-row">
+                <div>
+                    <div class="slide-eyebrow">{{ $mm['eyebrow'] }}</div>
+                    <div class="slide-title">Mapa de Calor · {{ $mapa['metrica']['label'] }}</div>
+                </div>
+                <div class="slide-meta">{{ $periodo }}</div>
+            </div>
+            <div class="slide-rule"></div>
+        </div>
+
+        <div class="slide-content">
+            <p class="slide-desc">{{ $mm['desc'] }}</p>
+
+            <div class="map-grid">
+                {{-- Mapa Leaflet (calles OSM + zonas coloreadas) + leyenda --}}
+                <div>
+                    <div class="map-frame">
+                        <div class="pdf-map" id="{{ $mapId }}" data-choropleth="{{ $mapId }}-data"></div>
+                    </div>
+                    <script type="application/json" id="{{ $mapId }}-data">@json($mapa['mapa'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP)</script>
+
+                    <div class="map-legend">
+                        <span class="legend-scale">Escala · {{ $mapa['metrica']['label'] }}@if($mapa['metrica']['unidad'] !== 'viajes') ({{ $mapa['metrica']['unidad'] }})@endif</span>
+                        @foreach($mapa['buckets'] as $b)
+                        <span class="legend-item"><span class="swatch" style="background: {{ $b['color'] }};"></span>{{ $b['label'] }}</span>
+                        @endforeach
+                        <span class="legend-item"><span class="swatch" style="background: #cbd5e1;"></span>Sin actividad</span>
+                    </div>
+                </div>
+
+                {{-- Ranking de zonas por la métrica (réplica de la lista de la web) --}}
+                <div>
+                    <div class="map-rank-title">Ranking de zonas</div>
+                    <div class="map-rank-sub">Ordenado por {{ mb_strtolower($mapa['metrica']['label']) }}.</div>
+                    @foreach($rankTop as $f)
+                    <div class="rank-row">
+                        <div class="rank-left">
+                            <span class="rank-dot" style="background: {{ $f['color'] }};"></span>
+                            <div style="min-width:0;">
+                                <div class="rank-name">{{ $f['nombre'] }}@unless($f['tiene_geometria'])<span class="rank-pill">sin área</span>@endunless</div>
+                                <div class="rank-sub">{{ $f['sub'] }}</div>
+                            </div>
+                        </div>
+                        <span class="rank-val">{{ $f['valor'] }}</span>
+                    </div>
+                    @endforeach
+                    @if($rankRest > 0)
+                    <div class="rank-more">y {{ $rankRest }} {{ $rankRest === 1 ? 'zona más' : 'zonas más' }}…</div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <div class="foot">
+            <div class="foot-left"><span class="foot-brand">Infinito Reciclaje</span> · Gestión Integral de Residuos</div>
+            <div class="foot-right">{{ $organizacion }} · {{ $periodo }}</div>
+        </div>
+    </div>
+</div>
+@endif
+@endforeach
+@endif
+
 {{-- ═══════════ DENSIDAD kg/ha ═══════════ --}}
 @if($zonasConHa->isNotEmpty())
+@php
+    // Mismo criterio que la tabla por zona: paginamos las barras para que cada
+    // .page entre en una sola hoja A4 apaisada y, si desbordara, la continuación
+    // respete el margen superior en vez de arrancar pegada al borde.
+    //  · 1ª página: lleva la bajada + los insights (columna derecha) → entra menos.
+    //  · páginas de continuación: solo las barras restantes, a ancho completo.
+    // Con el tope actual ($zonasConHa->take(15)) entra todo en una página: la
+    // salida no cambia, pero el mecanismo queda listo si se sube ese tope.
+    $haArray   = $zonasConHa->all();
+    $haN       = count($haArray);
+    $haPrimera = 15;
+    $haResto   = 20;
+
+    $haChunks = [];
+    $i = 0;
+    do {
+        $cap = empty($haChunks) ? $haPrimera : $haResto;
+        $haChunks[] = array_slice($haArray, $i, $cap);
+        $i += $cap;
+    } while ($i < $haN);
+    $haTotalSlides = count($haChunks);
+
+    $topZonas = $zonasConHa->take(3)->pluck('nombre')->join(', ');
+    $bottom   = $zonasConHa->last();
+    $topVal   = $zonasConHa->first()['kg_ha'] ?? 0;
+@endphp
+
+@foreach($haChunks as $haIdx => $haChunk)
 <div class="page">
     <div class="slide-wrap">
         <div class="slide-head">
             <div class="slide-header-row">
                 <div>
                     <div class="slide-eyebrow">Intensidad de generación</div>
-                    <div class="slide-title">Densidad por Hectárea</div>
+                    <div class="slide-title">
+                        Densidad por Hectárea
+                        @if($haTotalSlides > 1)
+                            <span style="font-size: 14.5px; color: oklch(0.708 0 0); font-weight: 400;">({{ $haIdx + 1 }}/{{ $haTotalSlides }})</span>
+                        @endif
+                    </div>
+                    @if($haIdx > 0)
+                        <div class="slide-continued">Continuación de la página anterior</div>
+                    @endif
                 </div>
                 <div class="slide-meta">Top {{ $zonasConHa->count() }} zonas · {{ $periodo }}</div>
             </div>
@@ -1880,11 +2232,14 @@
         </div>
 
         <div class="slide-content">
-            <div class="two-col two-col-5-5">
+            @if($haIdx === 0)
+            <p class="slide-desc">Kilos recolectados por hectárea en cada zona. Mide la intensidad de generación según la superficie, sin depender del tamaño de la zona.</p>
+            @endif
+            <div class="{{ $haIdx === 0 ? 'two-col two-col-5-5' : '' }}">
                 <div class="chart-wrap" style="padding: 4.5mm;">
                     <div class="chart-label">kg por hectárea</div>
                     <div class="hbar-chart">
-                        @foreach($zonasConHa as $zi => $z)
+                        @foreach($haChunk as $z)
                         @php
                             $pct   = $haMax > 0 ? round(($z['kg_ha'] / $haMax) * 100) : 0;
                             $ratio = $haMax > 0 ? $z['kg_ha'] / $haMax : 0;
@@ -1900,41 +2255,40 @@
                             <div class="hbar-label">{{ mb_strimwidth($label, 0, 18, '…') }}</div>
                             <div class="hbar-track">
                                 <div class="hbar-fill" style="width: {{ $pct }}%; background: {{ $color }};">
-                                    @if($pct > 22)
+                                    @if($pct >= 18)
                                     <span class="hbar-fill-val">{{ number_format($z['kg_ha'], 0) }}</span>
                                     @endif
                                 </div>
+                                @if($pct < 18)
+                                <span class="hbar-out-val">{{ number_format($z['kg_ha'], 0) }}</span>
+                                @endif
                             </div>
-                            <div class="hbar-after">{{ number_format($z['kg_ha'], 0) }}</div>
                         </div>
                         @endforeach
                     </div>
                 </div>
 
+                @if($haIdx === 0)
                 <div style="display: flex; flex-direction: column; gap: 4mm;">
-                    @php
-                        $topZonas = $zonasConHa->take(3)->pluck('nombre')->join(', ');
-                        $bottom   = $zonasConHa->last();
-                        $topVal   = $zonasConHa->first()['kg_ha'] ?? 0;
-                    @endphp
                     <div class="insight">
                         <div class="insight-label">Zonas de mayor densidad</div>
                         <div class="insight-text">
-                            {{ $topZonas }} presentan los valores más altos de generación por hectárea,
-                            lo que sugiere mayor frecuencia de recolección o mayor concentración de actividad.
+                            {{ $topZonas }} concentran la mayor generación por hectárea del período. Una densidad alta
+                            suele reflejar más frecuencia de recolección o mayor actividad sobre esa superficie.
                         </div>
                     </div>
                     @if($bottom && $bottom['kg_ha'] < $topVal * 0.2)
                     <div class="insight amber">
                         <div class="insight-label">Zona de baja densidad</div>
                         <div class="insight-text">
-                            {{ $bottom['nombre'] }} registra una densidad relativa baja
-                            ({{ number_format($bottom['kg_ha'], 1, ',', '.') }} kg/ha). Conviene evaluar
-                            la optimización de su ruta de recolección.
+                            {{ $bottom['nombre'] }} registra <strong>{{ number_format($bottom['kg_ha'], 1, ',', '.') }} kg/ha</strong>,
+                            muy por debajo del resto. Conviene verificar si la superficie y la frecuencia de recolección
+                            cargadas para la zona reflejan su realidad antes de sacar conclusiones.
                         </div>
                     </div>
                     @endif
                 </div>
+                @endif
             </div>
         </div>
 
@@ -1944,6 +2298,7 @@
         </div>
     </div>
 </div>
+@endforeach
 @endif {{-- zonasConHa --}}
 
 @endif {{-- !esAlerta --}}
@@ -1956,30 +2311,67 @@
         fn($p) => trim($p) !== ''
     ));
     $labels = ['Diagnóstico', 'Posibilidades de mejora', 'Recomendaciones'];
+
+    // Empaquetamos los párrafos por alto estimado para que cada .ai-page entre en
+    // una hoja A4 apaisada y, si desbordara, la continuación arranque en una página
+    // nueva en vez de pegada al borde. El texto de IA está acotado (3 párrafos,
+    // máx 1024 tokens), así que el caso normal entra en una sola página: solo
+    // pagina si los párrafos fueran inusualmente largos.
+    $aiCharsLinea = 115;   // ~caracteres por línea a 11.5px en el ancho de la sección
+    $aiMmLinea    = 5.3;   // alto de línea (line-height 1.75)
+    $aiOverheadMm = 11;    // label + gap por sección
+    $aiBudgetMm   = 150;   // alto útil para secciones en una hoja
+
+    $aiPaginas  = [];
+    $actual     = [];
+    $altoActual = 0;
+    foreach ($parrafos as $idx => $p) {
+        $lineas  = max(1, (int) ceil(mb_strlen($p) / $aiCharsLinea));
+        $altoSec = $aiOverheadMm + $lineas * $aiMmLinea;
+        if (! empty($actual) && $altoActual + $altoSec > $aiBudgetMm) {
+            $aiPaginas[] = $actual;
+            $actual = [];
+            $altoActual = 0;
+        }
+        $actual[]    = ['idx' => $idx, 'texto' => $p];
+        $altoActual += $altoSec;
+    }
+    if (! empty($actual)) {
+        $aiPaginas[] = $actual;
+    }
+    $aiTotal = count($aiPaginas);
 @endphp
+
+@foreach($aiPaginas as $aiPagIdx => $aiPagina)
 <div class="page ai-page">
     <div class="ai-stripe"></div>
 
     <div class="ai-body">
         <div class="ai-header">
             <div class="ai-eyebrow">Informe · {{ $periodo }}</div>
-            <div class="ai-title">Análisis <span>Estratégico</span></div>
+            <div class="ai-title">
+                Análisis <span>Estratégico</span>
+                @if($aiTotal > 1)
+                    <span style="font-size: 15px; color: var(--p-400); font-weight: 400; letter-spacing: 0;">({{ $aiPagIdx + 1 }}/{{ $aiTotal }})</span>
+                @endif
+            </div>
             <div class="ai-rule"></div>
         </div>
 
         <div class="ai-sections">
-            @foreach($parrafos as $i => $parrafo)
+            @foreach($aiPagina as $sec)
             <div class="ai-section">
-                <div class="ai-section-num">0{{ $i + 1 }}</div>
+                <div class="ai-section-num">0{{ $sec['idx'] + 1 }}</div>
                 <div class="ai-section-content">
-                    <div class="ai-section-label">{{ $labels[$i] ?? 'Análisis' }}</div>
-                    <div class="ai-section-text">{{ $parrafo }}</div>
+                    <div class="ai-section-label">{{ $labels[$sec['idx']] ?? 'Análisis' }}</div>
+                    <div class="ai-section-text">{{ $sec['texto'] }}</div>
                 </div>
             </div>
             @endforeach
         </div>
     </div>
 
+    @if($aiPagIdx === $aiTotal - 1)
     <div class="cover-footer">
         <div class="ai-badge">
             <div class="ai-badge-dot"></div>
@@ -1990,7 +2382,9 @@
             <div class="cover-sub">Sistema de Balanza Digital · {{ $periodo }}</div>
         </div>
     </div>
+    @endif
 </div>
+@endforeach
 @endif
 
 {{-- ═══════════ CIERRE ═══════════ --}}
@@ -2013,10 +2407,9 @@
         <div class="thank-rule"></div>
         <div class="thank-org">{{ $organizacion }}</div>
         <p class="thank-caption">
-            Agradecemos la confianza depositada en nuestro servicio durante {{ $periodo }}.<br>
-            Este informe refleja el trabajo comprometido de todo el equipo operativo.<br>
-            Seguimos trabajando cada jornada para mejorar la eficiencia,
-            la trazabilidad y el impacto ambiental de la recolección.
+            Informe correspondiente a {{ $periodo }}, generado a partir de los registros del sistema de balanza digital.<br>
+            Cada pesaje queda trazado con fecha, vehículo, zona y peso neto: eso permite auditar la operación
+            y comparar la evolución entre períodos.
         </p>
     </div>
 
@@ -2029,6 +2422,55 @@
         <div class="thank-footer-badge">Gestión Integral de Residuos</div>
     </div>
 </div>
+
+
+{{-- Inicializa los mapas Leaflet del PDF. Browsershot (Chromium real) ejecuta
+     este script y espera waitUntilNetworkIdle(), dando tiempo a que carguen los
+     tiles de OpenStreetMap antes de imprimir. Cada .pdf-map lee su dataset del
+     <script type="application/json"> contiguo (zonas con geojson + color). --}}
+<script>
+(function () {
+    function initMaps() {
+        if (typeof L === 'undefined') return;
+        document.querySelectorAll('.pdf-map[data-choropleth]').forEach(function (el) {
+            var src = document.getElementById(el.getAttribute('data-choropleth'));
+            if (!src) return;
+            var zonas;
+            try { zonas = JSON.parse(src.textContent); } catch (e) { zonas = []; }
+
+            var map = L.map(el, {
+                zoomControl: false, attributionControl: false, dragging: false,
+                scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false,
+                keyboard: false, touchZoom: false,
+            });
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+            var group = L.featureGroup().addTo(map);
+            zonas.forEach(function (z) {
+                if (!z.geojson) return;
+                var layer = L.geoJSON(z.geojson, {
+                    style: { color: '#475569', weight: 2, fillColor: z.color, fillOpacity: 0.7 },
+                });
+                layer.addTo(group);
+                L.tooltip({ permanent: true, direction: 'center', className: 'zona-label', interactive: false })
+                    .setLatLng(layer.getBounds().getCenter()).setContent(z.nombre).addTo(group);
+            });
+
+            map.invalidateSize();
+            if (group.getLayers().length) {
+                map.fitBounds(group.getBounds(), { padding: [16, 16], maxZoom: 15 });
+            } else {
+                map.setView([-27.4698, -58.8306], 12);
+            }
+        });
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initMaps);
+    } else {
+        initMaps();
+    }
+})();
+</script>
 
 </body>
 </html>

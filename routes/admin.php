@@ -85,6 +85,14 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/reportes/excel', [ReporteController::class, 'exportExcel'])->name('reportes.excel');
     Route::get('/reportes/historial/{generado}/descargar', [ReporteController::class, 'downloadHistorial'])
         ->name('reportes.historial.download');
+    Route::post('/reportes/historial/{generado}/aprobar', [ReporteController::class, 'aprobarHistorial'])
+        ->name('reportes.historial.aprobar');
+    Route::post('/reportes/historial/{generado}/descartar', [ReporteController::class, 'descartarHistorial'])
+        ->name('reportes.historial.descartar');
+    Route::post('/reportes/historial/{generado}/reintentar', [ReporteController::class, 'reintentarHistorial'])
+        ->name('reportes.historial.reintentar');
+    Route::put('/reportes/historial/{generado}/conclusiones', [ReporteController::class, 'updateConclusionesHistorial'])
+        ->name('reportes.historial.conclusiones.update');
     Route::get('/reportes/destinatarios', [ReporteController::class, 'indexDestinatarios'])->name('reportes.destinatarios.index');
     Route::put('/reportes/configuracion', [ReporteController::class, 'updateConfiguracion'])->name('reportes.configuracion.update');
     Route::post('/reportes/programados', [ReporteController::class, 'storeProgramado'])->name('reportes.programados.store');

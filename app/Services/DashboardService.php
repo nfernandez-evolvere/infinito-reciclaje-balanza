@@ -206,6 +206,62 @@ class DashboardService
         return $agrupados->values()->concat($zonasSinPesajes)->sortByDesc('toneladas')->values();
     }
 
+    /**
+     * Métricas por zona para el mapa de calor (choropleth). Una fila por zona activa,
+     * incluya o no geometría — la vista muestra en el mapa las que tienen polígono y
+     * lista el resto. Las 4 métricas son: toneladas, viajes, per cápita (kg/hab) y
+     * densidad (kg/ha), calculadas sobre el peso neto del rango.
+     *
+     * Con $filtros (zona_id, tipo_servicio_id, tipo_vehiculo_id) la agregación se
+     * limita al subconjunto filtrado — usado por el mapa embebido en Reportes, que
+     * respeta los mismos filtros que las tablas del informe. Sin filtros (Dashboard)
+     * usa la consulta liviana paraDesglosePorZona.
+     *
+     * @param  array<string, int>  $filtros
+     */
+    public function metricasPorZona(Carbon $desde, Carbon $hasta, array $filtros = []): SupportCollection
+    {
+        $pesajes = empty($filtros)
+            ? $this->pesajeRepository->paraDesglosePorZona($desde, $hasta)
+            : $this->pesajeRepository->paraReporte($desde, $hasta, $filtros);
+
+        $porZona = $pesajes
+            ->filter(fn ($p) => $p->zona_id !== null)
+            ->groupBy('zona_id')
+            ->map(fn ($grupo) => [
+                'pesajes' => $grupo->count(),
+                'kg'      => (int) $grupo->sum('peso_neto_kg'),
+            ]);
+
+        return $this->zonaRepository->activos()
+            ->map(function ($zona) use ($porZona) {
+                $datos = $porZona->get($zona->id, ['pesajes' => 0, 'kg' => 0]);
+                $kg = $datos['kg'];
+
+                $geojson = $zona->geojson ? json_decode($zona->geojson, true) : null;
+
+                return [
+                    'id'              => $zona->id,
+                    'nombre'          => $zona->nombre,
+                    'tiene_geometria' => $geojson !== null,
+                    'geojson'         => $geojson,
+                    'centro'          => ($zona->centro_lat !== null && $zona->centro_lng !== null)
+                        ? ['lat' => $zona->centro_lat, 'lng' => $zona->centro_lng]
+                        : null,
+                    'hectareas'  => $zona->hectareas,
+                    'habitantes' => $zona->habitantes,
+                    'metricas'   => [
+                        'toneladas'  => round($kg / 1000, 2),
+                        'pesajes'    => $datos['pesajes'],
+                        'per_capita' => ($zona->habitantes > 0) ? round($kg / $zona->habitantes, 2) : null,
+                        'densidad'   => ($zona->hectareas > 0) ? round($kg / $zona->hectareas, 1) : null,
+                    ],
+                ];
+            })
+            ->sortByDesc(fn ($z) => $z['metricas']['toneladas'])
+            ->values();
+    }
+
     public function desgloseByTipoVehiculo(?Carbon $desde = null, ?Carbon $hasta = null): SupportCollection
     {
         $desde = $desde ?? today();

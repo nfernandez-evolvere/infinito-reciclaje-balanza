@@ -1,5 +1,5 @@
 @php
-    $hasProgramadoErrors = $errors->hasAny(['nombre', 'tipo', 'frecuencia', 'destinatarios', 'formatos', 'activo']);
+    $hasProgramadoErrors = $errors->hasAny(['nombre', 'tipo', 'frecuencia', 'destinatarios', 'formatos', 'revision', 'activo']);
     $isEditing      = old('_mode') === 'edit';
     $defaultTipo    = ($config->tipo_informe_mensual_activo ?? true) ? 'informe_mensual' : 'alertas';
     $initialProgramado = $hasProgramadoErrors ? [
@@ -11,6 +11,7 @@
             'tipo'       => old('tipo', $defaultTipo),
             'frecuencia' => old('frecuencia', 'mensual'),
             'formatos'   => array_values(array_intersect(['pdf', 'excel'], (array) old('formatos', ['pdf']))) ?: ['pdf'],
+            'revision'   => old('revision', 'heredar'),
             'activo'     => old('activo', true),
         ],
         '_oldDestinatariosStr' => old('destinatarios', ''),
@@ -33,6 +34,20 @@
         <x-ui.typography as="muted">Generá y programá reportes para exportar o enviar al municipio.</x-ui.typography>
     </div>
 
+    @if($pendientesRevision > 0)
+        <x-ui.alert
+            state="warning"
+            title="{{ $pendientesRevision === 1 ? 'Hay 1 reporte pendiente de revisión' : 'Hay '.$pendientesRevision.' reportes pendientes de revisión' }}"
+            description="No se enviarán a los destinatarios hasta que los apruebes."
+        >
+            <x-slot:action>
+                <x-ui.button variant="ghost" state="warning" @click="active = 'historial'">
+                    Revisar
+                </x-ui.button>
+            </x-slot:action>
+        </x-ui.alert>
+    @endif
+
     <x-ui.tabs.list class="flex w-full sm:w-fit">
         <x-ui.tabs.trigger value="programados" class="flex-1 sm:flex-none">
             <x-lucide-clock class="size-4" />
@@ -48,6 +63,9 @@
             <x-lucide-history class="size-4" />
             <span x-show="active === 'historial'" x-cloak class="sm:inline">Historial</span>
             <span class="hidden sm:inline" x-show="active !== 'historial'">Historial</span>
+            @if($pendientesRevision > 0)
+                <x-ui.badge variant="warning" class="text-xs">{{ $pendientesRevision }}</x-ui.badge>
+            @endif
         </x-ui.tabs.trigger>
         <x-ui.tabs.trigger value="configuracion" class="flex-1 sm:flex-none">
             <x-lucide-settings-2 class="size-4" />
@@ -73,12 +91,17 @@
                 {{-- Resumen del período · en mobile/tablet vive en el drawer del header --}}
                 <section class="hidden xl:flex xl:flex-col gap-4">
                     <p class="text-overline">Resumen del período</p>
-                    <x-domain.reportes.kpis :kpis="$reporte['kpis']" gridClass="grid grid-cols-5 gap-4" />
+                    <x-domain.reportes.kpis :kpis="$reporte['kpis']" />
                 </section>
 
                 @if(!empty($reporte['evolucion']['datos']))
                     <x-domain.reportes.evolucion :evolucion="$reporte['evolucion']" />
                 @endif
+
+                <x-domain.mapa-calor.panel
+                    :zonas="$mapaZonas"
+                    description="Intensidad de recolección del período por zona, según los filtros aplicados."
+                />
 
                 <section class="flex flex-col gap-4">
                     <p class="text-overline">Desglose por segmento</p>
@@ -133,10 +156,11 @@
 
     {{-- ── Tab: Historial ── --}}
     <x-ui.tabs.content value="historial" class="mt-0">
-        <div class="flex flex-col gap-6">
+        <div x-data="reportesHistorial()" class="flex flex-col gap-6">
             <x-ui.typography as="muted">Reportes descargados y enviados. Volvé a abrir cualquiera para regenerarlo con los datos del período.</x-ui.typography>
 
             <x-domain.reportes.tabla-historial :historial="$historial" />
+            <x-domain.reportes.modal-revision />
         </div>
     </x-ui.tabs.content>
 

@@ -17,6 +17,11 @@ class UpdateVehiculoRequest extends FormRequest
         $vehiculo = $this->route('vehiculo');
         $vehiculoId = $vehiculo?->id;
 
+        // La unicidad es por organización (espeja el unique compuesto de la BD:
+        // unique(organizacion_id, patente) y unique(organizacion_id, numero_interno)).
+        // Sin el scope, un valor de otra organización dispararía un falso "ya en uso".
+        $orgId = app('organizacion')?->id;
+
         // Cuando la tara cambia y el vehículo ya tiene pesajes, el admin debe
         // declarar si corrige un dato mal cargado (recalcula el historial) o
         // registra un cambio real del vehículo (solo afecta a futuro).
@@ -25,8 +30,8 @@ class UpdateVehiculoRequest extends FormRequest
         $requiereDecision = $taraCambio && $tienePesajes;
 
         return [
-            'patente'          => ['required', 'string', 'max:20', Rule::unique('vehiculos', 'patente')->ignore($vehiculoId)],
-            'numero_interno'   => ['nullable', 'string', 'max:20', Rule::unique('vehiculos', 'numero_interno')->ignore($vehiculoId)],
+            'patente'          => ['required', 'string', 'max:20', Rule::unique('vehiculos', 'patente')->where('organizacion_id', $orgId)->ignore($vehiculoId)],
+            'numero_interno'   => ['nullable', 'string', 'max:20', Rule::unique('vehiculos', 'numero_interno')->where('organizacion_id', $orgId)->ignore($vehiculoId)],
             'tara_kg'          => ['required', 'integer', 'min:1'],
             'tipo_vehiculo_id' => ['required', 'integer', 'exists:tipos_vehiculo,id'],
             'titular'          => ['required', 'string', 'max:200'],

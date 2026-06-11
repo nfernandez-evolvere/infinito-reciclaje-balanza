@@ -1,5 +1,8 @@
-<div x-data="{ get open() { return modalOpen }, set open(v) { modalOpen = v } }">
-    <x-ui.dialog.content size="sm">
+<div
+    x-data="{ get open() { return modalOpen }, set open(v) { modalOpen = v } }"
+    x-init="$watch('modalOpen', v => { if (v) syncMapToForm() }); if (modalOpen) syncMapToForm()"
+>
+    <x-ui.dialog.content size="xl">
         <form
             method="POST"
             :action="modalMode === 'create'
@@ -10,6 +13,9 @@
             <input type="hidden" name="_method"     :value="modalMode === 'edit' ? 'PUT' : 'POST'" />
             <input type="hidden" name="_mode"       :value="modalMode" />
             <input type="hidden" name="_editing_id" :value="form.id" />
+            <input type="hidden" name="geojson"     :value="form.geojson" />
+            <input type="hidden" name="centro_lat"  :value="form.centro_lat" />
+            <input type="hidden" name="centro_lng"  :value="form.centro_lng" />
 
             <x-ui.dialog.header>
                 <x-ui.dialog.title
@@ -17,7 +23,7 @@
                 ></x-ui.dialog.title>
             </x-ui.dialog.header>
 
-            <div class="px-6 pb-2">
+            <div class="px-6 pb-2 overflow-y-auto">
                 <x-ui.form-field
                     for="nombre"
                     :state="$errors->has('nombre') ? 'destructive' : null"
@@ -80,6 +86,14 @@
                             placeholder="0"
                         />
                     </x-ui.form-field>
+                </div>
+
+                <div class="mt-4 space-y-2">
+                    <x-ui.label>Área en el mapa <span class="text-muted-foreground font-normal">(opcional)</span></x-ui.label>
+                    <p class="text-sm text-muted-foreground">
+                        Dibujá el polígono de la zona con la herramienta de polígono. Marca los límites que el sistema usa para los mapas de calor.
+                    </p>
+                    <div id="zona-map" class="h-120 w-full rounded-md border border-border"></div>
                 </div>
             </div>
 

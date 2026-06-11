@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Exports\ReporteExcelExport;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\DescartarReporteGeneradoRequest;
 use App\Http\Requests\Admin\ExportReporteRequest;
 use App\Http\Requests\Admin\StoreReporteProgramadoRequest;
+use App\Http\Requests\Admin\UpdateConclusionesReporteGeneradoRequest;
 use App\Http\Requests\Admin\UpdateReporteConfiguracionRequest;
 use App\Http\Requests\Admin\UpdateReporteProgramadoRequest;
-use App\Jobs\GenerarEnviarReporteJob;
 use App\Models\Alerta;
 use App\Models\ReporteConfiguracion;
 use App\Models\ReporteGenerado;
@@ -21,11 +22,13 @@ use App\Repositories\TipoServicioRepository;
 use App\Repositories\TipoVehiculoRepository;
 use App\Repositories\ZonaRepository;
 use App\Services\ConclusionesAIService;
+use App\Services\DashboardService;
 use App\Services\PdfService;
 use App\Services\ReporteConfiguracionService;
 use App\Services\ReporteGeneradoService;
 use App\Services\ReporteProgramadoService;
 use App\Services\ReporteService;
+use App\Services\ReporteSnapshotService;
 use App\Services\SvgChartService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -52,6 +55,8 @@ class ReporteController extends Controller
         protected TipoServicioRepository $tipoServicioRepository,
         protected ReporteGeneradoRepository $generadoRepository,
         protected ReporteGeneradoService $generadoService,
+        protected DashboardService $dashboardService,
+        protected ReporteSnapshotService $snapshotService,
     ) {}
 
     // ── Index ──────────────────────────────────────────────────────────────
@@ -65,6 +70,7 @@ class ReporteController extends Controller
         $tiposVehiculo = $this->tipoVehiculoRepository->activos();
         $programados = $this->programadoRepository->allOrdered();
         $historial = $this->generadoRepository->paginarHistorial()->appends(['tab' => 'historial']);
+        $pendientesRevision = $this->generadoRepository->contarPendientesRevision();
         $config = $this->configuracionRepository->first() ?? new ReporteConfiguracion;
 
         $filters = [
@@ -82,23 +88,26 @@ class ReporteController extends Controller
         ]));
 
         $reporte = null;
+        $mapaZonas = collect();
 
         if ($request->filled('desde') && $request->filled('hasta')) {
             $desde = Carbon::parse($filters['desde']);
             $hasta = Carbon::parse($filters['hasta']);
 
             if ($desde->lte($hasta)) {
-                $reporte = $this->reporteService->generar(
-                    $desde,
-                    $hasta,
-                    array_filter($request->only(['zona_id', 'tipo_servicio_id', 'tipo_vehiculo_id']))
-                );
+                $filtrosReporte = array_filter($request->only(['zona_id', 'tipo_servicio_id', 'tipo_vehiculo_id']));
+
+                $reporte = $this->reporteService->generar($desde, $hasta, $filtrosReporte);
+
+                // Datos del mapa de calor embebido: métricas por zona respetando los
+                // mismos filtros que las tablas del informe.
+                $mapaZonas = $this->dashboardService->metricasPorZona($desde, $hasta, $filtrosReporte);
             }
         }
 
         return view('modules.admin.reportes.index', compact(
-            'tab', 'reporte', 'zonas', 'tiposServicio', 'tiposVehiculo', 'filters', 'activeFilters',
-            'programados', 'historial', 'config'
+            'tab', 'reporte', 'mapaZonas', 'zonas', 'tiposServicio', 'tiposVehiculo', 'filters', 'activeFilters',
+            'programados', 'historial', 'pendientesRevision', 'config'
         ));
     }
 
@@ -110,9 +119,13 @@ class ReporteController extends Controller
         $hasta = Carbon::parse($request->input('hasta'));
         $filtros = array_filter($request->only(['zona_id', 'tipo_servicio_id', 'tipo_vehiculo_id']));
 
-        $this->generadoService->registrarDescarga('excel', 'informe_mensual', $desde, $hasta, $filtros);
+        $reporte = $this->construirReporteExcel($desde, $hasta, $filtros);
 
-        return $this->descargarExcel($desde, $hasta, $filtros);
+        $this->generadoService->registrarDescarga(
+            'excel', 'informe_mensual', $desde, $hasta, $filtros, null, $this->snapshotService->capturar($reporte),
+        );
+
+        return $this->renderExcel($reporte);
     }
 
     public function exportPdfPresentacion(ExportReporteRequest $request): Response
@@ -124,30 +137,57 @@ class ReporteController extends Controller
 
         $reporte = $this->construirReportePdf($desde, $hasta, $filtros, $tipo);
 
+        if ($tipo !== 'alertas') {
+            $reporte['conclusiones'] = $this->generarConclusionesAI($reporte, $desde);
+        }
+
         $this->generadoService->registrarDescarga(
-            'pdf', $tipo, $desde, $hasta, $filtros, $reporte['conclusiones']['analisis'] ?? null,
+            'pdf', $tipo, $desde, $hasta, $filtros,
+            $reporte['conclusiones']['analisis'] ?? null,
+            $this->snapshotService->capturar($reporte),
         );
 
         return $this->responderPdf($reporte, $tipo, $desde);
     }
 
     /**
-     * Vuelve a generar y descargar un reporte del historial reusando el período,
-     * los filtros y el formato guardados. No registra una entrada nueva: es una
-     * re-descarga de algo ya producido. La narrativa IA preservada se reutiliza
-     * tal cual (no se vuelve a llamar al modelo).
+     * Vuelve a descargar un reporte del historial. No registra una entrada nueva:
+     * es una re-descarga de algo ya producido. Para entradas multi-formato
+     * (pdf+excel) el formato a bajar se elige con ?formato=; sin él se usa el
+     * primero. Si la entrada tiene snapshot, se reproduce idéntica desde los datos
+     * congelados (sin recalcular sobre los pesajes vivos). Las entradas previas al
+     * snapshot caen al recálculo, reusando la narrativa IA preservada tal cual.
      */
-    public function downloadHistorial(ReporteGenerado $generado): StreamedResponse|Response
+    public function downloadHistorial(Request $request, ReporteGenerado $generado): StreamedResponse|Response
     {
+        $formatos = explode('+', $generado->formato);
+        $formato = $request->input('formato', $formatos[0]);
+
+        // Solo se puede pedir un formato que esta entrada efectivamente produjo.
+        abort_unless(in_array($formato, $formatos, true), 404);
+
+        if ($generado->snapshot !== null) {
+            $reporte = $this->snapshotService->rehidratar($generado);
+
+            return $formato === 'excel'
+                ? $this->renderExcel($reporte)
+                : $this->responderPdf($reporte, $generado->tipo, $reporte['desde']);
+        }
+
+        // Legacy: entradas previas al snapshot → recálculo bajo demanda.
         $desde = $generado->periodo_desde->copy()->startOfDay();
         $hasta = $generado->periodo_hasta->copy()->endOfDay();
         $filtros = $generado->filtrosNormalizados();
 
-        if ($generado->formato === 'excel') {
-            return $this->descargarExcel($desde, $hasta, $filtros);
+        if ($formato === 'excel') {
+            return $this->renderExcel($this->construirReporteExcel($desde, $hasta, $filtros));
         }
 
-        $reporte = $this->construirReportePdf($desde, $hasta, $filtros, $generado->tipo, $generado->conclusiones);
+        $reporte = $this->construirReportePdf($desde, $hasta, $filtros, $generado->tipo);
+
+        if ($generado->conclusiones !== null) {
+            $reporte['conclusiones'] = ['analisis' => $generado->conclusiones];
+        }
 
         return $this->responderPdf($reporte, $generado->tipo, $desde);
     }
@@ -196,15 +236,97 @@ class ReporteController extends Controller
 
     public function enviarAhoraProgramado(ReporteProgramado $programado): RedirectResponse
     {
-        GenerarEnviarReporteJob::dispatch($programado->id);
+        $generado = $this->generadoService->iniciarGeneracion($programado);
+
+        $config = $this->configuracionRepository->first();
 
         session()->flash('toast', [
-            'message'     => 'Envío en cola.',
-            'description' => 'El reporte se generará y enviará en los próximos minutos.',
-            'variant'     => 'success',
+            'message'     => 'Generación en cola.',
+            'description' => $programado->requiereRevision($config)
+                ? 'El reporte se generará en los próximos minutos y quedará pendiente de revisión en el historial.'
+                : 'El reporte se generará y enviará en los próximos minutos.',
+            'variant' => 'success',
         ]);
 
         return redirect()->route('admin.reportes.index', ['tab' => 'programados']);
+    }
+
+    // ── Revisión del historial ─────────────────────────────────────────────
+
+    public function aprobarHistorial(Request $request, ReporteGenerado $generado): RedirectResponse
+    {
+        $aprobado = $this->generadoService->aprobar($generado, $request->user());
+
+        session()->flash('toast', $aprobado
+            ? [
+                'message'     => 'Reporte aprobado.',
+                'description' => 'El envío está en cola y saldrá en los próximos minutos.',
+                'variant'     => 'success',
+            ]
+            : [
+                'message'     => 'No se pudo aprobar.',
+                'description' => 'El reporte ya fue procesado por otro usuario.',
+                'variant'     => 'destructive',
+            ]);
+
+        return redirect()->route('admin.reportes.index', ['tab' => 'historial']);
+    }
+
+    public function descartarHistorial(DescartarReporteGeneradoRequest $request, ReporteGenerado $generado): RedirectResponse
+    {
+        $descartado = $this->generadoService->descartar($generado, $request->user(), $request->validated('motivo'));
+
+        session()->flash('toast', $descartado
+            ? [
+                'message'     => 'Reporte descartado.',
+                'description' => 'No se enviará a los destinatarios. Queda en el historial como registro.',
+                'variant'     => 'destructive',
+            ]
+            : [
+                'message'     => 'No se pudo descartar.',
+                'description' => 'El reporte ya fue procesado por otro usuario.',
+                'variant'     => 'destructive',
+            ]);
+
+        return redirect()->route('admin.reportes.index', ['tab' => 'historial']);
+    }
+
+    public function reintentarHistorial(ReporteGenerado $generado): RedirectResponse
+    {
+        $reintentado = $this->generadoService->reintentar($generado);
+
+        session()->flash('toast', $reintentado
+            ? [
+                'message'     => 'Reintento en cola.',
+                'description' => 'El reporte se procesará en los próximos minutos.',
+                'variant'     => 'success',
+            ]
+            : [
+                'message'     => 'No se pudo reintentar.',
+                'description' => 'Solo los reportes fallidos admiten reintento.',
+                'variant'     => 'destructive',
+            ]);
+
+        return redirect()->route('admin.reportes.index', ['tab' => 'historial']);
+    }
+
+    public function updateConclusionesHistorial(UpdateConclusionesReporteGeneradoRequest $request, ReporteGenerado $generado): RedirectResponse
+    {
+        $actualizado = $this->generadoService->actualizarConclusiones($generado, $request->validated('conclusiones'));
+
+        session()->flash('toast', $actualizado
+            ? [
+                'message'     => 'Análisis actualizado.',
+                'description' => 'El texto editado se incluirá en el PDF cuando apruebes el envío.',
+                'variant'     => 'success',
+            ]
+            : [
+                'message'     => 'No se pudo guardar.',
+                'description' => 'Solo se puede editar el análisis mientras el reporte está en revisión.',
+                'variant'     => 'destructive',
+            ]);
+
+        return redirect()->route('admin.reportes.index', ['tab' => 'historial']);
     }
 
     // ── Configuración ──────────────────────────────────────────────────────
@@ -233,7 +355,7 @@ class ReporteController extends Controller
 
     public function downloadPdfProgramado(ReporteProgramado $programado): Response
     {
-        [$desde, $hasta] = $this->calcularPeriodoProgramado($programado->frecuencia);
+        [$desde, $hasta] = $this->programadoService->calcularPeriodo($programado->frecuencia);
         $tipo = $programado->tipo;
 
         $reporte = $this->reporteService->generar($desde, $hasta);
@@ -246,6 +368,7 @@ class ReporteController extends Controller
             $reporte['alertas'] = $this->consultarAlertas($desde, $hasta);
             $filename = 'alertas_'.$desde->format('Y-m-d').'.pdf';
         } else {
+            $reporte['mapaZonas'] = $this->dashboardService->metricasPorZona($desde, $hasta);
             $filename = 'informe_'.$desde->format('Y-m').'.pdf';
         }
 
@@ -259,53 +382,26 @@ class ReporteController extends Controller
 
     public function downloadExcelProgramado(ReporteProgramado $programado): StreamedResponse
     {
-        [$desde, $hasta] = $this->calcularPeriodoProgramado($programado->frecuencia);
+        [$desde, $hasta] = $this->programadoService->calcularPeriodo($programado->frecuencia);
 
-        return $this->descargarExcel($desde, $hasta, []);
+        return $this->renderExcel($this->construirReporteExcel($desde, $hasta, []));
     }
 
     // ── Helpers privados ───────────────────────────────────────────────────
 
     /**
-     * Arma y descarga el Excel municipal para un período/filtros dados.
-     *
-     * @param  array<string, int>  $filtros
-     */
-    private function descargarExcel(Carbon $desde, Carbon $hasta, array $filtros): StreamedResponse
-    {
-        $reporte = $this->reporteService->generar($desde, $hasta, $filtros);
-        $reporte['config'] = $this->configuracionRepository->first();
-        $reporte['pivots'] = $this->reporteService->pivotsParaExcel(
-            $reporte['detalle'],
-            $reporte['desde'],
-            $reporte['hasta'],
-        );
-
-        $filename = 'reporte_'.$desde->format('Y-m-d').'_'.$hasta->format('Y-m-d').'.xlsx';
-
-        return (new ReporteExcelExport($reporte))->download($filename);
-    }
-
-    /**
-     * Arma el array del reporte para la vista PDF: KPIs/zonas/vehículos + config,
-     * conclusiones (alertas o IA) y, para alertas, el listado deduplicado. Si se
-     * pasa $conclusionesPreservadas, se reutiliza esa narrativa en vez de llamar
-     * al modelo de IA (caso historial).
+     * Arma el reporte para el PDF de presentación: KPIs/zonas/vehículos + config +
+     * mapa de calor (informe) o el listado de alertas deduplicado (tipo alertas).
+     * No incluye pivots/detalle (el PDF no los usa) ni IA (eso lo agrega quien
+     * genera el PDF, para no llamar al modelo en re-descargas).
      *
      * @param  array<string, int>  $filtros
      * @return array<string, mixed>
      */
-    private function construirReportePdf(
-        Carbon $desde,
-        Carbon $hasta,
-        array $filtros,
-        string $tipo,
-        ?string $conclusionesPreservadas = null,
-    ): array {
+    private function construirReportePdf(Carbon $desde, Carbon $hasta, array $filtros, string $tipo): array
+    {
         $reporte = $this->reporteService->generar($desde, $hasta, $filtros);
-        $config = $this->configuracionRepository->first();
-
-        $reporte['config'] = $config;
+        $reporte['config'] = $this->configuracionRepository->first();
         $reporte['conclusiones'] = [];
 
         if ($tipo === 'alertas') {
@@ -314,16 +410,66 @@ class ReporteController extends Controller
             return $reporte;
         }
 
-        if ($conclusionesPreservadas !== null) {
-            $reporte['conclusiones'] = ['analisis' => $conclusionesPreservadas];
-        } elseif ($config?->ai_enabled && $config?->ai_api_key) {
-            $aiService = new ConclusionesAIService($config->ai_api_key, $config->ai_modelo, $config->ai_prompt ?? '');
-            $reporte['conclusiones'] = [
-                'analisis' => $aiService->generarAnalisis($reporte['kpis'], $reporte['zonas'], $desde->translatedFormat('F Y')),
-            ];
-        }
+        // Mapa de calor del informe: métricas por zona (con geometría) respetando
+        // los mismos filtros, para las páginas de choropleth del PDF.
+        $reporte['mapaZonas'] = $this->dashboardService->metricasPorZona($desde, $hasta, $filtros);
 
         return $reporte;
+    }
+
+    /**
+     * Arma el reporte para el Excel municipal: KPIs/vehículos + config + pivots +
+     * detalle aplanado + total de kg netos. No incluye el mapa de calor (el Excel
+     * no lo usa). El detalle se aplana a escalares para que sea serializable y se
+     * pueda congelar idéntico en el snapshot.
+     *
+     * @param  array<string, int>  $filtros
+     * @return array<string, mixed>
+     */
+    private function construirReporteExcel(Carbon $desde, Carbon $hasta, array $filtros): array
+    {
+        $reporte = $this->reporteService->generar($desde, $hasta, $filtros);
+        $reporte['config'] = $this->configuracionRepository->first();
+        $reporte['pivots'] = $this->reporteService->pivotsParaExcel($reporte['detalle'], $desde, $hasta);
+        $reporte['kg_netos_total'] = (int) $reporte['detalle']->sum('peso_neto_kg');
+        $reporte['detalle'] = $this->reporteService->detalleParaExcel($reporte['detalle']);
+
+        return $reporte;
+    }
+
+    /**
+     * Genera la narrativa IA del informe si la IA está habilitada y configurada.
+     * Devuelve ['analisis' => ...] o [] (sin IA). Solo se llama al producir un PDF.
+     *
+     * @param  array<string, mixed>  $reporte
+     * @return array<string, string>
+     */
+    private function generarConclusionesAI(array $reporte, Carbon $desde): array
+    {
+        $config = $reporte['config'] ?? null;
+
+        if (! $config instanceof ReporteConfiguracion || ! $config->ai_enabled || ! $config->ai_api_key) {
+            return [];
+        }
+
+        $aiService = new ConclusionesAIService($config->ai_api_key, $config->ai_modelo, $config->ai_prompt ?? '');
+
+        return [
+            'analisis' => $aiService->generarAnalisis($reporte['kpis'], $reporte['zonas'], $desde->translatedFormat('F Y')),
+        ];
+    }
+
+    /**
+     * Arma y descarga el Excel municipal a partir de un reporte ya construido
+     * (vivo o rehidratado del snapshot).
+     *
+     * @param  array<string, mixed>  $reporte
+     */
+    private function renderExcel(array $reporte): StreamedResponse
+    {
+        $filename = 'reporte_'.$reporte['desde']->format('Y-m-d').'_'.$reporte['hasta']->format('Y-m-d').'.xlsx';
+
+        return (new ReporteExcelExport($reporte))->download($filename);
     }
 
     /**
@@ -343,16 +489,6 @@ class ReporteController extends Controller
             'Content-Type'        => 'application/pdf',
             'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ]);
-    }
-
-    private function calcularPeriodoProgramado(string $frecuencia): array
-    {
-        return match ($frecuencia) {
-            'diaria'    => [now()->subDay()->startOfDay(),    now()->subDay()->endOfDay()],
-            'semanal'   => [now()->subDays(7)->startOfDay(),  now()->endOfDay()],
-            'quincenal' => [now()->subDays(15)->startOfDay(), now()->endOfDay()],
-            default     => [now()->subDays(30)->startOfDay(), now()->endOfDay()],
-        };
     }
 
     private function consultarAlertas(Carbon $desde, Carbon $hasta): Collection

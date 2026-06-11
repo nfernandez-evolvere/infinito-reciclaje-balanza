@@ -2,6 +2,7 @@
     'size'            => 'md',
     'showCloseButton' => true,
     'closeState'      => null,
+    'closeOnBackdrop' => false,
 ])
 
 @php
@@ -24,7 +25,7 @@ $sizeClass = ['sm' => 'max-w-sm', 'lg' => 'max-w-2xl', 'xl' => 'max-w-4xl'][$siz
             x-transition:leave="transition ease-in duration-150"
             x-transition:leave-start="opacity-100"
             x-transition:leave-end="opacity-0"
-            @click="open = false"
+            @if($closeOnBackdrop) @click="open = false" @endif
             class="absolute inset-0 bg-surface-overlay"
         ></div>
 

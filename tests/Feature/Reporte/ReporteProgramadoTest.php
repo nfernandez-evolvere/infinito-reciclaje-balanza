@@ -2,8 +2,9 @@
 
 namespace Tests\Feature\Reporte;
 
-use App\Jobs\GenerarEnviarReporteJob;
+use App\Jobs\GenerarReporteJob;
 use App\Models\ReporteConfiguracion;
+use App\Models\ReporteGenerado;
 use App\Models\ReporteProgramado;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
@@ -215,7 +216,7 @@ class ReporteProgramadoTest extends TestCase
     // ── enviarAhoraProgramado ─────────────────────────────────────────
 
     #[Test]
-    public function enviar_ahora_despacha_el_job_a_la_cola(): void
+    public function enviar_ahora_crea_el_registro_y_despacha_el_job_a_la_cola(): void
     {
         Queue::fake();
 
@@ -225,7 +226,14 @@ class ReporteProgramadoTest extends TestCase
             ->post(route('admin.reportes.programados.enviar-ahora', $programado))
             ->assertRedirect(route('admin.reportes.index', ['tab' => 'programados']));
 
-        Queue::assertPushed(GenerarEnviarReporteJob::class, fn ($job) => $job->programadoId === $programado->id);
+        // El registro se crea ANTES de despachar (iniciarGeneracion) y el job
+        // recibe su id, no el del programado.
+        $generado = ReporteGenerado::sole();
+        $this->assertSame(ReporteGenerado::ESTADO_GENERANDO, $generado->estado);
+        $this->assertEquals($programado->id, $generado->reporte_programado_id);
+        $this->assertSame(['dest@test.com'], $generado->destinatarios);
+
+        Queue::assertPushed(GenerarReporteJob::class, fn ($job) => $job->generadoId === $generado->id);
     }
 
     #[Test]
@@ -238,6 +246,6 @@ class ReporteProgramadoTest extends TestCase
         $this->actingAs($this->admin())
             ->post(route('admin.reportes.programados.enviar-ahora', $programado));
 
-        Queue::assertPushed(GenerarEnviarReporteJob::class, 1);
+        Queue::assertPushed(GenerarReporteJob::class, 1);
     }
 }

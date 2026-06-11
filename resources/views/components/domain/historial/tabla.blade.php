@@ -1,4 +1,24 @@
-@props(['pesajes', 'hayFiltros', 'routeHistorial', 'sortDirection' => 'desc'])
+@props([
+    'pesajes',
+    'hayFiltros',
+    'routeHistorial',
+    'sortDirection' => 'desc',
+    'pageParam' => 'page',
+    'directionParam' => 'direction',
+    'returnTab' => 'pesajes',
+    'emptyIcon' => 'scale',
+    'emptyTitle' => 'Sin pesajes en este turno',
+    'emptyDescription' => 'Los pesajes aparecerán acá una vez que se registre el primero.',
+])
+
+@php
+    // Params del link «Editar»: conserva la pantalla de origen y, si la fila pertenece
+    // al tab «Modificaciones», el tab para volver a él tras guardar.
+    $editParams = fn ($pesaje) => array_merge(
+        ['pesaje' => $pesaje, 'origen' => request()->route()?->getName()],
+        $returnTab !== 'pesajes' ? ['tab' => $returnTab] : [],
+    );
+@endphp
 
 @if($pesajes->isEmpty())
     @if($hayFiltros)
@@ -14,9 +34,9 @@
         </x-ui.empty-state>
     @else
         <x-ui.empty-state
-            icon="scale"
-            title="Sin pesajes en este turno"
-            description="Los pesajes aparecerán acá una vez que se registre el primero."
+            :icon="$emptyIcon"
+            :title="$emptyTitle"
+            :description="$emptyDescription"
         />
     @endif
 @else
@@ -39,29 +59,7 @@
                         @endif
                     </div>
                     <x-slot:actions>
-                        @if($pesaje->estaCancelado())
-                            <x-ui.tooltip :content="'Motivo: ' . $pesaje->motivo_cancelacion">
-                                <x-ui.badge variant="destructive" class="gap-1">
-                                    <x-lucide-ban class="size-3" />
-                                    Cancelado
-                                </x-ui.badge>
-                            </x-ui.tooltip>
-                        @else
-                            @if($pesaje->editado)
-                                <x-ui.tooltip content="Editado">
-                                    <x-ui.badge variant="default" class="size-5 p-0 justify-center">
-                                        <x-lucide-pen-line class="size-3" />
-                                    </x-ui.badge>
-                                </x-ui.tooltip>
-                            @endif
-                            @if($pesaje->alerta_peso)
-                                <x-ui.tooltip content="Alerta de peso">
-                                    <x-ui.badge variant="warning" class="size-5 p-0 justify-center">
-                                        <x-lucide-triangle-alert class="size-3" />
-                                    </x-ui.badge>
-                                </x-ui.tooltip>
-                            @endif
-                        @endif
+
                         <x-ui.dropdown-menu>
                             <x-ui.dropdown-menu.trigger>
                                 <x-ui.button variant="ghost" size="icon" class="size-7 -mr-1">
@@ -74,14 +72,14 @@
                                     Detalles
                                 </x-ui.dropdown-menu.item>
                                 @if(!$pesaje->estaCancelado())
-                                    <x-ui.dropdown-menu.item href="{{ route('pesajes.edit', $pesaje) }}">
+                                    <x-ui.dropdown-menu.item href="{{ route('pesajes.edit', $editParams($pesaje)) }}">
                                         <x-lucide-pencil class="size-4" />
                                         Editar
                                     </x-ui.dropdown-menu.item>
                                 @endif
                                 @if($pesaje->estaEnPredio())
                                     <x-ui.dropdown-menu.item
-                                        @click="abrirEgreso('{{ $pesaje->uuid }}', '{{ addslashes($pesaje->vehiculo->patente) }}')"
+                                        @click="abrirEgreso('{{ $pesaje->uuid }}', '{{ addslashes($pesaje->vehiculo->patente) }}', '{{ $returnTab }}')"
                                     >
                                         <x-lucide-log-out class="size-4" />
                                         Marcar egreso
@@ -99,7 +97,7 @@
                                     <x-ui.dropdown-menu.separator />
                                     <x-ui.dropdown-menu.item
                                         variant="destructive"
-                                        @click="abrirCancelar('{{ $pesaje->uuid }}', '{{ addslashes($pesaje->vehiculo->patente) }}')"
+                                        @click="abrirCancelar('{{ $pesaje->uuid }}', '{{ addslashes($pesaje->vehiculo->patente) }}', '{{ $returnTab }}')"
                                     >
                                         <x-lucide-ban class="size-4" />
                                         Cancelar pesaje
@@ -112,6 +110,27 @@
 
                 <x-ui.card.content class="flex items-end justify-between gap-3">
                     <div class="flex flex-col gap-1 text-xs text-muted-foreground min-w-0">
+                        <div class="flex flex-wrap items-center gap-1">
+                            @if($pesaje->estaCancelado())
+                                <x-ui.badge state="destructive" class="gap-1">
+                                    <x-lucide-ban class="size-3" />
+                                    Cancelado
+                                </x-ui.badge>
+                            @else
+                                @if($pesaje->editado)
+                                    <x-ui.badge state="warning" class="gap-1">
+                                        <x-lucide-pen-line class="size-3" />
+                                        Editado
+                                    </x-ui.badge>
+                                @endif
+                                @if($pesaje->alerta_peso)
+                                    <x-ui.badge state="warning" class="gap-1">
+                                        <x-lucide-triangle-alert class="size-3" />
+                                        Alerta
+                                    </x-ui.badge>
+                                @endif
+                            @endif
+                        </div>
                         <div class="flex flex-col gap-1">
                             <div class="flex items-center gap-1">
                                 <x-lucide-map-pin class="size-3.5 shrink-0 text-primary" />
@@ -173,7 +192,7 @@
                 <x-ui.table.head>
                     @php
                         $nextDirection = $sortDirection === 'desc' ? 'asc' : 'desc';
-                        $sortUrl = request()->fullUrlWithQuery(['direction' => $nextDirection, 'page' => null]);
+                        $sortUrl = request()->fullUrlWithQuery([$directionParam => $nextDirection, $pageParam => null]);
                     @endphp
                     <a href="{{ $sortUrl }}" class="inline-flex items-center justify-center gap-1 hover:text-foreground transition-colors">
                         Ingreso
@@ -265,24 +284,22 @@
                 <x-ui.table.cell data-label="Estado">
                     <div class="flex items-center justify-center gap-1">
                         @if($pesaje->estaCancelado())
-                            <x-ui.tooltip :content="'Motivo: ' . $pesaje->motivo_cancelacion">
-                                <x-ui.badge variant="destructive" class="gap-1">
-                                    <x-lucide-ban class="size-3" />
-                                    Cancelado
-                                </x-ui.badge>
-                            </x-ui.tooltip>
+                            <x-ui.badge state="destructive" class="gap-1">
+                                <x-lucide-ban class="size-3" />
+                                Cancelado
+                            </x-ui.badge>
                         @else
                             @if($pesaje->editado)
-                                <x-ui.tooltip content="Editado">
-                                    <x-ui.badge variant="default" class="size-6 p-0 justify-center">
-                                        <x-lucide-pen-line class="size-3" />
-                                    </x-ui.badge>
-                                </x-ui.tooltip>
+                                <x-ui.badge state="warning" class="gap-1">
+                                    <x-lucide-pen-line class="size-3" />
+                                    Editado
+                                </x-ui.badge>
                             @endif
                             @if($pesaje->alerta_peso)
                                 <x-ui.tooltip content="Alerta de peso">
-                                    <x-ui.badge variant="warning" class="size-6 p-0 justify-center">
+                                    <x-ui.badge state="warning" class="gap-1">
                                         <x-lucide-triangle-alert class="size-3" />
+                                        Alerta
                                     </x-ui.badge>
                                 </x-ui.tooltip>
                             @endif
@@ -302,7 +319,7 @@
                                 Detalles
                             </x-ui.dropdown-menu.item>
                             @if(!$pesaje->estaCancelado())
-                                <x-ui.dropdown-menu.item href="{{ route('pesajes.edit', $pesaje) }}">
+                                <x-ui.dropdown-menu.item href="{{ route('pesajes.edit', ['pesaje' => $pesaje, 'origen' => request()->route()?->getName()]) }}">
                                     <x-lucide-pencil class="size-4" />
                                     Editar
                                 </x-ui.dropdown-menu.item>

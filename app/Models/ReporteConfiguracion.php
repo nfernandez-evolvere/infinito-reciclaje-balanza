@@ -15,6 +15,15 @@ class ReporteConfiguracion extends Model
 
     protected $table = 'reporte_configuraciones';
 
+    /**
+     * La revisión de envíos arranca activada: espeja el default de la columna
+     * para las instancias en memoria (la vista de configuración usa
+     * `new ReporteConfiguracion` cuando la organización aún no guardó nada).
+     */
+    protected $attributes = [
+        'revision_requerida' => true,
+    ];
+
     protected $fillable = [
         'organizacion_id',
         'municipalidad_nombre',
@@ -27,6 +36,7 @@ class ReporteConfiguracion extends Model
         'ai_prompt',
         'tipo_informe_mensual_activo',
         'tipo_alertas_activo',
+        'revision_requerida',
     ];
 
     protected $casts = [
@@ -35,6 +45,7 @@ class ReporteConfiguracion extends Model
         'ai_api_key'                  => 'encrypted',
         'tipo_informe_mensual_activo' => 'boolean',
         'tipo_alertas_activo'         => 'boolean',
+        'revision_requerida'          => 'boolean',
     ];
 
     protected $hidden = ['ai_api_key'];

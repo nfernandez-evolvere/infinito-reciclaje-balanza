@@ -166,37 +166,8 @@ class DevSeeder extends Seeder
         }
 
         // ── Zonas ─────────────────────────────────────────────────────────────
-        $zonasData = [
-            [
-                'nombre'    => "Zona Norte $suffix", 'hectareas' => 1850.50, 'barrios' => 12, 'habitantes' => 48000,
-                'servicios' => [
-                    ['id' => $domiciliario->id, 'turnos' => ['Diurna', 'Nocturna']],
-                    ['id' => $barrido->id,      'turnos' => ['Diurna']],
-                ],
-            ],
-            [
-                'nombre'    => "Zona Sur $suffix", 'hectareas' => 2200.00, 'barrios' => 15, 'habitantes' => 62000,
-                'servicios' => [
-                    ['id' => $domiciliario->id, 'turnos' => ['Diurna', 'Nocturna']],
-                    ['id' => $barrido->id,      'turnos' => ['Diurna']],
-                    ['id' => $voluminoso->id,   'turnos' => []],
-                ],
-            ],
-            [
-                'nombre'    => "Zona Centro $suffix", 'hectareas' => 620.00, 'barrios' => 6, 'habitantes' => 35000,
-                'servicios' => [
-                    ['id' => $domiciliario->id, 'turnos' => ['Diurna']],
-                    ['id' => $barrido->id,      'turnos' => ['Diurna']],
-                    ['id' => $voluminoso->id,   'turnos' => []],
-                ],
-            ],
-            [
-                'nombre'    => "Zona Industrial $suffix", 'hectareas' => 3400.00, 'barrios' => 3, 'habitantes' => 8000,
-                'servicios' => [
-                    ['id' => $domiciliario->id, 'turnos' => []],
-                ],
-            ],
-        ];
+        // Áreas reales (aproximadas) de cada ciudad, con polígono GeoJSON para el mapa de calor.
+        $zonasData = $this->zonasDeCiudad($org->nombre, $domiciliario->id, $barrido->id, $voluminoso->id);
 
         // ── Configuración de reportes ─────────────────────────────────────────
         ReporteConfiguracion::create([
@@ -217,12 +188,17 @@ class DevSeeder extends Seeder
         ]);
 
         foreach ($zonasData as $data) {
+            $geo = $this->geoFromCoords($data['coords']);
+
             $zona = Zona::create([
                 'organizacion_id' => $org->id,
                 'nombre'          => $data['nombre'],
                 'hectareas'       => $data['hectareas'],
                 'barrios'         => $data['barrios'],
                 'habitantes'      => $data['habitantes'],
+                'geojson'         => $geo['geojson'],
+                'centro_lat'      => $geo['centro_lat'],
+                'centro_lng'      => $geo['centro_lng'],
             ]);
 
             foreach ($data['servicios'] as $servicio) {
@@ -240,5 +216,137 @@ class DevSeeder extends Seeder
                 }
             }
         }
+    }
+
+    /**
+     * Definición de zonas por ciudad: áreas reales (aproximadas) de Corrientes y Resistencia.
+     * Los polígonos son bounding boxes ilustrativos alrededor de cada barrio — no son
+     * límites municipales oficiales, pero ubican cada zona en su área real de la ciudad.
+     *
+     * @return array<int, array{nombre: string, hectareas: float, barrios: int, habitantes: int, coords: array<int, array{0: float, 1: float}>, servicios: array<int, array{id: int, turnos: array<int, string>}>}>
+     */
+    private function zonasDeCiudad(string $ciudad, int $domiciliario, int $barrido, int $voluminoso): array
+    {
+        return match ($ciudad) {
+            'Corrientes' => [
+                [
+                    'nombre'    => 'Centro', 'hectareas' => 480.00, 'barrios' => 5, 'habitantes' => 38000,
+                    'coords'    => [[-27.4585, -58.8410], [-27.4585, -58.8270], [-27.4730, -58.8270], [-27.4730, -58.8410]],
+                    'servicios' => [
+                        ['id' => $domiciliario, 'turnos' => ['Diurna', 'Nocturna']],
+                        ['id' => $barrido,      'turnos' => ['Diurna']],
+                        ['id' => $voluminoso,   'turnos' => []],
+                    ],
+                ],
+                [
+                    'nombre'    => 'Costanera Norte', 'hectareas' => 720.00, 'barrios' => 7, 'habitantes' => 41000,
+                    'coords'    => [[-27.4450, -58.8480], [-27.4450, -58.8300], [-27.4585, -58.8300], [-27.4585, -58.8480]],
+                    'servicios' => [
+                        ['id' => $domiciliario, 'turnos' => ['Diurna', 'Nocturna']],
+                        ['id' => $barrido,      'turnos' => ['Diurna']],
+                    ],
+                ],
+                [
+                    'nombre'    => 'Cambá Cuá', 'hectareas' => 1350.00, 'barrios' => 11, 'habitantes' => 52000,
+                    'coords'    => [[-27.4800, -58.8300], [-27.4800, -58.8090], [-27.4980, -58.8090], [-27.4980, -58.8300]],
+                    'servicios' => [
+                        ['id' => $domiciliario, 'turnos' => ['Diurna', 'Nocturna']],
+                        ['id' => $barrido,      'turnos' => ['Diurna']],
+                        ['id' => $voluminoso,   'turnos' => []],
+                    ],
+                ],
+                [
+                    'nombre'    => 'San Benito', 'hectareas' => 1640.00, 'barrios' => 9, 'habitantes' => 36000,
+                    'coords'    => [[-27.4600, -58.8800], [-27.4600, -58.8560], [-27.4790, -58.8560], [-27.4790, -58.8800]],
+                    'servicios' => [
+                        ['id' => $domiciliario, 'turnos' => ['Diurna']],
+                        ['id' => $voluminoso,   'turnos' => []],
+                    ],
+                ],
+                [
+                    'nombre'    => 'Laguna Brava', 'hectareas' => 2900.00, 'barrios' => 4, 'habitantes' => 12000,
+                    'coords'    => [[-27.4920, -58.8740], [-27.4920, -58.8500], [-27.5110, -58.8500], [-27.5110, -58.8740]],
+                    'servicios' => [
+                        ['id' => $domiciliario, 'turnos' => []],
+                        ['id' => $voluminoso,   'turnos' => []],
+                    ],
+                ],
+            ],
+            'Resistencia' => [
+                [
+                    'nombre'    => 'Centro', 'hectareas' => 520.00, 'barrios' => 6, 'habitantes' => 42000,
+                    'coords'    => [[-27.4450, -58.9940], [-27.4450, -58.9780], [-27.4585, -58.9780], [-27.4585, -58.9940]],
+                    'servicios' => [
+                        ['id' => $domiciliario, 'turnos' => ['Diurna', 'Nocturna']],
+                        ['id' => $barrido,      'turnos' => ['Diurna']],
+                    ],
+                ],
+                [
+                    'nombre'    => 'Villa Don Andrés', 'hectareas' => 880.00, 'barrios' => 8, 'habitantes' => 34000,
+                    'coords'    => [[-27.4220, -58.9940], [-27.4220, -58.9760], [-27.4385, -58.9760], [-27.4385, -58.9940]],
+                    'servicios' => [
+                        ['id' => $domiciliario, 'turnos' => ['Diurna', 'Nocturna']],
+                        ['id' => $barrido,      'turnos' => ['Diurna']],
+                    ],
+                ],
+                [
+                    'nombre'    => 'Barrio España', 'hectareas' => 1250.00, 'barrios' => 10, 'habitantes' => 47000,
+                    'coords'    => [[-27.4640, -58.9920], [-27.4640, -58.9740], [-27.4805, -58.9740], [-27.4805, -58.9920]],
+                    'servicios' => [
+                        ['id' => $domiciliario, 'turnos' => ['Diurna', 'Nocturna']],
+                        ['id' => $barrido,      'turnos' => ['Diurna']],
+                        ['id' => $voluminoso,   'turnos' => []],
+                    ],
+                ],
+                [
+                    'nombre'    => 'Villa Río Negro', 'hectareas' => 1580.00, 'barrios' => 7, 'habitantes' => 29000,
+                    'coords'    => [[-27.4440, -59.0180], [-27.4440, -59.0000], [-27.4600, -59.0000], [-27.4600, -59.0180]],
+                    'servicios' => [
+                        ['id' => $domiciliario, 'turnos' => ['Diurna']],
+                        ['id' => $voluminoso,   'turnos' => []],
+                    ],
+                ],
+                [
+                    'nombre'    => 'Villa Prosperidad', 'hectareas' => 1120.00, 'barrios' => 6, 'habitantes' => 25000,
+                    'coords'    => [[-27.4500, -58.9700], [-27.4500, -58.9520], [-27.4660, -58.9520], [-27.4660, -58.9700]],
+                    'servicios' => [
+                        ['id' => $domiciliario, 'turnos' => ['Diurna']],
+                        ['id' => $barrido,      'turnos' => ['Diurna']],
+                    ],
+                ],
+            ],
+            default => [],
+        };
+    }
+
+    /**
+     * Construye el FeatureCollection GeoJSON y el centro a partir de un anillo de
+     * coordenadas [lat, lng] en orden perimetral. GeoJSON usa el orden [lng, lat].
+     *
+     * @param  array<int, array{0: float, 1: float}>  $coords
+     * @return array{geojson: string, centro_lat: float, centro_lng: float}
+     */
+    private function geoFromCoords(array $coords): array
+    {
+        $ring = array_map(fn ($p) => [$p[1], $p[0]], $coords);
+        $ring[] = $ring[0]; // cerrar el anillo
+
+        $fc = [
+            'type'     => 'FeatureCollection',
+            'features' => [[
+                'type'       => 'Feature',
+                'properties' => (object) [],
+                'geometry'   => ['type' => 'Polygon', 'coordinates' => [$ring]],
+            ]],
+        ];
+
+        $lats = array_column($coords, 0);
+        $lngs = array_column($coords, 1);
+
+        return [
+            'geojson'    => json_encode($fc),
+            'centro_lat' => round((min($lats) + max($lats)) / 2, 7),
+            'centro_lng' => round((min($lngs) + max($lngs)) / 2, 7),
+        ];
     }
 }
