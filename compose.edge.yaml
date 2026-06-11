@@ -15,9 +15,17 @@ services:
     ports:
       - "80:80"
       # - "443:443"   # habilitar al sumar TLS
+    # Dominios = única fuente de verdad en .env.edge (en el host, no se commitea).
+    # El entrypoint del image renderiza el template sustituyendo estas variables.
+    env_file:
+      - .env.edge
+    environment:
+      # Solo sustituye estos nombres; deja intactas las variables de nginx ($host, …)
+      NGINX_ENVSUBST_FILTER: "^(APP_DOMAIN|STAGE_DOMAIN)$$"
     volumes:
-      # Config principal del edge (dos server blocks: prod + staging)
-      - ./docker/edge/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      # Template del edge → nginx lo renderiza a conf.d/default.conf al arrancar,
+      # sustituyendo APP_DOMAIN / STAGE_DOMAIN desde .env.edge.
+      - ./docker/edge/default.conf.template:/etc/nginx/templates/default.conf.template:ro
       # Carpetas de upstreams por entorno (active-upstream.conf las gestiona deploy.sh)
       - ./docker/edge/prod:/etc/nginx/edge/prod
       - ./docker/edge/staging:/etc/nginx/edge/staging
