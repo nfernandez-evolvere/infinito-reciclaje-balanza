@@ -2,19 +2,22 @@
 
 ## Documentación del proyecto
 
+Los documentos están numerados en orden de lectura recomendado.
+
 | Documento | Descripción |
 |-----------|-------------|
-| [`docs/roadmap.md`](docs/roadmap.md) | Plan de desarrollo completo: sprints, schema de DB, arquitectura de pantallas, criterios de go-live |
-| [`docs/ux-writing.md`](docs/ux-writing.md) | Voz y tono del sistema, reglas de escritura diferenciadas por rol (operador vs admin), formatos, ejemplos |
-| [`docs/Brief_Producto_Etapa1.md`](docs/Brief_Producto_Etapa1.md) | Requerimientos funcionales y no funcionales de Etapa 1 |
-| [`docs/design-system.md`](docs/design-system.md) | Documentación del design system Blade (`x-ui.*`) |
+| [`docs/01-brief-producto.md`](docs/01-brief-producto.md) | Brief del producto: requerimientos funcionales y no funcionales, módulos, perfiles, alcance vigente |
+| [`docs/02-roadmap.md`](docs/02-roadmap.md) | Plan de desarrollo: arquitectura de pantallas, permisos, sprints, criterios de go-live |
+| [`docs/03-data-model.md`](docs/03-data-model.md) | Modelo de datos completo: tipos, constraints, índices, cardinalidades, patrones de consulta y decisiones de diseño |
+| [`docs/04-der.md`](docs/04-der.md) | Diagrama entidad-relación (Mermaid), cardinalidades y estrategia de borrado SQL Server |
+| [`docs/05-design-system.md`](docs/05-design-system.md) | Documentación del design system Blade (`x-ui.*`) |
+| [`docs/06-ux-writing.md`](docs/06-ux-writing.md) | Voz y tono del sistema, reglas de escritura diferenciadas por rol (operador vs admin), formatos, ejemplos |
+| [`docs/07-abm-guide.md`](docs/07-abm-guide.md) | Guía para construir módulos ABM: patrón canónico de controller, service, repository, requests y vistas |
+| [`docs/08-testing-strategy.md`](docs/08-testing-strategy.md) | Estrategia y convenciones de testing: taxonomía de suites, naming, roadmap de cobertura, CI |
+| [`docs/09-deployment-docker.md`](docs/09-deployment-docker.md) | Infraestructura Docker: imagen multi-stage, compose dev/prod, blue-green con nginx edge, CI/CD (GitHub Actions → GHCR → SSH), runbook de servidor y troubleshooting |
 | [`docs/knowledge/README.md`](docs/knowledge/README.md) | Base de conocimiento de usuario: onboarding, configuración inicial y referencia de cada módulo (preparada para RAG) |
-| [`docs/data-model.md`](docs/data-model.md) | Modelo de datos completo: tipos, constraints, índices, cardinalidades, patrones de consulta y decisiones de diseño |
-| [`docs/sprints/`](docs/sprints/) | Plan detallado por sprint: sub-sprints, tareas granulares, tests unitarios, de integración y manuales |
-| [`docs/testing-strategy.md`](docs/testing-strategy.md) | Estrategia y convenciones de testing: taxonomía de suites, naming, roadmap de cobertura, CI |
-| [`docs/deployment-docker.md`](docs/deployment-docker.md) | Infraestructura Docker: imagen multi-stage, compose dev/prod, blue-green con nginx edge, CI/CD (GitHub Actions → GHCR → SSH), runbook de servidor y troubleshooting |
 
-> **Al escribir cualquier texto en vistas Blade, consultar `docs/ux-writing.md`.**
+> **Al escribir cualquier texto en vistas Blade, consultar `docs/06-ux-writing.md`.**
 > Las reglas de escritura para el operador y el admin son distintas — aplicarlas según el perfil de la pantalla.
 
 ---
@@ -1385,9 +1388,9 @@ class UserRepository
 | Migration | `create_users_table` | auto con `-m` |
 | Test | `UserTest`, `UserServiceTest` | `make:test UserTest`, `make:test UserServiceTest --unit` |
 
-> **Tests — nombres siempre en inglés.** Las clases y métodos de test se escriben en inglés, sin prefijo `test_` (se usa el atributo `#[Test]`). Los nombres de dominio que son clases reales del código (`Pesaje`, `Vehiculo`, `Organizacion`, `Zona`, `TipoServicio`, etc.) se mantienen tal cual — son nombres propios, no se traducen. Ej: `public function admin_can_create_pesaje(): void`. Ver [`docs/testing-strategy.md`](docs/testing-strategy.md) para la estrategia completa.
+> **Tests — nombres siempre en inglés.** Las clases y métodos de test se escriben en inglés, sin prefijo `test_` (se usa el atributo `#[Test]`). Los nombres de dominio que son clases reales del código (`Pesaje`, `Vehiculo`, `Organizacion`, `Zona`, `TipoServicio`, etc.) se mantienen tal cual — son nombres propios, no se traducen. Ej: `public function admin_can_create_pesaje(): void`. Ver [`docs/08-testing-strategy.md`](docs/08-testing-strategy.md) para la estrategia completa.
 
-> **Tests — estándar de calidad A (obligatorio).** Todo test nuevo debe cumplir el estándar definido en [`docs/testing-strategy.md §2.5`](docs/testing-strategy.md). En resumen: (1) probar el **borde exacto** de cada condición (`<`, `>`, `>=`, `<=`); (2) **assert completo** de todos los campos relevantes del resultado (valor_anterior, motivo, usuario_id en logs; metadatos en cancelar/egreso); (3) excepción con **clave de error validada** (no solo `expectException`, también `assertArrayHasKey` en `$e->errors()` o `assertSessionHasErrors('campo')`); (4) **datos controlados** — factories con valores explícitos para todo campo que el test afirma; (5) tests Feature verifican que los **datos persisten correctamente** además del redirect. No se mergea un test que solo verifica redirect + count.
+> **Tests — estándar de calidad A (obligatorio).** Todo test nuevo debe cumplir el estándar definido en [`docs/08-testing-strategy.md §2.5`](docs/08-testing-strategy.md). En resumen: (1) probar el **borde exacto** de cada condición (`<`, `>`, `>=`, `<=`); (2) **assert completo** de todos los campos relevantes del resultado (valor_anterior, motivo, usuario_id en logs; metadatos en cancelar/egreso); (3) excepción con **clave de error validada** (no solo `expectException`, también `assertArrayHasKey` en `$e->errors()` o `assertSessionHasErrors('campo')`); (4) **datos controlados** — factories con valores explícitos para todo campo que el test afirma; (5) tests Feature verifican que los **datos persisten correctamente** además del redirect. No se mergea un test que solo verifica redirect + count.
 
 ### Inyección de dependencias en Controllers
 

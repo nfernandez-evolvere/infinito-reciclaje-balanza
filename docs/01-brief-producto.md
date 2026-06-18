@@ -12,10 +12,13 @@
 | **Cliente** | Infinito Reciclaje — Municipalidad de Corrientes |
 | **Desarrollador** | EVOLVERE 2026 |
 | **Stack** | Laravel Blade + SQL Server |
+| **Arquitectura** | Multi-tenant (varias organizaciones sobre una base) |
 | **Inicio** | 12/05/2026 |
 | **Go-live estimado** | 14/07/2026 |
 
 Sistema web para el registro, control y análisis del ingreso y egreso de camiones de residuos en el predio de disposición final de la Municipalidad de Corrientes. Reemplaza un proceso manual con planillas y Excel por una operación automatizada, trazable y con inteligencia operacional en tiempo real.
+
+> **Nota de versión.** Este brief documenta el alcance vigente. Respecto del documento original de Etapa 1, el producto incorporó: arquitectura **multi-tenant** (rol `super_admin` y aislamiento por organización), módulo de **reportes** con programación, revisión manual y conclusiones por IA, y el renombre del módulo de alarmas a **alertas**. El modelo de datos al día está en [`03-data-model.md`](03-data-model.md).
 
 ---
 
@@ -36,9 +39,14 @@ Sistema web para el registro, control y análisis del ingreso y egreso de camion
 - Necesita velocidad, autocompletado y confirmación visual clara
 
 ### Administrador — Nacho
-- Mantiene datos maestros (padrón de vehículos, orígenes, servicios)
+- Mantiene datos maestros (padrón de vehículos, zonas, servicios)
 - Genera reportes mensuales para la Municipalidad
 - Necesita dashboard en tiempo real, reportes automáticos y alertas proactivas
+
+### Super Admin — EVOLVERE (plataforma)
+- Da de alta y administra las organizaciones (predios/clientes) del sistema
+- Rol transversal, no operativo: no registra pesajes ni gestiona el padrón de una organización
+- Acceso al panel de super administración (gestión de organizaciones y sus admins)
 
 ---
 
@@ -89,23 +97,25 @@ Mantener actualizados los datos que alimentan todas las automatizaciones del sis
 | Observaciones | Texto | Notas libres |
 | Estado | Boolean | Activo / Inactivo |
 
-**Tipos de vehículos**: Compactador, Volcador, Volquete, Particulares
+**Tipos de vehículos**: Compactador, Volcador, Volquete, Particulares (cada uno con rango de peso bruto mín/máx)
 
-**Tipos de servicio**: Domiciliario, Voluminoso, Barrido, Servicios Especiales, Centros de Transferencia
+**Tipos de servicio**: Domiciliario, Voluminoso, Barrido, Servicios Especiales, Centros de Transferencia. Cada servicio puede sugerir **varios** tipos de vehículo (relación N:M, no un único sugerido).
 
-**Orígenes**
+**Zonas** (antes "Orígenes")
 | Campo | Uso |
 |-------|-----|
 | Nombre | Identificación |
-| Servicio asociado | Autocompletado en Balanza |
-| Tipo vehículo sugerido | Sugerencia en Balanza |
+| Servicios asociados | Relación N:M con tipos de servicio; filtra las zonas disponibles en Balanza según el servicio elegido |
+| Turnos y horarios por servicio | Configurables por combinación zona+servicio (Diurna/Nocturna, franjas por día) |
 | Hectáreas | Cálculo densidad kg/ha |
+| Barrios | Dato descriptivo |
 | Habitantes | Reporte per cápita |
+| Geometría (polígono) | Área dibujada en mapa (Leaflet + Geoman) para el mapa de calor del Dashboard y Reportes |
 
 ### Requerimientos funcionales
 - CRUD completo para cada entidad (alta, baja lógica, modificación)
-- Relaciones configurables: servicio → origen, servicio → tipo de vehículo sugerido
-- Validaciones de campos obligatorios
+- Relaciones configurables: zona ↔ servicios (N:M con turnos/horarios), servicio → tipos de vehículo sugeridos (N:M)
+- Validaciones de campos obligatorios (unicidad scopeada por organización)
 - Búsqueda y filtrado en listados
 - Baja lógica (no física) para mantener historial de pesajes
 
@@ -162,27 +172,35 @@ Reemplazar el proceso manual de Excel (2–3 horas/mes) por generación automát
 - Resumen general del período (total pesajes, toneladas, promedios)
 - Evolución diaria de toneladas
 - Desglose por tipo de vehículo (viajes, kg, %)
-- Desglose por origen (viajes, kg, densidad kg/hectárea)
-- Reporte per cápita por origen: kg generados ÷ habitantes
+- Desglose por zona (viajes, kg, densidad kg/hectárea)
+- Reporte per cápita por zona: kg generados ÷ habitantes
+- Mapa de calor por zona (choropleth con la geometría cargada)
+- Conclusiones narrativas generadas por IA (opcional, configurable por organización)
 
 **Filtros disponibles:**
 - Por período (mes, trimestre, rango personalizado)
-- Por origen
+- Por zona
 - Por tipo de servicio
 - Por tipo de vehículo
 
-**Exportación:**
+**Exportación y envío:**
 - PDF con formato profesional (para entregar al municipio)
-- Excel con datos crudos (para análisis adicional)
+- Excel con datos crudos (para análisis adicional) — o ambos (`pdf+excel`)
+- Envío por email a destinatarios (libreta de contactos frecuentes por organización)
+
+**Reportes programados:**
+- Envíos automáticos por cron (mensual / semanal / personalizado)
+- Flujo de revisión manual opcional: un envío programado puede quedar pendiente de aprobación del admin antes de salir (configurable por organización y por programado)
+- Historial de reportes generados/enviados con `snapshot` congelado: cada reporte se puede re-descargar idéntico aunque los datos vivos cambien después
 
 ### Requerimientos no funcionales
 - Generación del reporte en menos de 30 segundos
-- Formato PDF consistente y presentable
-- Sin intervención manual en el armado del reporte
+- Formato PDF consistente y presentable (render headless con Chromium)
+- Generación manual asistida; los envíos programados corren sin intervención (salvo la aprobación, si está activada)
 
 ---
 
-## Módulo 5 — Alarmas
+## Módulo 5 — Alertas
 **Perfil**: Administrador
 
 ### Objetivo
@@ -190,34 +208,39 @@ Detección proactiva de anomalías sin esperar al fin de mes.
 
 ### Requerimientos funcionales
 
-**Detecciones automáticas:**
-- Volumen diario fuera de rango (por encima o por debajo del histórico)
-- Kg por viaje inusual para el tipo de vehículo
-- Frecuencia por origen atípica
-- Gaps en el registro (cortes del sistema o períodos sin pesajes en horario operativo)
+**Detecciones automáticas (tipos):**
+- `peso_fuera_rango` — peso bruto fuera del rango del tipo de vehículo
+- `volumen_diario_atipico` — volumen diario desviado del promedio histórico (umbral en %)
+- `gap_registro` — período sin pesajes durante el horario operativo (umbral en minutos)
+- `frecuencia_zona_atipica` — frecuencia de pesajes por zona desviada del promedio (umbral en %)
 
 **Notificaciones:**
 - Alerta visible en el dashboard (panel superior)
-- Descripción clara: qué pasó, cuándo, en qué origen o vehículo
+- Descripción clara: qué pasó, cuándo, en qué zona o vehículo
+- Se marcan como **leídas** (no requieren comentario de resolución)
 
 **Configuración:**
-- El admin puede definir o ajustar los umbrales de detección
+- El admin puede activar/desactivar cada tipo y ajustar su umbral
+- El horario operativo (usado por `gap_registro`) es configurable por organización
 
 ### Requerimientos no funcionales
-- Monitoreo en tiempo real durante el horario operativo
+- Monitoreo durante el horario operativo
 - Sin falsos positivos excesivos (umbrales calibrados con histórico real)
 
 ---
 
 ## Perfiles y permisos
 
-| Módulo | Operador | Admin |
-|--------|----------|-------|
-| Balanza — registro de pesajes | ✅ Lectura y escritura | ✅ Solo lectura |
-| ABMs | ❌ Sin acceso | ✅ Lectura y escritura |
-| Dashboard | ❌ Sin acceso | ✅ Lectura |
-| Reportes automáticos | ❌ Sin acceso | ✅ Generación y exportación |
-| Alarmas | ❌ Sin acceso | ✅ Configuración y recepción |
+| Módulo | Operador | Admin | Super Admin |
+|--------|----------|-------|-------------|
+| Balanza — registro de pesajes | ✅ Lectura y escritura | ✅ Solo lectura | ❌ Sin acceso |
+| ABMs | ❌ Sin acceso | ✅ Lectura y escritura | ❌ Sin acceso |
+| Dashboard | ❌ Sin acceso | ✅ Lectura | ❌ Sin acceso |
+| Reportes (manuales y programados) | ❌ Sin acceso | ✅ Generación, envío y revisión | ❌ Sin acceso |
+| Alertas | ❌ Sin acceso | ✅ Configuración y recepción | ❌ Sin acceso |
+| Gestión de organizaciones | ❌ Sin acceso | ❌ Sin acceso | ✅ Alta y administración |
+
+> El acceso del admin y el operador está siempre acotado a su organización (multi-tenant). El super admin opera por encima de las organizaciones.
 
 ---
 
@@ -226,12 +249,13 @@ Detección proactiva de anomalías sin esperar al fin de mes.
 | Automatización | Disparador | Resultado |
 |----------------|-----------|-----------|
 | Autocompletado por vehículo | Ingresar patente o número interno | Completa tara, tipo, titular, capacidad |
-| Autocompletado por servicio | Seleccionar tipo de servicio | Completa origen asociado |
-| Sugerencia de vehículo | Seleccionar servicio | Sugiere tipo de vehículo (editable) |
+| Filtrado de zonas por servicio | Seleccionar tipo de servicio | Muestra solo las zonas que operan ese servicio |
+| Sugerencia de vehículo | Seleccionar servicio | Sugiere los tipos de vehículo del servicio (editable) |
 | Validación de peso | Ingresar peso bruto | Valida contra rango del tipo de vehículo |
 | Cálculo de kg netos | Guardar pesaje | Calcula: peso bruto − tara |
-| Generación de reporte | Acción del admin | Reporte generado automáticamente |
-| Detección de anomalías | Monitoreo continuo | Alerta al admin si hay valores fuera de rango |
+| Generación de reporte | Acción del admin o cron programado | Reporte generado (con conclusiones IA si está habilitada) |
+| Envío de reporte programado | Cron + revisión opcional | Email a destinatarios vía Resend |
+| Detección de anomalías | Monitoreo durante horario operativo | Genera alerta si hay valores fuera de umbral |
 
 ---
 
@@ -253,12 +277,14 @@ Deben estar cargados antes del go-live. Sin esto el sistema no puede operar.
 ## Relaciones clave entre entidades
 
 ```
+Organización → (padrón, operación y reportes propios, aislados)
 Vehículo → tara, tipo, titular (padrón maestro)
-Tipo de servicio → origen asociado
-Tipo de servicio → tipo de vehículo sugerido
-Origen → hectáreas → densidad de generación (kg/ha)
-Origen → habitantes → reporte per cápita (kg/habitante)
-Registro de pesaje → Dashboard → Reportes → Alarmas
+Zona ↔ Tipos de servicio (N:M, con turnos y horarios por combinación)
+Tipo de servicio → tipos de vehículo sugeridos (N:M)
+Zona → hectáreas → densidad de generación (kg/ha)
+Zona → habitantes → reporte per cápita (kg/habitante)
+Zona → geometría → mapa de calor (Dashboard y Reportes)
+Registro de pesaje → Dashboard → Reportes → Alertas
 ```
 
 ---
@@ -270,15 +296,16 @@ Registro de pesaje → Dashboard → Reportes → Alarmas
 | Balanza | Flujo completo de pesaje en < 10 segundos |
 | Balanza | Autocompletado funciona para el 100% de los vehículos cargados |
 | Balanza | Validación de peso detecta valores fuera de rango sin bloquear |
-| ABMs | CRUD completo funcional para las 4 entidades |
+| ABMs | CRUD completo funcional para todas las entidades maestras (tipos de vehículo, tipos de servicio, zonas, vehículos, usuarios) |
 | ABMs | Cambios en ABMs se reflejan inmediatamente en Balanza |
 | Dashboard | KPIs correctos para cualquier período seleccionado |
 | Dashboard | Gráficos renderizan en menos de 3 segundos |
 | Reportes | Reporte generado correctamente con filtros aplicados |
-| Reportes | Exportación PDF y Excel funcionales |
-| Alarmas | Detección de gaps y valores fuera de rango |
-| Alarmas | Alertas visibles en dashboard con descripción clara |
-| General | Login con 2 perfiles diferenciados (operador / admin) |
+| Reportes | Exportación PDF y Excel funcionales; envío programado por email |
+| Alertas | Detección de gaps y valores fuera de umbral |
+| Alertas | Alertas visibles en dashboard con descripción clara |
+| General | Login con perfiles diferenciados (operador / admin / super admin) |
+| General | Aislamiento multi-tenant: cada organización ve solo sus datos |
 | General | Sistema operativo el día 1 con padrón cargado |
 
 ---
@@ -288,8 +315,9 @@ Registro de pesaje → Dashboard → Reportes → Alarmas
 - Integración automática con balanza física (se evalúa en Etapa 2)
 - App mobile
 - Integración con sistemas externos del municipio
-- Multi-tenant (varios predios)
 - API pública
+
+> El **multi-tenant** (varias organizaciones) estaba originalmente fuera del alcance de Etapa 1; se incorporó durante el desarrollo y hoy es parte del producto.
 
 ---
 
@@ -297,14 +325,17 @@ Registro de pesaje → Dashboard → Reportes → Alarmas
 
 | Capa | Tecnología |
 |------|-----------|
-| Frontend | Laravel Blade |
-| Backend | Laravel (PHP) |
-| Base de datos | SQL Server |
-| Gráficos | Chart.js |
-| Exportación PDF | A definir (DomPDF / Laravel Snappy) |
-| Exportación Excel | A definir (Maatwebsite Laravel Excel) |
+| Frontend | Laravel Blade + Tailwind v4 + Alpine.js |
+| Backend | Laravel 13 (PHP 8.4) |
+| Base de datos | SQL Server (driver `sqlsrv`) |
+| Gráficos (web) | Chart.js |
+| Gráficos (PDF) | SVG server-side (`SvgChartService`) |
+| Mapas | Leaflet + Geoman (geometría de zonas, mapa de calor) |
+| Exportación PDF | Spatie Browsershot (Chromium headless) · mPDF |
+| Exportación Excel | PhpSpreadsheet |
+| Envío de email | Resend |
+| Conclusiones IA | Gemini (proveedor configurable por organización) |
 
 ---
 
-*Documento generado: 12/05/2026 | Versión: 1.0*
-*Próxima revisión: Post-testing con usuarios (Semana 6)*
+*Documento original: 12/05/2026 · Actualizado: 18/06/2026 — alcance vigente (multi-tenant, reportes y alertas).*

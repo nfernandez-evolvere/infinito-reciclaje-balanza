@@ -3,6 +3,12 @@
 
 **Inicio:** 12/05/2026 | **Go-live:** 14/07/2026 | **Duración:** 9 semanas
 
+> **Estado (18/06/2026).** Este roadmap refleja el alcance vigente. Respecto del plan original
+> de Etapa 1, el producto incorporó arquitectura **multi-tenant** (rol `super_admin`), un módulo
+> de **reportes** ampliado (programación, revisión y conclusiones por IA) y el renombre de
+> alarmas a **alertas**. Los archivos de detalle por sprint (`docs/sprints/`) no se mantuvieron;
+> el plan granular vive en el historial de commits. Modelo de datos al día: [`03-data-model.md`](03-data-model.md).
+
 ---
 
 ## Stack técnico
@@ -10,13 +16,17 @@
 | Capa | Tecnología | Notas |
 |------|-----------|-------|
 | Frontend | Laravel Blade + Tailwind v4 + Alpine.js | Design system `x-ui.*` existente |
-| Backend | Laravel 13 (PHP 8.3) | Patrón Repository + Service + Resource Controller |
-| Base de datos | SQL Server | Driver `sqlsrv` |
+| Backend | Laravel 13 (PHP 8.4) | Patrón Repository + Service + Resource Controller |
+| Base de datos | SQL Server | Driver `sqlsrv`. Multi-tenant por `organizacion_id` |
 | Auth | Laravel Breeze (Blade) | Vistas reescritas con `x-ui.*` |
-| Roles | Campo `role` en `users` (`operador` \| `admin`) | Middleware + Gates |
-| Gráficos | Chart.js | Integrado en vistas Blade |
-| PDF | `knplabs/snappy` + wkhtmltopdf | Ruta del binario vía `.env` |
-| Excel | `maatwebsite/laravel-excel` | — |
+| Roles | Campo `role` en `users` (`super_admin` \| `admin` \| `operador`) | Middleware + Gates |
+| Gráficos (web) | Chart.js | Integrado en vistas Blade |
+| Gráficos (PDF) | SVG server-side (`SvgChartService`) | Render determinista para el PDF |
+| Mapas | Leaflet + Geoman | Geometría de zonas y mapa de calor |
+| PDF | Spatie Browsershot (Chromium) · mPDF | Render headless de HTML a PDF |
+| Excel | `phpoffice/phpspreadsheet` | — |
+| Email | Resend (`resend/resend-laravel`) | Envío de reportes programados |
+| IA | Gemini (HTTP, proveedor configurable) | Conclusiones narrativas en reportes |
 
 ---
 
@@ -39,24 +49,35 @@ Footer: último pesaje (patente · neto · hora) · totales del turno · camione
 
 **Shell del admin** — sidebar izquierdo, 240px:
 ```
-Grupo Operación (items):   Dashboard · Pesajes · Reportes
+Grupo Operación (items):   Dashboard · Pesajes · Reportes · Alertas
 Grupo Padrón (items):      Zonas · Tipos de servicio
 Separador
 Grupo Transporte (acordeón): Vehículos · Tipos de vehículo
 Grupo Sistema (acordeón):    Usuarios
-Footer sidebar:    avatar · nombre · rol · logout
+Footer sidebar:    avatar · nombre · rol · selector de organización · logout
 ```
 
 | Pantalla | Ruta | Descripción |
 |----------|------|-------------|
-| Dashboard | `/admin/dashboard` | KPIs, gráficos, alertas, camiones en predio |
+| Dashboard | `/admin/dashboard` | KPIs, gráficos, mapa de calor, alertas, camiones en predio |
 | Pesajes | `/admin/pesajes` | Log completo filtrable con edición y auditoría |
-| Reportes | `/admin/reportes` | Filtros + preview + exportación PDF/Excel |
-| Zonas | `/admin/zonas` | ABM zonas con asignación de servicios, turnos y horarios |
-| Tipos de servicio | `/admin/servicios` | ABM servicios con vehículo habitual sugerido |
+| Reportes | `/admin/reportes` | Filtros + preview + exportación PDF/Excel + conclusiones IA |
+| Reportes programados | `/admin/reportes/programados` | Envíos automáticos por cron, con revisión opcional |
+| Historial de reportes | `/admin/reportes/historial` | Generados/enviados; aprobar, descartar, reintentar, re-descargar |
+| Alertas | `/admin/alertas` | Listado de alertas + configuración de umbrales y horario operativo |
+| Zonas | `/admin/zonas` | ABM zonas con geometría (mapa), servicios, turnos y horarios |
+| Tipos de servicio | `/admin/servicios` | ABM servicios con tipos de vehículo sugeridos (N:M) |
 | Vehículos | `/admin/vehiculos` | ABM padrón de vehículos (grupo Transporte) |
 | Tipos de vehículo | `/admin/tipos-vehiculo` | ABM tipos con rangos de peso bruto (grupo Transporte) |
 | Usuarios | `/admin/usuarios` | ABM usuarios con rol (grupo Sistema) |
+
+**Shell del super admin** — gestión transversal de organizaciones:
+
+| Pantalla | Ruta | Descripción |
+|----------|------|-------------|
+| Dashboard super admin | `/super/...` | Visión de las organizaciones del sistema |
+| Organizaciones | `/super/...` | Alta y administración de organizaciones y sus admins |
+| Selector de organización | `login.organizaciones` | El usuario con varias organizaciones elige el contexto activo |
 
 ---
 
@@ -69,44 +90,44 @@ Footer sidebar:    avatar · nombre · rol · logout
 3. **Vistas** — Directiva `@can` para ocultar elementos de UI
 
 ```
-Operador → /balanza, /historial
-Admin    → /admin/*
+Operador    → /balanza, /historial
+Admin       → /admin/*   (acotado a su organización)
+Super Admin → /super/*   (gestión de organizaciones, transversal)
 ```
 
-| Gate | Operador | Admin |
-|------|----------|-------|
-| `record-weighing` | ✅ | — |
-| `view-own-historial` | ✅ | — |
-| `edit-pesaje` | ✅ (propios del turno) | ✅ (todos) |
-| `manage-masters` | — | ✅ |
-| `view-dashboard` | — | ✅ |
-| `manage-usuarios` | — | ✅ |
+| Gate | Operador | Admin | Super Admin |
+|------|----------|-------|-------------|
+| `record-weighing` | ✅ | — | — |
+| `view-own-historial` | ✅ | — | — |
+| `edit-pesaje` | ✅ (propios del turno) | ✅ (todos) | — |
+| `manage-masters` | — | ✅ | — |
+| `view-dashboard` | — | ✅ | — |
+| `manage-usuarios` | — | ✅ | — |
+| `manage-organizaciones` | — | — | ✅ |
 
-Helpers en `User`: `isAdmin()`, `isOperador()`
+Helpers en `User`: `isSuperAdmin()`, `isAdmin()`, `isOperador()`
+
+**Multi-tenant:** todas las consultas de admin/operador están acotadas a la organización activa (`organizacion_id`). Un usuario puede pertenecer a varias organizaciones (`organizacion_user`) y cambiar de contexto desde el selector.
 
 ---
 
 ## Esquema de base de datos
 
-> **Documento completo:** [`docs/data-model.md`](data-model.md)
+> **Documento completo:** [`03-data-model.md`](03-data-model.md) · diagrama: [`04-der.md`](04-der.md)
 > Incluye tipos de dato, constraints, índices, cardinalidades, patrones de consulta, decisiones de diseño y orden de migraciones.
 
-**Tablas y orden de migración:**
+**Tablas principales:**
 
-| # | Tabla | Descripción |
-|---|-------|-------------|
-| 1  | `users` | Operadores y administradores |
-| 2  | `tipos_vehiculo` | Catálogo de tipos con rangos de peso |
-| 3  | `tipos_servicio` | Tipos de recolección; vehículo sugerido |
-| 4  | `zonas` | Entidades geográficas puras; sin FK a servicios |
-| 5  | `zona_servicios` | Junction N:M orígenes ↔ servicios |
-| 6  | `zona_servicio_turnos` | Turnos disponibles por combinación origen+servicio (PK triple) |
-| 7  | `zona_servicio_horarios` | Franjas horarias por día para cada combo origen+servicio (PK cuádruple) |
-| 8  | `vehiculos` | Padrón completo con tara |
-| 9  | `pesajes` | Tabla operacional central |
-| 10 | `pesajes_log` | Audit trail inmutable por campo editado |
-| 8 | `config_alarmas` | Umbrales de detección configurables |
-| 9 | `alarmas` | Alertas generadas automáticamente |
+| Grupo | Tablas |
+|-------|--------|
+| Multi-tenant | `organizaciones` · `organizacion_user` (N:M con `users`) |
+| Acceso | `users` (`super_admin` \| `admin` \| `operador`) |
+| Padrón maestro | `tipos_vehiculo` · `tipos_servicio` · `tipo_servicio_tipo_vehiculo` (N:M) · `zonas` (con geometría) · `zona_servicios` · `zona_servicio_turnos` · `zona_servicio_horarios` · `vehiculos` · `vehiculos_log` |
+| Operación | `pesajes` (con `uuid` y cancelación) · `pesajes_log` |
+| Alertas | `alertas` · `config_alertas` (umbrales + horario operativo) |
+| Reportes | `reporte_configuraciones` · `reportes_programados` · `reporte_destinatarios` · `reportes_generados` |
+
+> El orden de migración completo y las reglas de FK (`cascade` vs `noAction`) están en [`03-data-model.md`](03-data-model.md).
 
 **Decisiones de diseño clave:**
 
@@ -293,7 +314,6 @@ Deben estar listos desde el Sprint 2 para que el módulo Balanza funcione.
 
 ## Sprint 1 — Cimientos
 **Semana 1 · 12–16 mayo**
-**Plan detallado:** [`docs/sprints/sprint-1.md`](sprints/sprint-1.md)
 
 ### Objetivo
 Base técnica funcional: conexión a SQL Server, autenticación real con 2 roles, layouts diferenciados por perfil.
@@ -340,7 +360,6 @@ Login funcional → redirección al layout correcto según rol. Rutas protegidas
 
 ## Sprint 2 — ABMs completos
 **Semanas 2–3 · 19–30 mayo**
-**Plan detallado:** [`docs/sprints/sprint-2.md`](sprints/sprint-2.md)
 
 ### Objetivo
 Los 5 ABMs 100% funcionales. Condición crítica de go-live: sin padrón completo las automatizaciones del módulo Balanza no funcionan.
@@ -410,7 +429,6 @@ Admin puede cargar el padrón completo. 5 ABMs funcionales. Usuarios gestionable
 
 ## Sprint 3 — Módulo Balanza
 **Semanas 4–5 · 2–13 junio**
-**Plan detallado:** [`docs/sprints/sprint-3.md`](sprints/sprint-3.md)
 
 ### Objetivo
 Pantalla principal del operador: flujo completo de pesaje en menos de 10 segundos, y Historial del turno con egreso y edición auditada.
@@ -465,7 +483,6 @@ Operador registra pesaje completo en < 10 seg. Historial con egreso, edición au
 
 ## Sprint 4 — Pesajes admin + Dashboard
 **Semanas 6–7 · 16–27 junio**
-**Plan detallado:** [`docs/sprints/sprint-4.md`](sprints/sprint-4.md)
 
 ### Objetivo
 Visibilidad completa de la operación para el admin: log filtrable de todos los pesajes y panel de análisis en tiempo real.
@@ -501,10 +518,9 @@ Admin ve log completo de pesajes editable y panel de análisis con KPIs, gráfic
 
 ## Sprint 5 — Reportes automáticos
 **Semana 7–8 · 30 junio – 4 julio**
-**Plan detallado:** [`docs/sprints/sprint-5.md`](sprints/sprint-5.md)
 
 ### Objetivo
-Reemplazar 2–3 horas de Excel manual por generación en menos de 5 minutos.
+Reemplazar 2–3 horas de Excel manual por generación en menos de 5 minutos. El módulo creció más allá del plan original: además de generación manual, incluye programación, revisión y conclusiones por IA.
 
 ### Tareas
 
@@ -517,35 +533,36 @@ Reemplazar 2–3 horas de Excel manual por generación en menos de 5 minutos.
 
 **Preview del reporte**
 - [ ] 4 KPIs de resumen
-- [ ] Gráfico de barras de evolución diaria (Chart.js)
+- [ ] Gráfico de barras de evolución diaria (Chart.js en web, SVG en PDF)
 - [ ] Tabla por zona (pesajes, toneladas, densidad kg/ha)
 - [ ] Tabla por tipo de vehículo (viajes, toneladas, % — barra visual)
-- [ ] Sección densidad de generación (kg/ha por zona)
+- [ ] Mapa de calor por zona (choropleth con la geometría cargada)
 - [ ] Reporte per cápita por zona: kg ÷ habitantes
 
-**Exportación PDF**
-- [ ] Instalar y configurar `knplabs/snappy`
-- [ ] Variable `.env`: `WKHTMLTOPDF_BINARY` (ruta diferente en Windows dev vs Linux prod)
-- [ ] Config: `'options' => ['no-sandbox' => true]` para servidores Linux headless
+**Exportación PDF / Excel**
+- [ ] Render PDF con Spatie Browsershot (Chromium headless) — `PdfService`
 - [ ] Template Blade del reporte con diseño profesional (para entregar al municipio)
-- [ ] Ruta `GET /admin/reportes/pdf` con `Content-Disposition: attachment`
+- [ ] Exportación Excel con `phpoffice/phpspreadsheet`
+- [ ] Formatos: `pdf`, `excel` o `pdf+excel`
 
-**Exportación Excel**
-- [ ] Instalar `maatwebsite/laravel-excel`
-- [ ] `ReporteExport` class con datos crudos
-- [ ] Ruta `GET /admin/reportes/excel`
+**Configuración, programación y envío**
+- [ ] `reporte_configuraciones`: branding, IA (proveedor/clave/modelo/prompt), revisión requerida
+- [ ] `ConclusionesAIService`: conclusiones narrativas con Gemini (opcional por organización)
+- [ ] `reportes_programados`: envíos por cron (mensual/semanal/custom)
+- [ ] Envío por email con Resend a `reporte_destinatarios` (libreta con contador de uso)
+- [ ] Flujo de revisión: aprobar / descartar / reintentar antes del envío
+- [ ] `reportes_generados` con `snapshot` congelado: re-descarga idéntica del histórico
 
 **Base de conocimiento — Sprint 5**
-- [ ] `modulo-reportes.md` — cómo configurar filtros, qué incluye cada sección del reporte, cómo exportar, cómo interpretar densidad y per cápita
+- [ ] `modulo-reportes.md` — filtros, secciones, exportación, programación y revisión
 
 ### Entregable
-Admin genera y descarga reporte en PDF y Excel en menos de 5 minutos, con preview en pantalla antes de exportar. Manual de Reportes listo.
+Admin genera, descarga, programa y envía reportes en PDF y Excel, con preview, conclusiones IA opcionales y flujo de revisión. Manual de Reportes listo.
 
 ---
 
-## Sprint 6 — Alarmas + QA
+## Sprint 6 — Alertas + QA
 **Semanas 8–9 · 7–14 julio**
-**Plan detallado:** [`docs/sprints/sprint-6.md`](sprints/sprint-6.md)
 
 ### Objetivo
 Detección proactiva de anomalías. QA end-to-end con datos reales. Buffer para correcciones previas al go-live.
@@ -553,27 +570,27 @@ Detección proactiva de anomalías. QA end-to-end con datos reales. Buffer para 
 ### Tareas
 
 **Migración y modelos**
-- [ ] `create_alarmas_table`
-- [ ] `create_config_alarmas_table`
-- [ ] `AlarmaRepository`, `AlarmaService`
+- [ ] `create_alertas_table`
+- [ ] `create_config_alertas_table`
+- [ ] `AlertaRepository`, `AlertaService`
 
-**Lógica de detección**
-- [ ] Volumen diario fuera de rango histórico (por encima o por debajo)
-- [ ] Kg por viaje inusual para el tipo de vehículo
-- [ ] Frecuencia por zona atípica
-- [ ] Gaps en el registro: períodos sin pesajes en horario operativo (8:00–18:00)
+**Lógica de detección (tipos)**
+- [ ] `peso_fuera_rango` — peso bruto fuera del rango del tipo de vehículo
+- [ ] `volumen_diario_atipico` — volumen diario desviado del promedio (umbral en %)
+- [ ] `frecuencia_zona_atipica` — frecuencia por zona desviada del promedio (umbral en %)
+- [ ] `gap_registro` — período sin pesajes en horario operativo (umbral en minutos, horario configurable)
 
 **Scheduler Laravel**
-- [ ] `DetectarAnomalias` command
-- [ ] Registro en `routes/console.php`: cada hora en horario operativo
-- [ ] Crear entrada en `alarmas` si se detecta condición
+- [ ] `DetectarAlertasCommand`
+- [ ] Registro en `routes/console.php` (`Schedule::command(...)->name('detectar-alertas')`)
+- [ ] Crear entrada en `alertas` si se detecta condición (con anti-duplicado)
 
-**UI de alarmas**
+**UI de alertas**
 - [ ] Banners en dashboard: surface naranja/roja con borde izquierdo semántico + botón `Revisar`
-- [ ] `AlarmaController` (index + configuración)
-- [ ] Vista: listado de alarmas con tipo, descripción, fecha, zona/vehículo afectado, estado
-- [ ] Vista: configurar umbrales por tipo (editable por admin)
-- [ ] Acción: marcar alarma como resuelta
+- [ ] `AlertaController` (index + configuración)
+- [ ] Vista: listado de alertas con tipo, título, descripción, fecha, zona/vehículo afectado, estado
+- [ ] Vista: activar/desactivar y configurar umbral por tipo + horario operativo (editable por admin)
+- [ ] Acción: marcar alerta como leída
 
 **QA**
 - [ ] Cargar padrón completo real antes del go-live
@@ -584,7 +601,7 @@ Detección proactiva de anomalías. QA end-to-end con datos reales. Buffer para 
 - [ ] Buffer de 2 días para correcciones
 
 **Base de conocimiento — Sprint 6**
-- [ ] `modulo-alarmas.md` — qué tipos de alarmas existen, qué significa cada una, cómo configurar umbrales, cómo marcar como resuelta
+- [ ] `modulo-alarmas.md` — qué tipos de alerta existen, qué significa cada una, cómo configurar umbrales, cómo marcar como leída
 - [ ] Revisión final de todos los archivos de `docs/knowledge/` con los usuarios reales (Roberto y Nacho)
 - [ ] Verificar que cada archivo sea autocontenido y esté en lenguaje no técnico
 
@@ -601,13 +618,14 @@ Sistema completo y operativo. Base de conocimiento completa y revisada. Listo pa
 | Balanza | Autocompletado funciona para el 100% del padrón cargado |
 | Balanza | Validación de peso detecta valores fuera de rango sin bloquear |
 | Historial | Egreso, edición con motivo e historial de cambios operativos |
-| ABMs | 5 ABMs funcionales (incluyendo Usuarios) |
+| ABMs | ABMs funcionales (tipos de vehículo, tipos de servicio, zonas, vehículos, usuarios) |
 | ABMs | Padrón de vehículos 100% cargado con datos reales |
 | Pesajes admin | Log filtrable con edición auditada operativo |
 | Dashboard | KPIs correctos, gráficos en menos de 3 segundos, alertas visibles |
-| Reportes | Generación correcta con filtros + exportación PDF y Excel en Linux |
-| Alarmas | Detección de gaps y valores fuera de rango, visibles en dashboard |
-| General | Login con 2 perfiles diferenciados (operador / admin) |
+| Reportes | Generación correcta con filtros + exportación PDF y Excel en Linux; envío programado |
+| Alertas | Detección de gaps y valores fuera de umbral, visibles en dashboard |
+| General | Login con perfiles diferenciados (operador / admin / super admin) |
+| General | Aislamiento multi-tenant: cada organización ve solo sus datos |
 | General | Sistema operativo el día 1 con padrón cargado |
 | Documentación | Base de conocimiento completa en `docs/knowledge/` (10 archivos) |
 | Documentación | Guías de onboarding entregadas a Roberto y Nacho antes del go-live |
@@ -622,14 +640,14 @@ Sistema completo y operativo. Base de conocimiento completa y revisada. Listo pa
 - Doble pesaje para cálculo de neto (bruto entrada − bruto salida): `bruto_salida_kg` se captura pero no se usa
 - App mobile
 - Integración con sistemas externos del municipio
-- Multi-tenant (varios predios)
 - API pública
+
+> El **multi-tenant** estaba fuera del alcance original de Etapa 1; se incorporó durante el desarrollo y hoy es parte del producto.
 
 ---
 
-*Documento generado: 12/05/2026 | Versión: 1.7 — Actualizado 13/05/2026*
-*Cambios v1.7: Schema reemplazado por referencia a `docs/data-model.md` — modelo completo con tipos SQL Server, constraints, índices, cardinalidades, patrones de consulta y decisiones de diseño.*
-*Cambios v1.6: Plan detallado de sprints — cada sprint referencia su archivo en `docs/sprints/` con sub-sprints, tareas granulares y definición de tests unitarios, de integración y manuales.*
-*Cambios v1.5: Onboarding guiado en el sistema — nueva subsección con diseño de las dos experiencias in-app (checklist admin + modal operador), campo `onboarding_visto` en users, tareas en Sprint 1/2/3, criterios de go-live actualizados.*
-*Cambios v1.4: Onboarding por perfil documentado — nueva subsección con tabla de documentos por perfil (operador / admin), columna Perfil agregada a la tabla de sprints, propósito generalizado a roles (no a personas).*
-*Cambios v1.3: Base de conocimiento y onboarding agregados — nueva sección, estructura docs/knowledge/, tareas de documentación en cada sprint, criterios de go-live actualizados.*
+*Documento generado: 12/05/2026 | Versión: 2.0 — Actualizado 18/06/2026*
+*Cambios v2.0: Alcance vigente — arquitectura multi-tenant (`super_admin`, aislamiento por organización), módulo de reportes ampliado (programación, revisión y conclusiones IA), renombre alarmas → alertas, stack actualizado (Browsershot, PhpSpreadsheet, Resend, Gemini, Leaflet). Esquema de DB reemplazado por referencia a `03-data-model.md`/`04-der.md`. Eliminados los enlaces a `docs/sprints/` (no mantenidos).*
+*Cambios v1.7: Schema reemplazado por referencia a `data-model.md`.*
+*Cambios v1.5–1.6: Onboarding guiado y plan detallado por sprint.*
+*Cambios v1.3–1.4: Base de conocimiento y onboarding por perfil.*
