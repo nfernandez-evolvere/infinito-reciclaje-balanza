@@ -150,7 +150,9 @@ class PesajeRepository
     {
         $tara = (int) $taraNueva;
         $uid = (int) $usuarioId;
-        $now = now()->toDateTimeString();
+        // ISO 8601 con 'T': como string-binding en INSERT...SELECT/UPDATE raw, el formato
+        // 'Y-m-d H:i:s' es ambiguo para SQL Server (DATEFORMAT dmy lo lee fuera de rango).
+        $now = now()->format('Y-m-d\TH:i:s');
 
         // Nuevo neto: max(0, bruto - tara). $tara es entero, seguro de interpolar.
         $netoNuevo = "(CASE WHEN peso_bruto_kg - {$tara} < 0 THEN 0 ELSE peso_bruto_kg - {$tara} END)";
