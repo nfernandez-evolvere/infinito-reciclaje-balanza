@@ -1433,12 +1433,25 @@
     $haMax      = $zonasConHa->max('kg_ha') ?: 1;
 @endphp
 
+@php
+    // Browsershot renderiza HTML sin base URL: las rutas relativas no resuelven.
+    // Embebemos el logo como data URI para que aparezca siempre en el PDF.
+    $logoPath = public_path('favicon.png');
+    $logoUri = is_file($logoPath)
+        ? 'data:image/png;base64,'.base64_encode(file_get_contents($logoPath))
+        : null;
+@endphp
+
 {{-- ═══════════ PORTADA ═══════════ --}}
 <div class="page cover">
     <div class="cover-stripe"></div>
     <div class="cover-body">
         <div class="cover-brand">
-            <div class="cover-brand-dot"></div>
+            @if ($logoUri)
+                <img src="{{ $logoUri }}" alt="" style="width: 12mm; height: 12mm; object-fit: contain; flex-shrink: 0;">
+            @else
+                <div class="cover-brand-dot"></div>
+            @endif
             Infinito Reciclaje
         </div>
         <div class="cover-label">{{ $esAlerta ? 'Reporte de alertas de peso' : 'Informe mensual de gestión' }}</div>
