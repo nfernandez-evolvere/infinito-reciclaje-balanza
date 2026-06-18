@@ -303,7 +303,8 @@ Reutiliza el `.env` local pero sobreescribe `APP_ENV=production`, `APP_DEBUG=fal
 ## 6. Topología — dos entornos, un solo host
 
 Producción y staging conviven en el mismo host. Un único nginx edge rutea por
-`server_name`. Cada entorno tiene su propio par blue/green y su propio worker.
+`server_name` (los toma de `.env.edge`, ver [§7](#7-los-dos-nginx-el-de-la-app-y-el-edge)).
+Cada entorno tiene su propio par blue/green y su propio worker.
 
 ```
                         Internet :80/:443
@@ -496,7 +497,7 @@ El setup son **4 fases, en este orden**, y no todas ocurren en la VPS:
 
 | Fase | Dónde | Qué |
 |------|-------|-----|
-| **[0 · Repo](#fase-0--preparar-el-repo-y-poblar-ghcr)** | Tu máquina + GitHub | Dominios reales + primer push (puebla GHCR con la imagen) |
+| **[0 · Repo](#fase-0--preparar-el-repo-y-poblar-ghcr)** | Tu máquina + GitHub | Primer push (puebla GHCR con la imagen) |
 | **[1 · Acceso](#fase-1--clave-ssh-y-github-secrets)** | Tu máquina + web de GitHub | Par de claves SSH + GitHub Secrets |
 | **[2 · Bootstrap VPS](#fase-2--bootstrap-de-la-vps)** | VPS | git/docker, repo, `.env`, red, edge — el "piso fijo" |
 | **[3 · Primer deploy](#fase-3--primer-deploy)** | VPS | `deploy.sh` prod + staging + migraciones |
@@ -516,7 +517,7 @@ El setup son **4 fases, en este orden**, y no todas ocurren en la VPS:
 **1. Dominios → `.env.edge` en el servidor.** Los `server_name` del edge ya **no** se
 editan en ningún archivo del repo: el template `docker/edge/default.conf.template` usa
 `${APP_DOMAIN}` / `${STAGE_DOMAIN}` y los toma de `.env.edge`. Este paso se hace en la
-[fase 2.6](#fase-2--instalar-el-edge) (copiar `.env.edge.example` → `.env.edge` y completar).
+[fase 2.6](#fase-2--bootstrap-de-la-vps) (copiar `.env.edge.example` → `.env.edge` y completar).
 
 > **Por qué en `.env.edge` y no en el repo.** El deploy hace `git reset --hard` en el
 > servidor; un archivo trackeado con el dominio se sobrescribiría en cada deploy. `.env.edge`
@@ -733,7 +734,8 @@ GHCR_TOKEN="$GHCR_TOKEN" GHCR_USER="<usuario-github>" \
 docker exec balanza-staging-app-blue php artisan migrate --force
 ```
 
-Staging queda servido por el mismo edge en `https://staging.balanza.tudominio.com`.
+Staging queda servido por el mismo edge en el `STAGE_DOMAIN` que definiste en `.env.edge`
+(fase 2.6).
 
 ---
 
@@ -793,6 +795,21 @@ environments. Si están en VPS distintas, cada environment tiene sus propios val
 
 Ver `.env.docker.example` y `.env.staging.example` para la lista completa.
 
+### `.env.edge` (en el server, NO se commitea)
+
+Los `server_name` del edge salen de acá — es la **única fuente de verdad** de los dominios
+públicos. Es independiente de `APP_URL` (que vive en `.env.prod` / `.env.staging` y la usa
+Laravel para generar links y emails): al fijar el dominio definitivo hay que actualizar **ambos**.
+
+| Variable | Uso |
+|----------|-----|
+| `APP_DOMAIN` | `server_name` del bloque prod del edge |
+| `STAGE_DOMAIN` | `server_name` del bloque staging del edge |
+
+Cambiar un dominio = editar `.env.edge` y recrear el edge
+(`docker compose -p app-edge -f compose.edge.yaml up -d`). El `git reset --hard` del deploy
+no lo toca (no está trackeado). Ver `.env.edge.example` y [§7](#7-los-dos-nginx-el-de-la-app-y-el-edge).
+
 ---
 
 ## 12. Gotchas y troubleshooting
@@ -807,6 +824,8 @@ Ver `.env.docker.example` y `.env.staging.example` para la lista completa.
 | Emails/reportes no se envían | worker no levantado, scheduler no corriendo, o `RESEND_KEY` no seteada | ver diagnóstico de emails más abajo |
 | Reportes duplicados | dos schedulers corriendo | el scheduler va **solo** en el worker único, no en blue/green |
 | El cutover no cambia el tráfico | edge no recargó | `docker exec balanza-edge nginx -t && docker exec balanza-edge nginx -s reload` |
+| Cambié el dominio / `default.conf.template` / `compose.edge.yaml` y no se aplica | el template solo se renderiza al **iniciar** el contenedor; un deploy no recrea el edge y `nginx -s reload` no re-ejecuta `envsubst` | recrear el edge: `docker compose -p app-edge -f compose.edge.yaml up -d` |
+| `nginx -t` falla con `server_name ;` en el edge | `APP_DOMAIN` o `STAGE_DOMAIN` vacíos/ausentes en `.env.edge` | completar **ambas** variables en `.env.edge` y recrear el edge |
 | Deploy aborta en health-check | el color nuevo no levanta `/up` | revisar `docker logs balanza-<entorno>-app-<color>`; el viejo sigue sirviendo |
 | `route:cache` falla | rutas con Closure | no se cachean rutas a propósito; nunca ejecutar `route:cache` |
 | Build de la imagen en Mac ARM | ODBC + mssql exigen amd64 | `docker build --platform=linux/amd64` |
