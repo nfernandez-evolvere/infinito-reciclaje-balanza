@@ -4,7 +4,7 @@
     <div class="space-y-1">
         <p class="text-sm font-semibold leading-none">Ranking de zonas</p>
         <p class="text-xs text-muted-foreground">
-            Ordenado por <span x-text="metricaActual().label.toLowerCase()"></span>.
+            Total por zona, ordenado por <span x-text="metricaActual().label.toLowerCase()"></span>.
         </p>
     </div>
     <div class="space-y-1.5">

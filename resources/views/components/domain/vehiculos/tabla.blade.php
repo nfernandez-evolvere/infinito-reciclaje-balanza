@@ -224,41 +224,8 @@
 @endif
 
 @if($vehiculos->hasPages())
-    <x-ui.pagination>
-        <x-ui.pagination.content>
-
-            <x-ui.pagination.item>
-                <x-ui.pagination.previous
-                    :href="$vehiculos->previousPageUrl()"
-                    :disabled="$vehiculos->onFirstPage()"
-                />
-            </x-ui.pagination.item>
-
-            <x-ui.pagination.item class="sm:hidden">
-                <span class="px-2 text-sm text-muted-foreground tabular-nums">
-                    {{ $vehiculos->currentPage() }} / {{ $vehiculos->lastPage() }}
-                </span>
-            </x-ui.pagination.item>
-
-            @for($page = 1; $page <= $vehiculos->lastPage(); $page++)
-                @php $isActive = $page === $vehiculos->currentPage(); @endphp
-                <x-ui.pagination.item class="hidden sm:list-item">
-                    <x-ui.pagination.link
-                        :href="$vehiculos->url($page)"
-                        :active="$isActive"
-                    >
-                        {{ $page }}
-                    </x-ui.pagination.link>
-                </x-ui.pagination.item>
-            @endfor
-
-            <x-ui.pagination.item>
-                <x-ui.pagination.next
-                    :href="$vehiculos->nextPageUrl()"
-                    :disabled="!$vehiculos->hasMorePages()"
-                />
-            </x-ui.pagination.item>
-
-        </x-ui.pagination.content>
-    </x-ui.pagination>
+    <div class="flex items-center justify-between px-1 pt-2 text-sm text-muted-foreground">
+        <span class="flex-1">Página {{ $vehiculos->currentPage() }} de {{ $vehiculos->lastPage() }} · {{ number_format($vehiculos->total(), 0, ',', '.') }} vehículos</span>
+        <x-ui.pagination :paginator="$vehiculos" />
+    </div>
 @endif

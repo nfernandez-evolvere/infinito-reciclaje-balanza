@@ -3,6 +3,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="csrf-token" content="{{ csrf_token() }}">
+{{-- Config pública de Reverb para que Echo conecte en runtime (sin hornearla en
+     el build). Host/puerto/esquema son opcionales: si no están, el front cae al
+     origen de la página (producción detrás del edge). --}}
+@if($key = config('broadcasting.connections.reverb.key'))
+<meta name="reverb-key" content="{{ $key }}">
+@endif
+@if($rh = config('reverb.client.host'))<meta name="reverb-host" content="{{ $rh }}">@endif
+@if($rp = config('reverb.client.port'))<meta name="reverb-port" content="{{ $rp }}">@endif
+@if($rs = config('reverb.client.scheme'))<meta name="reverb-scheme" content="{{ $rs }}">@endif
 <title>{{ $title }} — {{ config('app.name') }}</title>
 <link rel="icon" href="{{ asset('favicon.png') }}" type="image/png" sizes="150x150">
 <script>

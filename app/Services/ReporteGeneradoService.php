@@ -22,6 +22,7 @@ class ReporteGeneradoService
     public function __construct(
         protected ReporteGeneradoRepository $repository,
         protected ReporteProgramadoService $programadoService,
+        protected ReporteNotificacionService $notificaciones,
     ) {}
 
     /**
@@ -71,6 +72,9 @@ class ReporteGeneradoService
             ...$this->datosBase($programado, $desde, $hasta),
             'destinatarios' => $programado->destinatarios,
             'estado'        => ReporteGenerado::ESTADO_GENERANDO,
+            // Dueño a notificar: el admin que disparó "enviar ahora" (HTTP) o,
+            // desde el scheduler (sin auth), quien creó el programado.
+            'usuario_id' => auth()->id() ?? $programado->creado_por_id,
         ]);
 
         if ($avanzarProximo) {
@@ -166,11 +170,17 @@ class ReporteGeneradoService
      */
     public function marcarEnRevision(ReporteGenerado $generado, ?string $conclusiones, array $snapshot): bool
     {
-        return $this->repository->transicionar($generado, [ReporteGenerado::ESTADO_GENERANDO], [
+        $transicionado = $this->repository->transicionar($generado, [ReporteGenerado::ESTADO_GENERANDO], [
             'estado'       => ReporteGenerado::ESTADO_EN_REVISION,
             'conclusiones' => $conclusiones,
             'snapshot'     => $snapshot,
         ]);
+
+        if ($transicionado) {
+            $this->notificaciones->notificar($generado, 'en_revision');
+        }
+
+        return $transicionado;
     }
 
     /**
@@ -190,10 +200,16 @@ class ReporteGeneradoService
 
     public function marcarEnviado(ReporteGenerado $generado): bool
     {
-        return $this->repository->transicionar($generado, [ReporteGenerado::ESTADO_ENVIANDO], [
+        $transicionado = $this->repository->transicionar($generado, [ReporteGenerado::ESTADO_ENVIANDO], [
             'estado'     => ReporteGenerado::ESTADO_ENVIADO,
             'enviado_at' => now(),
         ]);
+
+        if ($transicionado) {
+            $this->notificaciones->notificar($generado, 'enviado');
+        }
+
+        return $transicionado;
     }
 
     /**
@@ -202,7 +218,7 @@ class ReporteGeneradoService
      */
     public function marcarFallo(ReporteGenerado $generado, string $error): bool
     {
-        return $this->repository->transicionar(
+        $transicionado = $this->repository->transicionar(
             $generado,
             [ReporteGenerado::ESTADO_GENERANDO, ReporteGenerado::ESTADO_ENVIANDO],
             [
@@ -210,6 +226,12 @@ class ReporteGeneradoService
                 'error'  => mb_substr($error, 0, 500),
             ],
         );
+
+        if ($transicionado) {
+            $this->notificaciones->notificar($generado, 'fallido');
+        }
+
+        return $transicionado;
     }
 
     /**

@@ -3,7 +3,7 @@
 
 **Motor:** SQL Server (driver `sqlsrv`)
 **ORM:** Laravel Eloquent
-**Versión:** 2.0 — 18/06/2026
+**Versión:** 2.1 — 18/06/2026
 
 > Diagrama visual de relaciones: [`04-der.md`](04-der.md).
 
@@ -409,7 +409,7 @@ Envíos automáticos por cron. El scheduler dispara la generación y el envío s
 | `organizacion_id` | `bigint` | NO | — | FK → `organizaciones.id`, CASCADE | — |
 | `tipo` | `nvarchar(30)` | NO | `'informe_mensual'` | `'informe_mensual'` \| `'alertas'` | — |
 | `nombre` | `nvarchar(150)` | NO | — | — | — |
-| `frecuencia` | `nvarchar(20)` | NO | `'mensual'` | `'mensual'` \| `'semanal'` \| `'custom'` | — |
+| `frecuencia` | `nvarchar(20)` | NO | `'mensual'` | `'diaria'` \| `'semanal'` \| `'quincenal'` \| `'mensual'` | Validada en `StoreReporteProgramadoRequest`. Determina el período (`calcularPeriodo`) y el cron (`cronDesdeFrecuencia`). |
 | `cron_expresion` | `nvarchar(50)` | NO | `'0 8 1 * *'` | — | Expresión cron del envío |
 | `destinatarios` | `json` | NO | — | — | Emails de destino |
 | `opciones` | `json` | SÍ | NULL | — | Filtros, formato, `revision` (heredar/revisar/directo) |
@@ -501,13 +501,25 @@ WHERE p.organizacion_id = ?
 ORDER BY p.created_at DESC
 ```
 
-### Historial del turno (operador)
+### KPIs del turno (footer del operador)
+
+El scope `Pesaje::delTurno()` filtra solo por **el día de hoy** (no por operador): el footer "Pesajes hoy / En predio" cuenta los pesajes de **toda la organización** de la jornada.
+
+```sql
+SELECT COUNT(*) AS pesajes, SUM(peso_neto_kg) / 1000.0 AS toneladas
+FROM pesajes
+WHERE organizacion_id = ?
+  AND estado <> 'Cancelado'
+  AND CAST(created_at AS DATE) = CAST(GETDATE() AS DATE)
+```
+
+### Listado de Historial (operador)
+
+El listado del operador muestra **todos los pesajes de la organización**, sin límite de fecha ni filtro por operador — los mismos registros que ve el admin; lo único que cambia entre roles son los filtros disponibles. Sin filtros aplicados:
 
 ```sql
 SELECT * FROM pesajes
 WHERE organizacion_id = ?
-  AND operador_id = ?
-  AND created_at >= CAST(GETDATE() AS DATE)
 ORDER BY created_at DESC
 ```
 
@@ -613,4 +625,4 @@ Orden de ejecución (respetar dependencias de FK):
 
 ---
 
-*Documento actualizado: 18/06/2026 · v2.0 — multi-tenant (`organizaciones`), módulo de reportes (4 tablas), renombre `alarmas`→`alertas`, FKs `noAction`, `uuid` y cancelación en pesajes. Diagrama: [`04-der.md`](04-der.md).*
+*Documento actualizado: 18/06/2026 · v2.1 — corrige `reportes_programados.frecuencia` (`diaria | semanal | quincenal | mensual`) y los patrones de consulta del operador (KPIs del turno = hoy de toda la org; el Historial muestra todos los pesajes de la org, sin filtro por operador). v2.0 — multi-tenant (`organizaciones`), módulo de reportes (4 tablas), renombre `alarmas`→`alertas`, FKs `noAction`, `uuid` y cancelación en pesajes. Diagrama: [`04-der.md`](04-der.md).*

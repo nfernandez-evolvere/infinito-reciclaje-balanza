@@ -22,7 +22,8 @@
 <x-ui.tabs
     :value="$hasProgramadoErrors ? 'programados' : $tab"
     class="flex flex-col gap-6"
-    x-init="$watch('active', val => {
+    x-init="$store.reportesPendientes.count = {{ (int) $pendientesRevision }};
+    $watch('active', val => {
         const url = new URL(window.location);
         url.searchParams.set('tab', val);
         history.pushState({}, '', url);
@@ -34,19 +35,23 @@
         <x-ui.typography as="muted">Generá y programá reportes para exportar o enviar al municipio.</x-ui.typography>
     </div>
 
-    @if($pendientesRevision > 0)
-        <x-ui.alert
-            state="warning"
-            title="{{ $pendientesRevision === 1 ? 'Hay 1 reporte pendiente de revisión' : 'Hay '.$pendientesRevision.' reportes pendientes de revisión' }}"
-            description="No se enviarán a los destinatarios hasta que los apruebes."
-        >
-            <x-slot:action>
-                <x-ui.button variant="ghost" state="warning" @click="active = 'historial'">
-                    Revisar
-                </x-ui.button>
-            </x-slot:action>
-        </x-ui.alert>
-    @endif
+    <x-ui.alert
+        state="warning"
+        description="No se enviarán a los destinatarios hasta que los apruebes."
+        x-show="$store.reportesPendientes.count > 0"
+        x-cloak
+    >
+        <x-slot:title>
+            <span x-text="$store.reportesPendientes.count === 1
+                ? 'Hay 1 reporte pendiente de revisión'
+                : 'Hay ' + $store.reportesPendientes.count + ' reportes pendientes de revisión'"></span>
+        </x-slot:title>
+        <x-slot:action>
+            <x-ui.button variant="ghost" state="warning" @click="active = 'historial'">
+                Revisar
+            </x-ui.button>
+        </x-slot:action>
+    </x-ui.alert>
 
     <x-ui.tabs.list class="flex w-full sm:w-fit">
         <x-ui.tabs.trigger value="programados" class="flex-1 sm:flex-none">
@@ -63,9 +68,9 @@
             <x-lucide-history class="size-4" />
             <span x-show="active === 'historial'" x-cloak class="sm:inline">Historial</span>
             <span class="hidden sm:inline" x-show="active !== 'historial'">Historial</span>
-            @if($pendientesRevision > 0)
-                <x-ui.badge variant="warning" class="text-xs">{{ $pendientesRevision }}</x-ui.badge>
-            @endif
+            <x-ui.badge variant="warning" class="text-xs"
+                x-show="$store.reportesPendientes.count > 0" x-cloak
+                x-text="$store.reportesPendientes.count"></x-ui.badge>
         </x-ui.tabs.trigger>
         <x-ui.tabs.trigger value="configuracion" class="flex-1 sm:flex-none">
             <x-lucide-settings-2 class="size-4" />
@@ -100,7 +105,7 @@
 
                 <x-domain.mapa-calor.panel
                     :zonas="$mapaZonas"
-                    description="Intensidad de recolección del período por zona, según los filtros aplicados."
+                    description="Intensidad de recolección del período por zona, según los filtros aplicados. Suma todos los turnos de cada zona."
                 />
 
                 <section class="flex flex-col gap-4">
@@ -156,10 +161,12 @@
 
     {{-- ── Tab: Historial ── --}}
     <x-ui.tabs.content value="historial" class="mt-0">
-        <div x-data="reportesHistorial()" class="flex flex-col gap-6">
+        <div x-data="reportesHistorial({ parcialUrl: '{{ route('admin.reportes.historial.parcial') }}' })" class="flex flex-col gap-6">
             <x-ui.typography as="muted">Reportes descargados y enviados. Volvé a abrir cualquiera para regenerarlo con los datos del período.</x-ui.typography>
 
-            <x-domain.reportes.tabla-historial :historial="$historial" />
+            <div id="historial-tabla">
+                <x-domain.reportes.tabla-historial :historial="$historial" />
+            </div>
             <x-domain.reportes.modal-revision />
         </div>
     </x-ui.tabs.content>

@@ -615,6 +615,11 @@
 
 <x-ui.sonner />
 
+{{-- Id del usuario para el canal privado de notificaciones en tiempo real (Echo). --}}
+@auth
+<script>window.__USER_ID = {{ (int) auth()->id() }};</script>
+@endauth
+
 @if(session('toast'))
 <script>
     document.addEventListener('alpine:initialized', () => {

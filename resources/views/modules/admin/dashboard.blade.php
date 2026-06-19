@@ -164,9 +164,9 @@
                 </div>
 
                 <div class="grid grid-cols-1 gap-6" x-show="kpisDia.total > 0" x-cloak>
-                    <x-domain.mapa-calor.panel source="metricasPorZonaDia" description="Intensidad de recolección del día por zona." />
+                    <x-domain.mapa-calor.panel source="metricasPorZonaDia" description="Intensidad de recolección del día por zona. Suma todos los turnos de cada zona." />
                     <x-domain.dashboard.desglose-vehiculo source="desgloseVehiculo" description="Distribución de flota del día" />
-                    <x-domain.dashboard.desglose-zona source="desgloseZona" description="Actividad del día por zona de recolección" />
+                    <x-domain.dashboard.desglose-zona source="desgloseZona" description="Actividad del día por zona y turno. Una zona puede ocupar varias filas, una por turno." />
                 </div>
             </div>
         </x-ui.tabs.content>
@@ -190,9 +190,9 @@
                     </x-ui.card>
                 </div>
                 <div class="grid grid-cols-1 gap-6" x-show="kpisMes.total > 0" x-cloak>
-                    <x-domain.mapa-calor.panel source="metricasPorZonaMes" description="Intensidad de recolección del mes por zona." />
+                    <x-domain.mapa-calor.panel source="metricasPorZonaMes" description="Intensidad de recolección del mes por zona. Suma todos los turnos de cada zona." />
                     <x-domain.dashboard.desglose-vehiculo source="desgloseVehiculoMes" description="Distribución de flota del mes" />
-                    <x-domain.dashboard.desglose-zona source="desgloseZonaMes" description="Actividad del mes por zona de recolección" />
+                    <x-domain.dashboard.desglose-zona source="desgloseZonaMes" description="Actividad del mes por zona y turno. Una zona puede ocupar varias filas, una por turno." />
                 </div>
             </div>
         </x-ui.tabs.content>
@@ -205,8 +205,8 @@
                     <x-domain.dashboard.evolucion-rango />
                     <div class="grid grid-cols-1 gap-6">
                         <x-domain.dashboard.desglose-vehiculo source="desgloseVehiculoRango" description="Distribución de flota en el período" />
-                        <x-domain.dashboard.desglose-zona source="desgloseZonaRango" description="Actividad del período por zona de recolección" />
-                        <x-domain.mapa-calor.panel source="metricasPorZonaRango" description="Intensidad de recolección del período por zona." />
+                        <x-domain.dashboard.desglose-zona source="desgloseZonaRango" description="Actividad del período por zona y turno. Una zona puede ocupar varias filas, una por turno." />
+                        <x-domain.mapa-calor.panel source="metricasPorZonaRango" description="Intensidad de recolección del período por zona. Suma todos los turnos de cada zona." />
                     </div>
                 </div>
             </template>

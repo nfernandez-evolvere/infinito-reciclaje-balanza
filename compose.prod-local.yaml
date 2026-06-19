@@ -34,6 +34,14 @@ services:
       DB_PORT: "1433"
       DB_ENCRYPT: "no"
       DB_TRUST_SERVER_CERTIFICATE: "yes"
+      # Publisher PHP → contenedor reverb por la red de compose.
+      REVERB_HOST: reverb
+      REVERB_PORT: "8080"
+      REVERB_SCHEME: http
+      # Browser → Reverb expuesto en el host (no hay edge en prod-local).
+      REVERB_PUBLIC_HOST: localhost
+      REVERB_PUBLIC_PORT: "8080"
+      REVERB_PUBLIC_SCHEME: http
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
@@ -55,11 +63,43 @@ services:
       DB_PORT: "1433"
       DB_ENCRYPT: "no"
       DB_TRUST_SERVER_CERTIFICATE: "yes"
+      # El worker publica los eventos → apunta al contenedor reverb.
+      REVERB_HOST: reverb
+      REVERB_PORT: "8080"
+      REVERB_SCHEME: http
     extra_hosts:
       - "host.docker.internal:host-gateway"
     command: ["supervisord", "-c", "/etc/supervisor/conf.d/worker.conf", "-n"]
     # El HEALTHCHECK del Dockerfile hace curl a :8080/up (nginx). El worker no
     # corre nginx → el check siempre fallaría. Se desactiva acá.
+    healthcheck:
+      disable: true
+    restart: unless-stopped
+    depends_on:
+      - app
+
+  # Servidor WebSocket para probar las notificaciones en tiempo real en prod-local.
+  # Expuesto en el host (8080) porque acá no hay edge; el browser conecta directo
+  # vía REVERB_PUBLIC_* (ver servicio app).
+  reverb:
+    build:
+      context: .
+      target: runtime
+    image: balanza:prod-local
+    env_file: .env
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      DB_CONNECTION: sqlsrv
+      DB_HOST: host.docker.internal
+      DB_PORT: "1433"
+      DB_ENCRYPT: "no"
+      DB_TRUST_SERVER_CERTIFICATE: "yes"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: ["php", "/app/artisan", "reverb:start", "--host=0.0.0.0", "--port=8080"]
+    ports:
+      - "8080:8080"
     healthcheck:
       disable: true
     restart: unless-stopped

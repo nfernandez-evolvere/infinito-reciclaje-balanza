@@ -60,9 +60,9 @@
                         <p class="text-xs text-muted-foreground mt-0.5 line-clamp-2" x-text="item.descripcion"></p>
                         <div class="flex items-center justify-between gap-2 mt-1">
                             <p class="text-[11px] text-muted-foreground/70" x-text="item.hace"></p>
-                            <a x-show="item.url_pesaje" x-cloak :href="item.url_pesaje" @click="open = false"
+                            <a x-show="item.url" x-cloak :href="item.url" @click="open = false"
                                class="text-[11px] font-medium text-primary hover:underline shrink-0">
-                                Ver pesaje →
+                                <span x-text="item.url_label"></span> →
                             </a>
                         </div>
                     </div>
@@ -117,9 +117,9 @@
                         <p class="text-xs text-muted-foreground mt-0.5" x-text="item.descripcion"></p>
                         <div class="flex items-center justify-between gap-2 mt-1">
                             <p class="text-xs text-muted-foreground/70" x-text="item.hace"></p>
-                            <a x-show="item.url_pesaje" x-cloak :href="item.url_pesaje" @click="sheetOpen = false"
+                            <a x-show="item.url" x-cloak :href="item.url" @click="sheetOpen = false"
                                class="text-xs font-medium text-primary hover:underline shrink-0">
-                                Ver pesaje →
+                                <span x-text="item.url_label"></span> →
                             </a>
                         </div>
                     </div>

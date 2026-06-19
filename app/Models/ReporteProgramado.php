@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToOrganizacion;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @mixin \Eloquent
@@ -17,6 +18,7 @@ class ReporteProgramado extends Model
 
     protected $fillable = [
         'organizacion_id',
+        'creado_por_id',
         'tipo',
         'nombre',
         'frecuencia',
@@ -39,6 +41,12 @@ class ReporteProgramado extends Model
     public function scopeActivos($query)
     {
         return $query->where('activo', true);
+    }
+
+    /** Usuario que creó el programado: destinatario de las notificaciones de sus envíos. */
+    public function creadoPor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'creado_por_id');
     }
 
     /**

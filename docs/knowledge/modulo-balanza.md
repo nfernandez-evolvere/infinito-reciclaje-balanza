@@ -160,6 +160,19 @@ La corrección queda registrada con tu nombre, la hora y el motivo. El administr
 
 ---
 
+## Cómo anular un pesaje cargado por error
+
+Cuando un pesaje no corresponde y hay que dejarlo sin efecto (no solo corregir un dato):
+
+1. Ir a **Historial**.
+2. Abrí el menú de acciones (⋯) de la fila del pesaje.
+3. Elegí **Cancelar pesaje** y escribí el motivo (obligatorio).
+4. Confirmá.
+
+El pesaje pasa al estado **CANCELADO**: ya no suma en los totales del turno ni en los reportes, pero no se borra — queda en el Historial con el motivo y tu nombre. Un pesaje cancelado no se puede editar ni reabrir. Si solo te equivocaste en un valor, usá **Editar**, no **Cancelar**.
+
+---
+
 ## La barra de estado del turno (siempre visible)
 
 En la parte de abajo de la pantalla, siempre visible sin importar en qué pantalla estés:
@@ -193,4 +206,4 @@ Sí. El origen que aparece es el predeterminado para ese servicio, pero podés c
 
 ---
 
-*Documento actualizado: 04/06/2026 | Versión: 1.1*
+*Documento actualizado: 18/06/2026 | Versión: 1.2*

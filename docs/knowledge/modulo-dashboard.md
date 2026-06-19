@@ -30,7 +30,7 @@ Esta sección aparece **solo cuando hay alertas** sin resolver. Está en la part
 
 Muestra:
 - Cantidad de alertas activas
-- Tipo de alerta (gap de pesajes, peso inusual, frecuencia atípica)
+- Tipo de alerta (gap de pesajes, peso inusual, volumen diario atípico, frecuencia atípica por origen)
 - Un botón **Ver alertas** que te lleva al módulo de Alertas (Sistema → Alertas)
 
 Si no hay alertas activas, esta sección no aparece y el resto del dashboard ocupa ese espacio.
@@ -89,20 +89,23 @@ Te permite ver de un vistazo si hay días con actividad inusualmente alta o baja
 
 ## Sección 6 — Por origen
 
-Tabla con el desglose de la operación del día por origen:
+Panel con el desglose de la operación del día por origen, acompañado de un gráfico. En la pantalla el panel aparece rotulado **"Por Zona"** (origen y zona son el mismo dato: el admin lo gestiona como "Zona" y la columna lo muestra como "Origen").
 
 | Columna | Descripción |
 |---------|-------------|
 | Origen | Nombre del origen |
-| Pesajes | Cantidad de pesajes registrados para ese origen hoy |
-| Toneladas netas | Suma de kg netos del origen, en toneladas |
-| % del total | Proporción respecto al total del día |
+| Viajes | Cantidad de pesajes registrados para ese origen hoy |
+| Toneladas | Suma de kg netos del origen, en toneladas |
+| kg/viaje | Promedio de kg netos por pesaje |
+| kg/ha | Kg por hectárea (si la zona tiene hectáreas cargadas; si no, muestra "—") |
+| kg/hab | Kg por habitante (si la zona tiene habitantes cargados; si no, muestra "—") |
+| Porcentaje | Proporción respecto al total del día |
 
 ---
 
 ## Sección 7 — Por tipo de vehículo
 
-Tabla similar a la de zonas, pero desglosada por tipo de vehículo (Compactador, Volcador, Volquete, Particular).
+Panel similar al de orígenes, pero desglosado por tipo de vehículo (Compactador, Volcador, Volquete, Particular).
 
 Útil para verificar que la distribución de la flota está dentro de los parámetros esperados.
 
@@ -153,4 +156,4 @@ No. El Dashboard muestra la operación total. Para análisis filtrados, usar el 
 
 ---
 
-*Documento actualizado: 04/06/2026 | Versión: 1.1*
+*Documento actualizado: 18/06/2026 | Versión: 1.2*

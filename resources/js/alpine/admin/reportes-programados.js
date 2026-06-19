@@ -28,6 +28,8 @@ export default (initial = {}) => ({
     enviarOpen:   false,
     enviarId:     null,
     enviarNombre: '',
+    enviarUrl:    null,
+    enviando:     false,
 
     ...initial,
 
@@ -54,14 +56,44 @@ export default (initial = {}) => ({
         }
     },
 
-    confirmEnviar(id, nombre) {
+    confirmEnviar(id, nombre, url) {
         this.enviarId     = id;
         this.enviarNombre = nombre;
+        this.enviarUrl    = url;
         this.enviarOpen   = true;
     },
 
-    executeEnviar() {
-        document.getElementById('enviar-' + this.enviarId).submit();
+    // Encola el envío por AJAX (sin recargar la pantalla): el resultado real del
+    // reporte llega después por WebSocket (toast + campana + historial en vivo).
+    async executeEnviar() {
+        if (! this.enviarUrl || this.enviando) return;
+        this.enviando = true;
+
+        try {
+            const r = await fetch(this.enviarUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                },
+            });
+            const data = await r.json().catch(() => ({}));
+
+            if (r.ok && data.toast) {
+                this.$store.toast.add(data.toast);
+                // Refresca la tabla del Historial para que la fila recién encolada
+                // ("Generando…") aparezca sin recargar (mismo evento que el push WS).
+                window.dispatchEvent(new CustomEvent('reporte-estado', { detail: {} }));
+            } else {
+                this.$store.toast.add({ message: 'No se pudo encolar el envío.', description: 'Intentá de nuevo en unos segundos.', variant: 'destructive' });
+            }
+        } catch (e) {
+            this.$store.toast.add({ message: 'No se pudo encolar el envío.', description: 'Revisá tu conexión e intentá de nuevo.', variant: 'destructive' });
+        } finally {
+            this.enviando   = false;
+            this.enviarOpen = false;
+        }
     },
 
     confirmDelete(id, nombre) {

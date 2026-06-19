@@ -180,41 +180,8 @@
 @endif
 
 @if($tipos->hasPages())
-    <x-ui.pagination>
-        <x-ui.pagination.content>
-
-            <x-ui.pagination.item>
-                <x-ui.pagination.previous
-                    :href="$tipos->previousPageUrl()"
-                    :disabled="$tipos->onFirstPage()"
-                />
-            </x-ui.pagination.item>
-
-            <x-ui.pagination.item class="sm:hidden">
-                <span class="px-2 text-sm text-muted-foreground tabular-nums">
-                    {{ $tipos->currentPage() }} / {{ $tipos->lastPage() }}
-                </span>
-            </x-ui.pagination.item>
-
-            @for($page = 1; $page <= $tipos->lastPage(); $page++)
-                @php $isActive = $page === $tipos->currentPage(); @endphp
-                <x-ui.pagination.item class="hidden sm:list-item">
-                    <x-ui.pagination.link
-                        :href="$tipos->url($page)"
-                        :active="$isActive"
-                    >
-                        {{ $page }}
-                    </x-ui.pagination.link>
-                </x-ui.pagination.item>
-            @endfor
-
-            <x-ui.pagination.item>
-                <x-ui.pagination.next
-                    :href="$tipos->nextPageUrl()"
-                    :disabled="!$tipos->hasMorePages()"
-                />
-            </x-ui.pagination.item>
-
-        </x-ui.pagination.content>
-    </x-ui.pagination>
+    <div class="flex items-center justify-between px-1 pt-2 text-sm text-muted-foreground">
+        <span class="flex-1">Página {{ $tipos->currentPage() }} de {{ $tipos->lastPage() }} · {{ number_format($tipos->total(), 0, ',', '.') }} tipos de vehículo</span>
+        <x-ui.pagination :paginator="$tipos" />
+    </div>
 @endif

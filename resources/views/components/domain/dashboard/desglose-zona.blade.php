@@ -1,8 +1,8 @@
-@props(['source', 'description' => 'Actividad del día por zona de recolección'])
+@props(['source', 'description' => 'Actividad del día por zona y turno. Una zona puede ocupar varias filas, una por turno.'])
 
 <x-ui.card variant="elevated">
     <x-ui.card.header>
-        <x-ui.card.title>Por Zona</x-ui.card.title>
+        <x-ui.card.title>Por zona y turno</x-ui.card.title>
         <x-ui.card.description>{{ $description }}</x-ui.card.description>
     </x-ui.card.header>
     <x-ui.card.content class="pt-0">
@@ -40,7 +40,7 @@
                 <x-ui.table variant="flat" class="hidden sm:block">
                     <x-ui.table.header>
                         <x-ui.table.row>
-                            <x-ui.table.head>Origen</x-ui.table.head>
+                            <x-ui.table.head>Zona y turno</x-ui.table.head>
                             <x-ui.table.head>Viajes</x-ui.table.head>
                             <x-ui.table.head>Toneladas</x-ui.table.head>
                             <x-ui.table.head>kg/viaje</x-ui.table.head>
@@ -52,7 +52,7 @@
                     <x-ui.table.body>
                         <template x-for="fila in {{ $source }}" :key="fila.nombre">
                             <x-ui.table.row>
-                                <x-ui.table.cell data-label="Origen" class="font-medium">
+                                <x-ui.table.cell data-label="Zona y turno" class="font-medium">
                                     <span class="flex items-center gap-2">
                                         <span class="w-2 h-2 rounded-full shrink-0 bg-muted-foreground/30" :style="desgloseColor('{{ $source }}', fila.nombre) ? { backgroundColor: desgloseColor('{{ $source }}', fila.nombre) } : {}"></span>
                                         <span x-text="fila.nombre"></span>

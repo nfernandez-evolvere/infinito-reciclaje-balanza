@@ -22,8 +22,9 @@ Todos los padrones siguen el mismo patrón de pantalla:
 2. **Botón Agregar** — abre el formulario para crear un registro nuevo
 3. **Editar** — abre el formulario pre-llenado con los datos actuales del registro
 4. **Desactivar / Activar** — cambia el estado del registro con confirmación previa
+5. **Eliminar** — borra el registro definitivamente, **solo si nunca se usó** (sin pesajes ni dependencias). Si ya tiene historial, el sistema no lo permite y te pide desactivarlo
 
-La baja es siempre **lógica**: los registros nunca se borran. Si un camión deja de operar, se desactiva — sus pesajes históricos se conservan y siguen apareciendo en los reportes.
+La regla general es la **baja lógica**: un registro que ya operó nunca se borra, se desactiva — sus pesajes históricos se conservan y siguen apareciendo en los reportes. Eliminar queda reservado para registros cargados por error que nunca llegaron a usarse.
 
 ---
 
@@ -477,7 +478,7 @@ El registro queda marcado como inactivo y deja de aparecer en los autocompletado
 ## Preguntas frecuentes
 
 **¿Puedo borrar un registro en lugar de desactivarlo?**
-No. El sistema no permite eliminar registros. La baja lógica (desactivar) preserva la integridad de los datos históricos.
+Solo si nunca se usó. Un registro sin pesajes ni dependencias (cargado por error) se puede **Eliminar**. Apenas tiene historial, el sistema bloquea la eliminación y te pide desactivarlo: la baja lógica preserva la integridad de los datos históricos. Los **usuarios** no se eliminan nunca, solo se desactivan.
 
 **¿Qué pasa si edito la tara de un vehículo?**
 Los pesajes futuros usan la nueva tara. Los pesajes ya registrados conservan la tara original.
@@ -496,4 +497,4 @@ Sí. En el padrón de Zonas, en la fila del servicio asignado, usá el botón **
 
 ---
 
-*Documento actualizado: 04/06/2026 | Versión: 1.3*
+*Documento actualizado: 18/06/2026 | Versión: 1.4*

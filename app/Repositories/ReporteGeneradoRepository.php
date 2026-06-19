@@ -3,7 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\ReporteGenerado;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ReporteGeneradoRepository
 {
@@ -36,6 +36,19 @@ class ReporteGeneradoRepository
     public function contarPendientesRevision(): int
     {
         return ReporteGenerado::where('estado', ReporteGenerado::ESTADO_EN_REVISION)->count();
+    }
+
+    /**
+     * Igual que contarPendientesRevision pero con el organizacion_id explícito y
+     * sin global scopes: se invoca desde la cola, donde app('organizacion') puede
+     * no estar bound (p. ej. el failed() del job).
+     */
+    public function contarPendientesRevisionDeOrg(int $organizacionId): int
+    {
+        return ReporteGenerado::withoutGlobalScopes()
+            ->where('organizacion_id', $organizacionId)
+            ->where('estado', ReporteGenerado::ESTADO_EN_REVISION)
+            ->count();
     }
 
     /**

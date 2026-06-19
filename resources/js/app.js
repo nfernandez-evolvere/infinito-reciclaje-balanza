@@ -20,6 +20,8 @@ import reportesHistorial from './alpine/admin/reportes-historial.js';
 import reportesConfiguracion from './alpine/admin/reportes-configuracion.js';
 import tagsInput from './alpine/tags-input.js';
 import { apexChart } from './charts.js';
+import './echo';
+import initReportesRealtime from './alpine/admin/reportes-realtime.js';
 
 Alpine.plugin(Collapse);
 
@@ -102,5 +104,13 @@ Alpine.store('lightbox', {
     hide() { this.open = false; },
 });
 
+// — Alpine store: pendientes de revisión (reportes) ———————————————
+// Contador del banner/badge de reportes en revisión. Lo siembra la vista de
+// reportes (x-init) y lo actualiza en vivo el push de tiempo real.
+Alpine.store('reportesPendientes', { count: 0 });
+
 window.Alpine = Alpine;
 Alpine.start();
+
+// Suscripción a las notificaciones de reportes en tiempo real (Echo + Reverb).
+initReportesRealtime();

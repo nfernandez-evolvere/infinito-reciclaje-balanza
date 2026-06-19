@@ -29,6 +29,7 @@ GitHub Actions.
 11. [Secrets y variables de entorno](#11-secrets-y-variables-de-entorno)
 12. [Gotchas y troubleshooting](#12-gotchas-y-troubleshooting)
 13. [Cómo extender (TLS, escalado, rollback)](#13-cómo-extender-tls-escalado-rollback)
+14. [WebSockets en tiempo real (Reverb)](#14-websockets-en-tiempo-real-reverb)
 
 ---
 
@@ -904,6 +905,104 @@ docker exec balanza-edge nginx -s reload
   RAM del host (regla: `max_children ≈ RAM_disponible / ~40MB por worker`).
 - **Migrar a orquestador**: la separación web/worker/edge y la imagen única se trasladan
   bien a Docker Swarm o Kubernetes; el edge pasaría a ser un Ingress/Service.
+
+---
+
+## 14. WebSockets en tiempo real (Reverb)
+
+Las notificaciones de reportes en vivo (toast + campana + refresco del historial) viajan
+por WebSocket usando **Laravel Reverb**. La señal durable es siempre la notificación
+persistente en la tabla `alertas`; el WebSocket es la capa "en vivo" (best-effort).
+
+### Topología
+
+```
+Browser ──wss://DOMINIO/app/{key}──► edge (location /app) ──► balanza-{env}-reverb:8080
+app/worker ──http POST interno──► balanza-{env}-reverb:8080   (publica los eventos)
+Browser ──POST /broadcasting/auth──► edge ──► app (sesión)    (autoriza el canal privado)
+```
+
+- **`reverb`** es un servicio **único y persistente** definido en `compose.worker.yaml`
+  (junto al `worker`): **no** participa del blue-green. Contenedor `balanza-{env}-reverb`,
+  escucha en `0.0.0.0:8080` dentro de la red `balanza-net`.
+- **Dos "hosts" distintos, no confundirlos:**
+  - `REVERB_HOST` (en `.env.{env}`) = host **interno** del contenedor Reverb
+    (`balanza-{env}-reverb`). Lo usan **app y worker** para *publicar* eventos por la red
+    Docker. Es server-to-server, no pasa por el edge.
+  - El **cliente** (browser) **no** usa `REVERB_HOST`: `resources/js/echo.js` resuelve el
+    host desde el **origen de la página** y conecta a `wss://DOMINIO/app`, que el edge
+    proxea al contenedor Reverb. La app key (pública, no secreta) se inyecta en runtime vía
+    `<meta name="reverb-key">` (ver `layouts/head.blade.php`). **Resultado: la misma imagen
+    sirve cualquier dominio sin hornear `VITE_REVERB_*` en el build.**
+  - **`REVERB_PUBLIC_HOST` / `REVERB_PUBLIC_PORT` / `REVERB_PUBLIC_SCHEME`** (opcionales): host,
+    puerto y esquema **públicos** del cliente, separados del `REVERB_HOST` interno. Si quedan
+    vacíos (caso producción detrás del edge) el front usa el origen de la página. Setearlos
+    solo cuando Reverb se expone **directo** al browser (sin edge): por ejemplo `compose.prod-local.yaml`
+    los pone en `localhost:8080`, o un subdominio `ws.` dedicado. Se inyectan vía meta tags
+    (`reverb-host/port/scheme`), así la misma imagen funciona en cualquier topología sin rebuild.
+- **Edge**: `docker/edge/default.conf.template` agrega `location /app { … }` en los server
+  blocks de prod y staging, con upgrade WS y `proxy_pass` por variable + `resolver 127.0.0.11`
+  (DNS de Docker) — así el edge arranca aunque el contenedor Reverb no exista todavía y no
+  hay que tocar los upstreams del deploy.
+- **Auth de canal**: el canal privado `user.{id}.reportes` (`routes/channels.php`) se autoriza
+  por `POST /broadcasting/auth` con la sesión normal (pasa por `location /`, no por `/app`).
+
+### Variables (en `.env.{env}` del server, NO se commitean)
+
+```dotenv
+BROADCAST_CONNECTION=reverb
+REVERB_APP_ID=...            # generar valores propios por entorno
+REVERB_APP_KEY=...
+REVERB_APP_SECRET=...
+REVERB_HOST=balanza-prod-reverb   # host interno; staging: balanza-staging-reverb
+REVERB_PORT=8080
+REVERB_SCHEME=http
+REVERB_SERVER_HOST=0.0.0.0
+REVERB_SERVER_PORT=8080
+```
+
+Plantillas: `.env.docker.example` (prod) y `.env.staging.example`.
+
+### Deploy
+
+```bash
+# El stack worker ahora incluye el contenedor reverb. Levantarlo/actualizarlo:
+ENV_PREFIX=prod    TAG=<sha> docker compose -p prod-worker    -f compose.worker.yaml up -d
+ENV_PREFIX=staging TAG=<sha> docker compose -p staging-worker -f compose.worker.yaml up -d
+
+# Al cambiar el template del edge (location /app) hay que RECREAR el edge
+# (el template solo se renderiza al iniciar el contenedor):
+docker compose -p app-edge -f compose.edge.yaml up -d
+```
+
+- Reverb se actualiza con el stack worker **después** del cutover: el reinicio corta las
+  conexiones WS, pero **Echo reconecta solo** y la novedad ya quedó en la campana.
+- Las claves `REVERB_APP_*` deben ser **iguales para ambos colores** (las leen app y worker
+  desde el mismo `.env.{env}`), y matchear las del contenedor `reverb`.
+
+### TLS
+
+Al habilitar el bloque `443` del edge (ver §13), el `location /app` debe replicarse dentro
+del server TLS. Como el cliente conecta por `wss://` al puerto 443 del dominio, no requiere
+puertos extra abiertos: todo entra por el edge.
+
+### Troubleshooting
+
+```bash
+# ¿El server Reverb está arriba?
+docker logs balanza-prod-reverb --tail 50
+
+# ¿El edge resuelve y proxea /app? (debe responder algo de Reverb, no 502)
+curl -i http://localhost/app/test
+
+# El browser conecta pero no llegan eventos → revisar que app/worker publican:
+#   - REVERB_HOST apunta al contenedor reverb correcto
+#   - misma REVERB_APP_KEY/SECRET/ID en .env.{env} y en el contenedor reverb
+docker logs balanza-prod-worker --tail 50 | grep -i reverb
+
+# Notificación llega a la campana pero no el toast en vivo → es esperado si el WS
+# está caído: la alerta persistente es la capa durable (best-effort el broadcast).
+```
 
 ---
 

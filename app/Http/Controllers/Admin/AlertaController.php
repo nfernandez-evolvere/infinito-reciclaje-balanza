@@ -85,10 +85,16 @@ class AlertaController extends Controller
                 'tipo'         => $a->tipo,
                 'tipo_label'   => $a->tipoLabel(),
                 'tipo_variant' => $a->tipoVariant(),
+                'tipo_icono'   => $a->tipoIcono(),
                 'titulo'       => $a->titulo,
                 'descripcion'  => $a->descripcion,
                 'hace'         => $a->created_at->diffForHumans(),
-                'url_pesaje'   => $a->pesaje ? route('pesajes.show', $a->pesaje) : null,
+                // Deep-link según el origen: las de pesaje van al pesaje; las de
+                // reporte, al historial. El resto no tiene destino.
+                'url' => str_starts_with($a->tipo, 'reporte_')
+                    ? route('admin.reportes.index', ['tab' => 'historial'])
+                    : ($a->pesaje ? route('pesajes.show', $a->pesaje) : null),
+                'url_label' => str_starts_with($a->tipo, 'reporte_') ? 'Ver reporte' : 'Ver pesaje',
             ]),
         ]);
     }

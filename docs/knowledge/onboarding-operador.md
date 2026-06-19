@@ -143,6 +143,20 @@ Cada corrección queda registrada con tu nombre, la fecha y el motivo. El admini
 
 ---
 
+## Cómo anular un pesaje cargado por error
+
+Si un pesaje se cargó por error y no corresponde corregirlo sino dejarlo sin efecto:
+
+1. Ir a **Historial**.
+2. Abrí el menú de acciones (⋯) de la fila del pesaje.
+3. Elegí **Cancelar pesaje**.
+4. Escribí el motivo de la cancelación (es obligatorio).
+5. Confirmá.
+
+El pesaje pasa al estado **CANCELADO**: deja de sumar en los totales y en los reportes, pero no se borra — queda en el Historial con el motivo y tu nombre. Un pesaje cancelado no se puede editar ni reabrir. Si solo te equivocaste en un dato, usá **Editar** en lugar de cancelar.
+
+---
+
 ## Qué hacer si el vehículo no aparece en el autocompletado
 
 Si escribís la patente o el número interno y no aparece ninguna sugerencia:
@@ -157,7 +171,7 @@ Si escribís la patente o el número interno y no aparece ninguna sugerencia:
 ## Preguntas frecuentes
 
 **¿Qué pasa si la conexión se corta?**
-Aparece un aviso que dice "Sin conexión". Podés seguir registrando pesajes — se guardan localmente y se sincronizan cuando vuelve la conexión.
+El sistema necesita conexión para guardar un pesaje. Si la conexión se cae justo cuando vas a guardar, el pesaje no se registra: esperá a que vuelva y guardá de nuevo. Mientras no cierres ni recargues la pantalla, los datos que cargaste siguen en el formulario. Si la caída es larga, anotá los pesajes en papel para cargarlos después y no perder ninguno.
 
 **¿Qué significa el aviso naranja en el peso?**
 Que el peso que ingresaste está fuera del rango habitual para ese tipo de vehículo. No bloquea el guardado — es solo para que lo revises. Si el peso es correcto, guardá normalmente.
@@ -173,4 +187,4 @@ En la barra de abajo siempre aparece el número de camiones "en predio". Tambié
 
 ---
 
-*Documento generado: 12/05/2026 | Versión: 1.0*
+*Documento actualizado: 18/06/2026 | Versión: 1.1*

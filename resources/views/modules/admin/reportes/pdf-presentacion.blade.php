@@ -2019,7 +2019,7 @@
                 <div>
                     <div class="slide-eyebrow">Distribución territorial</div>
                     <div class="slide-title">
-                        Toneladas Netas por Zona
+                        Toneladas Netas por Zona y Turno
                         @if($totalSlides > 1)
                             <span style="font-size: 14.5px; color: oklch(0.708 0 0); font-weight: 400;">({{ $chunkIdx + 1 }}/{{ $totalSlides }})</span>
                         @endif
@@ -2035,7 +2035,7 @@
 
         <div class="slide-content">
             @if($chunkIdx === 0)
-            <p class="slide-desc">Volumen recolectado por zona y turno, con kg por viaje, por hectárea y por habitante. El color indica el rango de toneladas de cada zona.</p>
+            <p class="slide-desc">Volumen recolectado por zona y turno: una zona puede ocupar varias filas, una por turno. Incluye kg por viaje, por hectárea y por habitante. El color indica el rango de toneladas de cada fila.</p>
             <div class="legend">
                 <span class="legend-scale-label">Escala · toneladas netas</span>
                 <div class="legend-item"><span class="dot" style="background:#dc2626;"></span> Más de 500 t</div>
@@ -2110,7 +2110,7 @@
     $mapaConGeo = $mapaZonas->filter(fn ($z) => $z['tiene_geometria'] ?? false);
 
     $mapasMetricas = [
-        ['metric' => 'toneladas',  'eyebrow' => 'Concentración territorial', 'desc' => 'Toneladas netas recolectadas por zona. Las áreas más oscuras concentran mayor volumen de recolección.'],
+        ['metric' => 'toneladas',  'eyebrow' => 'Concentración territorial', 'desc' => 'Toneladas netas recolectadas por zona, sumando todos sus turnos. Las áreas más oscuras concentran mayor volumen de recolección.'],
         ['metric' => 'pesajes',    'eyebrow' => 'Frecuencia de recolección', 'desc' => 'Cantidad de viajes registrados por zona en el período.'],
         ['metric' => 'per_capita', 'eyebrow' => 'Generación por habitante',  'desc' => 'Kilos recolectados por habitante (kg/hab). Solo se colorean las zonas con población cargada.'],
         ['metric' => 'densidad',   'eyebrow' => 'Intensidad por superficie', 'desc' => 'Kilos recolectados por hectárea (kg/ha). Solo se colorean las zonas con superficie cargada.'],
@@ -2163,7 +2163,7 @@
                 {{-- Ranking de zonas por la métrica (réplica de la lista de la web) --}}
                 <div>
                     <div class="map-rank-title">Ranking de zonas</div>
-                    <div class="map-rank-sub">Ordenado por {{ mb_strtolower($mapa['metrica']['label']) }}.</div>
+                    <div class="map-rank-sub">Total por zona, ordenado por {{ mb_strtolower($mapa['metrica']['label']) }}.</div>
                     @foreach($rankTop as $f)
                     <div class="rank-row">
                         <div class="rank-left">
