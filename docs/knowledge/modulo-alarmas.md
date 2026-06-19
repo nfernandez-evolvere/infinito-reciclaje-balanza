@@ -86,6 +86,25 @@ Las alarmas aparecen en dos lugares:
 
 ---
 
+### Tipo 4 — Volumen diario atípico
+
+**Qué es:** El total de toneladas netas registradas en el día se desvía demasiado del promedio histórico de la operación (muy por encima o muy por debajo).
+
+**Ejemplo:** Un día se registran 12 toneladas cuando el promedio ronda las 40.
+
+**Causas posibles:**
+- Día feriado, paro o evento que redujo la recolección
+- Una jornada de actividad inusualmente alta
+- Pesajes sin cargar o cargados con pesos mal ingresados
+- El promedio histórico todavía es bajo porque hay pocos días de operación
+
+**Qué hacer:**
+1. Cruzar con el gráfico de evolución diaria del Dashboard para ver si el día realmente fue atípico
+2. Verificar con el operador si quedaron pesajes sin registrar
+3. Si la variación tiene una explicación operativa, marcar la alarma como resuelta con un comentario
+
+---
+
 ## Cómo resolver una alarma
 
 1. Ir a **Sistema → Alertas** o hacer clic en **Ver alertas** desde el Dashboard.
@@ -130,17 +149,25 @@ Ajustá el **horario operativo** a la realidad de tu predio: si trabajás de 7 a
 
 ### Umbrales de peso inusual
 
-Los rangos de peso están definidos en **Transporte → Tipos de vehículo** (ver módulo de ABMs). Las alarmas de peso inusual se disparan cuando un pesaje queda fuera de esos rangos.
+Los rangos de peso están definidos en **Padrón → Vehículos** (pestaña **Tipos de vehículo**; ver módulo de ABMs). Las alarmas de peso inusual se disparan cuando un pesaje queda fuera de esos rangos.
 
-Para ajustar los umbrales de peso: ir a Transporte → Tipos de vehículo y editar el tipo correspondiente.
+Para ajustar los umbrales de peso: ir a Padrón → Vehículos, pestaña Tipos de vehículo, y editar el tipo correspondiente.
 
-### Umbral de frecuencia atípica
+### Umbral de volumen diario atípico
 
-Define qué variación respecto al promedio histórico se considera "atípica".
+Define qué desviación respecto al promedio histórico de toneladas del día se considera atípica.
 
 | Configuración | Descripción |
 |---------------|-------------|
-| Variación mínima | Porcentaje de desviación del promedio para disparar la alarma (default: 50%) |
+| Variación mínima | Porcentaje de desviación del promedio diario para disparar la alarma (default: 20%) |
+
+### Umbral de frecuencia atípica
+
+Define qué variación respecto al promedio histórico por origen se considera "atípica".
+
+| Configuración | Descripción |
+|---------------|-------------|
+| Variación mínima | Porcentaje de desviación del promedio para disparar la alarma (default: 30%) |
 
 ---
 
@@ -171,4 +198,4 @@ Sí. El historial de alarmas no tiene límite de fecha. Podés filtrar por perí
 
 ---
 
-*Documento actualizado: 04/06/2026 | Versión: 1.1*
+*Documento actualizado: 18/06/2026 | Versión: 1.2*

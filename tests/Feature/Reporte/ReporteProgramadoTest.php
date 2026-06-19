@@ -248,4 +248,20 @@ class ReporteProgramadoTest extends TestCase
 
         Queue::assertPushed(GenerarReporteJob::class, 1);
     }
+
+    #[Test]
+    public function enviar_ahora_por_ajax_devuelve_el_toast_en_json_sin_redirigir(): void
+    {
+        Queue::fake();
+
+        $programado = $this->programado();
+
+        $this->actingAs($this->admin())
+            ->postJson(route('admin.reportes.programados.enviar-ahora', $programado))
+            ->assertOk()
+            ->assertJsonPath('toast.variant', 'success')
+            ->assertJsonStructure(['toast' => ['message', 'description', 'variant']]);
+
+        Queue::assertPushed(GenerarReporteJob::class, 1);
+    }
 }

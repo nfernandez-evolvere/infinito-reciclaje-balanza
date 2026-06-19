@@ -56,9 +56,9 @@ Seguí el checklist en [`configuracion-inicial.md`](configuracion-inicial.md). E
 Cada sección de Padrones sigue el mismo patrón:
 - Una tabla con todos los registros y una barra de búsqueda
 - Un botón **Agregar** para crear un registro nuevo
-- Acciones por fila: editar, desactivar
+- Acciones por fila: editar, desactivar y —solo si el registro nunca se usó— eliminar
 
-**Baja lógica:** nunca se borra un registro del sistema. Si un camión deja de operar, se desactiva — sus pesajes históricos se conservan. Lo mismo con usuarios, zonas y servicios.
+**Baja lógica:** un registro que ya operó nunca se borra; si un camión deja de operar, se desactiva y sus pesajes históricos se conservan. Lo mismo con zonas y servicios. Solo se puede **eliminar** un registro cargado por error que nunca llegó a usarse; los **usuarios** nunca se eliminan, solo se desactivan.
 
 Para más detalle, ver [`modulo-abms.md`](modulo-abms.md).
 
@@ -108,6 +108,7 @@ Para más detalle, ver [`modulo-reportes.md`](modulo-reportes.md).
 El sistema monitorea la operación automáticamente y genera alertas cuando detecta situaciones inusuales:
 - Períodos sin pesajes durante el horario operativo (gaps)
 - Pesos muy por encima o por debajo del rango habitual
+- Volumen diario de toneladas muy desviado del promedio histórico
 - Frecuencias atípicas por origen
 
 Las alertas aparecen en el Dashboard. Podés configurar los umbrales de detección y marcar cada alerta como resuelta una vez atendida.
@@ -121,7 +122,7 @@ Para más detalle, ver [`modulo-alarmas.md`](modulo-alarmas.md).
 ## Preguntas frecuentes
 
 **¿Qué pasa si un operador registra un pesaje con datos incorrectos?**
-Podés editarlo desde Pesajes. El operador también puede editarlo desde su Historial dentro del turno activo. Toda edición queda registrada con el motivo.
+Podés editarlo desde Pesajes. El operador también puede editarlo desde su Historial. Toda edición queda registrada con el motivo. Si el pesaje no debe corregirse sino anularse (duplicado, cargado por error), tanto el admin como el operador pueden **cancelarlo** con un motivo: el pesaje queda como CANCELADO y deja de sumar en KPIs y reportes.
 
 **¿Puedo ver en tiempo real qué están registrando los operadores?**
 Sí. El Dashboard muestra los camiones en predio en este momento y los KPIs del día se actualizan con cada nuevo pesaje.
@@ -140,4 +141,4 @@ Durante el horario operativo (8:00–18:00) se recomienda revisarlo al menos una
 
 ---
 
-*Documento actualizado: 04/06/2026 | Versión: 1.1*
+*Documento actualizado: 18/06/2026 | Versión: 1.2*

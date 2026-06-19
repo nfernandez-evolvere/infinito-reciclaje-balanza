@@ -41,7 +41,7 @@ database/sql/
 
 1. Crear un script numerado en cada ambiente (`003_nueva_tabla.sql`).
 2. Copiar el archivo a `stg/` y `prod/` cambiando el prefijo de `dev_` a `stg_` o `prod_`.
-3. Documentar la tabla en `docs/data-model.md`.
+3. Documentar la tabla en `docs/03-data-model.md`.
 
 ## Configuración en Laravel
 

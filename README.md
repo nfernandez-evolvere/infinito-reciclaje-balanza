@@ -151,12 +151,15 @@ Usuarios de dev (contraseña `Evolvere123!@`):
 
 | Documento | Descripción |
 |-----------|-------------|
-| [`docs/roadmap.md`](docs/roadmap.md) | Plan de desarrollo: sprints, schema, arquitectura de pantallas |
-| [`docs/data-model.md`](docs/data-model.md) | Modelo de datos completo: tipos, constraints, índices, decisiones de diseño |
-| [`docs/design-system.md`](docs/design-system.md) | Componentes Blade (`x-ui.*`), tokens, tipografía, espaciado |
-| [`docs/ux-writing.md`](docs/ux-writing.md) | Voz y tono, reglas de escritura por rol |
-| [`docs/guia-migracion-sqlserver-multitenant.md`](docs/guia-migracion-sqlserver-multitenant.md) | Guía de setup SQL Server + prefijos de tabla por ambiente |
-| [`docs/Brief_Producto_Etapa1.md`](docs/Brief_Producto_Etapa1.md) | Requerimientos funcionales y no funcionales |
+| [`docs/01-brief-producto.md`](docs/01-brief-producto.md) | Requerimientos funcionales y no funcionales, módulos, perfiles |
+| [`docs/02-roadmap.md`](docs/02-roadmap.md) | Plan de desarrollo: arquitectura de pantallas, permisos, sprints |
+| [`docs/03-data-model.md`](docs/03-data-model.md) | Modelo de datos completo: tipos, constraints, índices, decisiones de diseño |
+| [`docs/04-der.md`](docs/04-der.md) | Diagrama entidad-relación y estrategia de borrado |
+| [`docs/05-design-system.md`](docs/05-design-system.md) | Componentes Blade (`x-ui.*`), tokens, tipografía, espaciado |
+| [`docs/06-ux-writing.md`](docs/06-ux-writing.md) | Voz y tono, reglas de escritura por rol |
+| [`docs/07-abm-guide.md`](docs/07-abm-guide.md) | Guía para construir módulos ABM (patrón canónico) |
+| [`docs/08-testing-strategy.md`](docs/08-testing-strategy.md) | Estrategia y convenciones de testing |
+| [`docs/09-deployment-docker.md`](docs/09-deployment-docker.md) | Infraestructura Docker, blue-green y CI/CD |
 
 ---
 

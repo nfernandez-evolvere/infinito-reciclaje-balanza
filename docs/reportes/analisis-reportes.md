@@ -1,7 +1,7 @@
 # Análisis de Reportes — Infinito Reciclaje
 ## Datos necesarios, métricas de mercado y mejoras al Dashboard
 
-**Fuentes analizadas:** `REPORTE MARZO_ INFINITO RECICLAJE.xlsx` · `PPT PARA GOBIERNO_ INFINITO RECICLAJE.pdf` · `docs/data-model.md` · `DashboardService.php`
+**Fuentes analizadas:** `REPORTE MARZO_ INFINITO RECICLAJE.xlsx` · `PPT PARA GOBIERNO_ INFINITO RECICLAJE.pdf` · `docs/03-data-model.md` · `DashboardService.php`
 **Fecha:** 27/05/2026
 
 ---

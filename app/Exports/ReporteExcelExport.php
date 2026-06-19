@@ -304,7 +304,7 @@ class ReporteExcelExport
         $this->bar($sheet, $row, $lastCol, 'KG TOTAL — ZONA Y TIPO DE VEHÍCULO', self::C_TITLE);
         $row++;
 
-        $headers = ['Zona'];
+        $headers = ['Zona y turno'];
         foreach ($tipos as $t) {
             $headers[] = $t['nombre']."\nViajes";
             $headers[] = $t['nombre']."\nKG";
@@ -382,7 +382,7 @@ class ReporteExcelExport
 
         // Encabezados: Zona · una columna por fecha · Total.
         $headRow = $row;
-        $this->text($sheet, self::C0, $row, 'Zona', ['bold' => true, 'align' => Alignment::HORIZONTAL_CENTER, 'fill' => self::C_COLHEAD, 'wrap' => true]);
+        $this->text($sheet, self::C0, $row, 'Zona y turno', ['bold' => true, 'align' => Alignment::HORIZONTAL_CENTER, 'fill' => self::C_COLHEAD, 'wrap' => true]);
         $col = self::C0 + 1;
         foreach ($fechas as $f) {
             $this->date($sheet, $col, $row, $f, self::FMT_DATE, ['bold' => true, 'align' => Alignment::HORIZONTAL_CENTER, 'fill' => self::C_COLHEAD]);

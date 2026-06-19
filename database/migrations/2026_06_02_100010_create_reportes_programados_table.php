@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('organizacion_id')->constrained('organizaciones')->cascadeOnDelete();
             $table->string('tipo', 30)->default('informe_mensual'); // informe_mensual | alertas
             $table->string('nombre', 150);
-            $table->string('frecuencia', 20)->default('mensual');   // mensual | semanal | custom
+            $table->string('frecuencia', 20)->default('mensual');   // diaria | semanal | quincenal | mensual
             $table->string('cron_expresion', 50)->default('0 8 1 * *');
             $table->json('destinatarios');
             $table->json('opciones')->nullable();

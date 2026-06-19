@@ -35,6 +35,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -69,7 +70,7 @@ class ReporteController extends Controller
         $tiposServicio = $this->tipoServicioRepository->activos();
         $tiposVehiculo = $this->tipoVehiculoRepository->activos();
         $programados = $this->programadoRepository->allOrdered();
-        $historial = $this->generadoRepository->paginarHistorial()->appends(['tab' => 'historial']);
+        $historial = $this->historialPaginado();
         $pendientesRevision = $this->generadoRepository->contarPendientesRevision();
         $config = $this->configuracionRepository->first() ?? new ReporteConfiguracion;
 
@@ -109,6 +110,32 @@ class ReporteController extends Controller
             'tab', 'reporte', 'mapaZonas', 'zonas', 'tiposServicio', 'tiposVehiculo', 'filters', 'activeFilters',
             'programados', 'historial', 'pendientesRevision', 'config'
         ));
+    }
+
+    /**
+     * Solo la tabla del historial, para refrescarla en vivo cuando llega un
+     * evento de estado por WebSocket (sin recargar la página ni duplicar en JS
+     * la lógica de badges/acciones del partial).
+     */
+    public function historialParcial(): View
+    {
+        $historial = $this->historialPaginado();
+
+        return view('modules.admin.reportes.partials.historial-tabla', compact('historial'));
+    }
+
+    /**
+     * Historial paginado para la vista y el partial de refresco en vivo. El path
+     * de los links se fija al index (no a la ruta del partial, que devuelve un
+     * fragmento sin layout) y se preserva ?tab=historial. La página activa la
+     * resuelve el paginador desde ?page= del request, tanto en la carga completa
+     * como en el fetch del partial.
+     */
+    private function historialPaginado(): LengthAwarePaginator
+    {
+        return $this->generadoRepository->paginarHistorial()
+            ->withPath(route('admin.reportes.index'))
+            ->appends(['tab' => 'historial']);
     }
 
     // ── Exports ────────────────────────────────────────────────────────────
@@ -196,7 +223,12 @@ class ReporteController extends Controller
 
     public function storeProgramado(StoreReporteProgramadoRequest $request): RedirectResponse
     {
-        $programado = $this->programadoService->create($request->validated());
+        // Dueño del programado: destinatario de las notificaciones cuando el
+        // scheduler lo genere/envíe sin un usuario en el ciclo de la cola.
+        $programado = $this->programadoService->create([
+            ...$request->validated(),
+            'creado_por_id' => $request->user()->id,
+        ]);
 
         session()->flash('toast', [
             'message'     => 'Reporte programado creado.',
@@ -234,19 +266,28 @@ class ReporteController extends Controller
         return redirect()->route('admin.reportes.index', ['tab' => 'programados']);
     }
 
-    public function enviarAhoraProgramado(ReporteProgramado $programado): RedirectResponse
+    public function enviarAhoraProgramado(Request $request, ReporteProgramado $programado): RedirectResponse|JsonResponse
     {
-        $generado = $this->generadoService->iniciarGeneracion($programado);
+        $this->generadoService->iniciarGeneracion($programado);
 
         $config = $this->configuracionRepository->first();
 
-        session()->flash('toast', [
+        $toast = [
             'message'     => 'Generación en cola.',
             'description' => $programado->requiereRevision($config)
                 ? 'El reporte se generará en los próximos minutos y quedará pendiente de revisión en el historial.'
                 : 'El reporte se generará y enviará en los próximos minutos.',
             'variant' => 'success',
-        ]);
+        ];
+
+        // "Enviar ahora" se dispara por AJAX para no recargar la pantalla: el
+        // resultado real del reporte llega luego por WebSocket. Fallback a
+        // redirect+flash si la petición no es AJAX.
+        if ($request->expectsJson()) {
+            return response()->json(['toast' => $toast]);
+        }
+
+        session()->flash('toast', $toast);
 
         return redirect()->route('admin.reportes.index', ['tab' => 'programados']);
     }

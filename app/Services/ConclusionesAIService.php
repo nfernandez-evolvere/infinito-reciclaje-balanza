@@ -51,19 +51,21 @@ class ConclusionesAIService
         ]);
 
         try {
-            $response = Http::timeout(15)->post(
-                "{$this->baseUrl}/{$this->modelo}:generateContent?key={$this->apiKey}",
-                [
-                    'contents' => [
-                        ['parts' => [['text' => $prompt]]],
-                    ],
-                    'generationConfig' => [
-                        'temperature'     => 0.7,
-                        'maxOutputTokens' => 1024,
-                        'thinkingConfig'  => ['thinkingBudget' => 0],
-                    ],
-                ]
-            );
+            $response = Http::timeout(15)
+                ->withHeaders(['x-goog-api-key' => $this->apiKey])
+                ->post(
+                    "{$this->baseUrl}/{$this->modelo}:generateContent",
+                    [
+                        'contents' => [
+                            ['parts' => [['text' => $prompt]]],
+                        ],
+                        'generationConfig' => [
+                            'temperature'     => 0.7,
+                            'maxOutputTokens' => 1024,
+                            'thinkingConfig'  => ['thinkingBudget' => 0],
+                        ],
+                    ]
+                );
 
             Log::debug('[ConclusionesAI] Respuesta recibida', [
                 'status' => $response->status(),
@@ -82,11 +84,23 @@ class ConclusionesAIService
             return '';
         } catch (\Throwable $e) {
             Log::error('[ConclusionesAI] Excepción al llamar a la API', [
-                'message' => $e->getMessage(),
-                'trace'   => $e->getTraceAsString(),
+                'message' => $this->ocultarApiKey($e->getMessage()),
+                'trace'   => $this->ocultarApiKey($e->getTraceAsString()),
             ]);
 
             return '';
         }
+    }
+
+    /**
+     * Defensa en profundidad: la API key viaja por header (no en la URL), pero
+     * si apareciera en el mensaje o el trace de una excepción, la enmascara
+     * antes de que llegue al log. Así nunca queda en texto plano en producción.
+     */
+    private function ocultarApiKey(string $texto): string
+    {
+        return $this->apiKey !== ''
+            ? str_replace($this->apiKey, '***', $texto)
+            : $texto;
     }
 }

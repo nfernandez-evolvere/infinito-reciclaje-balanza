@@ -10,13 +10,13 @@
         </x-ui.dialog.header>
 
         <x-ui.dialog.footer>
-            <x-ui.button type="button" variant="outline" @click="open = false">
+            <x-ui.button type="button" variant="outline" @click="open = false" x-bind:disabled="enviando">
                 <x-lucide-x class="size-4" />
                 Cancelar
             </x-ui.button>
-            <x-ui.button @click="executeEnviar(); open = false">
+            <x-ui.button @click="executeEnviar()" x-bind:disabled="enviando">
                 <x-lucide-send class="size-4" />
-                Enviar
+                <span x-text="enviando ? 'Enviando…' : 'Enviar'"></span>
             </x-ui.button>
         </x-ui.dialog.footer>
     </x-ui.dialog.content>

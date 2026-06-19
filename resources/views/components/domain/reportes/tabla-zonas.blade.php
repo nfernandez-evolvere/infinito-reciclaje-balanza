@@ -3,7 +3,7 @@
 <x-ui.card variant="elevated">
     <x-ui.card.header>
         <x-ui.card.title>Por zona y turno</x-ui.card.title>
-        <x-ui.card.description>Desglose de viajes y toneladas por zona de recolección.</x-ui.card.description>
+        <x-ui.card.description>Desglose de viajes y toneladas por zona y turno. Una zona puede ocupar varias filas, una por turno.</x-ui.card.description>
     </x-ui.card.header>
     <x-ui.card.content class="pt-0">
         @if($zonas->isEmpty())

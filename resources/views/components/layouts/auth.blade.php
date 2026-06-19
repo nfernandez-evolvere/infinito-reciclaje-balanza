@@ -15,9 +15,7 @@
     <header class="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-sm">
         <div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
             <a href="{{ route('landing') }}" class="flex items-center gap-2.5">
-                <div class="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary">
-                    <span class="text-[11px] font-bold leading-none text-primary-foreground">IR</span>
-                </div>
+                <x-brand-logo class="size-7" />
                 <span class="text-sm font-semibold">Infinito Reciclaje</span>
             </a>
             <x-ui.button variant="ghost" size="icon" @click="$store.theme.toggle()" aria-label="Cambiar tema">
@@ -95,8 +93,8 @@
 
                         {{-- Brand mark --}}
                         <div class="relative z-10 flex flex-col items-center gap-6 text-center">
-                            <div class="flex size-16 items-center justify-center rounded-2xl bg-white/15 backdrop-blur-sm">
-                                <span class="text-2xl font-bold">IR</span>
+                            <div class="flex size-16 items-center justify-center rounded-2xl bg-white p-3 shadow-sm">
+                                <x-brand-logo class="size-full" />
                             </div>
                             <div class="space-y-1.5">
                                 <p class="text-lg font-semibold">Infinito Reciclaje</p>

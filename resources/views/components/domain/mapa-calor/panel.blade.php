@@ -2,7 +2,7 @@
     'source' => null,
     'zonas' => null,
     'title' => 'Mapa de calor',
-    'description' => 'Intensidad de recolección por zona. Elegí la métrica para ver dónde se concentra la actividad.',
+    'description' => 'Intensidad de recolección por zona, sumando todos sus turnos. Elegí la métrica para ver dónde se concentra la actividad.',
 ])
 
 {{--

@@ -195,41 +195,8 @@
 @endif
 
 @if($usuarios->hasPages())
-    <x-ui.pagination>
-        <x-ui.pagination.content>
-
-            <x-ui.pagination.item>
-                <x-ui.pagination.previous
-                    :href="$usuarios->previousPageUrl()"
-                    :disabled="$usuarios->onFirstPage()"
-                />
-            </x-ui.pagination.item>
-
-            <x-ui.pagination.item class="sm:hidden">
-                <span class="px-2 text-sm text-muted-foreground tabular-nums">
-                    {{ $usuarios->currentPage() }} / {{ $usuarios->lastPage() }}
-                </span>
-            </x-ui.pagination.item>
-
-            @for($page = 1; $page <= $usuarios->lastPage(); $page++)
-                @php $isActive = $page === $usuarios->currentPage(); @endphp
-                <x-ui.pagination.item class="hidden sm:list-item">
-                    <x-ui.pagination.link
-                        :href="$usuarios->url($page)"
-                        :active="$isActive"
-                    >
-                        {{ $page }}
-                    </x-ui.pagination.link>
-                </x-ui.pagination.item>
-            @endfor
-
-            <x-ui.pagination.item>
-                <x-ui.pagination.next
-                    :href="$usuarios->nextPageUrl()"
-                    :disabled="!$usuarios->hasMorePages()"
-                />
-            </x-ui.pagination.item>
-
-        </x-ui.pagination.content>
-    </x-ui.pagination>
+    <div class="flex items-center justify-between px-1 pt-2 text-sm text-muted-foreground">
+        <span class="flex-1">Página {{ $usuarios->currentPage() }} de {{ $usuarios->lastPage() }} · {{ number_format($usuarios->total(), 0, ',', '.') }} usuarios</span>
+        <x-ui.pagination :paginator="$usuarios" />
+    </div>
 @endif

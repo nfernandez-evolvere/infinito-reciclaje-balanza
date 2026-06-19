@@ -82,6 +82,30 @@ class AlertaRepository
         return Alerta::create($data);
     }
 
+    /**
+     * Crea la notificación in-app de un evento de reporte (campana). Comparte la
+     * tabla alertas pero sin pesaje/zona; organizacion_id va explícito porque se
+     * invoca desde la cola, donde app('organizacion') puede no estar bound.
+     */
+    public function crearDeReporte(
+        int $organizacionId,
+        int $userId,
+        string $tipo,
+        string $titulo,
+        ?string $descripcion,
+        int $reporteGeneradoId,
+    ): Alerta {
+        return Alerta::create([
+            'organizacion_id'     => $organizacionId,
+            'user_id'             => $userId,
+            'tipo'                => $tipo,
+            'titulo'              => $titulo,
+            'descripcion'         => $descripcion,
+            'reporte_generado_id' => $reporteGeneradoId,
+            'fecha_deteccion'     => now(),
+        ]);
+    }
+
     public function existeHoy(int $organizacionId, string $tipo, Carbon $fecha, ?int $pesajeId = null, ?int $zonaId = null): bool
     {
         $q = Alerta::withoutGlobalScopes()

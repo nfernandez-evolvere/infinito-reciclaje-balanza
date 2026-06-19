@@ -67,9 +67,7 @@
     <header class="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-sm">
         <div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
             <div class="flex items-center gap-2.5">
-                <div class="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary">
-                    <span class="text-[11px] font-bold leading-none text-primary-foreground">IR</span>
-                </div>
+                <x-brand-logo class="size-7" />
                 <span class="text-sm font-semibold">Infinito Reciclaje</span>
             </div>
             <div class="flex items-center gap-2">

@@ -65,9 +65,7 @@
 
         <x-ui.sidebar.header class="h-14 flex-row items-center border-b border-sidebar-border p-0 px-4">
             <a href="{{ $homeRoute }}" class="flex items-center gap-2 min-w-0">
-                <div class="size-6 shrink-0 rounded bg-primary flex items-center justify-center">
-                    <span class="text-[10px] font-bold text-primary-foreground leading-none">IR</span>
-                </div>
+                <x-brand-logo class="size-6" />
                 <div class="flex flex-col min-w-0">
                     <span class="text-sm font-semibold text-sidebar-foreground truncate leading-tight">Administración</span>
                     @isset($organizacion)
@@ -616,6 +614,11 @@
 @endif
 
 <x-ui.sonner />
+
+{{-- Id del usuario para el canal privado de notificaciones en tiempo real (Echo). --}}
+@auth
+<script>window.__USER_ID = {{ (int) auth()->id() }};</script>
+@endauth
 
 @if(session('toast'))
 <script>

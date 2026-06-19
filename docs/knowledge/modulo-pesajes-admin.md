@@ -24,21 +24,34 @@ Ambas vistas (admin y operador) muestran todos los pesajes de la organización s
 
 ---
 
+## Las dos pestañas de la pantalla
+
+La pantalla de Pesajes del administrador tiene dos pestañas:
+
+| Pestaña | Para qué sirve |
+|---------|----------------|
+| **Pesajes** | El log completo de pesajes, con los KPIs del día arriba. Es la vista por defecto. |
+| **Modificaciones** | Solo los pesajes que fueron **editados** o **cancelados**, para auditar los cambios de un vistazo. Tiene su propio filtro por tipo de cambio (editado / cancelado). |
+
+Cada pestaña tiene sus propios filtros y orden, independientes entre sí.
+
+---
+
 ## La tabla de pesajes
 
 La tabla muestra todos los pesajes ordenados del más reciente al más antiguo. Para cada pesaje se ve:
 
 | Columna | Descripción |
 |---------|-------------|
-| Fecha y hora | Fecha y hora de entrada del camión |
-| Patente | Patente del vehículo |
-| N° interno | Número interno del vehículo |
+| Ingreso | Fecha y hora de entrada del camión (es la columna que ordena la tabla) |
+| Patente / N.° interno | Patente y número interno del vehículo |
+| Origen | Origen de recolección (con el turno, si corresponde) |
 | Servicio | Tipo de servicio registrado |
-| Origen | Origen de recolección |
-| Peso neto | Kilogramos netos del pesaje |
-| Operador | Usuario que registró el pesaje |
-| Estado | EN PREDIO o CERRADO |
-| Editado | Indicador si el pesaje fue modificado después del registro original |
+| Peso neto | Kilogramos netos del pesaje (con el detalle bruto − tara al pasar el cursor) |
+| Estado | Distintivos del pesaje: **Cancelado**, **Editado** y/o **Alerta** de peso |
+| Acciones | Menú (⋯) con Detalles, Editar, Marcar egreso, Ver cambios y Cancelar |
+
+> El operador, que NO tiene su propia tabla, ve estas mismas columnas. La diferencia con el admin son los filtros disponibles, no las columnas.
 
 ---
 
@@ -53,11 +66,13 @@ Encima de la tabla hay un panel de filtros. Podés combinar cualquiera de estos 
 | Tipo de servicio | Lista de todos los servicios activos |
 | Zona | Lista de todas las zonas activas |
 | Operador | Lista de todos los usuarios operadores |
-| Estado | EN PREDIO / CERRADO / Todos |
+| Estado | Todos / Activos / Cancelados |
 | Con alerta de peso | Solo los pesajes que generaron aviso naranja |
 | Editados | Solo los pesajes que fueron modificados |
 
-Los filtros se aplican en tiempo real. Para limpiar todos los filtros, usá el botón **Limpiar filtros**.
+> El filtro **Estado** separa los pesajes vigentes (**Activos** — en predio o cerrados) de los **Cancelados**. La distinción entre EN PREDIO y CERRADO se ve en cada fila, no en este filtro.
+
+Los filtros se aplican desde un panel lateral y se reflejan como chips arriba de la tabla. Para limpiar todos los filtros, usá el botón **Limpiar filtros**.
 
 ---
 
@@ -127,10 +142,24 @@ Cada pesaje tiene un estado que indica si el camión todavía está en el predio
 |--------|-------------|
 | **EN PREDIO** | El camión entró y no se registró su salida todavía |
 | **CERRADO** | El egreso fue registrado por el operador |
+| **CANCELADO** | El pesaje fue anulado (con motivo). No suma en KPIs ni reportes y no se puede editar ni reabrir |
 
 ### Cuándo intervenir en estados EN PREDIO
 
 Si hay pesajes con estado EN PREDIO que son del día anterior o de hace muchas horas, probablemente el operador se olvidó de registrar el egreso. En ese caso podés editar el pesaje y completar la hora de salida manualmente.
+
+---
+
+## Cómo cancelar un pesaje
+
+Cancelar es distinto de editar: editar corrige un dato y el pesaje sigue contando; cancelar anula el pesaje completo. Usá cancelar cuando el registro no corresponde (un pesaje duplicado, cargado por error o que nunca debió existir).
+
+1. Encontrá el pesaje en la tabla.
+2. Abrí el menú de acciones (⋯) y elegí **Cancelar pesaje**.
+3. Escribí el motivo de la cancelación — es obligatorio.
+4. Confirmá.
+
+El pesaje pasa a estado **CANCELADO**: deja de sumar en los KPIs y en los reportes, pero **no se borra** — queda en el Historial y en la pestaña **Modificaciones** con el motivo y el usuario que lo canceló. La cancelación no se puede revertir y un pesaje cancelado no se puede editar. Tanto el admin como el operador pueden cancelar.
 
 ---
 
@@ -142,13 +171,11 @@ El aviso no bloqueó el guardado — el operador decidió que el peso era correc
 
 ---
 
-## Exportar el log de pesajes
+## Exportar pesajes
 
-Desde esta pantalla podés exportar la vista filtrada actual:
-- **Excel** — todos los campos de cada pesaje, útil para análisis ad hoc
-- Los filtros aplicados en pantalla se respetan en la exportación
+Esta pantalla no tiene exportación propia: es para consultar, filtrar y auditar en línea. Para llevarte los datos a un archivo usá el **módulo de Reportes**, que exporta en Excel (detalle de cada pesaje) y en PDF (informe formal para el municipio), con sus propios filtros de período, origen, servicio y tipo de vehículo.
 
-Para reportes formales (mensuales o trimestrales) usá el módulo de Reportes, que genera documentos con formato definido para entregar al municipio.
+Ver [`modulo-reportes.md`](modulo-reportes.md).
 
 ---
 
@@ -169,9 +196,9 @@ El sistema registra los pesajes y las ediciones, pero no tiene un log de accesos
 **¿El log tiene límite de registros?**
 No. El log es completo e histórico desde el inicio de la operación.
 
-**¿Puedo ordenar la tabla por cualquier columna?**
-Sí. Hacé clic en el encabezado de cualquier columna para ordenar ascendente o descendente.
+**¿Puedo ordenar la tabla?**
+Sí, por fecha de **Ingreso**. Hacé clic en el encabezado de la columna *Ingreso* para alternar entre más reciente primero y más antiguo primero (también podés elegirlo en el panel de filtros, en *Orden de fecha*). Las demás columnas no son ordenables.
 
 ---
 
-*Documento generado: 12/05/2026 | Versión: 1.0*
+*Documento actualizado: 18/06/2026 | Versión: 1.1*

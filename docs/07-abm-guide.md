@@ -564,7 +564,7 @@ Usar siempre el parámetro de ruta en singular y minúscula: `{tipo}`, `{vehicul
 
 ## Toasts — reglas de UX writing
 
-Aplicar según `docs/ux-writing.md`. Resumen para ABMs de admin:
+Aplicar según `docs/06-ux-writing.md`. Resumen para ABMs de admin:
 
 | Acción | `message` | `description` |
 |---|---|---|
@@ -742,5 +742,5 @@ Preguntas frecuentes esperadas:
 - ...
 
 Escribir en español operativo argentino, sin jerga técnica, en lenguaje de usuario (Nacho — admin).
-Seguir las reglas de docs/ux-writing.md.
+Seguir las reglas de docs/06-ux-writing.md.
 ```

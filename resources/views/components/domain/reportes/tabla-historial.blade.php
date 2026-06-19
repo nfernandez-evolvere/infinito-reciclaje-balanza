@@ -236,25 +236,10 @@
 
     {{-- Paginación --}}
     @if($historial->hasPages())
-        <x-ui.pagination>
-            <x-ui.pagination.content>
-                @if($historial->onFirstPage())
-                    <x-ui.pagination.item><x-ui.pagination.link :disabled="true">« Anterior</x-ui.pagination.link></x-ui.pagination.item>
-                @else
-                    <x-ui.pagination.item><x-ui.pagination.link href="{{ $historial->previousPageUrl() }}">« Anterior</x-ui.pagination.link></x-ui.pagination.item>
-                @endif
-                @foreach($historial->getUrlRange(1, $historial->lastPage()) as $page => $url)
-                    <x-ui.pagination.item>
-                        <x-ui.pagination.link href="{{ $url }}" :active="$page === $historial->currentPage()">{{ $page }}</x-ui.pagination.link>
-                    </x-ui.pagination.item>
-                @endforeach
-                @if($historial->hasMorePages())
-                    <x-ui.pagination.item><x-ui.pagination.link href="{{ $historial->nextPageUrl() }}">Siguiente »</x-ui.pagination.link></x-ui.pagination.item>
-                @else
-                    <x-ui.pagination.item><x-ui.pagination.link :disabled="true">Siguiente »</x-ui.pagination.link></x-ui.pagination.item>
-                @endif
-            </x-ui.pagination.content>
-        </x-ui.pagination>
+        <div class="flex items-center justify-between px-1 pt-2 text-sm text-muted-foreground">
+            <span class="flex-1">Página {{ $historial->currentPage() }} de {{ $historial->lastPage() }} · {{ number_format($historial->total(), 0, ',', '.') }} reportes</span>
+            <x-ui.pagination :paginator="$historial" />
+        </div>
     @endif
 
 @endif

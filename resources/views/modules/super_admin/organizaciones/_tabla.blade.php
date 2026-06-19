@@ -88,41 +88,8 @@
 </x-ui.card>
 
 @if($organizaciones->hasPages())
-    <x-ui.pagination>
-        <x-ui.pagination.content>
-
-            <x-ui.pagination.item>
-                <x-ui.pagination.previous
-                    :href="$organizaciones->previousPageUrl()"
-                    :disabled="$organizaciones->onFirstPage()"
-                />
-            </x-ui.pagination.item>
-
-            <x-ui.pagination.item class="sm:hidden">
-                <span class="px-2 text-sm text-muted-foreground tabular-nums">
-                    {{ $organizaciones->currentPage() }} / {{ $organizaciones->lastPage() }}
-                </span>
-            </x-ui.pagination.item>
-
-            @for($page = 1; $page <= $organizaciones->lastPage(); $page++)
-                @php $isActive = $page === $organizaciones->currentPage(); @endphp
-                <x-ui.pagination.item class="hidden sm:list-item">
-                    <x-ui.pagination.link
-                        :href="$organizaciones->url($page)"
-                        :active="$isActive"
-                    >
-                        {{ $page }}
-                    </x-ui.pagination.link>
-                </x-ui.pagination.item>
-            @endfor
-
-            <x-ui.pagination.item>
-                <x-ui.pagination.next
-                    :href="$organizaciones->nextPageUrl()"
-                    :disabled="!$organizaciones->hasMorePages()"
-                />
-            </x-ui.pagination.item>
-
-        </x-ui.pagination.content>
-    </x-ui.pagination>
+    <div class="flex items-center justify-between px-1 pt-2 text-sm text-muted-foreground">
+        <span class="flex-1">Página {{ $organizaciones->currentPage() }} de {{ $organizaciones->lastPage() }} · {{ number_format($organizaciones->total(), 0, ',', '.') }} organizaciones</span>
+        <x-ui.pagination :paginator="$organizaciones" />
+    </div>
 @endif

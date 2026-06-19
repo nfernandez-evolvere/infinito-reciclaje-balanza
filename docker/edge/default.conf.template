@@ -52,6 +52,25 @@ server {
         proxy_next_upstream error timeout http_502 http_503 http_504;
     }
 
+    # WebSocket de Reverb (notificaciones en tiempo real). Instancia única y
+    # persistente (no blue-green). proxy_pass por variable + resolver de Docker:
+    # se resuelve en cada request, así el edge arranca aunque el contenedor reverb
+    # aún no exista, y no requiere tocar los upstreams del deploy.
+    location /app {
+        resolver 127.0.0.11 valid=10s;
+        set $reverb_prod "balanza-prod-reverb:8080";
+        proxy_pass         http://$reverb_prod;
+        proxy_http_version 1.1;
+        proxy_set_header   Upgrade           $http_upgrade;
+        proxy_set_header   Connection        "Upgrade";
+        proxy_set_header   Host              $host;
+        proxy_set_header   X-Real-IP         $remote_addr;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+    }
+
     location = /edge-health {
         access_log off;
         return 200 "edge:prod ok\n";
@@ -86,6 +105,22 @@ server {
         proxy_set_header   X-Forwarded-Proto $scheme;
         proxy_set_header   X-Forwarded-Host  $host;
         proxy_next_upstream error timeout http_502 http_503 http_504;
+    }
+
+    # WebSocket de Reverb de staging (ver bloque de producción).
+    location /app {
+        resolver 127.0.0.11 valid=10s;
+        set $reverb_staging "balanza-staging-reverb:8080";
+        proxy_pass         http://$reverb_staging;
+        proxy_http_version 1.1;
+        proxy_set_header   Upgrade           $http_upgrade;
+        proxy_set_header   Connection        "Upgrade";
+        proxy_set_header   Host              $host;
+        proxy_set_header   X-Real-IP         $remote_addr;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
     }
 
     location = /edge-health {

@@ -304,7 +304,7 @@ class ReporteRevisionTest extends TestCase
     // ── visibilidad de pendientes ─────────────────────────────────────
 
     #[Test]
-    public function index_shows_pending_review_badge_and_banner(): void
+    public function index_seeds_pending_review_count_and_shows_review_actions(): void
     {
         $this->generado();
         $this->generado();
@@ -314,18 +314,21 @@ class ReporteRevisionTest extends TestCase
             ->assertOk()
             ->getContent();
 
-        $this->assertStringContainsString('Hay 2 reportes pendientes de revisión', $html);
+        // El contador del badge/banner se siembra en el store y luego se actualiza
+        // en vivo por WebSocket (el texto del banner es client-side).
+        $this->assertStringContainsString('reportesPendientes.count = 2', $html);
+        // Estado y acción de revisión vienen server-rendered en la tabla.
         $this->assertStringContainsString('En revisión', $html);
         $this->assertStringContainsString('Revisar', $html);
     }
 
     #[Test]
-    public function index_hides_banner_when_no_pending_reviews(): void
+    public function index_seeds_zero_pending_reviews_when_none(): void
     {
         $this->actingAs($this->admin())
             ->get(route('admin.reportes.index', ['tab' => 'historial']))
             ->assertOk()
-            ->assertDontSee('pendientes de revisión');
+            ->assertSee('reportesPendientes.count = 0', false);
     }
 
     // ── configuración global + override por programado ────────────────
