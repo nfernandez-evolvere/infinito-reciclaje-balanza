@@ -135,7 +135,12 @@ class PesajeController extends Controller
             'observaciones'     => $pesaje->observaciones ?? '',
         ];
 
-        return view('modules.operador.pesaje-editar', compact('pesaje', 'servicios', 'initial'));
+        // Al cancelar la edición se vuelve al mismo listado al que redirige guardar,
+        // según rol y pantalla de origen (evita el 403 del admin contra 'historial').
+        $rutaRetorno = $this->rutaRetorno();
+        $cancelUrl = route($rutaRetorno, $this->tabRetorno($rutaRetorno));
+
+        return view('modules.operador.pesaje-editar', compact('pesaje', 'servicios', 'initial', 'cancelUrl'));
     }
 
     public function update(UpdatePesajeRequest $request, Pesaje $pesaje): RedirectResponse

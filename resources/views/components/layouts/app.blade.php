@@ -214,6 +214,42 @@
             $pendientes  = $configProgress['total'] - $configProgress['completado'];
             $completados = array_filter($configProgress['steps'], fn($s) =>  $s['done']);
             $faltantes   = array_filter($configProgress['steps'], fn($s) => !$s['done']);
+
+            // El acento del widget vira según el avance: ámbar (recién empezando) →
+            // azul (en progreso) → verde (casi listo). El bloque desaparece al 100%.
+            // Las clases se escriben literales para que Tailwind las genere en el build.
+            $tone = $configProgress['porcentaje'] < 40 ? 'warning'
+                  : ($configProgress['porcentaje'] < 80 ? 'info' : 'success');
+
+            $toneClasses = [
+                'warning' => [
+                    'card'   => 'border-warning/40 bg-warning/10 hover:bg-warning/20',
+                    'soft'   => 'bg-warning/10',
+                    'chip'   => 'bg-warning/10 hover:bg-warning/20',
+                    'icon'   => 'text-warning',
+                    'track'  => 'bg-warning/20',
+                    'bar'    => 'bg-warning',
+                    'badge'  => 'bg-warning text-warning-foreground',
+                ],
+                'info' => [
+                    'card'   => 'border-info/40 bg-info/10 hover:bg-info/20',
+                    'soft'   => 'bg-info/10',
+                    'chip'   => 'bg-info/10 hover:bg-info/20',
+                    'icon'   => 'text-info',
+                    'track'  => 'bg-info/20',
+                    'bar'    => 'bg-info',
+                    'badge'  => 'bg-info text-info-foreground',
+                ],
+                'success' => [
+                    'card'   => 'border-success/40 bg-success/10 hover:bg-success/20',
+                    'soft'   => 'bg-success/10',
+                    'chip'   => 'bg-success/10 hover:bg-success/20',
+                    'icon'   => 'text-success',
+                    'track'  => 'bg-success/20',
+                    'bar'    => 'bg-success',
+                    'badge'  => 'bg-success text-success-foreground',
+                ],
+            ][$tone];
         @endphp
         <div class="px-2 py-2" x-data="{ sheetOpen: false }">
 
@@ -230,18 +266,18 @@
                 >
                     {{-- Expandido --}}
                     <div x-show="!isCollapsed" x-cloak
-                         class="flex flex-col gap-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-2.5 hover:bg-primary/20 transition-colors">
+                         class="flex flex-col gap-2 rounded-md border {{ $toneClasses['card'] }} px-3 py-2.5 transition-colors">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-1.5">
-                                <x-lucide-list-checks class="size-3.5 shrink-0 text-primary" />
+                                <x-lucide-list-checks class="size-3.5 shrink-0 {{ $toneClasses['icon'] }}" />
                                 <span class="text-xs font-medium text-foreground">Configuración inicial</span>
                             </div>
                             <span class="text-[11px] tabular-nums font-medium text-muted-foreground">
                                 {{ $configProgress['completado'] }}/{{ $configProgress['total'] }}
                             </span>
                         </div>
-                        <div class="h-1.5 w-full overflow-hidden rounded-full bg-primary/20">
-                            <div class="h-full rounded-full bg-primary transition-all duration-500"
+                        <div class="h-1.5 w-full overflow-hidden rounded-full {{ $toneClasses['track'] }}">
+                            <div class="h-full rounded-full {{ $toneClasses['bar'] }} transition-all duration-500"
                                  style="width: {{ $configProgress['porcentaje'] }}%"></div>
                         </div>
                         <p class="text-[11px] leading-none text-muted-foreground">
@@ -251,9 +287,9 @@
 
                     {{-- Colapsado --}}
                     <div x-show="isCollapsed" x-cloak class="flex justify-center">
-                        <div class="relative flex size-9 items-center justify-center rounded-md bg-primary/10 hover:bg-primary/20 transition-colors">
-                            <x-lucide-list-checks class="size-4 text-primary" />
-                            <span class="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold leading-none text-primary-foreground">
+                        <div class="relative flex size-9 items-center justify-center rounded-md {{ $toneClasses['chip'] }} transition-colors">
+                            <x-lucide-list-checks class="size-4 {{ $toneClasses['icon'] }}" />
+                            <span class="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full {{ $toneClasses['badge'] }} text-[9px] font-bold leading-none">
                                 {{ $configProgress['completado'] }}
                             </span>
                         </div>
@@ -300,8 +336,8 @@
 
                     <div class="flex items-center justify-between border-b border-border p-6 pb-4">
                         <div class="flex items-center gap-3">
-                            <div class="flex size-9 items-center justify-center rounded-lg bg-primary/10">
-                                <x-lucide-list-checks class="size-4 text-primary" />
+                            <div class="flex size-9 items-center justify-center rounded-lg {{ $toneClasses['soft'] }}">
+                                <x-lucide-list-checks class="size-4 {{ $toneClasses['icon'] }}" />
                             </div>
                             <div>
                                 <h2 class="text-h4">Configuración inicial</h2>
@@ -319,7 +355,7 @@
                             <span class="text-xs font-semibold tabular-nums">{{ $configProgress['porcentaje'] }}%</span>
                         </div>
                         <div class="h-2 w-full overflow-hidden rounded-full bg-muted">
-                            <div class="h-full rounded-full bg-primary transition-all duration-500"
+                            <div class="h-full rounded-full {{ $toneClasses['bar'] }} transition-all duration-500"
                                  style="width: {{ $configProgress['porcentaje'] }}%"></div>
                         </div>
                     </div>

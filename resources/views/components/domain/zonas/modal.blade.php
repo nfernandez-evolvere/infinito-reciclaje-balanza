@@ -4,6 +4,7 @@
 >
     <x-ui.dialog.content size="xl">
         <form
+            class="contents"
             method="POST"
             :action="modalMode === 'create'
                 ? '{{ route('admin.zonas.store') }}'
@@ -23,7 +24,7 @@
                 ></x-ui.dialog.title>
             </x-ui.dialog.header>
 
-            <div class="px-6 pb-2 overflow-y-auto">
+            <div class="px-6 pb-2 overflow-y-auto flex-1 min-h-0">
                 <x-ui.form-field
                     for="nombre"
                     :state="$errors->has('nombre') ? 'destructive' : null"
@@ -93,7 +94,7 @@
                     <p class="text-sm text-muted-foreground">
                         Dibujá el polígono de la zona con la herramienta de polígono. Marca los límites que el sistema usa para los mapas de calor.
                     </p>
-                    <div id="zona-map" class="h-120 w-full rounded-md border border-border"></div>
+                    <div id="zona-map" class="h-80 sm:h-120 w-full rounded-md border border-border"></div>
                 </div>
             </div>
 

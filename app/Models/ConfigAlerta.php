@@ -39,7 +39,7 @@ class ConfigAlerta extends Model
                 'activo'       => true,
                 'umbral_valor' => 20.0,
                 'descripcion'  => 'Se genera cuando el volumen diario total se desvía más de X% del promedio de los últimos 30 días.',
-                'umbral_label' => '% de desviación del promedio',
+                'umbral_label' => 'Porcentaje de desviación del promedio',
             ],
             'gap_registro' => [
                 'activo'       => true,
@@ -53,7 +53,7 @@ class ConfigAlerta extends Model
                 'activo'       => true,
                 'umbral_valor' => 30.0,
                 'descripcion'  => 'Se genera cuando la frecuencia de pesajes de una zona se desvía más de X% de su promedio histórico.',
-                'umbral_label' => '% de desviación del promedio por zona',
+                'umbral_label' => 'Porcentaje de desviación del promedio por zona',
             ],
             'vehiculo_no_habitual' => [
                 'activo'       => true,

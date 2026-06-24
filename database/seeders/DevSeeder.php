@@ -88,7 +88,7 @@ class DevSeeder extends Seeder
         ]);
         $org->users()->attach($operario->id);
 
-        // ── Tipos de vehículo ─────────────────────────────────────────────────
+        // ── Tipos de vehículo ───────────────────────────────────────────────
         $compactador = TipoVehiculo::create([
             'organizacion_id' => $org->id,
             'nombre'          => "Compactador $suffix",
