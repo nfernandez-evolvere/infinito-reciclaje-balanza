@@ -48,8 +48,8 @@ class ConfiguracionInicialService
                     'params' => [],
                 ],
                 [
-                    'label'  => 'Operadores creados',
-                    'done'   => rescue(fn () => User::where('role', 'operador')
+                    'label' => 'Operadores creados',
+                    'done'  => rescue(fn () => User::where('role', 'operador')
                         ->where('activo', true)
                         ->whereHas('organizaciones', fn ($q) => $q->where('organizaciones.id', $orgId))
                         ->exists(), false),
