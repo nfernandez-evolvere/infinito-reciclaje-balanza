@@ -36,9 +36,9 @@
                         Dibujá el área de tus zonas para ver el mapa de calor. Cada zona con polígono se colorea según la métrica elegida.
                     </p>
                 </div>
-                <x-ui.button size="sm" :href="route('admin.zonas.index')" class="mt-1">
+                <x-ui.button size="sm" :href="route('admin.tipos-servicio.index')" class="mt-1">
                     <x-lucide-map-pin class="size-4" />
-                    Ir a Zonas
+                    Ir a Servicios
                 </x-ui.button>
             </div>
 

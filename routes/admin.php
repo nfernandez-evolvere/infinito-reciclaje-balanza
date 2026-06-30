@@ -9,7 +9,6 @@ use App\Http\Controllers\Admin\TipoVehiculoController;
 use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Admin\VehiculoController;
 use App\Http\Controllers\Admin\ZonaController;
-use App\Http\Controllers\Admin\ZonaServicioController;
 use App\Http\Controllers\Shared\PesajeController;
 use App\Services\PdfService;
 use Illuminate\Support\Facades\Route;
@@ -114,17 +113,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/alertas/leer-todas', [AlertaController::class, 'marcarTodasLeidas'])->name('alertas.leer-todas');
     Route::put('/alertas/configuracion', [AlertaController::class, 'updateConfig'])->name('alertas.configuracion.update');
 
-    // Zonas ——————————————————————————————————————————————————————————
+    // Zonas (se gestionan dentro de cada servicio, en la pantalla de tipos de servicio) ——
     Route::resource('zonas', ZonaController::class)
-        ->only(['index', 'store', 'update', 'destroy']);
+        ->only(['store', 'update', 'destroy']);
     Route::patch('zonas/{zona}/toggle', [ZonaController::class, 'toggle'])
         ->name('zonas.toggle');
-    Route::post('zonas/{zona}/servicios', [ZonaServicioController::class, 'store'])
-        ->name('zonas.servicios.store');
-    Route::put('zonas/{zona}/servicios/{tipoServicio}', [ZonaServicioController::class, 'update'])
-        ->name('zonas.servicios.update');
-    Route::delete('zonas/{zona}/servicios/{tipoServicio}', [ZonaServicioController::class, 'destroy'])
-        ->name('zonas.servicios.destroy');
 
     // Tipos de servicio ——————————————————————————————————————————————
     Route::resource('tipos-servicio', TipoServicioController::class)

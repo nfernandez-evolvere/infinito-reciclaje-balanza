@@ -36,9 +36,9 @@ class ConfiguracionInicialService
                     'params' => [],
                 ],
                 [
-                    'label'  => 'Zonas con servicios',
-                    'done'   => rescue(fn () => Zona::where('activo', true)->whereHas('zonaServicios')->exists(), false),
-                    'route'  => 'admin.zonas.index',
+                    'label'  => 'Zonas por servicio',
+                    'done'   => rescue(fn () => Zona::where('activo', true)->exists(), false),
+                    'route'  => 'admin.tipos-servicio.index',
                     'params' => [],
                 ],
                 [

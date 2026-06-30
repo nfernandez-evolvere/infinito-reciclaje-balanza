@@ -7,7 +7,6 @@ use App\Models\TipoVehiculo;
 use App\Models\User;
 use App\Models\Vehiculo;
 use App\Models\Zona;
-use App\Models\ZonaServicio;
 use App\Services\ConfiguracionInicialService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -44,7 +43,7 @@ class ConfiguracionInicialServiceTest extends TestCase
         $this->assertSame(0, $progress['porcentaje']);
 
         $this->assertSame(
-            ['Tipos de vehículo', 'Tipos de servicio', 'Zonas con servicios', 'Vehículos cargados', 'Operadores creados'],
+            ['Tipos de vehículo', 'Tipos de servicio', 'Zonas por servicio', 'Vehículos cargados', 'Operadores creados'],
             collect($progress['steps'])->pluck('label')->all(),
         );
 
@@ -122,7 +121,7 @@ class ConfiguracionInicialServiceTest extends TestCase
 
         $this->assertTrue($this->step($progress, 'Tipos de vehículo')['done']);
         $this->assertTrue($this->step($progress, 'Tipos de servicio')['done']);
-        $this->assertFalse($this->step($progress, 'Zonas con servicios')['done']);
+        $this->assertFalse($this->step($progress, 'Zonas por servicio')['done']);
         $this->assertFalse($this->step($progress, 'Vehículos cargados')['done']);
         $this->assertFalse($this->step($progress, 'Operadores creados')['done']);
 
@@ -136,8 +135,7 @@ class ConfiguracionInicialServiceTest extends TestCase
         $tipoVehiculo = TipoVehiculo::factory()->create(['activo' => true]);
         $tipoServicio = TipoServicio::factory()->create(['activo' => true]);
 
-        $zona = Zona::factory()->create(['activo' => true]);
-        ZonaServicio::create(['zona_id' => $zona->id, 'tipo_servicio_id' => $tipoServicio->id]);
+        Zona::factory()->create(['tipo_servicio_id' => $tipoServicio->id, 'activo' => true]);
 
         Vehiculo::factory()->create(['tipo_vehiculo_id' => $tipoVehiculo->id, 'activo' => true]);
         User::factory()->create(['role' => 'operador', 'activo' => true]);
@@ -153,14 +151,13 @@ class ConfiguracionInicialServiceTest extends TestCase
     }
 
     #[Test]
-    public function zonas_step_requires_a_zona_with_at_least_one_servicio(): void
+    public function zonas_step_requires_an_active_zona(): void
     {
-        // Una zona activa pero SIN servicios asociados no completa el paso.
-        Zona::factory()->create(['activo' => true]);
+        // Un servicio sin zonas no completa el paso de zonas.
+        TipoServicio::factory()->create(['activo' => true]);
 
         $progress = $this->service->getProgress();
 
-        $this->assertFalse($this->step($progress, 'Zonas con servicios')['done']);
-        $this->assertSame(0, $progress['completado']);
+        $this->assertFalse($this->step($progress, 'Zonas por servicio')['done']);
     }
 }

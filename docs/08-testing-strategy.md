@@ -20,7 +20,7 @@
 | Aislamiento multi-tenant | 🔴 0 tests | **P0** |
 | SuperAdmin / Organización | 🔴 0 tests | P1 |
 | Reportes + Job | 🔴 0 tests (WIP) | P2 |
-| Zona / ZonaServicio CRUD | 🟠 parcial | P2 |
+| Zona CRUD (dentro de servicio) | 🟠 parcial | P2 |
 | Auth (reset/forgot) | 🟡 parcial | P3 |
 | Endpoints sueltos (`vehiculos.buscar`, `onboarding.visto`) | 🟠 | P3 |
 | Vehículo · TipoVehículo · TipoServicio · Usuario · Dashboard | 🟢 sólido | — |
@@ -155,8 +155,8 @@ tests/
     │   ├── ReporteProgramadoTest.php
     │   └── GenerarReporteJobTest.php
     ├── Zona/                          🆕
-    │   ├── ZonaCrudTest.php
-    │   └── ZonaServicioTest.php
+    │   ├── ZonaCrudTest.php           (CRUD de zona dentro de su servicio + turnos/horarios)
+    │   └── ServicioZonasTest.php      (endpoint /servicios/{id}/zonas)
     ├── Vehiculo/   · Usuario/   · TipoServicio/   · TipoVehiculo/   · Dashboard/
     │   └── (mover los feature tests existentes aquí)
     └── Operador/
@@ -337,13 +337,13 @@ Aislar dependencias externas (AI, mPDF, mail) con fakes/mocks.
 - `enviarAhoraProgramado` despacha el job (`Queue::fake` → `assertPushed`).
 - Update de configuración persiste.
 
-### Fase 5 — 🟠 Zona / ZonaServicio + endpoints sueltos + Auth  ·  **P2–P3**
+### Fase 5 — 🟠 Zona (dentro de servicio) + endpoints sueltos + Auth  ·  **P2–P3**
 
 **`Feature/Zona/ZonaCrudTest.php`** — [`ZonaController`](../app/Http/Controllers/Admin/ZonaController.php) + `Store/UpdateZonaRequest`:
-- CRUD + toggle, solo admin, validaciones (nombre, hectáreas, habitantes).
+- CRUD + toggle, solo admin, validaciones (servicio, nombre único por servicio, hectáreas, habitantes), persistencia de turnos y horarios.
 
-**`Feature/Zona/ZonaServicioTest.php`** — [`ZonaServicioController`](../app/Http/Controllers/Admin/ZonaServicioController.php):
-- Vincular servicio a zona (+ turnos/horarios), update, destroy.
+**`Feature/Zona/ServicioZonasTest.php`** — [`Shared\TipoServicioController@zonas`](../app/Http/Controllers/Shared/TipoServicioController.php):
+- Endpoint `/servicios/{id}/zonas`: zonas activas del servicio con sus turnos y tipos de vehículo sugeridos.
 
 **Endpoints sueltos:**
 - `Shared\VehiculoController@buscar` (autocomplete de balanza): busca por patente/interno, scope de org.

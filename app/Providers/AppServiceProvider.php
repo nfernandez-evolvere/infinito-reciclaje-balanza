@@ -9,7 +9,6 @@ use App\Models\TipoVehiculo;
 use App\Models\User;
 use App\Models\Vehiculo;
 use App\Models\Zona;
-use App\Models\ZonaServicio;
 use App\Services\ConfiguracionInicialService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -77,8 +76,7 @@ class AppServiceProvider extends ServiceProvider
         TipoServicio::saved($flush);
         Vehiculo::saved($flush);
         Zona::saved($flush);
-        ZonaServicio::saved($flush);
-        ZonaServicio::deleted($flush);
+        Zona::deleted($flush);
         User::saved($flush);
 
         ComponentAttributeBag::macro('twMerge', function (string ...$classes): ComponentAttributeBag {

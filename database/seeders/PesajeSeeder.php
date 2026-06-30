@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Organizacion;
 use App\Models\Zona;
-use App\Models\ZonaServicioTurno;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Database\Seeder;
@@ -236,29 +235,25 @@ class PesajeSeeder extends Seeder
         $combinaciones = collect();
 
         $zonas = Zona::where('organizacion_id', $org->id)
-            ->with('zonaServicios')
+            ->with('turnos')
             ->get();
 
         foreach ($zonas as $zona) {
-            foreach ($zona->zonaServicios as $zs) {
-                $turnos = ZonaServicioTurno::where('zona_id', $zona->id)
-                    ->where('tipo_servicio_id', $zs->tipo_servicio_id)
-                    ->pluck('turno');
+            $turnos = $zona->turnos->pluck('turno');
 
-                if ($turnos->isEmpty()) {
+            if ($turnos->isEmpty()) {
+                $combinaciones->push([
+                    'zona_id'          => $zona->id,
+                    'tipo_servicio_id' => $zona->tipo_servicio_id,
+                    'turno'            => null,
+                ]);
+            } else {
+                foreach ($turnos as $turno) {
                     $combinaciones->push([
                         'zona_id'          => $zona->id,
-                        'tipo_servicio_id' => $zs->tipo_servicio_id,
-                        'turno'            => null,
+                        'tipo_servicio_id' => $zona->tipo_servicio_id,
+                        'turno'            => $turno,
                     ]);
-                } else {
-                    foreach ($turnos as $turno) {
-                        $combinaciones->push([
-                            'zona_id'          => $zona->id,
-                            'tipo_servicio_id' => $zs->tipo_servicio_id,
-                            'turno'            => $turno,
-                        ]);
-                    }
                 }
             }
         }

@@ -59,7 +59,8 @@ erDiagram
     zonas {
         bigint      id              PK
         bigint      organizacion_id FK
-        nvarchar    nombre          "UK por organización"
+        bigint      tipo_servicio_id FK "cada zona pertenece a un servicio"
+        nvarchar    nombre          "UK por servicio (tipo_servicio_id, nombre)"
         decimal     hectareas       "nullable"
         int         barrios         "nullable"
         int         habitantes      "nullable"
@@ -69,20 +70,13 @@ erDiagram
         bit         activo
     }
 
-    zona_servicios {
+    zona_turnos {
         bigint      zona_id         PK,FK
-        bigint      tipo_servicio_id PK,FK
-    }
-
-    zona_servicio_turnos {
-        bigint      zona_id         PK,FK
-        bigint      tipo_servicio_id PK,FK
         nvarchar    turno           PK "Diurna | Nocturna"
     }
 
-    zona_servicio_horarios {
+    zona_horarios {
         bigint      zona_id         PK,FK
-        bigint      tipo_servicio_id PK,FK
         tinyint     dia_semana      PK "1=Lun … 7=Dom"
         tinyint     franja          PK "nro de franja del día"
         time        hora_inicio
@@ -255,10 +249,9 @@ erDiagram
     users               ||--o{  vehiculos_log                : "usuario_id"
 
     %% ── Configuración de zonas ───────────────────────────────
-    zonas               ||--o{  zona_servicios           : "zona_id"
-    tipos_servicio      ||--o{  zona_servicios           : "tipo_servicio_id"
-    zona_servicios      ||--o{  zona_servicio_turnos     : "zona_id + tipo_servicio_id"
-    zona_servicios      ||--o{  zona_servicio_horarios   : "zona_id + tipo_servicio_id"
+    tipos_servicio      ||--o{  zonas                    : "tipo_servicio_id"
+    zonas               ||--o{  zona_turnos              : "zona_id"
+    zonas               ||--o{  zona_horarios            : "zona_id"
 
     %% ── Pesajes ──────────────────────────────────────────────
     vehiculos           ||--o{  pesajes                  : "vehiculo_id"
@@ -292,9 +285,9 @@ erDiagram
 | `tipos_servicio` ↔ `tipos_vehiculo` (vía `tipo_servicio_tipo_vehiculo`) | N:M | Un servicio puede sugerir **varios** tipos de vehículo (reemplaza la antigua FK única `tipo_vehiculo_sugerido_id`). |
 | `vehiculos` → `vehiculos_log` | 1:N | Audit trail por campo editado. Cascade en delete. |
 | `users` → `vehiculos_log` | 1:N | Usuario que editó. noAction. |
-| `zonas` ↔ `tipos_servicio` (vía `zona_servicios`) | N:M | Una zona opera bajo varios servicios; un servicio opera en varias zonas. |
-| `zona_servicios` → `zona_servicio_turnos` | 1:0..N | 0 = sin turno; 1 = solo Diurna o solo Nocturna; 2 = ambos. PK triple. |
-| `zona_servicios` → `zona_servicio_horarios` | 1:0..N | Múltiples franjas por día, optativo. PK cuádruple. |
+| `tipos_servicio` → `zonas` | 1:N | Cada servicio tiene sus propias zonas; una zona pertenece a un único servicio. `tipo_servicio_id` noAction (segundo camino a `organizaciones`). Unique `(tipo_servicio_id, nombre)`. |
+| `zonas` → `zona_turnos` | 1:0..N | 0 = sin turno; 1 = solo Diurna o solo Nocturna; 2 = ambos. PK `(zona_id, turno)`. Cascade. |
+| `zonas` → `zona_horarios` | 1:0..N | Múltiples franjas por día, optativo. PK `(zona_id, dia_semana, franja)`. Cascade. |
 | `vehiculos` → `pesajes` | 1:N | noAction en delete. |
 | `users` → `pesajes` | 1:N | `operador_id` (registra) + `cancelado_por_id` (nullable, cancela). noAction. |
 | `tipos_servicio` → `pesajes` | 1:N | noAction. |
@@ -315,8 +308,8 @@ SQL Server rechaza una FK con `ON DELETE CASCADE` si ya existe otro camino de ca
 hasta la misma tabla desde el mismo ancestro. Como **todo converge en `organizaciones`**,
 la regla del proyecto es:
 
-- **Cascade** solo en el camino primario del padrón maestro: `organizaciones → {tipos_vehiculo, tipos_servicio, zonas, vehiculos, alertas, config_alertas, reportes_programados, reporte_destinatarios, reporte_configuraciones}`, `zonas → zona_servicios → {turnos, horarios}`, `vehiculos → vehiculos_log`, `pesajes → pesajes_log`.
-- **noAction** en toda FK secundaria que también llegaría a `organizaciones`: las 5 FKs de `pesajes`, `tipo_vehiculo_id` en `vehiculos`, `usuario_id` en los logs, las FKs nullable de `alertas`, y `organizacion_id`/`usuario_id`/`revisado_por_id` en `reportes_generados`.
+- **Cascade** solo en el camino primario del padrón maestro: `organizaciones → {tipos_vehiculo, tipos_servicio, zonas, vehiculos, alertas, config_alertas, reportes_programados, reporte_destinatarios, reporte_configuraciones}`, `zonas → {zona_turnos, zona_horarios}`, `vehiculos → vehiculos_log`, `pesajes → pesajes_log`.
+- **noAction** en toda FK secundaria que también llegaría a `organizaciones`: `tipo_servicio_id` en `zonas` (segundo camino: org → tipos_servicio → zonas), las 5 FKs de `pesajes`, `tipo_vehiculo_id` en `vehiculos`, `usuario_id` en los logs, las FKs nullable de `alertas`, y `organizacion_id`/`usuario_id`/`revisado_por_id` en `reportes_generados`.
 - **nullOnDelete** en `reportes_generados.reporte_programado_id` (preserva el historial).
 
 > Detalle y justificación por tabla en [`03-data-model.md`](03-data-model.md) y en `CLAUDE.md` (sección *SQL Server — Reglas de migración*).
@@ -334,8 +327,8 @@ la regla del proyecto es:
 ┌─ PADRÓN MAESTRO ──────────────────────────────────────────┐
 │  tipos_vehiculo  ←─  vehiculos  ─→  vehiculos_log          │
 │  tipos_servicio  ←┬─ tipo_servicio_tipo_vehiculo (N:M)     │
-│                   └─ zona_servicios ─┬─ zona_servicio_turnos
-│  zonas  ──────────────────────────── └─ zona_servicio_horarios
+│                   └─ zonas ─┬─ zona_turnos                  │
+│                             └─ zona_horarios                │
 └────────────────────────────────────────────────────────────┘
 
 ┌─ OPERACIÓN ────────────────────────────────────────────────┐

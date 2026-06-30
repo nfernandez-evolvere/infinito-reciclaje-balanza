@@ -10,7 +10,13 @@ return new class extends Migration
     {
         Schema::create('zonas', function (Blueprint $table) {
             $table->id();
+            // organizacion_id se conserva denormalizado (derivable del servicio) para que el
+            // global scope de BelongsToOrganizacion siga resolviendo sin un join extra.
             $table->foreignId('organizacion_id')->constrained('organizaciones')->cascadeOnDelete();
+            // Cada zona pertenece a exactamente un servicio (tipo de servicio). noActionOnDelete:
+            // organizaciones ya cascadea a zonas (path directo) y a tipos_servicio; un segundo
+            // camino con cascade desde el mismo ancestro lo rechaza SQL Server.
+            $table->foreignId('tipo_servicio_id')->constrained('tipos_servicio')->noActionOnDelete();
             $table->string('nombre', 150);
             $table->decimal('hectareas', 10, 2)->nullable();
             $table->integer('barrios')->nullable();
@@ -18,7 +24,8 @@ return new class extends Migration
             $table->boolean('activo')->default(true);
             $table->timestamps();
 
-            $table->unique(['organizacion_id', 'nombre']);
+            // El nombre es único dentro de cada servicio: dos servicios pueden tener su "Zona Norte".
+            $table->unique(['tipo_servicio_id', 'nombre']);
         });
     }
 

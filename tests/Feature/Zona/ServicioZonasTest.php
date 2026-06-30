@@ -7,8 +7,7 @@ use App\Models\TipoServicio;
 use App\Models\TipoVehiculo;
 use App\Models\User;
 use App\Models\Zona;
-use App\Models\ZonaServicio;
-use App\Models\ZonaServicioTurno;
+use App\Models\ZonaTurno;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -37,28 +36,21 @@ class ServicioZonasTest extends TestCase
         return TipoServicio::factory()->create(array_merge(['organizacion_id' => $this->org->id], $attrs));
     }
 
-    private function zona(string $nombre, bool $activo = true): Zona
+    /** Crea una zona del servicio dado, con sus turnos. */
+    private function zona(TipoServicio $servicio, string $nombre, array $turnos = [], bool $activo = true): Zona
     {
-        return Zona::create([
-            'organizacion_id' => $this->org->id,
-            'nombre'          => $nombre,
-            'activo'          => $activo,
-        ]);
-    }
-
-    private function vincular(Zona $zona, TipoServicio $servicio, array $turnos = []): void
-    {
-        ZonaServicio::create([
-            'zona_id'          => $zona->id,
+        $zona = Zona::create([
+            'organizacion_id'  => $this->org->id,
             'tipo_servicio_id' => $servicio->id,
+            'nombre'           => $nombre,
+            'activo'           => $activo,
         ]);
+
         foreach ($turnos as $turno) {
-            ZonaServicioTurno::create([
-                'zona_id'          => $zona->id,
-                'tipo_servicio_id' => $servicio->id,
-                'turno'            => $turno,
-            ]);
+            ZonaTurno::create(['zona_id' => $zona->id, 'turno' => $turno]);
         }
+
+        return $zona;
     }
 
     // — Turnos ——————————————————————————————————————————————————
@@ -67,8 +59,7 @@ class ServicioZonasTest extends TestCase
     public function retorna_turnos_de_la_zona(): void
     {
         $servicio = $this->servicio();
-        $zona = $this->zona('Zona Norte');
-        $this->vincular($zona, $servicio, ['Diurna', 'Nocturna']);
+        $this->zona($servicio, 'Zona Norte', ['Diurna', 'Nocturna']);
 
         $this->actingAs($this->usuario())
             ->getJson(route('servicios.zonas', $servicio))
@@ -80,8 +71,7 @@ class ServicioZonasTest extends TestCase
     public function retorna_arreglo_vacio_cuando_zona_no_tiene_turnos(): void
     {
         $servicio = $this->servicio();
-        $zona = $this->zona('Zona Industrial');
-        $this->vincular($zona, $servicio, []);
+        $this->zona($servicio, 'Zona Industrial', []);
 
         $this->actingAs($this->usuario())
             ->getJson(route('servicios.zonas', $servicio))
@@ -94,10 +84,10 @@ class ServicioZonasTest extends TestCase
     {
         $servicio1 = $this->servicio();
         $servicio2 = $this->servicio();
-        $zona = $this->zona('Zona Norte');
 
-        $this->vincular($zona, $servicio1, ['Diurna']);
-        $this->vincular($zona, $servicio2, ['Nocturna']);
+        // Cada servicio tiene su propia zona (modelo 1:N).
+        $this->zona($servicio1, 'Zona Norte', ['Diurna']);
+        $this->zona($servicio2, 'Zona Norte', ['Nocturna']);
 
         $this->actingAs($this->usuario())
             ->getJson(route('servicios.zonas', $servicio1))
@@ -109,13 +99,9 @@ class ServicioZonasTest extends TestCase
     public function multiples_zonas_reciben_sus_turnos_correctamente(): void
     {
         $servicio = $this->servicio();
-        $norte = $this->zona('Norte');
-        $sur = $this->zona('Sur');
-        $industrial = $this->zona('Industrial');
-
-        $this->vincular($norte, $servicio, ['Diurna', 'Nocturna']);
-        $this->vincular($sur, $servicio, ['Diurna']);
-        $this->vincular($industrial, $servicio, []);
+        $this->zona($servicio, 'Norte', ['Diurna', 'Nocturna']);
+        $this->zona($servicio, 'Sur', ['Diurna']);
+        $this->zona($servicio, 'Industrial', []);
 
         $response = $this->actingAs($this->usuario())
             ->getJson(route('servicios.zonas', $servicio))
@@ -134,11 +120,8 @@ class ServicioZonasTest extends TestCase
     public function excluye_zonas_inactivas(): void
     {
         $servicio = $this->servicio();
-        $zonaActiva = $this->zona('Activa', true);
-        $zonaInactiva = $this->zona('Inactiva', false);
-
-        $this->vincular($zonaActiva, $servicio, ['Diurna']);
-        $this->vincular($zonaInactiva, $servicio, ['Nocturna']);
+        $this->zona($servicio, 'Activa', ['Diurna'], true);
+        $this->zona($servicio, 'Inactiva', ['Nocturna'], false);
 
         $this->actingAs($this->usuario())
             ->getJson(route('servicios.zonas', $servicio))
@@ -153,8 +136,8 @@ class ServicioZonasTest extends TestCase
         $servicio1 = $this->servicio();
         $servicio2 = $this->servicio();
 
-        $this->vincular($this->zona('Del servicio 1'), $servicio1);
-        $this->vincular($this->zona('Del servicio 2'), $servicio2);
+        $this->zona($servicio1, 'Del servicio 1');
+        $this->zona($servicio2, 'Del servicio 2');
 
         $this->actingAs($this->usuario())
             ->getJson(route('servicios.zonas', $servicio1))
@@ -169,7 +152,7 @@ class ServicioZonasTest extends TestCase
     public function retorna_estructura_correcta(): void
     {
         $servicio = $this->servicio();
-        $this->vincular($this->zona('Zona A'), $servicio, ['Diurna']);
+        $this->zona($servicio, 'Zona A', ['Diurna']);
 
         $this->actingAs($this->usuario())
             ->getJson(route('servicios.zonas', $servicio))

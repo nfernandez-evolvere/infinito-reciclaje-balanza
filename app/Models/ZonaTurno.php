@@ -6,17 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * @mixin \Eloquent
- * @mixin IdeHelperZonaServicioTurno
+ * @mixin IdeHelperZonaTurno
  */
-class ZonaServicioTurno extends Model
+class ZonaTurno extends Model
 {
-    protected $table = 'zona_servicio_turnos';
+    protected $table = 'zona_turnos';
 
     public $timestamps = false;
 
     protected $fillable = [
         'zona_id',
-        'tipo_servicio_id',
         'turno',
     ];
 }

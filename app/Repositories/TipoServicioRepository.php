@@ -33,7 +33,12 @@ class TipoServicioRepository
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         return TipoServicio::query()
-            ->with('tiposVehiculo')
+            ->with([
+                'tiposVehiculo',
+                'zonas' => fn ($q) => $q->orderBy('nombre'),
+                'zonas.turnos',
+                'zonas.horarios',
+            ])
             ->when(
                 ! empty($filters['nombre']),
                 fn ($q) => $q->where('nombre', 'like', '%'.$filters['nombre'].'%')

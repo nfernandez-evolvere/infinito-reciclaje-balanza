@@ -283,7 +283,7 @@ Los tipos de servicio definen las categorías de operación disponibles en la ba
 
 Cuando el operador registra un pesaje, elige el tipo de servicio del camión que ingresa. Este dato clasifica el pesaje y permite al admin ver los reportes separados por operación (cuántas toneladas de Domiciliario, cuántas de Barrido, etc.).
 
-Además, los tipos de servicio se usan para configurar las zonas: cada zona tiene asignados los servicios que operan en ella. Sin un tipo de servicio cargado, no se puede completar esa configuración ni registrar pesajes del tipo correspondiente.
+Además, cada tipo de servicio tiene sus propias zonas de operación, que se cargan desde la misma pantalla de Servicios. Sin un tipo de servicio cargado no se pueden definir zonas ni registrar pesajes del tipo correspondiente.
 
 ---
 
@@ -352,21 +352,21 @@ Para volver a activarlo, repetir el proceso y seleccionar **Activar**.
 
 **Desactivar:** cuando el tipo ya no se usa en la operación actual pero puede volver a necesitarse, o cuando tiene pesajes registrados. Es la acción recomendada en casi todos los casos.
 
-**Eliminar:** solo si el tipo fue creado por error y nunca se usó en ningún pesaje. Si el tipo tiene pesajes registrados, el sistema no permite eliminarlo y muestra un mensaje indicando que hay que desactivarlo en su lugar. Las zonas que tenían asignado ese servicio pierden esa configuración automáticamente al eliminar.
+**Eliminar:** solo si el tipo fue creado por error y nunca se usó en ningún pesaje. Si el tipo tiene pesajes registrados **o tiene zonas cargadas**, el sistema no permite eliminarlo y muestra un mensaje indicando que hay que desactivarlo en su lugar.
 
 ---
 
 ### Cómo funciona la zona y el turno en el pesaje
 
-Los turnos **no** se configuran a nivel de tipo de servicio, sino a nivel de **zona + servicio**. Esto significa que Domiciliario puede tener turno Diurna y Nocturna en Zona Norte, pero ningún turno en Zona Industrial.
+Los turnos **no** se configuran a nivel de tipo de servicio, sino a nivel de **zona**. Cada zona pertenece a un servicio. Esto significa que el servicio Domiciliario puede tener una "Zona Norte" con turno Diurna y Nocturna, y una "Zona Industrial" sin turno.
 
-La configuración se hace desde el padrón de Zonas: para cada zona, se define qué servicios operan en ella y, para cada uno, si aplican turnos.
+La configuración se hace desde el padrón de **Servicios**: se expande cada servicio y se cargan sus zonas, definiendo para cada una si aplican turnos y horarios.
 
 ---
 
 ### Relación con otros padrones
 
-**Con zonas:** cada zona tiene asignados uno o más tipos de servicio. El operador primero elige el servicio, y luego el sistema filtra las zonas disponibles según esa combinación. Si un servicio no está asignado a ninguna zona, el operador no puede usarlo en el formulario de pesaje.
+**Con zonas:** cada servicio tiene sus propias zonas. El operador primero elige el servicio, y luego el sistema le muestra las zonas de ese servicio. Si un servicio no tiene zonas cargadas, el operador no puede usarlo en el formulario de pesaje.
 
 **Con tipos de vehículo:** el campo "Vehículo habitual" es solo una referencia. No afecta qué vehículo puede ingresar — cualquier camión activo puede registrar un pesaje de cualquier servicio.
 
@@ -394,35 +394,30 @@ No hay límite. Podés crear tantos como necesite la operación.
 
 ---
 
-## Padrón de zonas
+## Zonas de cada servicio
 
-**Ruta:** Padrón → Zonas
+**Ruta:** Padrón → Servicios (expandir el servicio → "Ver zonas")
 
-Las zonas son las áreas geográficas de recolección. Se usan para agrupar pesajes en los reportes y para calcular indicadores de densidad y per cápita.
+Las zonas son las áreas geográficas de recolección. **Cada zona pertenece a un servicio** y se gestiona desde la pantalla de Servicios: expandí el servicio y usá **Agregar zona**. Se usan para agrupar pesajes en los reportes y para calcular indicadores de densidad y per cápita.
 
-### Campos del formulario
+### Campos del formulario de zona
 
 | Campo | Descripción | Obligatorio |
 |-------|-------------|-------------|
-| Nombre | Nombre de la zona (ej: Norte, Costanera) | Sí |
+| Nombre | Nombre de la zona, único dentro del servicio (ej: Norte, Costanera) | Sí |
 | Hectáreas | Superficie de la zona en hectáreas | No |
 | Cantidad de barrios | Barrios que componen la zona | No |
+| Área en el mapa | Polígono dibujado con la herramienta de mapa (para los mapas de calor) | No |
+| Turnos | Si la zona opera en turnos: **Diurna**, **Nocturna**, ambos, o ninguno | No |
+| Horarios de recorrido | Optativo: días y franjas horarias del recorrido | No |
 
-### Servicios asignados
-
-Después de crear la zona, asignale uno o más tipos de servicio. Para cada asignación podés configurar:
-
-| Campo | Descripción |
-|-------|-------------|
-| Tipo de servicio | Cuál servicio opera en esta zona |
-| Turnos | Si el servicio opera en turnos: **Diurna**, **Nocturna**, ambos, o ninguno |
-| Horarios de recorrido | Optativo: días y franjas horarias del recorrido |
-
-**Cómo configurar los turnos:** usá el switch "Opera con turnos". Si está apagado, el operador no ve selector de turno para esa combinación. Si está encendido, podés activar Diurna, Nocturna o ambas.
+**Cómo configurar los turnos:** usá el switch "Opera con turnos". Si está apagado, el operador no ve selector de turno para esa zona. Si está encendido, podés activar Diurna, Nocturna o ambas.
 
 **Cómo configurar los horarios:** seleccioná los días activos (chips Lun–Dom) y cargá las franjas horarias para cada día. Podés agregar más de una franja por día.
 
-Esta configuración determina qué le aparece al operador en el formulario de pesaje: elige el servicio → ve las zonas que tienen ese servicio asignado → si la combinación tiene turnos, debe elegir turno.
+Esta configuración determina qué le aparece al operador en el formulario de pesaje: elige el servicio → ve las zonas de ese servicio → si la zona tiene turnos, debe elegir turno.
+
+> Si la misma área opera bajo dos servicios, cargá una zona en cada servicio — son zonas independientes.
 
 ### Sobre los datos geográficos
 
@@ -492,8 +487,8 @@ Los pesajes "en predio" no se ven afectados. La desactivación solo impide que l
 **¿Puedo cambiar el rol de un usuario (de operador a admin)?**
 Sí, editando el usuario. El cambio de rol toma efecto en el próximo inicio de sesión.
 
-**¿Puedo modificar los turnos u horarios de un servicio ya asignado a una zona?**
-Sí. En el padrón de Zonas, en la fila del servicio asignado, usá el botón **Editar** para cambiar turnos y horarios.
+**¿Puedo modificar los turnos u horarios de una zona?**
+Sí. En **Padrón → Servicios**, expandí el servicio, y en la fila de la zona usá el botón **Editar** para cambiar turnos y horarios.
 
 ---
 

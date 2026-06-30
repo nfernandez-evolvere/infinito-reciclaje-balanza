@@ -106,7 +106,7 @@ class TipoServicioTest extends TestCase
         $this->actingAs($this->admin())
             ->get(route('admin.tipos-servicio.index'))
             ->assertStatus(200)
-            ->assertSee('Todavía no hay tipos de servicio');
+            ->assertSee('Todavía no hay servicios');
     }
 
     #[Test]

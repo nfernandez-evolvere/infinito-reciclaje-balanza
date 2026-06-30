@@ -17,8 +17,7 @@
         ? app(\App\Services\ConfiguracionInicialService::class)->getProgress()
         : null;
     $padronItems = [
-        ['route' => 'admin.zonas.index',          'icon' => 'map-pin',        'label' => 'Zonas'],
-        ['route' => 'admin.tipos-servicio.index', 'icon' => 'clipboard-list', 'label' => 'Servicios'],
+        ['route' => 'admin.tipos-servicio.index', 'icon' => 'clipboard-list', 'label' => 'Servicios', 'match' => ['admin.tipos-servicio.*', 'admin.zonas.*']],
         ['route' => 'admin.vehiculos.index',      'icon' => 'truck',          'label' => 'Vehículos'],
     ];
     $sistemaItems = [

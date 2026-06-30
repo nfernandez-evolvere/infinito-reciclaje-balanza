@@ -60,28 +60,30 @@ Ir a **Padrón → Servicios** y verificar que estén cargados:
 
 ---
 
-## Paso 4 — Cargar las zonas
+## Paso 4 — Cargar las zonas de cada servicio
 
-Las zonas son las áreas geográficas de recolección. Los datos de hectáreas se usan para calcular indicadores de densidad en los reportes.
+Cada servicio tiene **sus propias zonas** de operación. Las zonas son las áreas geográficas de recolección; los datos de hectáreas se usan para calcular indicadores de densidad en los reportes.
 
-Ir a **Padrón → Zonas** y para cada zona:
+Ir a **Padrón → Servicios**, expandir el servicio (botón "Ver zonas") y usar **Agregar zona**. Para cada zona definir:
 
-**1. Crear la zona** con sus datos geográficos:
-- Nombre de la zona
+**1. Datos geográficos:**
+- Nombre de la zona (único dentro de ese servicio)
 - Hectáreas y barrios (opcionales, completar después si no están disponibles)
+- Área en el mapa (opcional): dibujá el polígono para los mapas de calor
 
-**2. Asignar los servicios que operan en esa zona.** Para cada asignación, definir:
-- Tipo de servicio
+**2. Turnos y horarios de esa zona:**
 - Turnos: usá el switch "Opera con turnos" para activar y elegir Diurna, Nocturna o ambas
 - Horarios de recorrido (opcional): seleccioná los días activos y cargá las franjas horarias
 
-Esta configuración determina qué zonas y turnos le aparecen al operador al registrar un pesaje.
+Esta configuración determina qué zonas y turnos le aparecen al operador al registrar un pesaje del servicio elegido.
 
-**Ejemplo — Zona Norte:**
-| Servicio | Turnos | Horario |
-|----------|--------|---------|
-| Domiciliario | Diurna, Nocturna | Lun–Vie 08:00–12:00 / 20:00–02:00 |
-| Barrido | Sin turno | — |
+> Si la misma área (ej: "Zona Norte") opera bajo dos servicios, se carga una zona en cada servicio — son zonas independientes con su propia configuración.
+
+**Ejemplo — servicio Domiciliario:**
+| Zona | Turnos | Horario |
+|------|--------|---------|
+| Zona Norte | Diurna, Nocturna | Lun–Vie 08:00–12:00 / 20:00–02:00 |
+| Zona Sur | Diurna | — |
 
 > Si no tenés los datos de hectáreas al momento de la carga, podés dejarlos en cero y actualizarlos después.
 
@@ -130,7 +132,7 @@ Antes de habilitar el sistema para operación real:
 
 - [ ] Tipos de vehículo cargados con rangos de peso bruto correctos
 - [ ] Tipos de servicio cargados con tipo de vehículo sugerido
-- [ ] Zonas cargadas con sus servicios asignados (al menos nombre, servicio y turno si corresponde)
+- [ ] Cada servicio con sus zonas cargadas (al menos nombre y turno si corresponde)
 - [ ] Padrón de vehículos completo y con taras verificadas
 - [ ] Usuarios operadores creados y con contraseñas entregadas
 - [ ] Hacer un pesaje de prueba con un vehículo real para verificar el autocompletado

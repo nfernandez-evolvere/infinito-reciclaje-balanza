@@ -27,8 +27,7 @@ Cuando ingresás como admin, ves el panel con una barra lateral izquierda. Los �
 - **Reportes** — generación, exportación y envío automático de reportes, con revisión y aprobación previa de los envíos
 
 **Padrón**
-- **Zonas** — áreas geográficas de recolección, con servicios y turnos asignados
-- **Servicios** — tipos de servicio con vehículo habitual sugerido
+- **Servicios** — tipos de servicio con su vehículo habitual sugerido y **sus zonas** de operación (áreas geográficas, con turnos y horarios)
 - **Vehículos** — padrón de todos los camiones (la pestaña Tipos incluye los tipos de vehículo con rangos de peso bruto)
 
 **Sistema**
@@ -43,7 +42,7 @@ Seguí el checklist en [`configuracion-inicial.md`](configuracion-inicial.md). E
 
 1. Tipos de vehículo (con rangos de peso bruto)
 2. Tipos de servicio (con tipo de vehículo sugerido)
-3. Zonas (con servicios, turnos y horarios asignados)
+3. Zonas de cada servicio (con turnos y horarios)
 4. Padrón de vehículos (completo, con taras verificadas)
 5. Usuarios operadores
 

@@ -8,16 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('zona_servicios', function (Blueprint $table) {
+        Schema::create('zona_turnos', function (Blueprint $table) {
             $table->foreignId('zona_id')->constrained('zonas')->cascadeOnDelete();
-            $table->foreignId('tipo_servicio_id')->constrained('tipos_servicio')->noActionOnDelete();
-            $table->primary(['zona_id', 'tipo_servicio_id']);
-            $table->timestamps();
+            $table->string('turno', 10);
+            $table->primary(['zona_id', 'turno']);
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('zona_servicios');
+        Schema::dropIfExists('zona_turnos');
     }
 };

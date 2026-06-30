@@ -3,7 +3,6 @@ import Collapse from '@alpinejs/collapse';
 import tiposVehiculo from './alpine/admin/tipos-vehiculo.js';
 import tiposServicio from './alpine/admin/tipos-servicio.js';
 import vehiculos from './alpine/admin/vehiculos.js';
-import zonas from './alpine/admin/zonas.js';
 import mapaCalor from './alpine/admin/mapa-calor.js';
 import usuarios from './alpine/admin/usuarios.js';
 import organizaciones from './alpine/super_admin/organizaciones.js';
@@ -42,7 +41,6 @@ Alpine.store('theme', {
 Alpine.data('tiposVehiculo', tiposVehiculo);
 Alpine.data('tiposServicio', tiposServicio);
 Alpine.data('vehiculos', vehiculos);
-Alpine.data('zonas', zonas);
 Alpine.data('mapaCalor', mapaCalor);
 Alpine.data('usuarios', usuarios);
 Alpine.data('organizaciones', organizaciones);

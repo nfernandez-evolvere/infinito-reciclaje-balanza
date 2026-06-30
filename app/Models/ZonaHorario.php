@@ -6,17 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * @mixin \Eloquent
- * @mixin IdeHelperZonaServicioHorario
+ * @mixin IdeHelperZonaHorario
  */
-class ZonaServicioHorario extends Model
+class ZonaHorario extends Model
 {
-    protected $table = 'zona_servicio_horarios';
+    protected $table = 'zona_horarios';
 
     public $timestamps = false;
 
     protected $fillable = [
         'zona_id',
-        'tipo_servicio_id',
         'dia_semana',
         'franja',
         'hora_inicio',
