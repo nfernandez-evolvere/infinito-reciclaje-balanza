@@ -22,6 +22,8 @@ export default (opts = {}) => {
     const dashInit = window.__dashboardData ?? {};
     const sourceKey = opts.source ?? null;
     const initialZonas = sourceKey ? (dashInit[sourceKey] ?? []) : (opts.zonas ?? []);
+    // Lista completa de servicios activos (incluye los que aún no tienen zonas).
+    const allServicios = Array.isArray(opts.servicios) ? opts.servicios : [];
 
     // La instancia Leaflet y el flag de visibilidad viven fuera del estado reactivo.
     let mapa = null;
@@ -36,17 +38,66 @@ export default (opts = {}) => {
         buckets: [],
         min: 0,
         max: 0,
+        servicioFilter: '',
 
-        get conGeometria() {
-            return this.zonas.filter((z) => z.tiene_geometria);
+        // Toneladas acumuladas y si tiene geometría, por servicio, derivado del dataset de zonas.
+        statsPorServicio() {
+            const m = new Map();
+            for (const z of this.zonas) {
+                if (z.tipo_servicio_id == null) continue;
+                const s = m.get(z.tipo_servicio_id) ?? { nombre: z.tipo_servicio_nombre ?? '—', toneladas: 0, conGeo: false, tieneZonas: false };
+                s.toneladas += z.metricas?.toneladas ?? 0;
+                s.tieneZonas = true;
+                if (z.tiene_geometria) s.conGeo = true;
+                m.set(z.tipo_servicio_id, s);
+            }
+            return m;
         },
 
+        // Servicios del selector. Con la lista completa (allServicios) se incluyen
+        // también los que aún no tienen zonas; si no, se derivan del dataset.
+        get serviciosDisponibles() {
+            const stats = this.statsPorServicio();
+
+            const base = allServicios.length
+                ? allServicios.map((s) => ({
+                    id: s.id,
+                    nombre: s.nombre,
+                    toneladas: stats.get(s.id)?.toneladas ?? 0,
+                    conGeo: stats.get(s.id)?.conGeo ?? false,
+                    tieneZonas: stats.get(s.id)?.tieneZonas ?? false,
+                }))
+                : [...stats.entries()].map(([id, s]) => ({ id, nombre: s.nombre, toneladas: s.toneladas, conGeo: s.conGeo, tieneZonas: true }));
+
+            return base.sort((a, b) => b.toneladas - a.toneladas);
+        },
+
+        get hayVarios() {
+            return this.serviciosDisponibles.length > 1;
+        },
+
+        // Zonas del servicio seleccionado (o todas si no hay selección).
+        get zonasVisibles() {
+            if (!this.servicioFilter) return this.zonas;
+            return this.zonas.filter((z) => String(z.tipo_servicio_id) === String(this.servicioFilter));
+        },
+
+        // El servicio elegido existe pero no tiene zonas → empty-state (sin mapa ni lista).
+        get sinZonasEnServicio() {
+            return this.servicioFilter !== '' && this.zonasVisibles.length === 0;
+        },
+
+        get conGeometria() {
+            return this.zonasVisibles.filter((z) => z.tiene_geometria);
+        },
+
+        // Global: ¿hay alguna zona con geometría en cualquier servicio? Controla el empty-state.
         get hayMapa() {
-            return this.conGeometria.length > 0;
+            return this.zonas.some((z) => z.tiene_geometria);
         },
 
         get listaOrdenada() {
-            return [...this.zonas].sort(
+            return [...this.zonasVisibles].sort(
                 (a, b) => (b.metricas[this.metric] ?? -1) - (a.metricas[this.metric] ?? -1)
             );
         },
@@ -56,6 +107,8 @@ export default (opts = {}) => {
         },
 
         init() {
+            // Selecciona un servicio por defecto (el más activo con geometría).
+            this.ensureServicio();
             // Colores de la leyenda y el ranking, correctos desde el primer render
             // (incluso antes de que el mapa se cree al hacerse visible).
             this.computeBuckets();
@@ -65,6 +118,7 @@ export default (opts = {}) => {
             if (this.sourceKey) {
                 this._onRefresh = (e) => {
                     this.zonas = e.detail?.[this.sourceKey] ?? [];
+                    this.ensureServicio();
                     this.syncMapa();
                 };
                 window.addEventListener('dashboard-refreshed', this._onRefresh);
@@ -111,6 +165,21 @@ export default (opts = {}) => {
         setMetric(key) {
             this.metric = key;
             this.recolor();
+        },
+
+        // Fija un servicio válido si el actual no está en el dataset (carga o refresh).
+        ensureServicio() {
+            const list = this.serviciosDisponibles;
+            if (!list.length) { this.servicioFilter = ''; return; }
+            if (list.some((s) => String(s.id) === String(this.servicioFilter))) return;
+            // Por defecto, el más activo con geometría; si no, uno con zonas; si no, el primero.
+            const def = list.find((s) => s.conGeo) ?? list.find((s) => s.tieneZonas) ?? list[0];
+            this.servicioFilter = String(def.id);
+        },
+
+        setServicio(id) {
+            this.servicioFilter = id;
+            this.syncMapa();
         },
 
         computeBuckets() {

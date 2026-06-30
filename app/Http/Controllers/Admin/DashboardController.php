@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Repositories\TipoServicioRepository;
 use App\Services\DashboardService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -13,11 +14,22 @@ class DashboardController extends Controller
 {
     public function __construct(
         protected DashboardService $dashboardService,
+        protected TipoServicioRepository $tipoServicioRepository,
     ) {}
 
     public function index(): View
     {
-        return view('modules.admin.dashboard', $this->buildDashboardData());
+        // La lista de servicios alimenta el selector del mapa de calor (incluye los
+        // que aún no tienen zonas). Es estática, así que solo va en la carga inicial,
+        // no en el refresh JSON de data().
+        $servicios = $this->tipoServicioRepository->activos()
+            ->map(fn ($s) => ['id' => $s->id, 'nombre' => $s->nombre])
+            ->values();
+
+        return view('modules.admin.dashboard', array_merge(
+            $this->buildDashboardData(),
+            ['servicios' => $servicios],
+        ));
     }
 
     public function data(Request $request): JsonResponse

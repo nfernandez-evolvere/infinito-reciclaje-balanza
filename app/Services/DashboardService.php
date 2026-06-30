@@ -233,7 +233,17 @@ class DashboardService
                 'kg'      => (int) $grupo->sum('peso_neto_kg'),
             ]);
 
-        return $this->zonaRepository->activos()
+        // Cada zona pertenece a un servicio. El cliente filtra el mapa por servicio
+        // para no superponer polígonos de la misma área en distintos servicios.
+        $zonas = $this->zonaRepository->activos()->load('tipoServicio');
+
+        // Si el informe ya filtra por servicio, el mapa se limita a sus zonas
+        // (evita pintar de gris las zonas de los demás servicios).
+        if (! empty($filtros['tipo_servicio_id'])) {
+            $zonas = $zonas->where('tipo_servicio_id', (int) $filtros['tipo_servicio_id'])->values();
+        }
+
+        return $zonas
             ->map(function ($zona) use ($porZona) {
                 $datos = $porZona->get($zona->id, ['pesajes' => 0, 'kg' => 0]);
                 $kg = $datos['kg'];
@@ -241,11 +251,13 @@ class DashboardService
                 $geojson = $zona->geojson ? json_decode($zona->geojson, true) : null;
 
                 return [
-                    'id'              => $zona->id,
-                    'nombre'          => $zona->nombre,
-                    'tiene_geometria' => $geojson !== null,
-                    'geojson'         => $geojson,
-                    'centro'          => ($zona->centro_lat !== null && $zona->centro_lng !== null)
+                    'id'                   => $zona->id,
+                    'nombre'               => $zona->nombre,
+                    'tipo_servicio_id'     => $zona->tipo_servicio_id,
+                    'tipo_servicio_nombre' => $zona->tipoServicio?->nombre ?? '—',
+                    'tiene_geometria'      => $geojson !== null,
+                    'geojson'              => $geojson,
+                    'centro'               => ($zona->centro_lat !== null && $zona->centro_lng !== null)
                         ? ['lat' => $zona->centro_lat, 'lng' => $zona->centro_lng]
                         : null,
                     'hectareas'  => $zona->hectareas,

@@ -3,6 +3,7 @@
 namespace Tests\Integration;
 
 use App\Models\Pesaje;
+use App\Models\TipoServicio;
 use App\Models\TipoVehiculo;
 use App\Models\Vehiculo;
 use App\Models\Zona;
@@ -499,5 +500,37 @@ class DashboardServiceTest extends TestCase
         $vacia = $res->firstWhere('id', $zona2->id);
         $this->assertSame(0, $vacia['metricas']['pesajes']);
         $this->assertSame(0.0, $vacia['metricas']['toneladas']);
+    }
+
+    #[Test]
+    public function metricasPorZona_incluye_el_servicio_de_cada_zona(): void
+    {
+        $servicio = TipoServicio::factory()->create(['nombre' => 'Domiciliario']);
+        $zona = Zona::factory()->create(['tipo_servicio_id' => $servicio->id]);
+
+        $fila = $this->service->metricasPorZona(today(), today())->firstWhere('id', $zona->id);
+
+        $this->assertSame($servicio->id, $fila['tipo_servicio_id']);
+        $this->assertSame('Domiciliario', $fila['tipo_servicio_nombre']);
+    }
+
+    #[Test]
+    public function metricasPorZona_con_filtro_de_servicio_solo_lista_sus_zonas(): void
+    {
+        // Con 1:N, la misma área es una zona por servicio. Al filtrar por servicio,
+        // el mapa debe listar SOLO las zonas de ese servicio (sin las de los demás).
+        $servicioA = TipoServicio::factory()->create();
+        $servicioB = TipoServicio::factory()->create();
+
+        $zonaA = Zona::factory()->create(['tipo_servicio_id' => $servicioA->id, 'nombre' => 'Norte']);
+        $zonaB = Zona::factory()->create(['tipo_servicio_id' => $servicioB->id, 'nombre' => 'Norte']);
+
+        Pesaje::factory()->create(['created_at' => today(), 'zona_id' => $zonaA->id, 'tipo_servicio_id' => $servicioA->id, 'peso_neto_kg' => 5000]);
+
+        $res = $this->service->metricasPorZona(today(), today(), ['tipo_servicio_id' => $servicioA->id]);
+
+        $this->assertCount(1, $res);
+        $this->assertSame($zonaA->id, $res->first()['id']);
+        $this->assertNull($res->firstWhere('id', $zonaB->id));
     }
 }

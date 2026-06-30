@@ -103,6 +103,8 @@
                     <x-domain.reportes.evolucion :evolucion="$reporte['evolucion']" />
                 @endif
 
+                {{-- En reportes el selector refleja el alcance del informe (servicios
+                     presentes en el dataset), por eso no se pasa la lista completa. --}}
                 <x-domain.mapa-calor.panel
                     :zonas="$mapaZonas"
                     description="Intensidad de recolección del período por zona, según los filtros aplicados. Suma todos los turnos de cada zona."
