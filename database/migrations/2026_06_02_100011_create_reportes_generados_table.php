@@ -27,9 +27,20 @@ return new class extends Migration
             $table->string('estado', 20)->default('generado'); // generado | enviado | fallido
             $table->string('error', 500)->nullable();     // detalle si estado = fallido
             $table->text('conclusiones')->nullable();     // narrativa IA preservada del envío
+            // Snapshot congelado del reporte tal como se generó/envió (agregados,
+            // pivots, detalle, mapa de calor, alertas, marca) para re-descargarlo
+            // idéntico sin recalcular sobre pesajes vivos. nvarchar(max)/text.
+            $table->json('snapshot')->nullable();
+            // Flujo de revisión: quién aprobó/descartó y cuándo. revisado_por_id → users
+            // noAction (segundo camino a organizaciones). enviado_at separa generación de envío.
+            $table->foreignId('revisado_por_id')->nullable()->constrained('users')->noActionOnDelete();
+            $table->dateTime('revisado_at')->nullable();
+            $table->dateTime('enviado_at')->nullable();
+            $table->string('motivo_descarte', 500)->nullable();
             $table->timestamps();
 
             $table->index(['organizacion_id', 'created_at']);
+            $table->index(['organizacion_id', 'estado']);
         });
     }
 

@@ -21,6 +21,10 @@ return new class extends Migration
             $table->text('ai_prompt')->nullable();
             $table->boolean('tipo_informe_mensual_activo')->default(true);
             $table->boolean('tipo_alertas_activo')->default(false);
+            // Default de la organización: los reportes programados quedan pendientes
+            // de revisión antes de enviarse. Cada programado puede sobreescribirlo
+            // con opciones['revision'] (heredar|revisar|directo).
+            $table->boolean('revision_requerida')->default(true);
             $table->timestamps();
         });
     }

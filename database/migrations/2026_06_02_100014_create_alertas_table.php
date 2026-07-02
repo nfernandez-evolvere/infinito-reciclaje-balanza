@@ -20,6 +20,9 @@ return new class extends Migration
             // FKs secundarias: noActionOnDelete para evitar cascadas múltiples a organizaciones
             $table->foreignId('pesaje_id')->nullable()->constrained('pesajes')->noActionOnDelete();
             $table->foreignId('zona_id')->nullable()->constrained('zonas')->noActionOnDelete();
+            // Vincula la notificación con el reporte que la originó (deep-link al
+            // historial). FK secundaria → noActionOnDelete (regla SQL Server).
+            $table->foreignId('reporte_generado_id')->nullable()->constrained('reportes_generados')->noActionOnDelete();
             $table->date('fecha_deteccion');
             $table->boolean('leida')->default(false);
             $table->timestamp('leida_at')->nullable();

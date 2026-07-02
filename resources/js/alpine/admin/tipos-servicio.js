@@ -117,10 +117,16 @@ export default (initial = {}) => {
         },
 
         // Se llama al abrir el modal: inicializa el mapa (lazy) y carga la geometría del form.
+        // Como guía solo se muestran las zonas del mismo servicio que la zona en edición.
         syncMapToForm() {
             this.$nextTick(() => {
                 this.initZonaMap();
-                if (mapEditor) mapEditor.show(this.zonaForm.geojson || null, this.zonasGuia || [], this.zonaForm.id);
+                if (!mapEditor) return;
+                const servicioId = Number(this.zonaForm.tipo_servicio_id);
+                const guia = (this.zonasGuia || []).filter(
+                    (z) => Number(z.tipo_servicio_id) === servicioId,
+                );
+                mapEditor.show(this.zonaForm.geojson || null, guia, this.zonaForm.id);
             });
         },
 

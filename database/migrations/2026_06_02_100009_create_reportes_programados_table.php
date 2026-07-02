@@ -11,6 +11,10 @@ return new class extends Migration
         Schema::create('reportes_programados', function (Blueprint $table) {
             $table->id();
             $table->foreignId('organizacion_id')->constrained('organizaciones')->cascadeOnDelete();
+            // Dueño del programado: a quién se le notifica cuando el scheduler lo dispara
+            // (no hay usuario en el ciclo de la cola). users no es alcanzable por cascada
+            // desde organizaciones → sin conflicto; nullOnDelete conserva el programado.
+            $table->foreignId('creado_por_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('tipo', 30)->default('informe_mensual'); // informe_mensual | alertas
             $table->string('nombre', 150);
             $table->string('frecuencia', 20)->default('mensual');   // diaria | semanal | quincenal | mensual

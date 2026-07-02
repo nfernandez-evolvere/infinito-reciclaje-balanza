@@ -50,7 +50,7 @@ Footer: último pesaje (patente · neto · hora) · totales del turno · camione
 **Shell del admin** — sidebar izquierdo, 240px:
 ```
 Grupo Operación (items):   Dashboard · Pesajes · Reportes · Alertas
-Grupo Padrón (items):      Zonas · Tipos de servicio
+Grupo Configuración (items): Zonas · Tipos de servicio
 Separador
 Grupo Transporte (acordeón): Vehículos · Tipos de vehículo
 Grupo Sistema (acordeón):    Usuarios

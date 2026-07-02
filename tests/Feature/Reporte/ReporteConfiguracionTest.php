@@ -119,4 +119,19 @@ class ReporteConfiguracionTest extends TestCase
             ]))
             ->assertSessionHasErrors('municipalidad_nombre');
     }
+
+    #[Test]
+    public function acepta_municipalidad_nombre_en_el_limite_de_longitud(): void
+    {
+        // Borde exacto del lado válido: max:200 acepta exactamente 200 chars.
+        $nombre = str_repeat('a', 200);
+
+        $this->actingAs($this->admin())
+            ->put(route('admin.reportes.configuracion.update'), $this->payload([
+                'municipalidad_nombre' => $nombre,
+            ]))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('reporte_configuraciones', ['municipalidad_nombre' => $nombre]);
+    }
 }

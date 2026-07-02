@@ -70,20 +70,19 @@
             {{-- Tab: Pesajes (con KPIs) --}}
             <x-ui.tabs.content value="pesajes" class="mt-0 flex flex-col gap-6">
 
-                <div class="flex items-center justify-end gap-1">
-                    <div class="xl:hidden">
-                        <x-ui.tooltip content="Métricas">
-                            <x-ui.button variant="ghost" size="icon" @click="metricasOpen = true">
-                                <x-lucide-chart-bar class="size-4" />
-                            </x-ui.button>
-                        </x-ui.tooltip>
-                    </div>
-                    <x-domain.historial.filtros :filtros="$filtros" :operarios="$operarios" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" :zonas="$zonas" :tiposServicio="$tiposServicio" :sortDirection="$filtros['direction']" />
+                <div class="flex items-center justify-end gap-1 xl:hidden">
+                    <x-ui.tooltip content="Métricas">
+                        <x-ui.button variant="ghost" size="icon" @click="metricasOpen = true">
+                            <x-lucide-chart-bar class="size-4" />
+                        </x-ui.button>
+                    </x-ui.tooltip>
                 </div>
 
                 <x-domain.historial.mobile-drawers :kpis="$kpis" />
 
                 <x-domain.historial.kpis :kpis="$kpis" />
+
+                <x-domain.historial.filtros :filtros="$filtros" :operarios="$operarios" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" :zonas="$zonas" :tiposServicio="$tiposServicio" :sortDirection="$filtros['direction']" />
 
                 <x-domain.historial.tabla :pesajes="$pesajes" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" :sortDirection="$filtros['direction']" />
             </x-ui.tabs.content>
@@ -91,9 +90,7 @@
             {{-- Tab: Modificaciones (sin KPIs) --}}
             <x-ui.tabs.content value="modificaciones" class="mt-0 flex flex-col gap-6">
 
-                <div class="flex items-center justify-end gap-1">
-                    <x-domain.modificaciones.filtros :filtros="$filtrosMod" :operarios="$operarios" :hayFiltros="$hayFiltrosMod" :zonas="$zonas" :tiposServicio="$tiposServicio" :sortDirection="$filtrosMod['direction']" control="filterOpenMod" />
-                </div>
+                <x-domain.modificaciones.filtros :filtros="$filtrosMod" :operarios="$operarios" :hayFiltros="$hayFiltrosMod" :zonas="$zonas" :tiposServicio="$tiposServicio" :sortDirection="$filtrosMod['direction']" control="filterOpenMod" />
 
                 <x-domain.historial.tabla
                     :pesajes="$modificaciones"

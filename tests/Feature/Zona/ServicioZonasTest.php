@@ -5,7 +5,6 @@ namespace Tests\Feature\Zona;
 use App\Models\Organizacion;
 use App\Models\TipoServicio;
 use App\Models\TipoVehiculo;
-use App\Models\User;
 use App\Models\Zona;
 use App\Models\ZonaTurno;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -24,11 +23,6 @@ class ServicioZonasTest extends TestCase
         // El TestCase base ya crea y bindea la organización de prueba. Reutilizarla
         // mantiene el global scope alineado y evita crear orgs duplicadas.
         $this->org = app('organizacion');
-    }
-
-    private function usuario(): User
-    {
-        return User::factory()->create();
     }
 
     private function servicio(array $attrs = []): TipoServicio
@@ -61,7 +55,7 @@ class ServicioZonasTest extends TestCase
         $servicio = $this->servicio();
         $this->zona($servicio, 'Zona Norte', ['Diurna', 'Nocturna']);
 
-        $this->actingAs($this->usuario())
+        $this->actingAs($this->operador())
             ->getJson(route('servicios.zonas', $servicio))
             ->assertOk()
             ->assertJsonPath('zonas.0.turnos', ['Diurna', 'Nocturna']);
@@ -73,7 +67,7 @@ class ServicioZonasTest extends TestCase
         $servicio = $this->servicio();
         $this->zona($servicio, 'Zona Industrial', []);
 
-        $this->actingAs($this->usuario())
+        $this->actingAs($this->operador())
             ->getJson(route('servicios.zonas', $servicio))
             ->assertOk()
             ->assertJsonPath('zonas.0.turnos', []);
@@ -89,7 +83,7 @@ class ServicioZonasTest extends TestCase
         $this->zona($servicio1, 'Zona Norte', ['Diurna']);
         $this->zona($servicio2, 'Zona Norte', ['Nocturna']);
 
-        $this->actingAs($this->usuario())
+        $this->actingAs($this->operador())
             ->getJson(route('servicios.zonas', $servicio1))
             ->assertOk()
             ->assertJsonPath('zonas.0.turnos', ['Diurna']);
@@ -103,7 +97,7 @@ class ServicioZonasTest extends TestCase
         $this->zona($servicio, 'Sur', ['Diurna']);
         $this->zona($servicio, 'Industrial', []);
 
-        $response = $this->actingAs($this->usuario())
+        $response = $this->actingAs($this->operador())
             ->getJson(route('servicios.zonas', $servicio))
             ->assertOk()
             ->assertJsonCount(3, 'zonas');
@@ -123,11 +117,24 @@ class ServicioZonasTest extends TestCase
         $this->zona($servicio, 'Activa', ['Diurna'], true);
         $this->zona($servicio, 'Inactiva', ['Nocturna'], false);
 
-        $this->actingAs($this->usuario())
+        $this->actingAs($this->operador())
             ->getJson(route('servicios.zonas', $servicio))
             ->assertOk()
             ->assertJsonCount(1, 'zonas')
             ->assertJsonPath('zonas.0.nombre', 'Activa');
+    }
+
+    #[Test]
+    public function retorna_zonas_vacias_cuando_el_servicio_no_tiene_zonas(): void
+    {
+        // Un servicio sin zonas es elegible en la balanza pero no tiene orígenes:
+        // el endpoint debe responder 200 con la lista vacía (no un error).
+        $servicio = $this->servicio();
+
+        $this->actingAs($this->operador())
+            ->getJson(route('servicios.zonas', $servicio))
+            ->assertOk()
+            ->assertJsonCount(0, 'zonas');
     }
 
     #[Test]
@@ -139,7 +146,7 @@ class ServicioZonasTest extends TestCase
         $this->zona($servicio1, 'Del servicio 1');
         $this->zona($servicio2, 'Del servicio 2');
 
-        $this->actingAs($this->usuario())
+        $this->actingAs($this->operador())
             ->getJson(route('servicios.zonas', $servicio1))
             ->assertOk()
             ->assertJsonCount(1, 'zonas')
@@ -154,7 +161,7 @@ class ServicioZonasTest extends TestCase
         $servicio = $this->servicio();
         $this->zona($servicio, 'Zona A', ['Diurna']);
 
-        $this->actingAs($this->usuario())
+        $this->actingAs($this->operador())
             ->getJson(route('servicios.zonas', $servicio))
             ->assertOk()
             ->assertJsonStructure([
@@ -170,7 +177,7 @@ class ServicioZonasTest extends TestCase
         $servicio = $this->servicio();
         $servicio->tiposVehiculo()->attach($tv->id);
 
-        $this->actingAs($this->usuario())
+        $this->actingAs($this->operador())
             ->getJson(route('servicios.zonas', $servicio))
             ->assertOk()
             ->assertJsonPath('tipos_vehiculo_sugeridos', ['Compactador']);
@@ -181,7 +188,7 @@ class ServicioZonasTest extends TestCase
     {
         $servicio = $this->servicio();
 
-        $this->actingAs($this->usuario())
+        $this->actingAs($this->operador())
             ->getJson(route('servicios.zonas', $servicio))
             ->assertOk()
             ->assertJsonPath('tipos_vehiculo_sugeridos', []);

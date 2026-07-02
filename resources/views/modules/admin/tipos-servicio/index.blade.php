@@ -4,10 +4,16 @@
     $isEditing = old('_mode') === 'edit';
 
     // Guía de polígonos para el editor de mapa: todas las zonas con geometría en la página.
+    // Se incluye tipo_servicio_id para poder mostrar en el mapa solo las zonas del servicio en edición.
     $zonasGuia = $tipos
         ->flatMap(fn ($tipo) => $tipo->zonas)
         ->filter(fn ($z) => $z->geojson !== null && $z->geojson !== '')
-        ->map(fn ($z) => ['id' => $z->id, 'nombre' => $z->nombre, 'geojson' => $z->geojson])
+        ->map(fn ($z) => [
+            'id'               => $z->id,
+            'tipo_servicio_id' => $z->tipo_servicio_id,
+            'nombre'           => $z->nombre,
+            'geojson'          => $z->geojson,
+        ])
         ->values();
 
     // Reabrir el formulario de servicio ante errores de validación de servicio.

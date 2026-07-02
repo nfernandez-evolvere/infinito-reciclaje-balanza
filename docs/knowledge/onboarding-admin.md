@@ -26,7 +26,7 @@ Cuando ingresás como admin, ves el panel con una barra lateral izquierda. Los �
 - **Pesajes** — log completo de todos los pesajes registrados
 - **Reportes** — generación, exportación y envío automático de reportes, con revisión y aprobación previa de los envíos
 
-**Padrón**
+**Configuración**
 - **Servicios** — tipos de servicio con su vehículo habitual sugerido y **sus zonas** de operación (áreas geográficas, con turnos y horarios)
 - **Vehículos** — padrón de todos los camiones (la pestaña Tipos incluye los tipos de vehículo con rangos de peso bruto)
 

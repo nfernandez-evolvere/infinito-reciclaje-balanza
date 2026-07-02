@@ -149,9 +149,9 @@ Ajustá el **horario operativo** a la realidad de tu predio: si trabajás de 7 a
 
 ### Umbrales de peso inusual
 
-Los rangos de peso están definidos en **Padrón → Vehículos** (pestaña **Tipos de vehículo**; ver módulo de ABMs). Las alarmas de peso inusual se disparan cuando un pesaje queda fuera de esos rangos.
+Los rangos de peso están definidos en **Configuración → Vehículos** (pestaña **Tipos de vehículo**; ver módulo de ABMs). Las alarmas de peso inusual se disparan cuando un pesaje queda fuera de esos rangos.
 
-Para ajustar los umbrales de peso: ir a Padrón → Vehículos, pestaña Tipos de vehículo, y editar el tipo correspondiente.
+Para ajustar los umbrales de peso: ir a Configuración → Vehículos, pestaña Tipos de vehículo, y editar el tipo correspondiente.
 
 ### Umbral de volumen diario atípico
 

@@ -64,6 +64,18 @@ public function test_admin_puede_crear(): void
 public function admin_can_create_pesaje(): void
 ```
 
+> **Deuda pendiente (auditoría 2026-07):** 15 archivos aún usan el prefijo `test_`.
+> El `#[Test]` ya está presente en todos, así que **quitar el prefijo es mecánico y
+> seguro** (verificado: ningún nombre queda inválido). Hacerlo en un **commit dedicado**
+> (no mezclarlo con refactors de dominio) y, al terminar, agregar una regla a
+> `ArquitecturaTest` que prohíba `public function test_`. Archivos:
+> - **Feature:** `TipoServicioTest`, `VehiculoTest`, `PerfilTest`, `UsuarioTest`, `TipoVehiculoTest`, `LayoutTest`, `AuthTest`, `RouteProtectionTest`
+> - **Integration:** `ProfileServiceTest`, `VehiculoServiceTest`, `UsuarioServiceTest`, `TipoVehiculoServiceTest`, `TipoServicioServiceTest`
+> - **Unit:** `UserTest`, `GateTest`
+>
+> La traducción español→inglés de esos nombres es aparte (más subjetiva, oportunista).
+> Micro-nit relacionado: `ServicioZonasTest::usuario()` reimplementa `$this->operador()`.
+
 ### 2.4 Reglas de escritura
 
 - **AAA**: Arrange / Act / Assert, separados visualmente.

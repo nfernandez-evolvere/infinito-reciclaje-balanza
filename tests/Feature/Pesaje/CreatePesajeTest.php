@@ -144,6 +144,43 @@ class CreatePesajeTest extends TestCase
             ->assertSessionHasErrors('observaciones');
     }
 
+    #[Test]
+    public function store_rechaza_bruto_menor_a_la_tara_del_vehiculo(): void
+    {
+        // Regla custom de StorePesajeRequest::withValidator — borde exacto: la
+        // condición es `bruto < tara`, así que tara - 1 debe fallar.
+        $tipo = TipoVehiculo::factory()->create(['peso_min_kg' => 1000, 'peso_max_kg' => 30000]);
+        $vehiculo = Vehiculo::factory()->create(['tara_kg' => 8000, 'tipo_vehiculo_id' => $tipo->id]);
+
+        $this->actingAs($this->operador())
+            ->post(route('pesajes.store'), $this->payload([
+                'vehiculo_id'   => $vehiculo->id,
+                'peso_bruto_kg' => 7999,
+            ]))
+            ->assertSessionHasErrors('peso_bruto_kg');
+
+        $this->assertDatabaseCount('pesajes', 0);
+    }
+
+    #[Test]
+    public function store_acepta_bruto_igual_a_la_tara(): void
+    {
+        // Borde exacto del lado válido: bruto == tara pasa la regla y produce neto 0.
+        $tipo = TipoVehiculo::factory()->create(['peso_min_kg' => 1000, 'peso_max_kg' => 30000]);
+        $vehiculo = Vehiculo::factory()->create(['tara_kg' => 8000, 'tipo_vehiculo_id' => $tipo->id]);
+
+        $this->actingAs($this->operador())
+            ->post(route('pesajes.store'), $this->payload([
+                'vehiculo_id'   => $vehiculo->id,
+                'peso_bruto_kg' => 8000,
+            ]))
+            ->assertSessionHasNoErrors();
+
+        $pesaje = Pesaje::firstOrFail();
+        $this->assertSame(8000, $pesaje->peso_bruto_kg);
+        $this->assertSame(0, $pesaje->peso_neto_kg);
+    }
+
     // ── Integración con Alertas ───────────────────────────────────────
 
     #[Test]

@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('organizacion_id')->constrained('organizaciones')->cascadeOnDelete();
             $table->string('patente', 20);
-            $table->string('numero_interno', 20);
+            $table->string('numero_interno', 20)->nullable();
             $table->integer('tara_kg');
             $table->foreignId('tipo_vehiculo_id')->constrained('tipos_vehiculo')->noActionOnDelete();
             $table->string('titular', 200);

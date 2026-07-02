@@ -29,7 +29,7 @@ Si no podés ingresar, contactá al equipo de soporte de EVOLVERE.
 
 Los tipos de vehículo definen los rangos de **peso bruto** esperados (vehículo + carga). El sistema los usa para detectar pesajes anómalos.
 
-Ir a **Padrón → Vehículos** (pestaña **Tipos de vehículo**) y verificar que estén cargados:
+Ir a **Configuración → Vehículos** (pestaña **Tipos de vehículo**) y verificar que estén cargados:
 
 | Tipo | Bruto mínimo | Bruto máximo |
 |------|------------|------------|
@@ -46,7 +46,7 @@ Ir a **Padrón → Vehículos** (pestaña **Tipos de vehículo**) y verificar qu
 
 Los tipos de servicio definen el nombre del servicio y el tipo de vehículo habitual.
 
-Ir a **Padrón → Servicios** y verificar que estén cargados:
+Ir a **Configuración → Servicios** y verificar que estén cargados:
 
 | Servicio | Tipo de vehículo sugerido |
 |----------|--------------------------|
@@ -64,7 +64,7 @@ Ir a **Padrón → Servicios** y verificar que estén cargados:
 
 Cada servicio tiene **sus propias zonas** de operación. Las zonas son las áreas geográficas de recolección; los datos de hectáreas se usan para calcular indicadores de densidad en los reportes.
 
-Ir a **Padrón → Servicios**, expandir el servicio (botón "Ver zonas") y usar **Agregar zona**. Para cada zona definir:
+Ir a **Configuración → Servicios**, expandir el servicio (botón "Ver zonas") y usar **Agregar zona**. Para cada zona definir:
 
 **1. Datos geográficos:**
 - Nombre de la zona (único dentro de ese servicio)
@@ -93,7 +93,7 @@ Esta configuración determina qué zonas y turnos le aparecen al operador al reg
 
 Este es el paso más importante y el que más tiempo lleva. **Todos los camiones que van a ingresar al predio deben estar cargados antes del día 1.**
 
-Ir a **Padrón → Vehículos** y cargar cada vehículo con:
+Ir a **Configuración → Vehículos** y cargar cada vehículo con:
 
 | Campo | Descripción | Ejemplo |
 |-------|-------------|---------|
@@ -145,9 +145,9 @@ Antes de habilitar el sistema para operación real:
 | Problema | Qué hacer |
 |----------|----------|
 | No aparece el autocompletado de un vehículo | Verificar que la patente o número interno estén cargados exactamente como el operador los ingresa |
-| El peso neto parece incorrecto | Verificar la tara del vehículo en Padrón → Vehículos |
+| El peso neto parece incorrecto | Verificar la tara del vehículo en Configuración → Vehículos |
 | Un operador no puede ingresar | Verificar que su usuario esté activo en Sistema → Usuarios |
-| Un servicio no muestra zonas en el select | Verificar que la zona tenga asignado el tipo de servicio correcto en **Padrón → Zonas** |
+| Un servicio no muestra zonas en el select | Verificar que la zona tenga asignado el tipo de servicio correcto en **Configuración → Zonas** |
 
 ---
 

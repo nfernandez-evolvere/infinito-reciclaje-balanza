@@ -414,9 +414,12 @@
 
     {{-- Footer --}}
     <footer class="border-t border-border py-6">
-        <p class="text-center text-xs text-muted-foreground">
-            Infinito Reciclaje × EVOLVERE 2026 · Sistema de Gestión de Balanza v1
-        </p>
+        <div class="flex flex-col items-center gap-1.5">
+            <p class="text-center text-xs text-muted-foreground">
+                Infinito Reciclaje × EVOLVERE 2026 · Sistema de Gestión de Balanza v1
+            </p>
+            <x-powered-by-evolvere />
+        </div>
     </footer>
 
     <x-slot:scripts>

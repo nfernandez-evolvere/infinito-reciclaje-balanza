@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Zona;
 
+use App\Models\Pesaje;
 use App\Models\TipoServicio;
 use App\Models\Zona;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -148,6 +149,37 @@ class ZonaCrudTest extends TestCase
         $this->actingAs($this->admin())
             ->post(route('admin.zonas.store'), $this->payload(['habitantes' => -1]))
             ->assertSessionHasErrors('habitantes');
+    }
+
+    #[Test]
+    public function store_acepta_los_bordes_validos_de_los_rangos(): void
+    {
+        // El valor exacto del límite es válido: min:0 acepta 0; between acepta ±90 / ±180.
+        $this->actingAs($this->admin())
+            ->post(route('admin.zonas.store'), $this->payload([
+                'nombre'     => 'Borde superior',
+                'hectareas'  => 0,
+                'habitantes' => 0,
+                'centro_lat' => 90,
+                'centro_lng' => 180,
+            ]))
+            ->assertRedirect(route(self::INDEX))
+            ->assertSessionHasNoErrors();
+
+        $this->actingAs($this->admin())
+            ->post(route('admin.zonas.store'), $this->payload([
+                'nombre'     => 'Borde inferior',
+                'centro_lat' => -90,
+                'centro_lng' => -180,
+            ]))
+            ->assertRedirect(route(self::INDEX))
+            ->assertSessionHasNoErrors();
+
+        $zona = Zona::where('nombre', 'Borde superior')->firstOrFail();
+        $this->assertEquals(0.0, $zona->hectareas);
+        $this->assertEquals(0, $zona->habitantes);
+        $this->assertEquals(90, $zona->centro_lat);
+        $this->assertEquals(180, $zona->centro_lng);
     }
 
     // ── Turnos y horarios ─────────────────────────────────────────────
@@ -433,5 +465,22 @@ class ZonaCrudTest extends TestCase
             ->assertRedirect(route(self::INDEX));
 
         $this->assertDatabaseMissing('zonas', ['id' => $zona->id]);
+    }
+
+    #[Test]
+    public function destroy_no_elimina_zona_con_pesajes(): void
+    {
+        // pesajes.zona_id es noActionOnDelete: la FK bloquea el borrado. El controller
+        // captura el QueryException y avisa "no se puede eliminar" en lugar de romper.
+        $zona = Zona::factory()->create(['tipo_servicio_id' => $this->servicio->id]);
+        Pesaje::factory()->create(['zona_id' => $zona->id, 'tipo_servicio_id' => $this->servicio->id]);
+
+        $this->actingAs($this->admin())
+            ->delete(route('admin.zonas.destroy', $zona))
+            ->assertRedirect(route(self::INDEX))
+            ->assertSessionHas('toast');
+
+        // La zona sigue existiendo: el borrado fue rechazado, no ejecutado.
+        $this->assertDatabaseHas('zonas', ['id' => $zona->id]);
     }
 }

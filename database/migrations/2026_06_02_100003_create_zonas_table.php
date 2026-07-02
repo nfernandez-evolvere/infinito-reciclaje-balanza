@@ -21,6 +21,12 @@ return new class extends Migration
             $table->decimal('hectareas', 10, 2)->nullable();
             $table->integer('barrios')->nullable();
             $table->integer('habitantes')->nullable();
+            // Geometría del área como GeoJSON (FeatureCollection con el polígono).
+            // nvarchar(max) en SQL Server; se dibuja/edita con Leaflet + Geoman.
+            $table->json('geojson')->nullable();
+            // Centro del polígono, derivado en el cliente para centrar el mapa.
+            $table->decimal('centro_lat', 10, 7)->nullable();
+            $table->decimal('centro_lng', 10, 7)->nullable();
             $table->boolean('activo')->default(true);
             $table->timestamps();
 

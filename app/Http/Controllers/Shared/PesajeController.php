@@ -214,6 +214,10 @@ class PesajeController extends Controller
 
     private function buildFiltros(Request $request, bool $isAdmin): array
     {
+        // El select «Mostrar» (admin) expone un único parámetro `mostrar` que se
+        // traduce a los flags que entiende PesajeRepository::buildQuery().
+        $mostrar = $isAdmin ? $request->input('mostrar') : null;
+
         return [
             'desde'            => $request->input('desde') ?: null,
             'hasta'            => $request->input('hasta') ?: null,
@@ -222,8 +226,8 @@ class PesajeController extends Controller
             'operario_id'      => $request->input('operario_id') ?: null,
             'zona_id'          => $isAdmin ? ($request->input('zona_id') ?: null) : null,
             'tipo_servicio_id' => $isAdmin ? ($request->input('tipo_servicio_id') ?: null) : null,
-            'solo_alerta'      => $isAdmin ? ($request->boolean('solo_alerta') ?: null) : null,
-            'solo_editados'    => $isAdmin ? ($request->boolean('solo_editados') ?: null) : null,
+            'solo_alerta'      => $mostrar === 'alerta' ? true : null,
+            'solo_editados'    => $mostrar === 'editados' ? true : null,
             'direction'        => in_array($request->input('direction'), ['asc', 'desc']) ? $request->input('direction') : 'desc',
         ];
     }

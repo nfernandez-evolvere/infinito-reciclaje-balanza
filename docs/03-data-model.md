@@ -582,25 +582,26 @@ Con este volumen, los índices definidos son suficientes; no se requiere partici
 
 ## Referencia de migraciones Laravel
 
-Orden de ejecución (respetar dependencias de FK):
+Orden de ejecución (respetar dependencias de FK). El historial es **lineal**: cada
+tabla se define completa en una sola migración `create_*` (sin ALTER incrementales).
 
 ```
 0.  organizaciones                (raíz multi-tenant)
 1.  users + organizacion_user     (pivot N:M con organizaciones)
 2.  tipos_vehiculo                (FK → organizaciones)
 3.  tipos_servicio                (FK → organizaciones) + tipo_servicio_tipo_vehiculo
-4.  zonas                         (FK → organizaciones, tipos_servicio)  (+ geojson en migración posterior)
-5.  vehiculos                     (FK → organizaciones, tipos_vehiculo) + vehiculos_log
-6.  zona_turnos                 (FK → zonas, CASCADE)
-7.  zona_horarios               (FK → zonas, CASCADE)
-9.  reporte_configuraciones       (FK → organizaciones)
-10. reportes_programados          (FK → organizaciones)
-11. reporte_destinatarios         (FK → organizaciones)
+4.  zonas                         (FK → organizaciones, tipos_servicio; con geojson/centro)
+5.  vehiculos + vehiculos_log     (FK → organizaciones, tipos_vehiculo)
+6.  zona_turnos                   (FK → zonas, CASCADE)
+7.  zona_horarios                 (FK → zonas, CASCADE)
+8.  reporte_configuraciones       (FK → organizaciones)
+9.  reportes_programados          (FK → organizaciones, users)
+10. reporte_destinatarios         (FK → organizaciones)
+11. reportes_generados            (FK → organizaciones, users, reportes_programados) ← antes de alertas
 12. pesajes                       (FK → organizaciones, vehiculos, users, tipos_servicio, zonas)
 13. pesajes_log                   (FK → pesajes, users)
-14. alertas                       (FK → organizaciones, users, pesajes, zonas)
-15. config_alertas                (FK → organizaciones)  (+ horario operativo posterior)
-16. reportes_generados            (FK → organizaciones, users, reportes_programados)  (+ snapshot/revisión posterior)
+14. alertas                       (FK → organizaciones, users, pesajes, zonas, reportes_generados)
+15. config_alertas                (FK → organizaciones)
 ```
 
 **Rollback:** orden inverso.

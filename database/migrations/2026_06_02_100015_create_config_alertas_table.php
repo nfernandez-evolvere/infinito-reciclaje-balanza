@@ -19,6 +19,10 @@ return new class extends Migration
             // gap_registro           → minutos sin actividad en horario operativo (default 120)
             // frecuencia_zona_atipica → % de desviación del promedio por zona (default 30)
             $table->decimal('umbral_valor', 8, 2)->nullable();
+            // Horario operativo configurable — solo lo usa el tipo gap_registro.
+            // Formato 'H:i' (ej: '08:00'). null → default de ConfigAlerta::defaults().
+            $table->string('hora_inicio', 5)->nullable();
+            $table->string('hora_fin', 5)->nullable();
             $table->timestamps();
 
             $table->unique(['organizacion_id', 'tipo']);

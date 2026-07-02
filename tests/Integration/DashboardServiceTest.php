@@ -12,6 +12,7 @@ use App\Repositories\PesajeRepository;
 use App\Repositories\TipoVehiculoRepository;
 use App\Repositories\ZonaRepository;
 use App\Services\DashboardService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
@@ -120,13 +121,21 @@ class DashboardServiceTest extends TestCase
     #[Test]
     public function kpisDelMes_cuenta_dias_operativos_distintos(): void
     {
-        Pesaje::factory()->create(['created_at' => today()]);
-        Pesaje::factory()->create(['created_at' => today()]);
-        Pesaje::factory()->create(['created_at' => today()->subDay()]);
+        // Fijar una fecha de mitad de mes: hoy y "ayer" deben caer en el mismo mes.
+        // El día 1 real, today()->subDay() cruzaría al mes anterior y quedaría fuera del rango.
+        Carbon::setTestNow('2026-06-15');
 
-        $kpis = $this->service->kpisDelMes();
+        try {
+            Pesaje::factory()->create(['created_at' => today()]);
+            Pesaje::factory()->create(['created_at' => today()]);
+            Pesaje::factory()->create(['created_at' => today()->subDay()]);
 
-        $this->assertSame(2, $kpis['dias_op']);
+            $kpis = $this->service->kpisDelMes();
+
+            $this->assertSame(2, $kpis['dias_op']);
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 
     // ── evolucionDiaria ───────────────────────────────────────────────

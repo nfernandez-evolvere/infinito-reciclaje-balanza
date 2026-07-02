@@ -31,10 +31,24 @@
                 </template>
             </template>
 
-            <x-ui.dialog.header>
-                <x-ui.dialog.title>
-                    <span x-text="(zonaModalMode === 'create' ? 'Nueva zona — ' : 'Editar zona — ') + selectedServicioNombre"></span>
-                </x-ui.dialog.title>
+            <x-ui.dialog.header class="gap-0">
+                {{-- Servicio (padre): tile + etiqueta + nombre, presentado como el contenedor de la zona --}}
+                <div class="flex items-start gap-3">
+                    <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <x-lucide-layers class="size-5" />
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-overline">Servicio</p>
+                        <p class="truncate text-lg font-semibold leading-tight text-foreground" x-text="selectedServicioNombre"></p>
+                    </div>
+                </div>
+                {{-- Zona (hijo): la acción queda anidada bajo el servicio --}}
+                <div class="mt-2.5 flex items-center gap-2 pl-13">
+                    <x-lucide-corner-down-right class="size-4 shrink-0 text-muted-foreground" />
+                    <x-ui.dialog.title class="text-sm font-medium text-foreground">
+                        <span x-text="zonaModalMode === 'create' ? 'Nueva zona' : 'Editar zona'"></span>
+                    </x-ui.dialog.title>
+                </div>
             </x-ui.dialog.header>
 
             <div class="px-6 pb-2 overflow-y-auto flex-1 min-h-0 space-y-4">
@@ -83,7 +97,7 @@
                 <div class="space-y-2">
                     <x-ui.label>Área en el mapa <span class="text-muted-foreground font-normal">(opcional)</span></x-ui.label>
                     <p class="text-sm text-muted-foreground">
-                        Dibujá el polígono de la zona con la herramienta de polígono. Marca los límites que el sistema usa para los mapas de calor.
+                        Dibujá el polígono de la zona con la herramienta de polígono. Marca los límites que el sistema usa para los mapas de calor. Las demás zonas de este servicio se muestran punteadas como referencia.
                     </p>
                     <div id="zona-map" class="h-72 sm:h-96 w-full rounded-md border border-border"></div>
                 </div>

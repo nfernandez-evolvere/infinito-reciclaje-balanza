@@ -143,6 +143,22 @@ class ReporteRevisionTest extends TestCase
     }
 
     #[Test]
+    public function discard_acepta_motivo_de_exactamente_500_chars(): void
+    {
+        // Borde exacto del lado válido: max:500 acepta 500 chars y descarta.
+        $motivo = str_repeat('m', 500);
+        $generado = $this->generado();
+
+        $this->actingAs($this->admin())
+            ->post(route('admin.reportes.historial.descartar', $generado), ['motivo' => $motivo])
+            ->assertSessionHasNoErrors();
+
+        $generado->refresh();
+        $this->assertSame(ReporteGenerado::ESTADO_DESCARTADO, $generado->estado);
+        $this->assertSame($motivo, $generado->motivo_descarte);
+    }
+
+    #[Test]
     public function discard_is_rejected_when_record_is_not_in_review(): void
     {
         $generado = $this->generado(['estado' => ReporteGenerado::ESTADO_ENVIADO]);

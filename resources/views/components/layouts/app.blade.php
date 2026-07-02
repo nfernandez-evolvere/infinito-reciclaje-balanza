@@ -16,7 +16,7 @@
     $configProgress = $user?->isAdmin()
         ? app(\App\Services\ConfiguracionInicialService::class)->getProgress()
         : null;
-    $padronItems = [
+    $configuracionItems = [
         ['route' => 'admin.tipos-servicio.index', 'icon' => 'clipboard-list', 'label' => 'Servicios', 'match' => ['admin.tipos-servicio.*', 'admin.zonas.*']],
         ['route' => 'admin.vehiculos.index',      'icon' => 'truck',          'label' => 'Vehículos'],
     ];
@@ -44,7 +44,7 @@
     $section = match(true) {
         request()->routeIs('admin.pesajes.*')                                               => 'Operación',
         request()->routeIs('admin.reportes.*')                                               => 'Reportes',
-        request()->routeIs('admin.zonas.*', 'admin.tipos-servicio.*', 'admin.vehiculos.*')  => 'Padrón',
+        request()->routeIs('admin.zonas.*', 'admin.tipos-servicio.*', 'admin.vehiculos.*')  => 'Configuración',
         request()->routeIs('admin.usuarios.*')                                               => 'Sistema',
         default => null,
     };
@@ -128,12 +128,12 @@
 
                 <x-ui.sidebar.separator />
 
-                {{-- Padrón --}}
+                {{-- Configuración --}}
                 <x-ui.sidebar.group>
-                    <x-ui.sidebar.group-label x-show="!isCollapsed" x-cloak>Padrón</x-ui.sidebar.group-label>
+                    <x-ui.sidebar.group-label x-show="!isCollapsed" x-cloak>Configuración</x-ui.sidebar.group-label>
                     <x-ui.sidebar.group-content>
                         <x-ui.sidebar.menu>
-                            @foreach($padronItems as $item)
+                            @foreach($configuracionItems as $item)
                                 <x-ui.sidebar.menu-item>
                                     <x-ui.sidebar.menu-button
                                         :href="route($item['route'])"
@@ -496,6 +496,14 @@
                     </div>
                 </template>
             </div>
+
+            {{-- Powered by EVOLVERE (solo expandido) --}}
+            <a x-show="!isCollapsed" x-cloak
+               href="https://evolvere.ar" target="_blank" rel="noopener noreferrer"
+               class="group mt-1 flex items-center justify-center gap-1 py-1 text-xs">
+                <span class="text-sidebar-foreground/45 transition-colors group-hover:text-sidebar-foreground/70">Powered by</span>
+                <span class="font-bold tracking-wide text-sidebar-foreground/70 transition-colors group-hover:text-sidebar-foreground">EVOLVERE</span>
+            </a>
         </x-ui.sidebar.footer>
         @endif
 
