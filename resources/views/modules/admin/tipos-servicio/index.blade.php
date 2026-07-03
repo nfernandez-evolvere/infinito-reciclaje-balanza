@@ -74,17 +74,21 @@
             <x-ui.typography as="h2">Servicios</x-ui.typography>
             <x-ui.typography as="muted">Servicios de recolección y las zonas de operación de cada uno.</x-ui.typography>
         </div>
-        <x-domain.tipos-servicio.mobile-drawers
-            :filters="$filters"
-            :tiposVehiculo="$tiposVehiculo"
+        <x-domain.tipos-servicio.acciones
             :hayFiltros="$hayFiltros"
             :activeFilters="$activeFilters"
         />
     </div>
 
+    <x-domain.tipos-servicio.filtros
+        :filters="$filters"
+        :tiposVehiculo="$tiposVehiculo"
+        :hayFiltros="$hayFiltros"
+        :activeFilters="$activeFilters"
+    />
+
     <x-domain.tipos-servicio.servicios :tipos="$tipos" :activeFilters="$activeFilters" />
 
-    <x-domain.tipos-servicio.drawer-filtros :filters="$filters" :tiposVehiculo="$tiposVehiculo" />
     <x-domain.tipos-servicio.modal :tiposVehiculo="$tiposVehiculo" />
     <x-domain.tipos-servicio.modal-confirm />
     <x-domain.tipos-servicio.modal-delete />

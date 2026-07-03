@@ -207,6 +207,10 @@ class PesajeRepository
             ->when($filtros['operario_id'] ?? null, fn ($q, $id) => $q->where('operador_id', $id))
             ->when($filtros['zona_id'] ?? null, fn ($q, $id) => $q->where('zona_id', $id))
             ->when($filtros['tipo_servicio_id'] ?? null, fn ($q, $id) => $q->where('tipo_servicio_id', $id))
+            ->when(
+                $filtros['tipo_vehiculo_id'] ?? null,
+                fn ($q, $id) => $q->whereHas('vehiculo', fn ($v) => $v->where('tipo_vehiculo_id', $id))
+            )
             ->when($filtros['solo_alerta'] ?? null, fn ($q) => $q->where('alerta_peso', true))
             ->when($filtros['solo_editados'] ?? null, fn ($q) => $q->where('editado', true))
             // Universo de "Modificaciones": pesajes editados o cancelados, con sub-filtro por tipo.

@@ -1,4 +1,4 @@
-@props(['filtros', 'operarios', 'hayFiltros', 'zonas' => collect(), 'tiposServicio' => collect(), 'sortDirection' => 'desc', 'control' => 'filterOpen'])
+@props(['filtros', 'operarios', 'hayFiltros', 'zonas' => collect(), 'tiposServicio' => collect(), 'tiposVehiculo' => collect(), 'sortDirection' => 'desc', 'control' => 'filterOpen'])
 
 @php
     // Tab «Modificaciones» de la pantalla de Pesajes: usa parámetros con prefijo `m_`
@@ -54,6 +54,11 @@
         $chips[] = ['label' => $ts?->nombre ?? 'Servicio', 'url' => $removeUrl(['m_tipo_servicio_id' => null])];
     }
 
+    if (!empty($filtros['tipo_vehiculo_id'])) {
+        $tv = $tiposVehiculo->firstWhere('id', $filtros['tipo_vehiculo_id']);
+        $chips[] = ['label' => $tv?->nombre ?? 'Tipo de vehículo', 'url' => $removeUrl(['m_tipo_vehiculo_id' => null])];
+    }
+
     $storageKey = 'filtros-mod:' . (request()->route()?->getName() ?? 'modificaciones');
 @endphp
 
@@ -73,24 +78,19 @@
 </div>
 
 <x-ui.filter-sheet controlledBy="{{ $control }}" :action="$route" :resetUrl="$route">
-    <x-domain.modificaciones.filtros.campos :filtros="$filtros" :operarios="$operarios" :zonas="$zonas" :tiposServicio="$tiposServicio" :sortDirection="$sortDirection" />
+    <x-domain.modificaciones.filtros.campos :filtros="$filtros" :operarios="$operarios" :zonas="$zonas" :tiposServicio="$tiposServicio" :tiposVehiculo="$tiposVehiculo" :sortDirection="$sortDirection" />
 </x-ui.filter-sheet>
 
 {{-- ── Tablet / Desktop (md+): toggle + card de filtros ─────────────── --}}
-<x-ui.filter-panel :action="$route" :resetUrl="$route" :storageKey="$storageKey" :hasFilters="(bool) $hayFiltros">
+<x-ui.filter-panel :action="$route" :resetUrl="$route" :storageKey="$storageKey" :hasFilters="(bool) $hayFiltros"
+    bodyClass="grid grid-cols-2 gap-x-4 gap-y-3 p-4 lg:grid-cols-5 lg:items-end">
     @if(count($chips))
         <x-slot:chips>
             @foreach($chips as $chip)
-                <a
-                    href="{{ $chip['url'] }}"
-                    class="inline-flex items-center gap-1 rounded-full border border-border bg-muted/40 pl-2.5 pr-1.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                >
-                    <span class="truncate max-w-40">{{ $chip['label'] }}</span>
-                    <x-lucide-x class="size-3 shrink-0" />
-                </a>
+                <x-ui.filter-chip :href="$chip['url']" :label="$chip['label']" />
             @endforeach
         </x-slot:chips>
     @endif
 
-    <x-domain.modificaciones.filtros.campos :filtros="$filtros" :operarios="$operarios" :zonas="$zonas" :tiposServicio="$tiposServicio" :sortDirection="$sortDirection" />
+    <x-domain.modificaciones.filtros.campos :filtros="$filtros" :operarios="$operarios" :zonas="$zonas" :tiposServicio="$tiposServicio" :tiposVehiculo="$tiposVehiculo" :sortDirection="$sortDirection" />
 </x-ui.filter-panel>

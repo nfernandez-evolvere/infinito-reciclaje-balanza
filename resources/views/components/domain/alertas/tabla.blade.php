@@ -4,29 +4,12 @@
 
 <div class="flex flex-col gap-4" x-data="{ filterOpen: false }">
 
-    {{-- Barra superior: botón filtros + acción --}}
+    {{-- Barra superior: trigger de filtros (solo <md) --}}
     <div class="flex items-center justify-end gap-3">
 
-        {{-- Marcar todas --}}
-        @if($alertas->total() > 0)
-            <form method="POST" action="{{ route('admin.alertas.leer-todas') }}">
-                @csrf
-                <x-ui.button type="submit" variant="ghost">
-                    <x-lucide-check-check class="size-4" />
-                    <span class="hidden sm:inline">Marcar todas como leídas</span>
-                    <span class="sm:hidden">Marcar leídas</span>
-                </x-ui.button>
-            </form>
-        @endif
-
-        {{-- Botón abrir filtros --}}
-        <div class="relative">
-            <x-ui.tooltip content="Filtros" class="sm:hidden">
-                <x-ui.button variant="ghost" @click="filterOpen = true">
-                    <x-lucide-sliders-horizontal class="size-4" />
-                </x-ui.button>
-            </x-ui.tooltip>
-            <x-ui.button class="hidden sm:flex gap-1.5" @click="filterOpen = true">
+        {{-- Trigger de filtros: solo <md (en md+ los filtros viven en el panel inline) --}}
+        <div class="relative md:hidden">
+            <x-ui.button variant="outline" @click="filterOpen = true">
                 <x-lucide-sliders-horizontal class="size-4" />
                 Filtros
             </x-ui.button>
@@ -38,74 +21,12 @@
         </div>
     </div>
 
-    {{-- Drawer de filtros --}}
-    <x-ui.sheet side="right" controlledBy="filterOpen">
-        <div class="flex items-center border-b border-border px-5 py-4 pr-12">
-            <x-ui.typography as="h4" class="flex items-center gap-2">
-                <x-lucide-sliders-horizontal class="size-5" />
-                Filtros
-            </x-ui.typography>
-        </div>
-
-        <form method="GET" action="{{ route('admin.alertas.index') }}" class="flex flex-col flex-1">
-            <input type="hidden" name="tab" value="alertas">
-
-            <div class="px-5 py-5 space-y-0 flex-1">
-                <x-ui.form-field>
-                    <x-ui.label>Tipo</x-ui.label>
-                    <x-ui.select name="tipo" :value="$filtros['tipo'] ?? ''">
-                        <x-ui.select.trigger>
-                            <x-ui.select.value placeholder="Todos los tipos" />
-                        </x-ui.select.trigger>
-                        <x-ui.select.content>
-                            <x-ui.select.item value="">Todos los tipos</x-ui.select.item>
-                            <x-ui.select.item value="peso_fuera_rango">Peso fuera de rango</x-ui.select.item>
-                            <x-ui.select.item value="volumen_diario_atipico">Volumen atípico</x-ui.select.item>
-                            <x-ui.select.item value="gap_registro">Sin actividad</x-ui.select.item>
-                            <x-ui.select.item value="frecuencia_zona_atipica">Frecuencia atípica</x-ui.select.item>
-                        </x-ui.select.content>
-                    </x-ui.select>
-                </x-ui.form-field>
-
-                <x-ui.form-field>
-                    <x-ui.label>Estado</x-ui.label>
-                    <x-ui.select name="leida" :value="$filtros['leida'] ?? ''">
-                        <x-ui.select.trigger>
-                            <x-ui.select.value placeholder="Todas" />
-                        </x-ui.select.trigger>
-                        <x-ui.select.content>
-                            <x-ui.select.item value="">Todas</x-ui.select.item>
-                            <x-ui.select.item value="0">Sin leer</x-ui.select.item>
-                            <x-ui.select.item value="1">Leídas</x-ui.select.item>
-                        </x-ui.select.content>
-                    </x-ui.select>
-                </x-ui.form-field>
-
-                <x-ui.form-field>
-                    <x-ui.label>Desde</x-ui.label>
-                    <x-ui.date-picker name="desde" value="{{ $filtros['desde'] ?? '' }}" placeholder="Desde" />
-                </x-ui.form-field>
-
-                <x-ui.form-field>
-                    <x-ui.label>Hasta</x-ui.label>
-                    <x-ui.date-picker name="hasta" value="{{ $filtros['hasta'] ?? '' }}" placeholder="Hasta" />
-                </x-ui.form-field>
-            </div>
-
-            <div class="border-t border-border px-5 py-4 flex gap-2">
-                <a href="{{ route('admin.alertas.index', ['tab' => 'alertas']) }}" class="flex-1">
-                    <x-ui.button type="button" variant="secondary" class="w-full">
-                        <x-lucide-x class="size-4" />
-                        Limpiar
-                    </x-ui.button>
-                </a>
-                <x-ui.button type="submit" class="flex-1">
-                    <x-lucide-search class="size-4" />
-                    Aplicar
-                </x-ui.button>
-            </div>
-        </form>
-    </x-ui.sheet>
+    {{-- Filtros: sheet mobile + panel inline (md+) --}}
+    <x-domain.alertas.filtros
+        :filtros="$filtros"
+        :hayFiltros="(bool) $hayFiltros"
+        :activeFilters="$countFiltros"
+    />
 
     {{-- Empty state --}}
     @if($alertas->isEmpty())

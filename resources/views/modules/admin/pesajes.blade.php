@@ -28,6 +28,7 @@
             || $filtros['operario_id']
             || ($filtros['zona_id'] ?? null)
             || ($filtros['tipo_servicio_id'] ?? null)
+            || ($filtros['tipo_vehiculo_id'] ?? null)
             || ($filtros['solo_alerta'] ?? null)
             || ($filtros['solo_editados'] ?? null);
 
@@ -37,7 +38,8 @@
             || $filtrosMod['patente']
             || $filtrosMod['operario_id']
             || $filtrosMod['zona_id']
-            || $filtrosMod['tipo_servicio_id'];
+            || $filtrosMod['tipo_servicio_id']
+            || $filtrosMod['tipo_vehiculo_id'];
     @endphp
 
     <div x-data="historial()">
@@ -82,7 +84,7 @@
 
                 <x-domain.historial.kpis :kpis="$kpis" />
 
-                <x-domain.historial.filtros :filtros="$filtros" :operarios="$operarios" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" :zonas="$zonas" :tiposServicio="$tiposServicio" :sortDirection="$filtros['direction']" />
+                <x-domain.historial.filtros :filtros="$filtros" :operarios="$operarios" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" :zonas="$zonas" :tiposServicio="$tiposServicio" :tiposVehiculo="$tiposVehiculo" :sortDirection="$filtros['direction']" />
 
                 <x-domain.historial.tabla :pesajes="$pesajes" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" :sortDirection="$filtros['direction']" />
             </x-ui.tabs.content>
@@ -90,7 +92,7 @@
             {{-- Tab: Modificaciones (sin KPIs) --}}
             <x-ui.tabs.content value="modificaciones" class="mt-0 flex flex-col gap-6">
 
-                <x-domain.modificaciones.filtros :filtros="$filtrosMod" :operarios="$operarios" :hayFiltros="$hayFiltrosMod" :zonas="$zonas" :tiposServicio="$tiposServicio" :sortDirection="$filtrosMod['direction']" control="filterOpenMod" />
+                <x-domain.modificaciones.filtros :filtros="$filtrosMod" :operarios="$operarios" :hayFiltros="$hayFiltrosMod" :zonas="$zonas" :tiposServicio="$tiposServicio" :tiposVehiculo="$tiposVehiculo" :sortDirection="$filtrosMod['direction']" control="filterOpenMod" />
 
                 <x-domain.historial.tabla
                     :pesajes="$modificaciones"

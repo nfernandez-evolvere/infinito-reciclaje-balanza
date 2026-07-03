@@ -83,6 +83,14 @@
     <x-ui.tabs.content value="generar" class="mt-0">
         <div x-data="{ filterOpen: false }" class="flex flex-col gap-8">
 
+            {{-- Filtros: panel inline (md+) arriba de todo + sheet mobile (teleportado) --}}
+            <x-domain.reportes.filtros
+                :zonas="$zonas"
+                :tiposServicio="$tiposServicio"
+                :tiposVehiculo="$tiposVehiculo"
+                :filters="$filters"
+            />
+
             <x-domain.reportes.header-generar
                 :reporte="$reporte"
                 :filters="$filters"
@@ -130,13 +138,6 @@
                     </x-ui.button>
                 </x-ui.empty-state>
             @endif
-
-            <x-domain.reportes.filtros
-                :zonas="$zonas"
-                :tiposServicio="$tiposServicio"
-                :tiposVehiculo="$tiposVehiculo"
-                :filters="$filters"
-            />
 
         </div>
     </x-ui.tabs.content>

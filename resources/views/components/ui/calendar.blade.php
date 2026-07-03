@@ -162,6 +162,7 @@ $initialValue = match($mode) {
             } else if (this.mode === 'range') {
                 if (!this.value?.start || this.value?.end) {
                     this.value = { start: iso, end: null };
+                    this.$dispatch('change', { value: this.value });
                 } else {
                     const start = this.value.start;
                     if (iso === start)     this.value = null;
@@ -172,7 +173,19 @@ $initialValue = match($mode) {
                 this.hovering = null;
             }
         },
+
+        // Setear el rango desde afuera (ej: un select de «período rápido»). Actualiza la
+        // selección y mueve la vista al mes de inicio. Solo aplica en modo range.
+        setRange(start, end) {
+            if (this.mode !== 'range') return;
+            this.value = (start || end) ? { start: start || null, end: end || null } : null;
+            if (this.value?.start) {
+                const d = new Date(this.value.start + 'T00:00:00');
+                if (!isNaN(d)) { this.viewYear = d.getFullYear(); this.viewMonth = d.getMonth(); }
+            }
+        },
     }"
+    @set-range.window="setRange($event.detail.start, $event.detail.end)"
     {{ $attributes->twMerge('inline-block') }}
 >
     <div class="p-3 space-y-4 w-fit rounded-lg border border-border bg-background shadow-sm">

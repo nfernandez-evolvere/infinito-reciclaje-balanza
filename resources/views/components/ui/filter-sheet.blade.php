@@ -1,7 +1,11 @@
 @props([
-    'action',
-    'resetUrl',
+    'action'       => null,
+    'resetUrl'     => null,
     'controlledBy' => null,  // nombre de la variable Alpine del padre que controla open/close
+    // Modo AJAX (opcional): si se pasan, el form no navega — corre expresiones Alpine
+    // y cierra el sheet al aplicar/limpiar. Usado por el dashboard (filtra sin recargar).
+    'submitHandler' => null,
+    'clearHandler'  => null,
 ])
 
 @php
@@ -70,17 +74,32 @@ $panelClass = 'inset-x-0 bottom-0 max-h-[80vh] w-full rounded-t-2xl border-t '
             </div>
 
             {{-- Campos + footer --}}
-            <form method="GET" action="{{ $action }}" x-data="{ submitting: false }" @submit="submitting = true" class="flex flex-col flex-1 min-h-0">
+            <form
+                x-data="{ submitting: false }"
+                @if($submitHandler)
+                    @submit.prevent="{{ $submitHandler }}; {{ $closeExpr }}"
+                @else
+                    method="GET" action="{{ $action }}" @submit="submitting = true"
+                @endif
+                class="flex flex-col flex-1 min-h-0"
+            >
                 <div class="flex-1 overflow-y-auto px-5 py-5 space-y-4">
                     {{ $slot }}
                 </div>
                 <div class="border-t border-border px-5 py-4 flex gap-2 shrink-0">
-                    <a href="{{ $resetUrl }}" class="flex-1" x-bind:class="submitting && 'pointer-events-none opacity-50'">
-                        <x-ui.button type="button" variant="secondary" class="w-full">
+                    @if($clearHandler)
+                        <x-ui.button type="button" variant="secondary" class="flex-1" @click="{{ $clearHandler }}; {{ $closeExpr }}">
                             <x-lucide-x class="size-4" />
                             Limpiar
                         </x-ui.button>
-                    </a>
+                    @else
+                        <a href="{{ $resetUrl }}" class="flex-1" x-bind:class="submitting && 'pointer-events-none opacity-50'">
+                            <x-ui.button type="button" variant="secondary" class="w-full">
+                                <x-lucide-x class="size-4" />
+                                Limpiar
+                            </x-ui.button>
+                        </a>
+                    @endif
                     <x-ui.button type="submit" class="flex-1" x-bind:disabled="submitting">
                         <x-ui.spinner size="sm" class="text-current" x-show="submitting" x-cloak />
                         <x-lucide-search class="size-4" x-show="!submitting" />

@@ -25,7 +25,12 @@
         <x-ui.typography as="muted">Rangos de peso bruto esperados por tipo (vehículo + carga). Se usan para detectar pesajes anómalos.</x-ui.typography>
     </div>
 
-    <x-domain.tipos-vehiculo.mobile-drawers
+    <x-domain.tipos-vehiculo.acciones
+        :hayFiltros="$hayFiltros"
+        :activeFilters="$activeFilters"
+    />
+
+    <x-domain.tipos-vehiculo.filtros
         :filters="$filters"
         :hayFiltros="$hayFiltros"
         :activeFilters="$activeFilters"
@@ -33,7 +38,6 @@
 
     <x-domain.tipos-vehiculo.tabla :tipos="$tipos" :activeFilters="$activeFilters" />
 
-    <x-domain.tipos-vehiculo.drawer-filtros :filters="$filters" />
     <x-domain.tipos-vehiculo.modal />
     <x-domain.tipos-vehiculo.modal-confirm />
     <x-domain.tipos-vehiculo.modal-delete />

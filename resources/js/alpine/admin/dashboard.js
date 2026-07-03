@@ -6,6 +6,7 @@ export default function dashboardData() {
     return {
         lastRefresh: new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
         refreshing: false,
+        filterOpen: false,
 
         kpisDia:             init.kpisDia             ?? {},
         kpisMes:             init.kpisMes             ?? {},
@@ -89,6 +90,14 @@ export default function dashboardData() {
             return this.desdeRango === this.hastaRango
                 ? fmt(this.desdeRango)
                 : fmt(this.desdeRango) + ' – ' + fmt(this.hastaRango);
+        },
+
+        // Guarda el rango elegido en el date-range-picker (evento range-picked) sin aplicarlo
+        // todavía. Se aplica al tocar «Aplicar» (applyRango). Método (no asignación directa)
+        // para escribir en el scope correcto desde el x-data anidado del filter-panel/sheet.
+        stageRango(start, end) {
+            this.tmpDesde = start;
+            this.tmpHasta = end;
         },
 
         async applyRango(desde = null, hasta = null) {

@@ -54,9 +54,22 @@
     })"
 >
 
-    <div class="flex flex-col items-start gap-2">
-        <x-ui.typography as="h2">Vehículos</x-ui.typography>
-        <x-ui.typography as="muted">Padrón de vehículos habilitados para operar en la balanza y sus categorías.</x-ui.typography>
+    <div class="flex items-start justify-between gap-4">
+        <div class="flex flex-col items-start gap-2">
+            <x-ui.typography as="h2">Vehículos</x-ui.typography>
+            <x-ui.typography as="muted">Padrón de vehículos habilitados para operar en la balanza y sus categorías.</x-ui.typography>
+        </div>
+
+        <div class="shrink-0">
+            <x-ui.button x-show="active === 'vehiculos'" @click="$dispatch('open-create-vehiculo')">
+                <x-lucide-plus class="size-4" />
+                <span class="hidden sm:inline">Agregar vehículo</span>
+            </x-ui.button>
+            <x-ui.button x-show="active === 'tipos'" x-cloak @click="$dispatch('open-create-tipo')">
+                <x-lucide-plus class="size-4" />
+                <span class="hidden sm:inline">Agregar tipo</span>
+            </x-ui.button>
+        </div>
     </div>
 
     <x-ui.tabs.list class="flex w-full sm:w-fit">
@@ -72,9 +85,14 @@
 
     {{-- Tab: Vehículos --}}
     <x-ui.tabs.content value="vehiculos" class="mt-0">
-        <div x-data="vehiculos({{ Js::from($vInitial) }})" class="flex flex-col gap-6">
+        <div x-data="vehiculos({{ Js::from($vInitial) }})" class="flex flex-col gap-6" @open-create-vehiculo.window="openCreate()">
 
-            <x-domain.vehiculos.mobile-drawers
+            <x-domain.vehiculos.acciones
+                :hayFiltros="$vHayFiltros"
+                :activeFilters="$vActiveFilters"
+            />
+
+            <x-domain.vehiculos.filtros
                 :filters="$filters"
                 :tiposVehiculo="$tiposVehiculo"
                 :hayFiltros="$vHayFiltros"
@@ -83,7 +101,6 @@
 
             <x-domain.vehiculos.tabla :vehiculos="$vehiculos" :activeFilters="$vActiveFilters" />
 
-            <x-domain.vehiculos.drawer-filtros :filters="$filters" :tiposVehiculo="$tiposVehiculo" />
             <x-domain.vehiculos.modal :tiposVehiculo="$tiposVehiculo" />
             <x-domain.vehiculos.modal-confirm />
             <x-domain.vehiculos.modal-delete />
@@ -93,9 +110,14 @@
 
     {{-- Tab: Tipos de vehículo --}}
     <x-ui.tabs.content value="tipos" class="mt-0">
-        <div x-data="tiposVehiculo({{ Js::from($tInitial) }})" class="flex flex-col gap-6">
+        <div x-data="tiposVehiculo({{ Js::from($tInitial) }})" class="flex flex-col gap-6" @open-create-tipo.window="openCreate()">
 
-            <x-domain.tipos-vehiculo.mobile-drawers
+            <x-domain.tipos-vehiculo.acciones
+                :hayFiltros="$tHayFiltros"
+                :activeFilters="$tActiveFilters"
+            />
+
+            <x-domain.tipos-vehiculo.filtros
                 :filters="$tiposFiltros"
                 :hayFiltros="$tHayFiltros"
                 :activeFilters="$tActiveFilters"
@@ -103,7 +125,6 @@
 
             <x-domain.tipos-vehiculo.tabla :tipos="$tipos" :activeFilters="$tActiveFilters" />
 
-            <x-domain.tipos-vehiculo.drawer-filtros :filters="$tiposFiltros" />
             <x-domain.tipos-vehiculo.modal />
             <x-domain.tipos-vehiculo.modal-confirm />
             <x-domain.tipos-vehiculo.modal-delete />

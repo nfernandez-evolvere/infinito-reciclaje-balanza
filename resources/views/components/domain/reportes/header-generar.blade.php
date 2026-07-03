@@ -29,7 +29,7 @@
             {{-- KPIs (mobile/tablet) + cambiar período: ghost solo-ícono, estilo dashboard --}}
             <x-domain.reportes.mobile-kpis :kpis="$reporte['kpis']" />
 
-            <x-ui.button variant="ghost" size="icon" @click="filterOpen = true" class="relative" aria-label="Cambiar período">
+            <x-ui.button variant="ghost" size="icon" @click="filterOpen = true" class="relative md:hidden" aria-label="Cambiar período">
                 <x-lucide-calendar-days class="size-4" />
                 @if($activeFilters > 0)
                     <span class="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground leading-none">

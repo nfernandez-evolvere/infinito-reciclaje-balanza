@@ -3,6 +3,7 @@
     'operarios',
     'zonas'         => collect(),
     'tiposServicio' => collect(),
+    'tiposVehiculo' => collect(),
     'sortDirection' => 'desc',
 ])
 
@@ -14,14 +15,15 @@
 
 <input type="hidden" name="tab" value="modificaciones">
 
-<x-ui.form-field>
-    <x-ui.label>Desde</x-ui.label>
-    <x-ui.date-picker name="m_desde" value="{{ $filtros['desde'] }}" placeholder="Desde" />
-</x-ui.form-field>
-
-<x-ui.form-field>
-    <x-ui.label>Hasta</x-ui.label>
-    <x-ui.date-picker name="m_hasta" value="{{ $filtros['hasta'] }}" placeholder="Hasta" />
+<x-ui.form-field class="col-span-2">
+    <x-ui.label>Período</x-ui.label>
+    <x-ui.date-range-picker
+        startName="m_desde"
+        endName="m_hasta"
+        :start="$filtros['desde']"
+        :end="$filtros['hasta']"
+        placeholder="Todas las fechas"
+    />
 </x-ui.form-field>
 
 <x-ui.form-field>
@@ -113,6 +115,23 @@
                 <x-ui.select.item value="">Todos</x-ui.select.item>
                 @foreach($tiposServicio as $ts)
                     <x-ui.select.item value="{{ $ts->id }}">{{ $ts->nombre }}</x-ui.select.item>
+                @endforeach
+            </x-ui.select.content>
+        </x-ui.select>
+    </x-ui.form-field>
+@endif
+
+@if($tiposVehiculo->isNotEmpty())
+    <x-ui.form-field>
+        <x-ui.label>Tipo de vehículo</x-ui.label>
+        <x-ui.select name="m_tipo_vehiculo_id" value="{{ $filtros['tipo_vehiculo_id'] ?? '' }}">
+            <x-ui.select.trigger>
+                <x-ui.select.value placeholder="Todos" />
+            </x-ui.select.trigger>
+            <x-ui.select.content>
+                <x-ui.select.item value="">Todos</x-ui.select.item>
+                @foreach($tiposVehiculo as $tv)
+                    <x-ui.select.item value="{{ $tv->id }}">{{ $tv->nombre }}</x-ui.select.item>
                 @endforeach
             </x-ui.select.content>
         </x-ui.select>

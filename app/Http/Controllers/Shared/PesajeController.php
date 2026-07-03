@@ -11,6 +11,7 @@ use App\Models\PesajeLog;
 use App\Repositories\PesajeLogRepository;
 use App\Repositories\PesajeRepository;
 use App\Repositories\TipoServicioRepository;
+use App\Repositories\TipoVehiculoRepository;
 use App\Repositories\UsuarioRepository;
 use App\Repositories\ZonaRepository;
 use App\Services\PesajeService;
@@ -40,6 +41,7 @@ class PesajeController extends Controller
         protected UsuarioRepository $usuarioRepository,
         protected ZonaRepository $zonaRepository,
         protected TipoServicioRepository $tipoServicioRepository,
+        protected TipoVehiculoRepository $tipoVehiculoRepository,
     ) {}
 
     public function index(Request $request): View
@@ -86,6 +88,7 @@ class PesajeController extends Controller
             'routeHistorial' => route('admin.pesajes.index'),
             'zonas'          => $this->zonaRepository->activos(),
             'tiposServicio'  => $this->tipoServicioRepository->activos(),
+            'tiposVehiculo'  => $this->tipoVehiculoRepository->activos(),
         ]);
     }
 
@@ -226,6 +229,7 @@ class PesajeController extends Controller
             'operario_id'      => $request->input('operario_id') ?: null,
             'zona_id'          => $isAdmin ? ($request->input('zona_id') ?: null) : null,
             'tipo_servicio_id' => $isAdmin ? ($request->input('tipo_servicio_id') ?: null) : null,
+            'tipo_vehiculo_id' => $isAdmin ? ($request->input('tipo_vehiculo_id') ?: null) : null,
             'solo_alerta'      => $mostrar === 'alerta' ? true : null,
             'solo_editados'    => $mostrar === 'editados' ? true : null,
             'direction'        => in_array($request->input('direction'), ['asc', 'desc']) ? $request->input('direction') : 'desc',
@@ -248,6 +252,7 @@ class PesajeController extends Controller
             'operario_id'      => $request->input('m_operario_id') ?: null,
             'zona_id'          => $request->input('m_zona_id') ?: null,
             'tipo_servicio_id' => $request->input('m_tipo_servicio_id') ?: null,
+            'tipo_vehiculo_id' => $request->input('m_tipo_vehiculo_id') ?: null,
             'direction'        => in_array($request->input('m_direction'), ['asc', 'desc']) ? $request->input('m_direction') : 'desc',
         ];
     }

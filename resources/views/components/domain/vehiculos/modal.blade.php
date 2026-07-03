@@ -1,34 +1,34 @@
 @props(['tiposVehiculo'])
 
-<x-ui.sheet side="right" controlled-by="modalOpen">
-    <form
-        method="POST"
-        :action="modalMode === 'create'
-            ? '{{ route('admin.vehiculos.store') }}'
-            : '{{ url('admin/vehiculos') }}/' + form.id"
-        @submit="saving = true"
-    >
-        @csrf
-        <input type="hidden" name="_method"     :value="modalMode === 'edit' ? 'PUT' : 'POST'" />
-        <input type="hidden" name="_mode"       :value="modalMode" />
-        <input type="hidden" name="_editing_id" :value="form.id" />
-        <input type="hidden" name="_tab"        value="vehiculos" />
-        <input type="hidden" name="_tara_original"  :value="form._tara_original" />
-        <input type="hidden" name="_pesajes_count"  :value="form.pesajes_count" />
+<div x-data="{ get open() { return modalOpen }, set open(v) { modalOpen = v } }">
+    <x-ui.dialog.content size="lg">
+        <form
+            method="POST"
+            :action="modalMode === 'create'
+                ? '{{ route('admin.vehiculos.store') }}'
+                : '{{ url('admin/vehiculos') }}/' + form.id"
+            @submit="saving = true"
+        >
+            @csrf
+            <input type="hidden" name="_method"     :value="modalMode === 'edit' ? 'PUT' : 'POST'" />
+            <input type="hidden" name="_mode"       :value="modalMode" />
+            <input type="hidden" name="_editing_id" :value="form.id" />
+            <input type="hidden" name="_tab"        value="vehiculos" />
+            <input type="hidden" name="_tara_original"  :value="form._tara_original" />
+            <input type="hidden" name="_pesajes_count"  :value="form.pesajes_count" />
 
-        <x-ui.sheet.header>
-            <x-ui.sheet.title
-                x-text="modalMode === 'create' ? 'Nuevo vehículo' : 'Editar vehículo'"
-            ></x-ui.sheet.title>
-        </x-ui.sheet.header>
+            <x-ui.dialog.header>
+                <x-ui.dialog.title
+                    x-text="modalMode === 'create' ? 'Nuevo vehículo' : 'Editar vehículo'"
+                ></x-ui.dialog.title>
+            </x-ui.dialog.header>
 
-        <x-ui.sheet.content>
-            <div class="space-y-3">
+            <div class="px-6 pb-2 space-y-3 overflow-y-auto max-h-[65vh]">
 
                 {{-- Datos generales: se colapsan cuando hay que decidir sobre la tara,
                      para que el foco quede solo en esa decisión. --}}
                 <div x-show="!mostrarDecisionTara" x-collapse>
-                    <div class="space-y-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <x-ui.form-field
                             for="patente"
                             :state="$errors->has('patente') ? 'destructive' : null"
@@ -168,7 +168,7 @@
 
                 {{-- Datos generales (cont.): también se colapsan al decidir sobre la tara. --}}
                 <div x-show="!mostrarDecisionTara" x-collapse>
-                    <div class="space-y-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <x-ui.form-field
                             for="capacidad_kg"
                             :state="$errors->has('capacidad_kg') ? 'destructive' : null"
@@ -191,6 +191,7 @@
 
                         <x-ui.form-field
                             for="observaciones"
+                            class="sm:col-span-2"
                             :state="$errors->has('observaciones') ? 'destructive' : null"
                             :message="$errors->first('observaciones')"
                         >
@@ -262,32 +263,32 @@
                 </div>
 
             </div>
-        </x-ui.sheet.content>
 
-        <x-ui.sheet.footer>
-            {{-- Acciones normales (crear / guardar). Ocultas durante el sub-paso de decisión. --}}
-            <x-ui.button type="button" variant="ghost" class="flex-1" x-show="!mostrarDecisionTara" x-bind:disabled="saving" @click="modalOpen = false">
-                <x-lucide-x class="size-4" />
-                Cancelar
-            </x-ui.button>
-            <x-ui.button type="submit" class="flex-1" x-show="!mostrarDecisionTara" x-bind:disabled="saving">
-                <x-ui.spinner size="sm" class="text-current" x-show="saving" x-cloak />
-                <x-lucide-save class="size-4" x-show="!saving" />
-                <span x-show="!saving" x-text="textoGuardar"></span>
-            </x-ui.button>
+            <x-ui.dialog.footer>
+                {{-- Acciones normales (crear / guardar). Ocultas durante el sub-paso de decisión. --}}
+                <x-ui.button type="button" variant="ghost" x-show="!mostrarDecisionTara" x-bind:disabled="saving" @click="modalOpen = false">
+                    <x-lucide-x class="size-4" />
+                    Cancelar
+                </x-ui.button>
+                <x-ui.button type="submit" x-show="!mostrarDecisionTara" x-bind:disabled="saving">
+                    <x-ui.spinner size="sm" class="text-current" x-show="saving" x-cloak />
+                    <x-lucide-save class="size-4" x-show="!saving" />
+                    <span x-show="!saving" x-text="textoGuardar"></span>
+                </x-ui.button>
 
-            {{-- Sub-paso de decisión de tara: confirma la acción, no guarda todavía. --}}
-            <x-ui.button type="button" variant="ghost" state="warning" class="flex-1" x-show="mostrarDecisionTara" x-cloak @click="cancelarDecisionTara()">
-                <x-lucide-x class="size-4" />
-                Cancelar
-            </x-ui.button>
-            <x-ui.button type="button" state="warning" class="flex-1" x-show="mostrarDecisionTara" x-cloak
-                @click="confirmarDecisionTara()"
-                x-bind:disabled="!form._intencion_tara || !String(form._motivo_tara).trim()"
-            >
-                <x-lucide-check class="size-4" />
-                Confirmar
-            </x-ui.button>
-        </x-ui.sheet.footer>
-    </form>
-</x-ui.sheet>
+                {{-- Sub-paso de decisión de tara: confirma la acción, no guarda todavía. --}}
+                <x-ui.button type="button" variant="ghost" state="warning" x-show="mostrarDecisionTara" x-cloak @click="cancelarDecisionTara()">
+                    <x-lucide-x class="size-4" />
+                    Cancelar
+                </x-ui.button>
+                <x-ui.button type="button" state="warning" x-show="mostrarDecisionTara" x-cloak
+                    @click="confirmarDecisionTara()"
+                    x-bind:disabled="!form._intencion_tara || !String(form._motivo_tara).trim()"
+                >
+                    <x-lucide-check class="size-4" />
+                    Confirmar
+                </x-ui.button>
+            </x-ui.dialog.footer>
+        </form>
+    </x-ui.dialog.content>
+</div>

@@ -762,7 +762,8 @@ El tema oscuro se activa con la clase `dark` en `<html>`. El layout lo gestiona 
 | `navigation-menu` | `list`, `item`, `trigger`, `content`, `link` | Menú de navegación principal |
 | `menubar`         | `menu`, `trigger`, `content`, `item`, `group`, `label`, `separator`, `shortcut`, `checkbox-item`, `radio-group`, `radio-item`, `sub`, `sub-trigger`, `sub-content` | Barra de menús |
 | `calendar`        | —                                        | Calendario Alpine.js               |
-| `date-picker`     | —                                        | Selector de fecha                  |
+| `date-picker`     | —                                        | Selector de fecha única            |
+| `date-range-picker` | —                                      | Selector de rango de fechas (desde/hasta) |
 | `empty-state`     | —                                        | Estado vacío estilizado            |
 | `scroll-area`     | —                                        | Área con scroll custom             |
 | `progress`        | —                                        | Barra de progreso                  |

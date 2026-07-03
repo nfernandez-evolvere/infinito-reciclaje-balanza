@@ -1,7 +1,6 @@
 <x-layouts.app title="Dashboard">
 
 @php
-    $todayISO = now()->format('Y-m-d');
     $dashboardInit = [
         'refreshUrl'          => route('admin.dashboard.data'),
         'kpisDia'             => $kpisDia,
@@ -25,9 +24,7 @@
 </script>
 @endpush
 
-<div class="flex flex-col gap-6" x-data="dashboardData()"
-     @dp-desde.window="tmpDesde = $event.detail"
-     @dp-hasta.window="tmpHasta = $event.detail">
+<div class="flex flex-col gap-6" x-data="dashboardData()">
 
     {{-- Encabezado --}}
     <div class="flex items-center justify-between">
@@ -47,12 +44,12 @@
     {{-- Banner alertas --}}
     <x-domain.dashboard.banner-alertas />
 
+    {{-- Filtro de período: sheet mobile + panel colapsable (md+). Filtra por AJAX. --}}
+    <x-domain.dashboard.filtros />
+
     {{-- Tabs: Hoy / Este mes / Personalizado --}}
     <x-ui.tabs value="hoy" @activate-tab.window="active = $event.detail">
-        <div class="flex items-center justify-between gap-2"
-             x-data="{ _d: null, _h: null }"
-             @dp-desde.window="_d = $event.detail"
-             @dp-hasta.window="_h = $event.detail">
+        <div class="flex items-center justify-between gap-2">
             <x-ui.tabs.list class="shrink-0">
                 <x-ui.tabs.trigger value="hoy">
                     <span>Hoy</span>
@@ -88,59 +85,15 @@
                 </div>
             </x-ui.popover>
 
-            {{-- Date range picker --}}
-            <x-ui.popover width="w-72" align="end">
-                    <x-slot:trigger>
-                        <x-ui.button
-                                x-bind:class="desdeRango ? 'text-primary' : ''"
-                                class="hidden sm:flex gap-1.5 px-2.5">
-                            <x-lucide-calendar-range class="size-4 shrink-0" />
-                            <span x-show="!desdeRango" x-cloak
-                                  class="text-sm font-medium">Filtrar por período</span>
-                            <span x-show="desdeRango" x-cloak
-                                  x-text="rangoLabel()"
-                                  class="text-xs font-medium tabular-nums"></span>
-                        </x-ui.button>
-                        <x-ui.button variant="ghost" size="icon"
-                                x-bind:class="desdeRango ? 'text-primary' : ''"
-                                class="sm:hidden">
-                            <x-lucide-calendar-range class="size-4 shrink-0" />
-                        </x-ui.button>
-                    </x-slot:trigger>
-                    <div class="space-y-4">
-                        <p class="text-sm font-medium">Filtrar por período</p>
-                        <div class="space-y-3">
-                            <div class="space-y-1.5">
-                                <x-ui.label>Desde</x-ui.label>
-                                <div x-on:date-picked="$dispatch('dp-desde', $event.detail.value)">
-                                    <x-ui.date-picker
-                                        placeholder="Fecha inicio"
-                                        max-date="{{ $todayISO }}"
-                                    />
-                                </div>
-                            </div>
-                            <div class="space-y-1.5">
-                                <x-ui.label>Hasta</x-ui.label>
-                                <div x-on:date-picked="$dispatch('dp-hasta', $event.detail.value)">
-                                    <x-ui.date-picker
-                                        placeholder="Fecha fin"
-                                        max-date="{{ $todayISO }}"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <x-ui.button size="sm" class="flex-1"
-                                         @click="applyRango(_d, _h); _close()">
-                                Aplicar
-                            </x-ui.button>
-                            <x-ui.button size="sm" variant="ghost" x-show="desdeRango" x-cloak
-                                         @click="clearRango(); _close()">
-                                Limpiar
-                            </x-ui.button>
-                        </div>
-                    </div>
-            </x-ui.popover>
+            {{-- Filtro de período: trigger mobile (md+ usa el panel colapsable de arriba) --}}
+            <div class="relative md:hidden">
+                <x-ui.button variant="ghost" size="icon" @click="filterOpen = true"
+                             x-bind:class="desdeRango ? 'text-primary' : ''">
+                    <x-lucide-calendar-range class="size-4 shrink-0" />
+                </x-ui.button>
+                <span x-show="desdeRango" x-cloak
+                      class="pointer-events-none absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-primary ring-2 ring-background"></span>
+            </div>
             </div>{{-- /acciones --}}
         </div>{{-- /flex tabs nav --}}
 

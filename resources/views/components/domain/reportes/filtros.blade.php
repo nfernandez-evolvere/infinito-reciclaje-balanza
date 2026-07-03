@@ -1,109 +1,81 @@
 @props(['zonas', 'tiposServicio', 'tiposVehiculo', 'filters' => []])
 
-<x-ui.filter-sheet
-    controlledBy="filterOpen"
-    action="{{ route('admin.reportes.index') }}"
-    resetUrl="{{ route('admin.reportes.index', ['tab' => 'generar']) }}"
->
-    {{-- Mantiene la pestaña "Generar" al aplicar el filtro --}}
-    <input type="hidden" name="tab" value="generar">
+@php
+    $route    = route('admin.reportes.index');
+    $resetUrl = route('admin.reportes.index', ['tab' => 'generar']);
 
-    {{-- Período rápido --}}
-    <div
-        x-data="{
-            setMes(offset) {
-                const d = new Date();
-                d.setMonth(d.getMonth() - offset);
-                const y = d.getFullYear();
-                const m = String(d.getMonth() + 1).padStart(2, '0');
-                const last = new Date(y, d.getMonth() + 1, 0).getDate();
-                $dispatch('set-desde', { date: `${y}-${m}-01` });
-                $dispatch('set-hasta', { date: `${y}-${m}-${String(last).padStart(2, '0')}` });
-            }
-        }"
-        class="space-y-1.5"
-    >
-        <x-ui.label>Período rápido</x-ui.label>
-        <div class="grid grid-cols-2 gap-2">
-            <x-ui.button type="button" variant="outline" size="sm" @click="setMes(0)">
-                Mes actual
-            </x-ui.button>
-            <x-ui.button type="button" variant="outline" size="sm" @click="setMes(1)">
-                Mes anterior
-            </x-ui.button>
-        </div>
-    </div>
+    // Quita un filtro preservando el resto del query string (incluido tab=generar).
+    $removeUrl = fn (array $overrides) => request()->fullUrlWithQuery($overrides);
 
-    <x-ui.form-field for="filter-desde">
-        <x-ui.label for="filter-desde">Desde</x-ui.label>
-        <x-ui.date-picker
-            id="filter-desde"
-            name="desde"
-            placeholder="Seleccioná una fecha"
-            :value="$filters['desde'] ?? ''"
-            @set-desde.window="value = $event.detail.date"
-        />
-    </x-ui.form-field>
+    $hayFiltros = ($filters['desde'] ?? null)
+        || ($filters['hasta'] ?? null)
+        || ($filters['zona_id'] ?? null)
+        || ($filters['tipo_servicio_id'] ?? null)
+        || ($filters['tipo_vehiculo_id'] ?? null);
 
-    <x-ui.form-field for="filter-hasta">
-        <x-ui.label for="filter-hasta">Hasta</x-ui.label>
-        <x-ui.date-picker
-            id="filter-hasta"
-            name="hasta"
-            placeholder="Seleccioná una fecha"
-            :value="$filters['hasta'] ?? ''"
-            @set-hasta.window="value = $event.detail.date"
-        />
-    </x-ui.form-field>
+    $chips = [];
 
-    <x-ui.separator />
+    if (!empty($filters['desde']) || !empty($filters['hasta'])) {
+        $desde = $filters['desde'] ?? null;
+        $hasta = $filters['hasta'] ?? null;
+        $label = match(true) {
+            $desde && $hasta && $desde === $hasta => \Carbon\Carbon::parse($desde)->format('d/m/Y'),
+            $desde && $hasta                      => \Carbon\Carbon::parse($desde)->format('d/m') . ' – ' . \Carbon\Carbon::parse($hasta)->format('d/m'),
+            (bool) $desde                         => 'Desde ' . \Carbon\Carbon::parse($desde)->format('d/m'),
+            default                               => 'Hasta ' . \Carbon\Carbon::parse($hasta)->format('d/m'),
+        };
+        $chips[] = ['label' => $label, 'url' => $removeUrl(['desde' => null, 'hasta' => null])];
+    }
 
-    {{-- Zona --}}
-    <x-ui.form-field for="filter-zona">
-        <x-ui.label for="filter-zona">Zona</x-ui.label>
-        <x-ui.select name="zona_id" :value="$filters['zona_id'] ?? ''">
-            <x-ui.select.trigger id="filter-zona">
-                <x-ui.select.value placeholder="Todas las zonas" />
-            </x-ui.select.trigger>
-            <x-ui.select.content>
-                <x-ui.select.item value="">Todas las zonas</x-ui.select.item>
-                @foreach($zonas as $zona)
-                    <x-ui.select.item value="{{ $zona->id }}">{{ $zona->nombre }}</x-ui.select.item>
-                @endforeach
-            </x-ui.select.content>
-        </x-ui.select>
-    </x-ui.form-field>
+    if (!empty($filters['zona_id'])) {
+        $zona = $zonas->firstWhere('id', $filters['zona_id']);
+        $chips[] = ['label' => $zona?->nombre ?? 'Zona', 'url' => $removeUrl(['zona_id' => null])];
+    }
 
-    {{-- Tipo de servicio --}}
-    <x-ui.form-field for="filter-servicio">
-        <x-ui.label for="filter-servicio">Tipo de servicio</x-ui.label>
-        <x-ui.select name="tipo_servicio_id" :value="$filters['tipo_servicio_id'] ?? ''">
-            <x-ui.select.trigger id="filter-servicio">
-                <x-ui.select.value placeholder="Todos los servicios" />
-            </x-ui.select.trigger>
-            <x-ui.select.content>
-                <x-ui.select.item value="">Todos los servicios</x-ui.select.item>
-                @foreach($tiposServicio as $ts)
-                    <x-ui.select.item value="{{ $ts->id }}">{{ $ts->nombre }}</x-ui.select.item>
-                @endforeach
-            </x-ui.select.content>
-        </x-ui.select>
-    </x-ui.form-field>
+    if (!empty($filters['tipo_servicio_id'])) {
+        $ts = $tiposServicio->firstWhere('id', $filters['tipo_servicio_id']);
+        $chips[] = ['label' => $ts?->nombre ?? 'Servicio', 'url' => $removeUrl(['tipo_servicio_id' => null])];
+    }
 
-    {{-- Tipo de vehículo --}}
-    <x-ui.form-field for="filter-vehiculo">
-        <x-ui.label for="filter-vehiculo">Tipo de vehículo</x-ui.label>
-        <x-ui.select name="tipo_vehiculo_id" :value="$filters['tipo_vehiculo_id'] ?? ''">
-            <x-ui.select.trigger id="filter-vehiculo">
-                <x-ui.select.value placeholder="Todos los tipos" />
-            </x-ui.select.trigger>
-            <x-ui.select.content>
-                <x-ui.select.item value="">Todos los tipos</x-ui.select.item>
-                @foreach($tiposVehiculo as $tv)
-                    <x-ui.select.item value="{{ $tv->id }}">{{ $tv->nombre }}</x-ui.select.item>
-                @endforeach
-            </x-ui.select.content>
-        </x-ui.select>
-    </x-ui.form-field>
+    if (!empty($filters['tipo_vehiculo_id'])) {
+        $tv = $tiposVehiculo->firstWhere('id', $filters['tipo_vehiculo_id']);
+        $chips[] = ['label' => $tv?->nombre ?? 'Vehículo', 'url' => $removeUrl(['tipo_vehiculo_id' => null])];
+    }
+@endphp
 
+{{-- Sheet mobile (<md): controlado por filterOpen del padre --}}
+<x-ui.filter-sheet controlledBy="filterOpen" :action="$route" :resetUrl="$resetUrl">
+    <x-domain.reportes.filtros.campos
+        :zonas="$zonas"
+        :tiposServicio="$tiposServicio"
+        :tiposVehiculo="$tiposVehiculo"
+        :filters="$filters"
+    />
 </x-ui.filter-sheet>
+
+{{-- Panel inline (md+) --}}
+<x-ui.filter-panel
+    :action="$route"
+    :resetUrl="$resetUrl"
+    storageKey="filtros:reportes-generar"
+    :hasFilters="(bool) $hayFiltros"
+    title="Período"
+    submitLabel="Generar"
+    submittingLabel="Generando…"
+    emptyLabel="Sin período seleccionado"
+>
+    @if(count($chips))
+        <x-slot:chips>
+            @foreach($chips as $chip)
+                <x-ui.filter-chip :href="$chip['url']" :label="$chip['label']" />
+            @endforeach
+        </x-slot:chips>
+    @endif
+
+    <x-domain.reportes.filtros.campos
+        :zonas="$zonas"
+        :tiposServicio="$tiposServicio"
+        :tiposVehiculo="$tiposVehiculo"
+        :filters="$filters"
+    />
+</x-ui.filter-panel>
