@@ -83,7 +83,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         return view('modules.admin.reportes.preview', compact('kpis', 'evolucion', 'zonas', 'vehiculos', 'reporte'));
     })->name('reportes.preview');
     Route::get('/reportes/pdf-presentacion', [ReporteController::class, 'exportPdfPresentacion'])->name('reportes.pdf-presentacion');
+    Route::get('/reportes/pdf-v2', [ReporteController::class, 'exportPdfV2'])->name('reportes.pdf-v2');
     Route::get('/reportes/excel', [ReporteController::class, 'exportExcel'])->name('reportes.excel');
+    Route::get('/reportes/excel-v2', [ReporteController::class, 'exportExcelV2'])->name('reportes.excel-v2');
     Route::get('/reportes/historial/{generado}/descargar', [ReporteController::class, 'downloadHistorial'])
         ->name('reportes.historial.download');
     Route::post('/reportes/historial/{generado}/aprobar', [ReporteController::class, 'aprobarHistorial'])

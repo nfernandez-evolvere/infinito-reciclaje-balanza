@@ -86,6 +86,140 @@ class ReporteSnapshotService
         return $reporte;
     }
 
+    // ── Reporte v2 (Excel por servicio / PDF institucional) ──────────────────
+    //
+    // El snapshot v2 lleva `version => 2` como discriminador (downloadHistorial lo
+    // lee para enrutar la re-descarga a los generadores v2). Serializa solo las
+    // claves del formato descargado: el camino Excel trae `datosV2` + `detalle`
+    // aplanado; el camino PDF trae `semanas`/`diaSemana`/`porServicio`/`zonasServicio`.
+    // Las fechas Carbon anidadas se codifican con un walk recursivo genérico.
+
+    /**
+     * @param  array<string, mixed>  $reporte
+     * @return array<string, mixed>
+     */
+    public function capturarV2(array $reporte): array
+    {
+        $s = [
+            'version'        => 2,
+            'kpis'           => $reporte['kpis'] ?? [],
+            'evolucion'      => $reporte['evolucion'] ?? ['datos' => [], 'promedio' => 0, 'maximo' => 0, 'minimo' => 0],
+            'zonas'          => $this->aArray($reporte['zonas'] ?? []),
+            'vehiculos'      => $this->aArray($reporte['vehiculos'] ?? []),
+            'mapaZonas'      => $this->aArray($reporte['mapaZonas'] ?? []),
+            'kg_netos_total' => (int) ($reporte['kg_netos_total'] ?? 0),
+            'config'         => $this->serializarConfig($reporte['config'] ?? null),
+            'conclusiones'   => $reporte['conclusiones'] ?? [],
+        ];
+
+        // Camino Excel: detalle aplanado + bloques del export v2.
+        if (is_array($reporte['detalle'] ?? null)) {
+            $s['detalle'] = $reporte['detalle'];
+        }
+        if (isset($reporte['datosV2'])) {
+            $s['datosV2'] = $this->encodeFechas($reporte['datosV2']);
+        }
+
+        // Camino PDF: bloques del informe institucional.
+        if (isset($reporte['semanas'])) {
+            $s['semanas'] = $this->encodeFechas($reporte['semanas']);
+        }
+        if (array_key_exists('diaSemana', $reporte)) {
+            $s['diaSemana'] = $reporte['diaSemana'];
+        }
+        if (array_key_exists('flotaActiva', $reporte)) {
+            $s['flotaActiva'] = $reporte['flotaActiva'];
+        }
+        if (isset($reporte['porServicio'])) {
+            $s['porServicio'] = $this->aArray($reporte['porServicio']);
+        }
+        if (isset($reporte['zonasServicio'])) {
+            $s['zonasServicio'] = $this->encodeFechas($reporte['zonasServicio']);
+        }
+
+        return $s;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function rehidratarV2(ReporteGenerado $generado): array
+    {
+        $s = $generado->snapshot ?? [];
+
+        $reporte = [
+            'desde'          => $generado->periodo_desde->copy()->startOfDay(),
+            'hasta'          => $generado->periodo_hasta->copy()->endOfDay(),
+            'filtros'        => $generado->filtrosNormalizados(),
+            'kpis'           => $s['kpis'] ?? [],
+            'evolucion'      => $s['evolucion'] ?? ['datos' => [], 'promedio' => 0, 'maximo' => 0, 'minimo' => 0],
+            'zonas'          => collect($s['zonas'] ?? []),
+            'vehiculos'      => collect($s['vehiculos'] ?? []),
+            'mapaZonas'      => collect($s['mapaZonas'] ?? []),
+            'kg_netos_total' => (int) ($s['kg_netos_total'] ?? 0),
+            'config'         => $this->rehidratarConfig($s['config'] ?? null),
+            'conclusiones'   => $s['conclusiones'] ?? [],
+            'detalle'        => $s['detalle'] ?? [],
+        ];
+
+        if (isset($s['datosV2'])) {
+            $datos = $this->decodeFechas($s['datosV2']);
+            // El export v2 usa datosV2['tipos'] como Collection (->count(), foreach).
+            $datos['tipos'] = collect($datos['tipos'] ?? []);
+            $reporte['datosV2'] = $datos;
+        }
+        if (isset($s['semanas'])) {
+            $reporte['semanas'] = $this->decodeFechas($s['semanas']);
+        }
+        if (array_key_exists('diaSemana', $s)) {
+            $reporte['diaSemana'] = $s['diaSemana'];
+        }
+        if (array_key_exists('flotaActiva', $s)) {
+            $reporte['flotaActiva'] = $s['flotaActiva'];
+        }
+        if (isset($s['porServicio'])) {
+            $reporte['porServicio'] = collect($s['porServicio']);
+        }
+        if (isset($s['zonasServicio'])) {
+            $reporte['zonasServicio'] = $this->decodeFechas($s['zonasServicio']);
+        }
+
+        return $reporte;
+    }
+
+    /**
+     * Codifica recursivamente los Carbon de una estructura a `['__c' => ISO8601]`,
+     * aplanando Collections a array. El resto de escalares pasa tal cual.
+     */
+    private function encodeFechas(mixed $value): mixed
+    {
+        if ($value instanceof Carbon) {
+            return ['__c' => $value->toIso8601String()];
+        }
+        if ($value instanceof Collection) {
+            $value = $value->all();
+        }
+        if (is_array($value)) {
+            return array_map(fn ($v) => $this->encodeFechas($v), $value);
+        }
+
+        return $value;
+    }
+
+    /** Inverso de encodeFechas(): reconstruye los Carbon desde `['__c' => ISO8601]`. */
+    private function decodeFechas(mixed $value): mixed
+    {
+        if (is_array($value)) {
+            if (array_keys($value) === ['__c']) {
+                return Carbon::parse($value['__c']);
+            }
+
+            return array_map(fn ($v) => $this->decodeFechas($v), $value);
+        }
+
+        return $value;
+    }
+
     // ── Serialización (vivo → JSON) ──────────────────────────────────────────
 
     /**

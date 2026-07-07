@@ -57,35 +57,57 @@
     </x-ui.form-field>
 </div>
 
-<x-ui.form-field>
-    <x-ui.label>Zona</x-ui.label>
-    <x-ui.select name="zona_id" :value="$filters['zona_id'] ?? ''">
-        <x-ui.select.trigger>
-            <x-ui.select.value placeholder="Todas las zonas" />
-        </x-ui.select.trigger>
-        <x-ui.select.content>
-            <x-ui.select.item value="">Todas las zonas</x-ui.select.item>
-            @foreach($zonas as $zona)
-                <x-ui.select.item value="{{ $zona->id }}">{{ $zona->nombre }}</x-ui.select.item>
-            @endforeach
-        </x-ui.select.content>
-    </x-ui.select>
-</x-ui.form-field>
+{{--
+    Servicio ▸ Zona: las zonas dependen del servicio. Al elegir un servicio, el select
+    de zona solo lista las zonas de ese servicio; si la zona elegida no le pertenece, se
+    resetea a "Todas". Ambos selects viven en el mismo x-data para compartir el filtro.
+--}}
+<div
+    class="contents"
+    x-data="{
+        servicioFiltro: @js((string) ($filters['tipo_servicio_id'] ?? '')),
+        zonaValue: @js((string) ($filters['zona_id'] ?? '')),
+        zonaServicios: @js($zonas->pluck('tipo_servicio_id', 'id')->map(fn ($v) => (string) $v)),
+        zonaVisible(id) {
+            return ! this.servicioFiltro || String(this.zonaServicios[id]) === String(this.servicioFiltro);
+        },
+    }"
+    x-init="$watch('servicioFiltro', () => {
+        if (zonaValue && ! zonaVisible(zonaValue)) zonaValue = '';
+    })"
+>
+    <x-ui.form-field class="lg:min-w-30 lg:flex-1">
+        <x-ui.label>Tipo de servicio</x-ui.label>
+        <x-ui.select name="tipo_servicio_id" x-model="servicioFiltro">
+            <x-ui.select.trigger>
+                <x-ui.select.value placeholder="Todos los servicios" />
+            </x-ui.select.trigger>
+            <x-ui.select.content>
+                <x-ui.select.item value="">Todos los servicios</x-ui.select.item>
+                @foreach($tiposServicio as $ts)
+                    <x-ui.select.item value="{{ $ts->id }}">{{ $ts->nombre }}</x-ui.select.item>
+                @endforeach
+            </x-ui.select.content>
+        </x-ui.select>
+    </x-ui.form-field>
 
-<x-ui.form-field>
-    <x-ui.label>Tipo de servicio</x-ui.label>
-    <x-ui.select name="tipo_servicio_id" :value="$filters['tipo_servicio_id'] ?? ''">
-        <x-ui.select.trigger>
-            <x-ui.select.value placeholder="Todos los servicios" />
-        </x-ui.select.trigger>
-        <x-ui.select.content>
-            <x-ui.select.item value="">Todos los servicios</x-ui.select.item>
-            @foreach($tiposServicio as $ts)
-                <x-ui.select.item value="{{ $ts->id }}">{{ $ts->nombre }}</x-ui.select.item>
-            @endforeach
-        </x-ui.select.content>
-    </x-ui.select>
-</x-ui.form-field>
+    <x-ui.form-field class="lg:min-w-30 lg:flex-1">
+        <x-ui.label>Zona</x-ui.label>
+        <x-ui.select name="zona_id" x-model="zonaValue">
+            <x-ui.select.trigger>
+                <x-ui.select.value placeholder="Todas las zonas" />
+            </x-ui.select.trigger>
+            <x-ui.select.content>
+                <x-ui.select.item value="">Todas las zonas</x-ui.select.item>
+                @foreach($zonas as $zona)
+                    <template x-if="zonaVisible('{{ $zona->id }}')">
+                        <x-ui.select.item value="{{ $zona->id }}">{{ $zona->nombre }}</x-ui.select.item>
+                    </template>
+                @endforeach
+            </x-ui.select.content>
+        </x-ui.select>
+    </x-ui.form-field>
+</div>
 
 <x-ui.form-field>
     <x-ui.label>Tipo de vehículo</x-ui.label>

@@ -12,6 +12,7 @@ use App\Models\Pesaje;
 use App\Models\ReporteConfiguracion;
 use App\Models\ReporteGenerado;
 use App\Models\ReporteProgramado;
+use App\Repositories\PesajeRepository;
 use App\Services\PdfService;
 use App\Services\ReporteService;
 use Carbon\Carbon;
@@ -86,11 +87,29 @@ class GenerarReporteJobTest extends TestCase
 
         $this->instance(ReporteService::class, \Mockery::mock(ReporteService::class, function ($m) use ($reporte) {
             $m->shouldReceive('generar')->andReturn($reporte);
+            $this->stubReporteV2($m, $reporte);
         }));
 
         $this->instance(PdfService::class, \Mockery::mock(PdfService::class, function ($m) {
             $m->shouldReceive('fromView')->andReturn('fake-pdf-content');
         }));
+    }
+
+    /**
+     * Stubs de los métodos v2 del ReporteService con estructuras vacías pero válidas:
+     * se calculan con el service real sobre una colección de pesajes vacía, de modo que
+     * capturarV2/rehidratarV2 y los export v2 armen el reporte desde el snapshot sin
+     * tocar la base.
+     */
+    private function stubReporteV2($m, array $reporte): void
+    {
+        $real = new ReporteService(new PesajeRepository);
+        $m->shouldReceive('porSemana')->andReturn($real->porSemana(collect(), $reporte['desde'], $reporte['hasta']));
+        $m->shouldReceive('porDiaSemana')->andReturn($real->porDiaSemana(collect()));
+        $m->shouldReceive('vehiculosOperativos')->andReturn(0);
+        $m->shouldReceive('porServicio')->andReturn($real->porServicio(collect()));
+        $m->shouldReceive('zonasPorServicio')->andReturn($real->zonasPorServicio(collect(), $reporte['desde'], $reporte['hasta']));
+        $m->shouldReceive('datosExcelV2')->andReturn($real->datosExcelV2(collect(), $reporte['desde'], $reporte['hasta']));
     }
 
     // ── camino directo: generar → encadenar envío ─────────────────────
@@ -283,6 +302,7 @@ class GenerarReporteJobTest extends TestCase
 
                 return true;
             })->andReturn($this->fakeReporte());
+            $this->stubReporteV2($m, $this->fakeReporte());
         }));
         $this->instance(PdfService::class, \Mockery::mock(PdfService::class, function ($m) {
             $m->shouldReceive('fromView')->andReturn('pdf');
@@ -662,25 +682,12 @@ class GenerarReporteJobTest extends TestCase
 
         $this->instance(ReporteService::class, \Mockery::mock(ReporteService::class, function ($m) use ($reporte) {
             $m->shouldReceive('generar')->andReturn($reporte);
-            $m->shouldReceive('pivotsParaExcel')->andReturn($this->emptyPivots());
             $m->shouldReceive('detalleParaExcel')->andReturn([]);
+            $this->stubReporteV2($m, $reporte);
         }));
 
         $this->instance(PdfService::class, \Mockery::mock(PdfService::class, function ($m) {
             $m->shouldReceive('fromView')->andReturn('fake-pdf-content');
         }));
-    }
-
-    /** Pivots vacíos con todas las claves que lee ReporteExcelExport. */
-    private function emptyPivots(): array
-    {
-        $stat = ['total_viajes' => 0, 'total_kg' => 0, 'tipos' => []];
-
-        return [
-            'tipos'    => collect(),
-            'diario'   => ['filas' => [], 'totales' => $stat, 'promedio' => $stat, 'maximo' => $stat, 'minimo' => $stat],
-            'zonaTipo' => ['filas' => [], 'totales' => ['total_viajes' => 0, 'total_kg' => 0, 'tipos' => [], 'porcentaje' => 0.0]],
-            'zonaDia'  => ['fechas' => [], 'filas' => [], 'totales' => ['dias' => [], 'total' => 0]],
-        ];
     }
 }

@@ -89,8 +89,13 @@ class ReporteService
                 $turno = $grupo->first()->turno;
 
                 return [
-                    'nombre'     => $zona?->nombre ?? '—',
-                    'turno'      => $turno,
+                    'nombre'           => $zona?->nombre ?? '—',
+                    'turno'            => $turno,
+                    // Clasificamos cada zona por su servicio (Zona pertenece a un
+                    // TipoServicio): el desglose por zona respeta la jerarquía
+                    // servicio → zona en la tabla del informe.
+                    'tipo_servicio_id' => $zona?->tipo_servicio_id,
+                    'tipo_servicio'    => $zona?->tipoServicio?->nombre ?? 'Sin servicio',
                     'viajes'     => $count,
                     'toneladas'  => round($sumaKg / 1000, 2),
                     'kg_viaje'   => (int) round($sumaKg / $count),
@@ -374,6 +379,327 @@ class ReporteService
     private function etiquetaZona(string $nombre, ?string $turno): string
     {
         return $turno ? $nombre.' '.mb_strtoupper($turno) : $nombre;
+    }
+
+    // ── Reporte v2 — Excel por servicio / N° interno ─────────────────────────
+    //
+    // Igual que pivotsParaExcel(): cálculos en memoria sobre la misma colección
+    // de pesajes ya cargada (con zona, tipoServicio y vehiculo.tipoVehiculo), sin
+    // queries adicionales. datosExcelV2() es el orquestador que consume el export
+    // v2; porServicio() se expone aparte porque también lo usa el PDF v2.
+
+    /**
+     * Reparto por tipo de servicio, clasificado por pesaje.tipo_servicio_id (regla
+     * canónica: cada total de servicio es la suma de sus zonas). Viajes, kg netos,
+     * toneladas, % del total, más la descripción del servicio y la cantidad de zonas
+     * distintas con actividad (para la página "¿Qué es cada servicio?" del PDF).
+     * Ordenado por kg desc.
+     *
+     * @return Collection<int, array{tipo_servicio_id: int, nombre: string, descripcion: ?string, zonas: int, viajes: int, kg: int, toneladas: float, porcentaje: float}>
+     */
+    public function porServicio(Collection $pesajes): Collection
+    {
+        $total = $pesajes->sum('peso_neto_kg');
+
+        return $pesajes
+            ->filter(fn ($p) => $p->tipo_servicio_id !== null)
+            ->groupBy(fn ($p) => $p->tipo_servicio_id)
+            ->map(function ($grupo) use ($total) {
+                $kg = (int) $grupo->sum('peso_neto_kg');
+
+                return [
+                    'tipo_servicio_id' => (int) $grupo->first()->tipo_servicio_id,
+                    'nombre'           => (string) ($grupo->first()->tipoServicio?->nombre ?? '—'),
+                    'descripcion'      => $grupo->first()->tipoServicio?->descripcion,
+                    'zonas'            => $grupo->filter(fn ($p) => $p->zona_id !== null)->pluck('zona_id')->unique()->count(),
+                    'viajes'           => $grupo->count(),
+                    'kg'               => $kg,
+                    'toneladas'        => round($kg / 1000, 2),
+                    'porcentaje'       => $total > 0 ? round(($kg / $total) * 100, 1) : 0,
+                ];
+            })
+            ->sortByDesc('kg')
+            ->values();
+    }
+
+    /**
+     * Ingresos agrupados por semana del período (para "¿Cuánto ingresa por semana?").
+     * Ventanas de 7 días desde `$desde`; una ventana final más corta que 7 días se
+     * fusiona con la anterior (así un mes de 31 días da 4 semanas: 1-7, 8-14, 15-21,
+     * 22-31, como el reporte de referencia).
+     *
+     * @return list<array{numero: int, desde: Carbon, hasta: Carbon, kg: int, viajes: int}>
+     */
+    public function porSemana(Collection $pesajes, Carbon $desde, Carbon $hasta): array
+    {
+        $porDia = $pesajes->groupBy(fn ($p) => $p->created_at->toDateString());
+
+        // Ventanas [inicio, fin] de 7 días desde desde, la última recortada a hasta.
+        $ventanas = [];
+        $cursor = $desde->copy()->startOfDay();
+        while ($cursor->lte($hasta)) {
+            $fin = $cursor->copy()->addDays(6);
+            if ($fin->gt($hasta)) {
+                $fin = $hasta->copy()->startOfDay();
+            }
+            $ventanas[] = [$cursor->copy(), $fin->copy()];
+            $cursor = $fin->copy()->addDay();
+        }
+
+        // Fusionar una última ventana corta (< 7 días) con la anterior.
+        $n = count($ventanas);
+        if ($n > 1 && $ventanas[$n - 1][0]->diffInDays($ventanas[$n - 1][1]) + 1 < 7) {
+            $ventanas[$n - 2][1] = $ventanas[$n - 1][1];
+            array_pop($ventanas);
+        }
+
+        $semanas = [];
+        foreach ($ventanas as $i => [$ini, $fin]) {
+            $kg = 0;
+            $viajes = 0;
+            for ($d = $ini->copy(); $d->lte($fin); $d->addDay()) {
+                $grupo = $porDia[$d->toDateString()] ?? null;
+                if ($grupo) {
+                    $kg += (int) $grupo->sum('peso_neto_kg');
+                    $viajes += $grupo->count();
+                }
+            }
+            $semanas[] = [
+                'numero' => $i + 1,
+                'desde'  => $ini,
+                'hasta'  => $fin,
+                'kg'     => $kg,
+                'viajes' => $viajes,
+            ];
+        }
+
+        return $semanas;
+    }
+
+    /**
+     * Ingresos acumulados por día de la semana (Lunes→Domingo) sobre todo el período
+     * (para "Recolección según los días de la semana"). Siempre devuelve los 7 días,
+     * incluidos los que no tuvieron actividad.
+     *
+     * @return list<array{dia: string, kg: int, viajes: int}>
+     */
+    public function porDiaSemana(Collection $pesajes): array
+    {
+        $nombres = [1 => 'Lunes', 2 => 'Martes', 3 => 'Miércoles', 4 => 'Jueves', 5 => 'Viernes', 6 => 'Sábado', 7 => 'Domingo'];
+
+        $acum = [];
+        foreach (array_keys($nombres) as $iso) {
+            $acum[$iso] = ['kg' => 0, 'viajes' => 0];
+        }
+
+        foreach ($pesajes as $p) {
+            $iso = $p->created_at->dayOfWeekIso;   // 1 (Lunes) … 7 (Domingo)
+            $acum[$iso]['kg'] += (int) $p->peso_neto_kg;
+            $acum[$iso]['viajes']++;
+        }
+
+        return collect($nombres)
+            ->map(fn ($nombre, $iso) => [
+                'dia'    => $nombre,
+                'kg'     => $acum[$iso]['kg'],
+                'viajes' => $acum[$iso]['viajes'],
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Cantidad de vehículos distintos que operaron en el período (flota activa;
+     * para el bloque "Flota activa" del resumen operativo del PDF).
+     */
+    public function vehiculosOperativos(Collection $pesajes): int
+    {
+        return $pesajes
+            ->filter(fn ($p) => $p->vehiculo_id !== null)
+            ->pluck('vehiculo_id')
+            ->unique()
+            ->count();
+    }
+
+    /**
+     * Bloques que consume ReporteExcelExportV2. Computa los tipos presentes una vez
+     * y los reusa en el cruce servicio×tipo y en el desglose diario.
+     *
+     * @return array{tipos: Collection, resumenPorDia: array, porServicio: Collection, servicioTipoVehiculo: array, diario: array, porNumeroInterno: array, servicios: list<array>}
+     */
+    public function datosExcelV2(Collection $pesajes, Carbon $desde, Carbon $hasta): array
+    {
+        $tipos = $this->tiposPresentes($pesajes);
+        $fechas = collect(CarbonPeriod::create($desde, $hasta))->map(fn (Carbon $d) => $d->copy())->values();
+
+        return [
+            'tipos'                => $tipos,
+            'fechas'               => $fechas->all(),
+            'resumenPorDia'        => $this->resumenPorDia($pesajes, $desde, $hasta),
+            'porServicio'          => $this->porServicio($pesajes),
+            'servicioTipoVehiculo' => $this->servicioPorTipoVehiculo($pesajes, $tipos),
+            'diario'               => $this->calcularDiarioPorTipo($pesajes, $desde, $hasta, $tipos),
+            'porNumeroInterno'     => $this->porNumeroInterno($pesajes, $fechas),
+            'servicios'            => $this->zonasPorServicio($pesajes, $desde, $hasta),
+        ];
+    }
+
+    /**
+     * Resumen por día para la hoja "Resumen": una fila por día del período con el
+     * nombre del día, kg netos y viajes, más los totales. Incluye los días sin
+     * actividad (kg/viajes en 0) para que el calendario del mes quede completo.
+     *
+     * @return array{filas: list<array{fecha: Carbon, dia: string, kg: int, viajes: int}>, total_kg: int, total_viajes: int}
+     */
+    private function resumenPorDia(Collection $pesajes, Carbon $desde, Carbon $hasta): array
+    {
+        $porDia = $pesajes->groupBy(fn ($p) => $p->created_at->toDateString());
+
+        $filas = collect(CarbonPeriod::create($desde, $hasta))
+            ->map(function (Carbon $dia) use ($porDia) {
+                $del = $porDia[$dia->toDateString()] ?? collect();
+
+                return [
+                    'fecha'  => $dia->copy(),
+                    'dia'    => $dia->translatedFormat('l'),
+                    'kg'     => (int) $del->sum('peso_neto_kg'),
+                    'viajes' => $del->count(),
+                ];
+            })
+            ->values();
+
+        return [
+            'filas'        => $filas->all(),
+            'total_kg'     => (int) $filas->sum('kg'),
+            'total_viajes' => (int) $filas->sum('viajes'),
+        ];
+    }
+
+    /**
+     * Cruce servicio × tipo de vehículo: por cada servicio, viajes y kg de cada tipo
+     * presente y el total de fila; más la fila TOTAL. Cubre los dos bloques del Excel
+     * (kg y viajes). Filas ordenadas por kg desc.
+     *
+     * @param  Collection<int, array{id: int, nombre: string}>  $tipos
+     * @return array{filas: list<array{nombre: string, total_viajes: int, total_kg: int, tipos: array}>, totales: array{nombre: string, total_viajes: int, total_kg: int, tipos: array}}
+     */
+    private function servicioPorTipoVehiculo(Collection $pesajes, Collection $tipos): array
+    {
+        $tipoIds = $tipos->pluck('id')->all();
+
+        $filas = $pesajes
+            ->filter(fn ($p) => $p->tipo_servicio_id !== null)
+            ->groupBy(fn ($p) => $p->tipo_servicio_id)
+            ->map(fn ($grupo) => [
+                'nombre'       => (string) ($grupo->first()->tipoServicio?->nombre ?? '—'),
+                'total_viajes' => $grupo->count(),
+                'total_kg'     => (int) $grupo->sum('peso_neto_kg'),
+                'tipos'        => $this->desglosarPorTipo($grupo, $tipoIds),
+            ])
+            ->sortByDesc('total_kg')
+            ->values();
+
+        $totTipos = [];
+        foreach ($tipoIds as $id) {
+            $totTipos[$id] = [
+                'viajes' => (int) $filas->sum(fn ($f) => $f['tipos'][$id]['viajes']),
+                'kg'     => (int) $filas->sum(fn ($f) => $f['tipos'][$id]['kg']),
+            ];
+        }
+
+        return [
+            'filas'   => $filas->all(),
+            'totales' => [
+                'nombre'       => 'TOTAL',
+                'total_viajes' => (int) $filas->sum('total_viajes'),
+                'total_kg'     => (int) $filas->sum('total_kg'),
+                'tipos'        => $totTipos,
+            ],
+        ];
+    }
+
+    /**
+     * Matriz N° interno × día: una fila por vehículo con la cantidad de viajes que
+     * hizo cada día del período, su tipo y el total. El vehículo sin número interno
+     * (algunos particulares) cae a la patente. Ordenado por total de viajes desc.
+     *
+     * @param  Collection<int, Carbon>  $fechas
+     * @return array{filas: list<array{interno: string, tipo: string, dias: array<string, int>, total: int}>}
+     */
+    private function porNumeroInterno(Collection $pesajes, Collection $fechas): array
+    {
+        $claves = $fechas->map(fn (Carbon $d) => $d->toDateString())->all();
+
+        $filas = $pesajes
+            ->filter(fn ($p) => $p->vehiculo !== null)
+            ->groupBy(fn ($p) => $p->vehiculo_id)
+            ->map(function ($grupo) use ($claves) {
+                $vehiculo = $grupo->first()->vehiculo;
+                $porDia = $grupo->groupBy(fn ($p) => $p->created_at->toDateString());
+
+                $dias = [];
+                foreach ($claves as $k) {
+                    $dias[$k] = isset($porDia[$k]) ? $porDia[$k]->count() : 0;
+                }
+
+                return [
+                    'interno' => (string) ($vehiculo->numero_interno ?: $vehiculo->patente ?: '—'),
+                    'tipo'    => (string) ($vehiculo->tipoVehiculo?->nombre ?? '—'),
+                    'dias'    => $dias,
+                    'total'   => $grupo->count(),
+                ];
+            })
+            ->sortByDesc('total')
+            ->values();
+
+        return ['filas' => $filas->all()];
+    }
+
+    /**
+     * Una entrada por servicio presente (clasificado por pesaje.tipo_servicio_id),
+     * con su resumen (viajes, kg), el desglose por zona+turno (% relativo al servicio)
+     * y la matriz zona × día acotada al servicio. Ordenado por kg desc; alimenta las
+     * hojas por servicio del Excel y las páginas de zonas del PDF.
+     *
+     * @return list<array{tipo_servicio_id: int, nombre: string, viajes: int, kg: int, zonas: list<array>, zonaDia: array}>
+     */
+    public function zonasPorServicio(Collection $pesajes, Carbon $desde, Carbon $hasta): array
+    {
+        return $pesajes
+            ->filter(fn ($p) => $p->tipo_servicio_id !== null)
+            ->groupBy(fn ($p) => $p->tipo_servicio_id)
+            ->map(function ($grupo) use ($desde, $hasta) {
+                $totalKg = (int) $grupo->sum('peso_neto_kg');
+
+                $zonas = $grupo
+                    ->filter(fn ($p) => $p->zona_id !== null)
+                    ->groupBy(fn ($p) => $p->zona_id.'|'.($p->turno ?? ''))
+                    ->map(function ($sub) use ($totalKg) {
+                        $kg = (int) $sub->sum('peso_neto_kg');
+
+                        return [
+                            'label'  => $this->etiquetaZona((string) ($sub->first()->zona->nombre ?? '—'), $sub->first()->turno),
+                            'viajes' => $sub->count(),
+                            'kg'     => $kg,
+                            // Fracción (0–1) para el formato 0.0% de Excel.
+                            'porcentaje' => $totalKg > 0 ? $kg / $totalKg : 0.0,
+                        ];
+                    })
+                    ->sortByDesc('kg')
+                    ->values();
+
+                return [
+                    'tipo_servicio_id' => (int) $grupo->first()->tipo_servicio_id,
+                    'nombre'           => (string) ($grupo->first()->tipoServicio?->nombre ?? '—'),
+                    'viajes'           => $grupo->count(),
+                    'kg'               => $totalKg,
+                    'zonas'            => $zonas->all(),
+                    'zonaDia'          => $this->calcularZonaDia($grupo, $desde, $hasta),
+                ];
+            })
+            ->sortByDesc('kg')
+            ->values()
+            ->all();
     }
 
     private function calcularPorVehiculo(Collection $pesajes): Collection

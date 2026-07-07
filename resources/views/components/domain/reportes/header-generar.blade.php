@@ -38,13 +38,13 @@
                 @endif
             </x-ui.button>
 
-            {{-- Exportar: con label --}}
-            <x-ui.button variant="outline" href="{{ route('admin.reportes.excel', $exportParams) }}">
+            {{-- Exportar: descarga directa del formato v2 (por tipo de servicio) --}}
+            <x-ui.button variant="outline" href="{{ route('admin.reportes.excel-v2', $exportParams) }}">
                 <x-lucide-table class="size-4" />
                 <span>Excel</span>
             </x-ui.button>
 
-            <x-ui.button href="{{ route('admin.reportes.pdf-presentacion', $exportParams) }}">
+            <x-ui.button href="{{ route('admin.reportes.pdf-v2', $exportParams) }}">
                 <x-lucide-file-text class="size-4" />
                 <span>PDF</span>
             </x-ui.button>

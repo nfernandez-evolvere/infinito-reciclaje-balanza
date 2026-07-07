@@ -132,7 +132,7 @@
                     description="Usá los filtros para seleccionar un período y generar el reporte."
                     class="py-20"
                 >
-                    <x-ui.button variant="outline" @click="filterOpen = true">
+                    <x-ui.button variant="outline" @click="filterOpen = true" class="md:hidden">
                         <x-lucide-calendar-days class="size-4" />
                         Seleccionar período
                     </x-ui.button>
