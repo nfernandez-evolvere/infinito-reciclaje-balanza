@@ -51,8 +51,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Alerta whereUserId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Alerta whereUuid($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Alerta whereZonaId($value)
+ * @mixin \Eloquent
  */
-	class Alerta extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperAlerta {}
 }
 
 namespace App\Models{
@@ -79,14 +81,14 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ConfigAlerta whereTipo($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ConfigAlerta whereUmbralValor($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ConfigAlerta whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class ConfigAlerta extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperConfigAlerta {}
 }
 
 namespace App\Models{
 /**
- * @mixin \Eloquent
- * @mixin IdeHelperOrganizacion
  * @property int $id
  * @property string $nombre
  * @property bool $activo
@@ -112,14 +114,14 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Organizacion whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Organizacion whereNombre($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Organizacion whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class Organizacion extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperOrganizacion {}
 }
 
 namespace App\Models{
 /**
- * @mixin \Eloquent
- * @mixin IdeHelperPesaje
  * @property int $id
  * @property string $uuid
  * @property int $organizacion_id
@@ -178,14 +180,14 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Pesaje whereUuid($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Pesaje whereVehiculoId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Pesaje whereZonaId($value)
+ * @mixin \Eloquent
  */
-	class Pesaje extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperPesaje {}
 }
 
 namespace App\Models{
 /**
- * @mixin \Eloquent
- * @mixin IdeHelperPesajeLog
  * @property int $id
  * @property int $pesaje_id
  * @property string $campo
@@ -209,14 +211,14 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PesajeLog whereUsuarioId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PesajeLog whereValorAnterior($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PesajeLog whereValorNuevo($value)
+ * @mixin \Eloquent
  */
-	class PesajeLog extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperPesajeLog {}
 }
 
 namespace App\Models{
 /**
- * @mixin \Eloquent
- * @mixin IdeHelperReporteConfiguracion
  * @property int $id
  * @property int $organizacion_id
  * @property string $municipalidad_nombre
@@ -251,14 +253,14 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteConfiguracion whereTipoAlertasActivo($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteConfiguracion whereTipoInformeMensualActivo($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteConfiguracion whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class ReporteConfiguracion extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperReporteConfiguracion {}
 }
 
 namespace App\Models{
 /**
- * @mixin \Eloquent
- * @mixin IdeHelperReporteDestinatario
  * @property int $id
  * @property int $organizacion_id
  * @property string $email
@@ -277,8 +279,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteDestinatario whereOrganizacionId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteDestinatario whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteDestinatario whereUsoCount($value)
+ * @mixin \Eloquent
  */
-	class ReporteDestinatario extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperReporteDestinatario {}
 }
 
 namespace App\Models{
@@ -295,8 +299,6 @@ namespace App\Models{
  * en_revision → descartado; cualquier fase puede caer a fallido y reintentarse.
  * Las descargas manuales usan el estado legacy `generado`.
  *
- * @mixin \Eloquent
- * @mixin IdeHelperReporteGenerado
  * @property int $id
  * @property int $organizacion_id
  * @property int|null $usuario_id
@@ -346,14 +348,14 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteGenerado whereTipo($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteGenerado whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteGenerado whereUsuarioId($value)
+ * @mixin \Eloquent
  */
-	class ReporteGenerado extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperReporteGenerado {}
 }
 
 namespace App\Models{
 /**
- * @mixin \Eloquent
- * @mixin IdeHelperReporteProgramado
  * @property int $id
  * @property int $organizacion_id
  * @property string $tipo
@@ -388,20 +390,21 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteProgramado whereTipo($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteProgramado whereUltimoEnvioAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteProgramado whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class ReporteProgramado extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperReporteProgramado {}
 }
 
 namespace App\Models{
 /**
- * @mixin \Eloquent
- * @mixin IdeHelperTipoServicio
  * @property int $id
  * @property int $organizacion_id
  * @property string $nombre
  * @property bool $activo
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string|null $descripcion
  * @property-read \App\Models\Organizacion $organizacion
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TipoVehiculo> $tiposVehiculo
  * @property-read int|null $tipos_vehiculo_count
@@ -414,18 +417,19 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TipoServicio query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TipoServicio whereActivo($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TipoServicio whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TipoServicio whereDescripcion($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TipoServicio whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TipoServicio whereNombre($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TipoServicio whereOrganizacionId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TipoServicio whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class TipoServicio extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperTipoServicio {}
 }
 
 namespace App\Models{
 /**
- * @mixin \Eloquent
- * @mixin IdeHelperTipoVehiculo
  * @property int $id
  * @property int $organizacion_id
  * @property string $nombre
@@ -448,14 +452,14 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TipoVehiculo wherePesoMaxKg($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TipoVehiculo wherePesoMinKg($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TipoVehiculo whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class TipoVehiculo extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperTipoVehiculo {}
 }
 
 namespace App\Models{
 /**
- * @mixin \Eloquent
- * @mixin IdeHelperUser
  * @property int $id
  * @property string $name
  * @property string $email
@@ -486,14 +490,14 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereRememberToken($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereRole($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class User extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperUser {}
 }
 
 namespace App\Models{
 /**
- * @mixin \Eloquent
- * @mixin IdeHelperVehiculo
  * @property int $id
  * @property int $organizacion_id
  * @property string $patente
@@ -529,14 +533,14 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Vehiculo whereTipoVehiculoId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Vehiculo whereTitular($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Vehiculo whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class Vehiculo extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperVehiculo {}
 }
 
 namespace App\Models{
 /**
- * @mixin \Eloquent
- * @mixin IdeHelperVehiculoLog
  * @property int $id
  * @property int $vehiculo_id
  * @property string $campo
@@ -560,14 +564,14 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|VehiculoLog whereValorAnterior($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|VehiculoLog whereValorNuevo($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|VehiculoLog whereVehiculoId($value)
+ * @mixin \Eloquent
  */
-	class VehiculoLog extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperVehiculoLog {}
 }
 
 namespace App\Models{
 /**
- * @mixin \Eloquent
- * @mixin IdeHelperZona
  * @property int $id
  * @property int $organizacion_id
  * @property int $tipo_servicio_id
@@ -607,14 +611,14 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Zona whereOrganizacionId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Zona whereTipoServicioId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Zona whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class Zona extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperZona {}
 }
 
 namespace App\Models{
 /**
- * @mixin \Eloquent
- * @mixin IdeHelperZonaHorario
  * @property int $zona_id
  * @property int $dia_semana
  * @property int $franja
@@ -628,14 +632,14 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ZonaHorario whereHoraFin($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ZonaHorario whereHoraInicio($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ZonaHorario whereZonaId($value)
+ * @mixin \Eloquent
  */
-	class ZonaHorario extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperZonaHorario {}
 }
 
 namespace App\Models{
 /**
- * @mixin \Eloquent
- * @mixin IdeHelperZonaTurno
  * @property int $zona_id
  * @property string $turno
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ZonaTurno newModelQuery()
@@ -643,7 +647,9 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ZonaTurno query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ZonaTurno whereTurno($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ZonaTurno whereZonaId($value)
+ * @mixin \Eloquent
  */
-	class ZonaTurno extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperZonaTurno {}
 }
 

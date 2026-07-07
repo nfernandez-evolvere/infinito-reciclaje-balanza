@@ -11,6 +11,7 @@ use Illuminate\Support\Collection as SupportCollection;
 
 class ZonaRepository
 {
+    /** @return Collection<int, Zona> */
     public function activos(): Collection
     {
         return Zona::activos()->orderBy('nombre')->get();
@@ -37,6 +38,7 @@ class ZonaRepository
         ];
     }
 
+    /** @return Collection<int, Zona> */
     public function activosExcluyendo(array $ids): Collection
     {
         return Zona::activos()
@@ -60,7 +62,7 @@ class ZonaRepository
             ->map(fn (Zona $zona) => [
                 'id'     => $zona->id,
                 'nombre' => $zona->nombre,
-                'turnos' => $zona->turnos->pluck('turno')->values()->all(),
+                'turnos' => $zona->turnos->pluck('turno')->map(fn ($t) => (string) $t)->values()->all(),
             ]);
     }
 

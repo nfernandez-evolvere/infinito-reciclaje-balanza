@@ -9,6 +9,7 @@ use Illuminate\Support\Collection as SupportCollection;
 
 class TipoServicioRepository
 {
+    /** @return Collection<int, TipoServicio> */
     public function activos(): Collection
     {
         return TipoServicio::activos()->orderBy('nombre')->get();

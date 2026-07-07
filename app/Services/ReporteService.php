@@ -415,7 +415,7 @@ class ReporteService
                     'viajes'           => $grupo->count(),
                     'kg'               => $kg,
                     'toneladas'        => round($kg / 1000, 2),
-                    'porcentaje'       => $total > 0 ? round(($kg / $total) * 100, 1) : 0,
+                    'porcentaje'       => $total > 0 ? round(($kg / $total) * 100, 1) : 0.0,
                 ];
             })
             ->sortByDesc('kg')

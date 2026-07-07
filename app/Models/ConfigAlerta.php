@@ -5,6 +5,9 @@ namespace App\Models;
 use App\Models\Concerns\BelongsToOrganizacion;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @mixin IdeHelperConfigAlerta
+ */
 class ConfigAlerta extends Model
 {
     use BelongsToOrganizacion;
