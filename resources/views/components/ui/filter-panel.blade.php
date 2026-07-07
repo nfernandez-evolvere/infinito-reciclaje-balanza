@@ -11,11 +11,20 @@
     // Usado por pantallas que filtran sin recargar (ej: dashboard).
     'submitHandler'   => null,     // expresión Alpine al aplicar (con @submit.prevent)
     'clearHandler'    => null,     // expresión Alpine al limpiar (botón, no link)
+    // Expresión Alpine booleana de "ocupado". En modo AJAX el submit no navega, así que
+    // el `submitting` interno nunca se activa: se pasa el estado async del padre (ej:
+    // 'refreshing') para mostrar spinner/disable en Aplicar y Limpiar.
+    'busyExpr'        => null,
     // Clases del contenedor de campos. Por defecto: 2 columnas en tablet y una fila
     // que se reparte en desktop. Se puede sobreescribir para forzar más filas cuando
     // hay muchos campos (ej: grid fijo de columnas).
     'bodyClass'       => 'grid grid-cols-2 gap-x-4 gap-y-3 p-4 lg:flex lg:flex-wrap lg:items-end lg:*:min-w-30 lg:*:flex-1',
 ])
+
+@php
+    // "Ocupado": el estado externo (AJAX) o el submitting interno del form.
+    $busy = $busyExpr ?? 'submitting';
+@endphp
 
 {{--
     Filtros inline para tablet/desktop (md+): una card con header siempre visible
@@ -80,7 +89,7 @@
                 {{-- Acciones --}}
                 <div class="flex shrink-0 items-center gap-1.5">
                     @if($clearHandler)
-                        <x-ui.button type="button" variant="ghost" size="sm" @click="{{ $clearHandler }}">
+                        <x-ui.button type="button" variant="ghost" size="sm" @click="{{ $clearHandler }}" x-bind:disabled="{{ $busy }}">
                             <x-lucide-x class="size-4" />
                             Limpiar
                         </x-ui.button>
@@ -88,7 +97,7 @@
                         <a
                             href="{{ $resetUrl }}"
                             @class(['pointer-events-none opacity-40' => ! $hasFilters])
-                            x-bind:class="submitting && 'pointer-events-none opacity-50'"
+                            x-bind:class="({{ $busy }}) && 'pointer-events-none opacity-50'"
                         >
                             <x-ui.button type="button" variant="ghost" size="sm">
                                 <x-lucide-x class="size-4" />
@@ -97,11 +106,11 @@
                         </a>
                     @endif
 
-                    <x-ui.button type="submit" size="sm" x-bind:disabled="submitting">
-                        <x-ui.spinner size="sm" class="text-current" x-show="submitting" x-cloak />
-                        <x-lucide-search class="size-4" x-show="!submitting" />
-                        <span x-show="!submitting">{{ $submitLabel }}</span>
-                        <span x-show="submitting" x-cloak>{{ $submittingLabel }}</span>
+                    <x-ui.button type="submit" size="sm" x-bind:disabled="{{ $busy }}">
+                        <x-ui.spinner size="sm" class="text-current" x-show="{{ $busy }}" x-cloak />
+                        <x-lucide-search class="size-4" x-show="!({{ $busy }})" />
+                        <span x-show="!({{ $busy }})">{{ $submitLabel }}</span>
+                        <span x-show="{{ $busy }}" x-cloak>{{ $submittingLabel }}</span>
                     </x-ui.button>
 
                     <x-ui.separator orientation="vertical" class="mx-0.5 h-5 self-center" />

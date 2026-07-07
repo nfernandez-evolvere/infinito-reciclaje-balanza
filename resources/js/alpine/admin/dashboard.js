@@ -39,6 +39,35 @@ export default function dashboardData() {
             return idx >= 0 ? PALETTE[idx % PALETTE.length] : null;
         },
 
+        // Servicios distintos presentes en un desglose por zona, para el selector.
+        // [{ id, nombre }] ordenados por nombre; solo los que tienen servicio asignado.
+        serviciosDesglose(source) {
+            const vistos = new Map();
+            for (const d of this[source] ?? []) {
+                if (d.tipo_servicio_id != null && !vistos.has(d.tipo_servicio_id)) {
+                    vistos.set(d.tipo_servicio_id, d.tipo_servicio);
+                }
+            }
+            return [...vistos.entries()]
+                .map(([id, nombre]) => ({ id, nombre }))
+                .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+        },
+
+        // Filas del desglose filtradas por servicio. Sin servicio (fallback) devuelve
+        // todas. El desglose por zona muestra siempre un servicio por vez.
+        desgloseFiltrado(source, servicioId) {
+            const filas = this[source] ?? [];
+            if (!servicioId) return filas;
+            return filas.filter(d => String(d.tipo_servicio_id) === String(servicioId));
+        },
+
+        // Servicio por defecto de un desglose: el primero de la lista (orden por
+        // nombre). Vacío si no hay servicios asignados.
+        servicioDefault(source) {
+            const s = this.serviciosDesglose(source);
+            return s.length ? String(s[0].id) : '';
+        },
+
         fmt(n, d = 0) {
             return Number(n).toLocaleString('es-AR', { minimumFractionDigits: d, maximumFractionDigits: d });
         },
@@ -125,6 +154,9 @@ export default function dashboardData() {
                 this.$dispatch('dashboard-refreshed', data);
             } finally {
                 this.refreshing = false;
+                // El sheet mobile no se autocierra en modo AJAX (para mostrar el
+                // spinner); se cierra recién ahora, con los datos ya cargados.
+                this.filterOpen = false;
             }
         },
 

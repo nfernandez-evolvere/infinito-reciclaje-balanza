@@ -28,7 +28,7 @@ class PesajeRepository
 
     public function paraDesglosePorZona(Carbon $desde, Carbon $hasta): Collection
     {
-        return Pesaje::with('zona')
+        return Pesaje::with('zona.tipoServicio')
             ->whereDate('created_at', '>=', $desde)
             ->whereDate('created_at', '<=', $hasta)
             ->where('estado', '!=', 'Cancelado')
@@ -121,7 +121,7 @@ class PesajeRepository
 
     public function paraReporte(Carbon $desde, Carbon $hasta, array $filtros = []): Collection
     {
-        return Pesaje::with(['zona', 'vehiculo.tipoVehiculo', 'tipoServicio', 'operador'])
+        return Pesaje::with(['zona.tipoServicio', 'vehiculo.tipoVehiculo', 'tipoServicio', 'operador'])
             ->whereDate('created_at', '>=', $desde)
             ->whereDate('created_at', '<=', $hasta)
             ->where('estado', '!=', 'Cancelado')

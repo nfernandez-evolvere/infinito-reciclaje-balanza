@@ -12,6 +12,7 @@
     controlledBy="filterOpen"
     submitHandler="applyRango()"
     clearHandler="clearRango()"
+    busyExpr="refreshing"
 >
     <x-domain.dashboard.filtros.campos />
 </x-ui.filter-sheet>
@@ -22,6 +23,7 @@
     title="Período"
     submitHandler="applyRango()"
     clearHandler="clearRango()"
+    busyExpr="refreshing"
     bodyClass="flex justify-end p-4"
 >
     <x-slot:chips>

@@ -176,10 +176,14 @@ class DashboardService
                 $zona = $grupo->first()->zona;
 
                 return [
-                    'zona_id'      => $grupo->first()->zona_id,
-                    'nombre'       => ($zona?->nombre ?? '—').($turno ? ' '.$turno : ''),
-                    'turno'        => $turno,
-                    'pesajes'      => $count,
+                    'zona_id'          => $grupo->first()->zona_id,
+                    'nombre'           => ($zona?->nombre ?? '—').($turno ? ' '.$turno : ''),
+                    'turno'            => $turno,
+                    // Servicio de la zona (Zona pertenece a un TipoServicio): permite
+                    // filtrar el desglose por servicio, respetando servicio → zona.
+                    'tipo_servicio_id' => $zona?->tipo_servicio_id,
+                    'tipo_servicio'    => $zona?->tipoServicio?->nombre ?? 'Sin servicio',
+                    'pesajes'          => $count,
                     'toneladas'    => round($sumaKg / 1000, 2),
                     'kg_por_viaje' => number_format((int) round($sumaKg / $count), 0, ',', '.'),
                     'porcentaje'   => $total > 0 ? round(($sumaKg / $total) * 100, 1) : 0,
@@ -192,10 +196,12 @@ class DashboardService
 
         $zonasSinPesajes = $this->zonaRepository->activosExcluyendo($zonasConPesajes)
             ->map(fn ($zona) => [
-                'zona_id'      => $zona->id,
-                'nombre'       => $zona->nombre,
-                'turno'        => null,
-                'pesajes'      => 0,
+                'zona_id'          => $zona->id,
+                'nombre'           => $zona->nombre,
+                'turno'            => null,
+                'tipo_servicio_id' => $zona->tipo_servicio_id,
+                'tipo_servicio'    => $zona->tipoServicio?->nombre ?? 'Sin servicio',
+                'pesajes'          => 0,
                 'toneladas'    => 0.0,
                 'kg_por_viaje' => '—',
                 'porcentaje'   => 0,

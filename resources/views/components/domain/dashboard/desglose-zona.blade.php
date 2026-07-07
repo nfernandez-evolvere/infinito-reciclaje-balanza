@@ -1,9 +1,55 @@
 @props(['source', 'description' => 'Actividad del día por zona y turno. Una zona puede ocupar varias filas, una por turno.'])
 
-<x-ui.card variant="elevated">
+{{--
+    Desglose por zona y turno de un servicio. El select elige el servicio (siempre
+    hay uno seleccionado por defecto — el primero); tabla y donut muestran solo las
+    zonas de ese servicio. `servicioFiltro` es la fuente de verdad; el donut (hermano)
+    se sincroniza por el evento window `desglose-servicio` y por su propio default.
+--}}
+<x-ui.card
+    variant="elevated"
+    x-data="{ servicioFiltro: '' }"
+    x-init="servicioFiltro = servicioDefault('{{ $source }}')"
+    x-effect="(() => {
+        const ids = serviciosDesglose('{{ $source }}').map(s => String(s.id));
+        if (ids.length && !ids.includes(String(servicioFiltro))) servicioFiltro = ids[0];
+    })()"
+>
     <x-ui.card.header>
-        <x-ui.card.title>Por zona y turno</x-ui.card.title>
-        <x-ui.card.description>{{ $description }}</x-ui.card.description>
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div class="space-y-1.5">
+                <x-ui.card.title>Por zona y turno</x-ui.card.title>
+                <x-ui.card.description>{{ $description }}</x-ui.card.description>
+            </div>
+
+            {{-- Selector de servicio: cada zona pertenece a un servicio. Solo si hay más de uno. --}}
+            <div x-show="serviciosDesglose('{{ $source }}').length > 1" x-cloak class="sm:w-56 sm:shrink-0">
+                <div @select-change.stop="window.dispatchEvent(new CustomEvent('desglose-servicio', { detail: { source: '{{ $source }}', value: $event.detail.value } }))">
+                    <x-ui.select x-modelable="value" x-model="servicioFiltro" size="sm">
+                        <x-ui.select.trigger>
+                            <x-ui.select.value placeholder="Servicio…" />
+                        </x-ui.select.trigger>
+                        <x-ui.select.content>
+                            <template x-for="s in serviciosDesglose('{{ $source }}')" :key="s.id">
+                                <div
+                                    role="option"
+                                    x-init="$dispatch('select-item-init', { value: String(s.id), label: s.nombre, disabled: false })"
+                                    @click="select(String(s.id))"
+                                    @mouseenter="focusIdx = items.findIndex(o => String(o.value) === String(s.id))"
+                                    :class="{ 'bg-accent text-accent-foreground': focusIdx === items.findIndex(o => String(o.value) === String(s.id)) }"
+                                    class="relative flex items-center select-none outline-none rounded-md pl-8 pr-2 py-1.5 text-sm hover:bg-primary/10 cursor-pointer"
+                                >
+                                    <span class="absolute left-2 flex items-center justify-center size-4" x-show="String(value) === String(s.id)" aria-hidden="true">
+                                        <x-lucide-check class="size-3.5" stroke-width="2.5" />
+                                    </span>
+                                    <span x-text="s.nombre"></span>
+                                </div>
+                            </template>
+                        </x-ui.select.content>
+                    </x-ui.select>
+                </div>
+            </div>
+        </div>
     </x-ui.card.header>
     <x-ui.card.content class="pt-0">
         <div class="grid grid-cols-1 xl:grid-cols-12 gap-4 items-start">
@@ -11,7 +57,7 @@
 
                 {{-- Mobile: cards --}}
                 <div class="sm:hidden space-y-1.5">
-                    <template x-for="fila in {{ $source }}" :key="fila.nombre">
+                    <template x-for="fila in desgloseFiltrado('{{ $source }}', servicioFiltro)" :key="fila.nombre">
                         <div class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg border border-border bg-background">
                             <div class="flex items-center gap-2 min-w-0">
                                 <span class="w-2 h-2 rounded-full shrink-0 bg-muted-foreground/30" :style="desgloseColor('{{ $source }}', fila.nombre) ? { backgroundColor: desgloseColor('{{ $source }}', fila.nombre) } : {}"></span>
@@ -50,7 +96,7 @@
                         </x-ui.table.row>
                     </x-ui.table.header>
                     <x-ui.table.body>
-                        <template x-for="fila in {{ $source }}" :key="fila.nombre">
+                        <template x-for="fila in desgloseFiltrado('{{ $source }}', servicioFiltro)" :key="fila.nombre">
                             <x-ui.table.row>
                                 <x-ui.table.cell data-label="Zona y turno" class="font-medium">
                                     <span class="flex items-center gap-2">

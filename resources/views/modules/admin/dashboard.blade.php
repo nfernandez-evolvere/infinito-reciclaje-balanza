@@ -47,7 +47,9 @@
     {{-- Filtro de período: sheet mobile + panel colapsable (md+). Filtra por AJAX. --}}
     <x-domain.dashboard.filtros />
 
-    {{-- Tabs: Hoy / Este mes / Personalizado --}}
+    {{-- Tabs: Hoy / Este mes / Personalizado. Se atenúa mientras se recargan los datos
+         (applyRango/refresh) para dar feedback de carga en todo el contenido. --}}
+    <div x-bind:class="refreshing && 'opacity-60 pointer-events-none'" class="transition-opacity duration-200">
     <x-ui.tabs value="hoy" @activate-tab.window="active = $event.detail">
         <div class="flex items-center justify-between gap-2">
             <x-ui.tabs.list class="shrink-0">
@@ -165,6 +167,7 @@
             </template>
         </x-ui.tabs.content>
     </x-ui.tabs>
+    </div>{{-- /dim wrapper --}}
 
 </div>
 

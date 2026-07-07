@@ -40,6 +40,7 @@ class ZonaRepository
     public function activosExcluyendo(array $ids): Collection
     {
         return Zona::activos()
+            ->with('tipoServicio')
             ->when(! empty($ids), fn ($q) => $q->whereNotIn('id', $ids))
             ->get();
     }
