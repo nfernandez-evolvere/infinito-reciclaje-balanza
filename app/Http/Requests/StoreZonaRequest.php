@@ -25,7 +25,7 @@ class StoreZonaRequest extends FormRequest
     {
         return [
             'tipo_servicio_id' => ['required', 'integer', 'exists:tipos_servicio,id'],
-            'nombre' => [
+            'nombre'           => [
                 'required', 'string', 'max:150',
                 // El nombre es único dentro de cada servicio (espeja unique(tipo_servicio_id, nombre)).
                 // Dos servicios pueden tener su propia "Zona Norte" sin colisionar.

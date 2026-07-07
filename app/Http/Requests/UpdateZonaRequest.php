@@ -25,7 +25,7 @@ class UpdateZonaRequest extends FormRequest
     {
         return [
             'tipo_servicio_id' => ['required', 'integer', 'exists:tipos_servicio,id'],
-            'nombre' => [
+            'nombre'           => [
                 'required', 'string', 'max:150',
                 // Único dentro del servicio, ignorando la propia zona al editar (p. ej.
                 // cuando sólo se cambia el contorno del mapa y no el nombre).

@@ -89,19 +89,19 @@ class ReporteService
                 $turno = $grupo->first()->turno;
 
                 return [
-                    'nombre'           => $zona?->nombre ?? '—',
-                    'turno'            => $turno,
+                    'nombre' => $zona?->nombre ?? '—',
+                    'turno'  => $turno,
                     // Clasificamos cada zona por su servicio (Zona pertenece a un
                     // TipoServicio): el desglose por zona respeta la jerarquía
                     // servicio → zona en la tabla del informe.
                     'tipo_servicio_id' => $zona?->tipo_servicio_id,
                     'tipo_servicio'    => $zona?->tipoServicio?->nombre ?? 'Sin servicio',
-                    'viajes'     => $count,
-                    'toneladas'  => round($sumaKg / 1000, 2),
-                    'kg_viaje'   => (int) round($sumaKg / $count),
-                    'porcentaje' => $total > 0 ? round(($sumaKg / $total) * 100, 1) : 0,
-                    'kg_ha'      => ($zona?->hectareas > 0) ? round($sumaKg / $zona->hectareas, 1) : null,
-                    'kg_hab'     => ($zona?->habitantes > 0) ? round($sumaKg / $zona->habitantes, 2) : null,
+                    'viajes'           => $count,
+                    'toneladas'        => round($sumaKg / 1000, 2),
+                    'kg_viaje'         => (int) round($sumaKg / $count),
+                    'porcentaje'       => $total > 0 ? round(($sumaKg / $total) * 100, 1) : 0,
+                    'kg_ha'            => ($zona?->hectareas > 0) ? round($sumaKg / $zona->hectareas, 1) : null,
+                    'kg_hab'           => ($zona?->habitantes > 0) ? round($sumaKg / $zona->habitantes, 2) : null,
                 ];
             })
             ->sortByDesc('toneladas')
