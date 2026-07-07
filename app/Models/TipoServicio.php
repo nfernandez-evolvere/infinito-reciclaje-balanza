@@ -21,6 +21,7 @@ class TipoServicio extends Model
     protected $fillable = [
         'organizacion_id',
         'nombre',
+        'descripcion',
         'activo',
     ];
 

@@ -23,6 +23,7 @@
         'form'      => [
             'id'                => (int) old('_editing_id', 0) ?: null,
             'nombre'            => old('nombre', ''),
+            'descripcion'       => old('descripcion', ''),
             'tipo_vehiculo_ids' => array_map('intval', (array) old('tipo_vehiculo_ids', [])),
         ],
     ] : [];

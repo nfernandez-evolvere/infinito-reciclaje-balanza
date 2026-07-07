@@ -266,6 +266,69 @@ class TipoServicioTest extends TestCase
     }
 
     #[Test]
+    public function test_store_persiste_la_descripcion(): void
+    {
+        $this->actingAs($this->admin())
+            ->post(route('admin.tipos-servicio.store'), $this->payload([
+                'nombre'      => 'Domiciliario',
+                'descripcion' => 'Recolección de residuos comunes de los hogares.',
+            ]))
+            ->assertRedirect(route('admin.tipos-servicio.index'));
+
+        $this->assertDatabaseHas('tipos_servicio', [
+            'nombre'      => 'Domiciliario',
+            'descripcion' => 'Recolección de residuos comunes de los hogares.',
+        ]);
+    }
+
+    #[Test]
+    public function test_update_actualiza_la_descripcion(): void
+    {
+        $tipo = TipoServicio::factory()->create(['nombre' => 'Domiciliario', 'descripcion' => 'Vieja']);
+
+        $this->actingAs($this->admin())
+            ->put(route('admin.tipos-servicio.update', $tipo), [
+                'nombre'            => 'Domiciliario',
+                'descripcion'       => 'Nueva descripción del servicio.',
+                'tipo_vehiculo_ids' => [],
+            ])
+            ->assertRedirect(route('admin.tipos-servicio.index'));
+
+        $this->assertDatabaseHas('tipos_servicio', [
+            'id'          => $tipo->id,
+            'descripcion' => 'Nueva descripción del servicio.',
+        ]);
+    }
+
+    #[Test]
+    public function test_store_acepta_descripcion_en_el_limite_de_longitud(): void
+    {
+        $descripcion = str_repeat('a', 300);
+
+        $this->actingAs($this->admin())
+            ->post(route('admin.tipos-servicio.store'), $this->payload([
+                'nombre'      => 'Domiciliario',
+                'descripcion' => $descripcion,
+            ]))
+            ->assertRedirect(route('admin.tipos-servicio.index'));
+
+        $this->assertDatabaseHas('tipos_servicio', ['nombre' => 'Domiciliario', 'descripcion' => $descripcion]);
+    }
+
+    #[Test]
+    public function test_store_rechaza_descripcion_demasiado_larga(): void
+    {
+        $this->actingAs($this->admin())
+            ->post(route('admin.tipos-servicio.store'), $this->payload([
+                'nombre'      => 'Domiciliario',
+                'descripcion' => str_repeat('a', 301),
+            ]))
+            ->assertSessionHasErrors('descripcion');
+
+        $this->assertDatabaseMissing('tipos_servicio', ['nombre' => 'Domiciliario']);
+    }
+
+    #[Test]
     public function test_update_permite_mismo_nombre_en_mismo_registro(): void
     {
         // La regla unique con ->ignore() no debe rechazar el mismo nombre en el mismo registro

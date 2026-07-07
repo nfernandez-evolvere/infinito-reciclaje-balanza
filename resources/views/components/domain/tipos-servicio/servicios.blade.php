@@ -95,7 +95,7 @@
                                 </x-ui.dropdown-menu.trigger>
                                 <x-ui.dropdown-menu.content>
                                     <x-ui.dropdown-menu.item
-                                        @click="openEdit({{ $tipo->id }}, {{ Js::from($tipo->nombre) }}, {{ Js::from($tipo->tiposVehiculo->pluck('id')->toArray()) }})"
+                                        @click="openEdit({{ $tipo->id }}, {{ Js::from($tipo->nombre) }}, {{ Js::from($tipo->descripcion) }}, {{ Js::from($tipo->tiposVehiculo->pluck('id')->toArray()) }})"
                                     >
                                         <x-lucide-pencil class="size-4" />
                                         Editar

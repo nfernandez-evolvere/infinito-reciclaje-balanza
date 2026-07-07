@@ -112,10 +112,13 @@ Tipos de recolección disponibles. Cada servicio puede sugerir **varios tipos de
 | `id` | `bigint` | NO | IDENTITY | PK | — |
 | `organizacion_id` | `bigint` | NO | — | FK → `organizaciones.id`, CASCADE | — |
 | `nombre` | `nvarchar(100)` | NO | — | — | Ej: `'Domiciliario'` |
+| `descripcion` | `nvarchar(300)` | SÍ | NULL | — | Texto para el reporte mensual (página "¿Qué es cada servicio?"). NULL = sin descripción. |
 | `activo` | `bit` | NO | `1` | — | — |
 | `created_at` / `updated_at` | `datetime2(0)` | SÍ | NULL | — | — |
 
 **Único:** `UNIQUE (organizacion_id, nombre)`.
+
+> **Migración:** `descripcion` se agregó post-inicial vía migración aditiva `2026_07_03_120000_add_descripcion_to_tipos_servicio_table` (la tabla ya estaba en producción). Es la excepción documentada al patrón "una migración `create_*` por tabla".
 
 > **Histórico:** existió una FK única `tipo_vehiculo_sugerido_id` (un solo vehículo sugerido por servicio). Se reemplazó por la N:M `tipo_servicio_tipo_vehiculo`.
 

@@ -19,6 +19,7 @@ class StoreTipoServicioRequest extends FormRequest
         // organización en la tabla compartida dispararía un falso "ya en uso".
         return [
             'nombre'              => ['required', 'string', 'max:100', Rule::unique('tipos_servicio', 'nombre')->where('organizacion_id', app('organizacion')?->id)],
+            'descripcion'         => ['nullable', 'string', 'max:300'],
             'tipo_vehiculo_ids'   => ['nullable', 'array'],
             'tipo_vehiculo_ids.*' => ['integer', 'exists:tipos_vehiculo,id'],
         ];
@@ -28,6 +29,7 @@ class StoreTipoServicioRequest extends FormRequest
     {
         return [
             'nombre'            => 'nombre',
+            'descripcion'       => 'descripción',
             'tipo_vehiculo_ids' => 'vehículos sugeridos',
         ];
     }
