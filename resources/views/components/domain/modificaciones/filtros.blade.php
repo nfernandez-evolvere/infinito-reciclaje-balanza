@@ -46,7 +46,7 @@
 
     if (!empty($filtros['zona_id'])) {
         $zona = $zonas->firstWhere('id', $filtros['zona_id']);
-        $chips[] = ['label' => $zona?->nombre ?? 'Origen', 'url' => $removeUrl(['m_zona_id' => null])];
+        $chips[] = ['label' => $zona?->nombre ?? 'Zona', 'url' => $removeUrl(['m_zona_id' => null])];
     }
 
     if (!empty($filtros['tipo_servicio_id'])) {

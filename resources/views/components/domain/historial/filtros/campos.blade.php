@@ -85,38 +85,13 @@
     </x-ui.select>
 </x-ui.form-field>
 
-@if($zonas->isNotEmpty())
-    <x-ui.form-field>
-        <x-ui.label>Origen</x-ui.label>
-        <x-ui.select name="zona_id" value="{{ $filtros['zona_id'] ?? '' }}">
-            <x-ui.select.trigger>
-                <x-ui.select.value placeholder="Todos" />
-            </x-ui.select.trigger>
-            <x-ui.select.content>
-                <x-ui.select.item value="">Todos</x-ui.select.item>
-                @foreach($zonas as $zona)
-                    <x-ui.select.item value="{{ $zona->id }}">{{ $zona->nombre }}</x-ui.select.item>
-                @endforeach
-            </x-ui.select.content>
-        </x-ui.select>
-    </x-ui.form-field>
-@endif
-
-@if($tiposServicio->isNotEmpty())
-    <x-ui.form-field>
-        <x-ui.label>Servicio</x-ui.label>
-        <x-ui.select name="tipo_servicio_id" value="{{ $filtros['tipo_servicio_id'] ?? '' }}">
-            <x-ui.select.trigger>
-                <x-ui.select.value placeholder="Todos" />
-            </x-ui.select.trigger>
-            <x-ui.select.content>
-                <x-ui.select.item value="">Todos</x-ui.select.item>
-                @foreach($tiposServicio as $ts)
-                    <x-ui.select.item value="{{ $ts->id }}">{{ $ts->nombre }}</x-ui.select.item>
-                @endforeach
-            </x-ui.select.content>
-        </x-ui.select>
-    </x-ui.form-field>
+@if($zonas->isNotEmpty() || $tiposServicio->isNotEmpty())
+    <x-domain.pesajes.filtro-servicio-origen
+        :zonas="$zonas"
+        :tiposServicio="$tiposServicio"
+        :servicioId="$filtros['tipo_servicio_id'] ?? ''"
+        :zonaId="$filtros['zona_id'] ?? ''"
+    />
 @endif
 
 @if($tiposVehiculo->isNotEmpty())
