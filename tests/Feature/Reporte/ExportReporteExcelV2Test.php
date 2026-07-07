@@ -3,17 +3,37 @@
 namespace Tests\Feature\Reporte;
 
 use App\Models\Pesaje;
+use App\Models\ReporteConfiguracion;
 use App\Models\TipoServicio;
 use App\Models\TipoVehiculo;
 use App\Models\Vehiculo;
 use App\Models\Zona;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class ExportReporteExcelV2Test extends TestCase
 {
     use RefreshDatabase;
+
+    /**
+     * Títulos de las hojas del xlsx descargado (el streamedContent se escribe a
+     * un archivo temporal porque PhpSpreadsheet solo lee desde disco).
+     *
+     * @return list<string>
+     */
+    private function hojasDelXlsx(string $contenido): array
+    {
+        $tmp = tempnam(sys_get_temp_dir(), 'xlsx');
+        file_put_contents($tmp, $contenido);
+
+        try {
+            return IOFactory::load($tmp)->getSheetNames();
+        } finally {
+            unlink($tmp);
+        }
+    }
 
     /**
      * Siembra dos servicios con sus zonas y un vehículo con N° interno, con pesajes
@@ -101,5 +121,73 @@ class ExportReporteExcelV2Test extends TestCase
         $this->actingAs($this->operador())
             ->get(route('admin.reportes.excel-v2', ['desde' => '2026-03-01', 'hasta' => '2026-03-31']))
             ->assertForbidden();
+    }
+
+    // ── Secciones configurables (hojas del workbook) ─────────────────────
+
+    #[Test]
+    public function export_sin_configuracion_incluye_todas_las_hojas(): void
+    {
+        $this->sembrarPesajes();
+
+        $contenido = $this->actingAs($this->admin())
+            ->get(route('admin.reportes.excel-v2', ['desde' => '2026-03-01', 'hasta' => '2026-03-31']))
+            ->assertOk()
+            ->streamedContent();
+
+        // Dos servicios sembrados (Domiciliario y Voluminosos, kg desc) → una hoja cada uno.
+        $this->assertSame(
+            ['Resumen', 'Por vehículo- N° Interno', 'Voluminosos', 'Domiciliario', 'Base de datos'],
+            $this->hojasDelXlsx($contenido),
+        );
+    }
+
+    #[Test]
+    public function export_respeta_las_secciones_ad_hoc_del_request(): void
+    {
+        $this->sembrarPesajes();
+
+        $contenido = $this->actingAs($this->admin())
+            ->get(route('admin.reportes.excel-v2', [
+                'desde'     => '2026-03-01',
+                'hasta'     => '2026-03-31',
+                'secciones' => ['resumen', 'base_datos'],
+            ]))
+            ->assertOk()
+            ->streamedContent();
+
+        $this->assertSame(['Resumen', 'Base de datos'], $this->hojasDelXlsx($contenido));
+    }
+
+    #[Test]
+    public function export_usa_las_secciones_de_la_configuracion_general(): void
+    {
+        $this->sembrarPesajes();
+        ReporteConfiguracion::create(['secciones' => ['excel' => ['por_interno']]]);
+
+        $contenido = $this->actingAs($this->admin())
+            ->get(route('admin.reportes.excel-v2', ['desde' => '2026-03-01', 'hasta' => '2026-03-31']))
+            ->assertOk()
+            ->streamedContent();
+
+        $this->assertSame(['Por vehículo- N° Interno'], $this->hojasDelXlsx($contenido));
+    }
+
+    #[Test]
+    public function export_con_secciones_invalidas_cae_a_la_hoja_resumen(): void
+    {
+        // El guard del workbook: nunca un xlsx sin hojas.
+        $this->sembrarPesajes();
+
+        $contenido = $this->actingAs($this->admin())
+            ->get(route('admin.reportes.excel-v2', [
+                'desde'     => '2026-03-01',
+                'hasta'     => '2026-03-31',
+                'secciones' => ['quienes_somos'], // clave de PDF: no es una hoja de Excel
+            ]))
+            ->assertOk()
+            ->streamedContent();
+
+        $this->assertSame(['Resumen'], $this->hojasDelXlsx($contenido));
     }
 }

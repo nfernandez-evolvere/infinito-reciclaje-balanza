@@ -321,6 +321,49 @@ class GenerarReporteJobTest extends TestCase
         $this->assertSame('2026-04-30', $capturedHasta->toDateString());
     }
 
+    // ── secciones congeladas en el snapshot ───────────────────────────
+
+    #[Test]
+    public function job_congela_las_secciones_personalizadas_del_programado(): void
+    {
+        Mail::fake();
+        $this->mockDependencies();
+        $this->sinRevision();
+
+        $programado = $this->programado(['opciones' => [
+            'formatos'  => ['pdf'],
+            'secciones' => ['pdf' => ['resumen_ejecutivo'], 'excel' => ['resumen']],
+        ]]);
+        $generado = $this->generado($programado);
+
+        GenerarReporteJob::dispatchSync($generado->id);
+
+        $snapshot = $generado->refresh()->snapshot;
+        $this->assertSame(['resumen_ejecutivo'], $snapshot['secciones']['pdf']);
+        $this->assertSame(['resumen'], $snapshot['secciones']['excel']);
+    }
+
+    #[Test]
+    public function job_hereda_las_secciones_de_la_configuracion_general(): void
+    {
+        Mail::fake();
+        $this->mockDependencies();
+
+        ReporteConfiguracion::create([
+            'municipalidad_nombre' => 'Test',
+            'revision_requerida'   => false,
+            'secciones'            => ['pdf' => ['dia_semana'], 'excel' => ['por_servicio']],
+        ]);
+
+        $generado = $this->generado($this->programado());
+
+        GenerarReporteJob::dispatchSync($generado->id);
+
+        $snapshot = $generado->refresh()->snapshot;
+        $this->assertSame(['dia_semana'], $snapshot['secciones']['pdf']);
+        $this->assertSame(['por_servicio'], $snapshot['secciones']['excel']);
+    }
+
     // ── fallos: update in place ───────────────────────────────────────
 
     #[Test]

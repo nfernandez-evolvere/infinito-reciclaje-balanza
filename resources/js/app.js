@@ -18,6 +18,7 @@ import filtroServicioOrigen from './alpine/admin/filtro-servicio-origen.js';
 import reportesProgramados from './alpine/admin/reportes-programados.js';
 import reportesHistorial from './alpine/admin/reportes-historial.js';
 import reportesConfiguracion from './alpine/admin/reportes-configuracion.js';
+import seccionesExport from './alpine/admin/secciones-export.js';
 import tagsInput from './alpine/tags-input.js';
 import { apexChart } from './charts.js';
 import './echo';
@@ -58,6 +59,7 @@ Alpine.data('filtroServicioOrigen', filtroServicioOrigen);
 Alpine.data('reportesProgramados', reportesProgramados);
 Alpine.data('reportesHistorial', reportesHistorial);
 Alpine.data('reportesConfiguracion', reportesConfiguracion);
+Alpine.data('seccionesExport', seccionesExport);
 Alpine.data('tagsInput', tagsInput);
 Alpine.data('apexChart', apexChart);
 

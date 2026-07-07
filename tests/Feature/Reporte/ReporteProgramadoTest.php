@@ -180,6 +180,120 @@ class ReporteProgramadoTest extends TestCase
         $this->assertSame('mes_anterior', $programado->opciones['periodo']);
     }
 
+    // ── secciones del informe ─────────────────────────────────────────
+
+    #[Test]
+    public function store_personalizado_persiste_las_secciones_saneadas(): void
+    {
+        $this->actingAs($this->admin())
+            ->post(route('admin.reportes.programados.store'), $this->payload([
+                'nombre'                   => 'Informe recortado',
+                'formatos'                 => ['pdf', 'excel'],
+                'secciones_personalizadas' => '1',
+                'secciones'                => [
+                    'pdf'   => ['tipo_vehiculo', 'quienes_somos'], // desordenadas a propósito
+                    'excel' => ['base_datos'],
+                ],
+            ]))
+            ->assertRedirect(route('admin.reportes.index', ['tab' => 'programados']))
+            ->assertSessionHasNoErrors();
+
+        $programado = ReporteProgramado::where('nombre', 'Informe recortado')->first();
+        $this->assertNotNull($programado);
+        $this->assertTrue($programado->seccionesPersonalizadas());
+        // Saneadas al orden canónico del catálogo.
+        $this->assertSame(
+            ['pdf' => ['quienes_somos', 'tipo_vehiculo'], 'excel' => ['base_datos']],
+            $programado->opciones['secciones'],
+        );
+    }
+
+    #[Test]
+    public function store_sin_personalizar_no_guarda_secciones_y_hereda(): void
+    {
+        $this->actingAs($this->admin())
+            ->post(route('admin.reportes.programados.store'), $this->payload([
+                'nombre' => 'Informe heredado',
+                // El modal siempre manda las listas (arrancan con el default general):
+                // sin personalizar deben ignorarse.
+                'secciones_personalizadas' => '0',
+                'secciones'                => ['pdf' => ['quienes_somos'], 'excel' => ['resumen']],
+            ]))
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $programado = ReporteProgramado::where('nombre', 'Informe heredado')->first();
+        $this->assertFalse($programado->seccionesPersonalizadas());
+        $this->assertArrayNotHasKey('secciones', $programado->opciones);
+
+        $config = new ReporteConfiguracion(['secciones' => ['pdf' => ['dia_semana'], 'excel' => ['por_servicio']]]);
+        $this->assertSame(['pdf' => ['dia_semana'], 'excel' => ['por_servicio']], $programado->secciones($config));
+    }
+
+    #[Test]
+    public function store_personalizado_con_excel_requiere_al_menos_una_hoja(): void
+    {
+        $this->actingAs($this->admin())
+            ->post(route('admin.reportes.programados.store'), $this->payload([
+                'formatos'                 => ['pdf', 'excel'],
+                'secciones_personalizadas' => '1',
+                'secciones'                => ['pdf' => ['quienes_somos']],
+            ]))
+            ->assertSessionHasErrors('secciones.excel');
+
+        $this->assertDatabaseMissing('reportes_programados', ['nombre' => 'Informe mensual Norte']);
+    }
+
+    #[Test]
+    public function store_personalizado_sin_formato_excel_no_exige_hojas(): void
+    {
+        $this->actingAs($this->admin())
+            ->post(route('admin.reportes.programados.store'), $this->payload([
+                'nombre'                   => 'Solo PDF recortado',
+                'formatos'                 => ['pdf'],
+                'secciones_personalizadas' => '1',
+                'secciones'                => ['pdf' => ['resumen_ejecutivo']],
+            ]))
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $programado = ReporteProgramado::where('nombre', 'Solo PDF recortado')->first();
+        $this->assertSame(['resumen_ejecutivo'], $programado->opciones['secciones']['pdf']);
+        // Sin hojas elegidas, el guard del catálogo asegura un Excel válido si
+        // algún día se agrega el formato.
+        $this->assertSame(['resumen'], $programado->opciones['secciones']['excel']);
+    }
+
+    #[Test]
+    public function store_rechaza_una_seccion_pdf_invalida(): void
+    {
+        $this->actingAs($this->admin())
+            ->post(route('admin.reportes.programados.store'), $this->payload([
+                'secciones_personalizadas' => '1',
+                'secciones'                => ['pdf' => ['inventada'], 'excel' => ['resumen']],
+            ]))
+            ->assertSessionHasErrors('secciones.pdf.0');
+    }
+
+    #[Test]
+    public function update_quita_la_personalizacion_al_volver_a_heredar(): void
+    {
+        $programado = $this->programado([
+            'opciones' => ['formatos' => ['pdf'], 'secciones' => ['pdf' => ['quienes_somos'], 'excel' => ['resumen']]],
+        ]);
+
+        $this->actingAs($this->admin())
+            ->put(route('admin.reportes.programados.update', $programado), $this->payload([
+                'secciones_personalizadas' => '0',
+            ]))
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $programado->refresh();
+        $this->assertArrayNotHasKey('secciones', $programado->opciones);
+        $this->assertFalse($programado->seccionesPersonalizadas());
+    }
+
     // ── updateProgramado ──────────────────────────────────────────────
 
     #[Test]

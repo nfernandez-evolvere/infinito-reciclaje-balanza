@@ -5,7 +5,11 @@ const formVacio = () => ({
     frecuencia:     'mensual',
     cron_expresion: '0 8 1 * *',
     formatos:       ['pdf'],
-    revision:       'heredar',
+    revision:       'revisar',
+    // Secciones del informe: sin personalizar hereda la configuración general.
+    // Las listas arrancan con el default general (openCreate/openEdit las cargan).
+    secciones_personalizadas: false,
+    secciones:      { pdf: [], excel: [] },
     activo:         true,
 });
 
@@ -20,6 +24,8 @@ export default (initial = {}) => ({
     modalMode:              'create',
     form:                   formVacio(),
     _oldDestinatariosStr:   '',
+    // Secciones de la configuración general: punto de partida al personalizar.
+    seccionesDefault:       { pdf: [], excel: [] },
 
     deleteOpen:   false,
     deleteId:     null,
@@ -41,9 +47,10 @@ export default (initial = {}) => ({
     },
 
     openCreate() {
-        this.form      = formVacio();
-        this.modalMode = 'create';
-        this.modalOpen = true;
+        this.form           = formVacio();
+        this.form.secciones = this._seccionesDefaultCopy();
+        this.modalMode      = 'create';
+        this.modalOpen      = true;
         this.$nextTick(() => resetDestinatarios([]));
     },
 
@@ -54,6 +61,23 @@ export default (initial = {}) => ({
         } else {
             this.form.formatos.splice(i, 1);
         }
+    },
+
+    toggleSeccion(formato, clave) {
+        const lista = this.form.secciones[formato];
+        const i = lista.indexOf(clave);
+        if (i === -1) {
+            lista.push(clave);
+        } else {
+            lista.splice(i, 1);
+        }
+    },
+
+    _seccionesDefaultCopy() {
+        return {
+            pdf:   [...(this.seccionesDefault.pdf ?? [])],
+            excel: [...(this.seccionesDefault.excel ?? [])],
+        };
     },
 
     confirmEnviar(id, nombre, url) {
@@ -115,7 +139,13 @@ export default (initial = {}) => ({
             cron_expresion: p.cron_expresion,
             formatos:       Array.isArray(p.formatos) && p.formatos.length ? p.formatos : ['pdf'],
             revision:       p.revision || 'heredar',
-            activo:         p.activo,
+            // p.secciones solo viene cuando el programado personalizó; si no,
+            // se precargan las de la configuración general como punto de partida.
+            secciones_personalizadas: !! p.secciones,
+            secciones: p.secciones
+                ? { pdf: [...(p.secciones.pdf ?? [])], excel: [...(p.secciones.excel ?? [])] }
+                : this._seccionesDefaultCopy(),
+            activo: p.activo,
         };
         this.modalMode = 'edit';
         this.modalOpen = true;

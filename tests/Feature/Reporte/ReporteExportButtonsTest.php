@@ -17,8 +17,11 @@ class ReporteExportButtonsTest extends TestCase
             ->get(route('admin.reportes.index', ['desde' => '2026-05-01', 'hasta' => '2026-05-31']))
             ->assertOk();
 
-        // Los botones de descarga apuntan al generador v2.
-        $response->assertSee('admin/reportes/excel-v2', escape: false);
-        $response->assertSee('admin/reportes/pdf-v2', escape: false);
+        // Los botones de descarga apuntan al generador v2. Las URLs viven en el
+        // payload del componente seccionesExport (Js::from escapa las barras),
+        // que arma el href según las secciones elegidas en el popover.
+        $response->assertSee('seccionesExport', escape: false);
+        $response->assertSee('excel-v2', escape: false);
+        $response->assertSee('pdf-v2', escape: false);
     }
 }

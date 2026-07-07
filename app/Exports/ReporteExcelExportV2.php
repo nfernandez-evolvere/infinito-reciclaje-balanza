@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Support\ReporteSecciones;
 use Illuminate\Support\Collection;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -35,15 +36,40 @@ class ReporteExcelExportV2 extends ReporteExcelBase
             ->setTitle('Reporte de Pesajes por Tipo de Servicio')
             ->setCreator('Infinito Reciclaje');
 
-        $this->buildResumen($spreadsheet->getActiveSheet());
-        $this->buildPorInterno($spreadsheet->createSheet());
+        // Hojas habilitadas por la configuración de secciones (congelada en el
+        // snapshot al generar). Sin la clave → todas; sanitizar garantiza al
+        // menos una hoja (un workbook no puede quedar vacío).
+        $hojas = ReporteSecciones::sanitizarExcel($this->reporte['secciones']['excel'] ?? null);
+        // La primera hoja reutiliza la activa del workbook; las demás se crean.
+        $primera = true;
+        $sheet = function () use ($spreadsheet, &$primera): Worksheet {
+            if ($primera) {
+                $primera = false;
 
-        // Una hoja por servicio (ordenados por kg desc en datosExcelV2).
-        foreach ($this->reporte['datosV2']['servicios'] as $servicio) {
-            $this->buildServicio($spreadsheet->createSheet(), $servicio);
+                return $spreadsheet->getActiveSheet();
+            }
+
+            return $spreadsheet->createSheet();
+        };
+
+        if (in_array('resumen', $hojas, true)) {
+            $this->buildResumen($sheet());
         }
 
-        $this->buildDetalleSheet($spreadsheet->createSheet(), 'Base de datos');
+        if (in_array('por_interno', $hojas, true)) {
+            $this->buildPorInterno($sheet());
+        }
+
+        // Una hoja por servicio (ordenados por kg desc en datosExcelV2).
+        if (in_array('por_servicio', $hojas, true)) {
+            foreach ($this->reporte['datosV2']['servicios'] as $servicio) {
+                $this->buildServicio($sheet(), $servicio);
+            }
+        }
+
+        if (in_array('base_datos', $hojas, true)) {
+            $this->buildDetalleSheet($sheet(), 'Base de datos');
+        }
 
         $spreadsheet->setActiveSheetIndex(0);
 

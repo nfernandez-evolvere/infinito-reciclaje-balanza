@@ -1,5 +1,5 @@
 @php
-    $hasProgramadoErrors = $errors->hasAny(['nombre', 'tipo', 'frecuencia', 'destinatarios', 'formatos', 'revision', 'activo']);
+    $hasProgramadoErrors = $errors->hasAny(['nombre', 'tipo', 'frecuencia', 'destinatarios', 'formatos', 'revision', 'secciones.pdf', 'secciones.excel', 'activo']);
     $isEditing      = old('_mode') === 'edit';
     $defaultTipo    = ($config->tipo_informe_mensual_activo ?? true) ? 'informe_mensual' : 'alertas';
     $initialProgramado = $hasProgramadoErrors ? [
@@ -11,11 +11,18 @@
             'tipo'       => old('tipo', $defaultTipo),
             'frecuencia' => old('frecuencia', 'mensual'),
             'formatos'   => array_values(array_intersect(['pdf', 'excel'], (array) old('formatos', ['pdf']))) ?: ['pdf'],
-            'revision'   => old('revision', 'heredar'),
+            'revision'   => old('revision', 'revisar'),
+            'secciones_personalizadas' => (bool) old('secciones_personalizadas'),
+            'secciones'  => [
+                'pdf'   => \App\Support\ReporteSecciones::sanitizarPdf((array) old('secciones.pdf', [])),
+                'excel' => array_values(array_intersect(\App\Support\ReporteSecciones::excelKeys(), (array) old('secciones.excel', []))),
+            ],
             'activo'     => old('activo', true),
         ],
         '_oldDestinatariosStr' => old('destinatarios', ''),
     ] : [];
+    // Secciones de la configuración general: punto de partida al personalizar un programado.
+    $initialProgramado['seccionesDefault'] = $config->secciones();
 @endphp
 
 <x-layouts.app title="Reportes">
@@ -98,6 +105,7 @@
                 :tiposServicio="$tiposServicio"
                 :tiposVehiculo="$tiposVehiculo"
                 :activeFilters="$activeFilters"
+                :config="$config"
             />
 
             @if($reporte)

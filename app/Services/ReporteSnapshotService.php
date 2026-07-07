@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\ReporteGenerado;
+use App\Support\ReporteSecciones;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
@@ -102,6 +103,7 @@ class ReporteSnapshotService
     {
         $s = [
             'version'        => 2,
+            'secciones'      => $reporte['secciones'] ?? null,
             'kpis'           => $reporte['kpis'] ?? [],
             'evolucion'      => $reporte['evolucion'] ?? ['datos' => [], 'promedio' => 0, 'maximo' => 0, 'minimo' => 0],
             'zonas'          => $this->aArray($reporte['zonas'] ?? []),
@@ -148,9 +150,13 @@ class ReporteSnapshotService
         $s = $generado->snapshot ?? [];
 
         $reporte = [
-            'desde'          => $generado->periodo_desde->copy()->startOfDay(),
-            'hasta'          => $generado->periodo_hasta->copy()->endOfDay(),
-            'filtros'        => $generado->filtrosNormalizados(),
+            'desde'   => $generado->periodo_desde->copy()->startOfDay(),
+            'hasta'   => $generado->periodo_hasta->copy()->endOfDay(),
+            'filtros' => $generado->filtrosNormalizados(),
+            // Secciones congeladas al generar: la re-descarga/reenvío reproduce el
+            // documento idéntico aunque la configuración general cambie después.
+            // Snapshots previos a la opción no traen la clave → todas (via sanitizar).
+            'secciones'      => ReporteSecciones::sanitizar($s['secciones'] ?? null),
             'kpis'           => $s['kpis'] ?? [],
             'evolucion'      => $s['evolucion'] ?? ['datos' => [], 'promedio' => 0, 'maximo' => 0, 'minimo' => 0],
             'zonas'          => collect($s['zonas'] ?? []),

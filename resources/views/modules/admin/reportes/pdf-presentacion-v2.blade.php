@@ -123,17 +123,50 @@
     ];
     $featureIconOrder = ['house', 'shield', 'file'];
 
-    // Numeración de páginas: 8 fijas + 3 separadores de sección ("Resumen del
-    // período", "Análisis por flota" y "Zonas y servicios") + 1 de zonas del servicio
-    // principal (si hay algún servicio con zonas) + N páginas de "otros servicios"
-    // (de a 4) + cierre.
     $serviciosArr   = $porServicio->values()->all();
     $topServicio    = $zonasServicio[0] ?? null;
     $otrosServicios = array_slice($zonasServicio, 1);
     $otrosChunks    = array_chunk($otrosServicios, 4);
 
-    $totalPaginas = 11 + ($topServicio ? 1 : 0) + count($otrosChunks) + 1;
+    // Secciones habilitadas (congeladas en el snapshot al generar; los reportes
+    // previos a la opción no traen la clave → todas). Portada y cierre son fijas;
+    // cada separador se imprime solo si alguna página de su grupo quedó activa.
+    $sec = \App\Support\ReporteSecciones::sanitizarPdf($reporte['secciones']['pdf'] ?? null);
+    $on  = fn (string $key) => in_array($key, $sec, true);
+
+    $grupoResumen = $on('resumen_ejecutivo') || $on('ingresos_semana') || $on('dia_semana');
+    $grupoFlota   = $on('tipo_vehiculo');
+    $grupoZonas   = $on('que_es_servicio') || $on('recoleccion_servicio') || $on('zonas_servicio');
+
+    // Numeración de páginas: portada + cierre fijas, más las páginas y separadores
+    // activos + 1 de zonas del servicio principal (si hay algún servicio con zonas)
+    // + N páginas de "otros servicios" (de a 4).
+    $paginasZonas = $on('zonas_servicio') ? ($topServicio ? 1 : 0) + count($otrosChunks) : 0;
+    $totalPaginas = 2
+        + (int) $on('quienes_somos')
+        + (int) $grupoResumen + (int) $on('resumen_ejecutivo') + (int) $on('ingresos_semana') + (int) $on('dia_semana')
+        + (int) $grupoFlota + (int) $on('tipo_vehiculo')
+        + (int) $grupoZonas + (int) $on('que_es_servicio') + (int) $on('recoleccion_servicio')
+        + $paginasZonas;
     $pagina = 0;
+
+    // Eyebrow "NN · Título": correlativo a las secciones activas (la portada es 01),
+    // así el índice no salta números cuando se desactivan páginas.
+    $numSeccion = [];
+    $n = 1;
+    foreach (['quienes_somos', 'resumen_ejecutivo', 'ingresos_semana', 'dia_semana', 'tipo_vehiculo', 'que_es_servicio', 'recoleccion_servicio'] as $k) {
+        if ($on($k)) {
+            $numSeccion[$k] = str_pad((string) ++$n, 2, '0', STR_PAD_LEFT);
+        }
+    }
+    if ($on('zonas_servicio')) {
+        if ($topServicio) {
+            $numSeccion['zonas_top'] = str_pad((string) ++$n, 2, '0', STR_PAD_LEFT);
+        }
+        if ($otrosChunks !== []) {
+            $numSeccion['zonas_otros'] = str_pad((string) ++$n, 2, '0', STR_PAD_LEFT);
+        }
+    }
 
     /** Barra decorativa + eyebrow + título de página (idéntico en todas las páginas de contenido). */
     $pageHeader = function (string $numero, string $icon, string $eyebrow) use ($icons, $periodo) {
@@ -221,10 +254,11 @@
 </section>
 
 {{-- ═══════════ 02 · QUIÉNES SOMOS ═══════════ --}}
+@if($on('quienes_somos'))
 <section class="page">
     <div class="p-corner-ring" style="right:-140px;bottom:-140px;width:380px;height:380px;"></div>
     <div class="p-body">
-        {!! $pageHeader('02', 'recycle', 'Quiénes somos') !!}
+        {!! $pageHeader($numSeccion['quienes_somos'], 'recycle', 'Quiénes somos') !!}
 
         <div style="flex:1;display:grid;grid-template-columns:1.35fr 1fr;gap:40px;align-items:stretch;position:relative;z-index:1;">
             <div>
@@ -264,7 +298,10 @@
     </div>
 </section>
 
+@endif
+
 {{-- ═══════════ SEPARADOR · RESUMEN DEL PERÍODO ═══════════ --}}
+@if($grupoResumen)
 <section class="page" style="color:#fff;background:radial-gradient(circle at 78% 12%, oklch(0.30 0.07 144), oklch(0.20 0.045 144) 72%);">
     <div style="position:absolute;right:-150px;top:-150px;width:560px;height:560px;border-radius:50%;border:1.5px solid rgba(255,255,255,.10);pointer-events:none;"></div>
     <div style="position:absolute;right:-60px;top:-60px;width:380px;height:380px;border-radius:50%;border:1.5px solid rgba(255,255,255,.08);pointer-events:none;"></div>
@@ -300,12 +337,15 @@
     </div>
 </section>
 
+@endif
+
 {{-- ═══════════ 03 · RESUMEN EJECUTIVO ═══════════ --}}
+@if($on('resumen_ejecutivo'))
 <section class="page">
     <div class="p-corner-ring"></div>
     <svg aria-hidden="true" width="230" height="230" viewBox="0 0 24 24" fill="none" stroke="var(--g-100)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;right:-46px;bottom:-46px;pointer-events:none;">{!! $icons['recycle'] !!}</svg>
     <div class="p-body">
-        {!! $pageHeader('03', 'activity', 'Indicadores clave') !!}
+        {!! $pageHeader($numSeccion['resumen_ejecutivo'], 'activity', 'Indicadores clave') !!}
         <h2 class="p-title">Resumen ejecutivo</h2>
         <p class="p-desc"><span style="color:var(--ink-700);font-weight:600;">Indicadores generales de la operación.</span> Cifras totales del período, tal como surgen del registro de balanza del predio de disposición final.</p>
 
@@ -357,7 +397,10 @@
     </div>
 </section>
 
+@endif
+
 {{-- ═══════════ 04 · INGRESO POR SEMANA ═══════════ --}}
+@if($on('ingresos_semana'))
 @php
     $semMaxEje = $semMax > 0 ? $semMax : 1;
     $semEjes = collect(range(4, 0))->map(fn ($i) => $semMaxEje * $i / 4);
@@ -378,7 +421,7 @@
 <section class="page">
     <div class="p-corner-ring"></div>
     <div class="p-body">
-        {!! $pageHeader('04', 'calendar', 'Evolución semanal') !!}
+        {!! $pageHeader($numSeccion['ingresos_semana'], 'calendar', 'Evolución semanal') !!}
         <h2 class="p-title">¿Cuánto ingresa por semana?</h2>
         <p class="p-desc"><span style="color:var(--ink-700);font-weight:600;">Kilogramos recibidos por semana.</span> Residuos ingresados al predio agrupados por semana del período.</p>
 
@@ -443,7 +486,10 @@
     </div>
 </section>
 
+@endif
+
 {{-- ═══════════ 05 · POR DÍA DE LA SEMANA ═══════════ --}}
+@if($on('dia_semana'))
 @php
     $dsMaxEje = $dsMax > 0 ? $dsMax : 1;
     $dsEjes = collect(range(4, 0))->map(fn ($i) => $dsMaxEje * $i / 4);
@@ -455,7 +501,7 @@
     <div class="p-corner-ring"></div>
     <svg aria-hidden="true" width="230" height="230" viewBox="0 0 24 24" fill="none" stroke="var(--g-100)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;right:-46px;bottom:-46px;pointer-events:none;">{!! $icons['bars'] !!}</svg>
     <div class="p-body">
-        {!! $pageHeader('05', 'bars', 'Actividad por día') !!}
+        {!! $pageHeader($numSeccion['dia_semana'], 'bars', 'Actividad por día') !!}
         <h2 class="p-title">Recolección según el día</h2>
         <p class="p-desc"><span style="color:var(--ink-700);font-weight:600;">Kilogramos por día de la semana.</span> Total de kilos que ingresan al predio en cada día, sumando todo el período de {{ $periodo }}.</p>
 
@@ -506,7 +552,10 @@
     </div>
 </section>
 
+@endif
+
 {{-- ═══════════ SEPARADOR · ANÁLISIS POR FLOTA ═══════════ --}}
+@if($grupoFlota)
 <section class="page" style="color:#fff;background:radial-gradient(circle at 78% 12%, oklch(0.30 0.07 144), oklch(0.20 0.045 144) 72%);">
     <div style="position:absolute;right:-150px;top:-150px;width:560px;height:560px;border-radius:50%;border:1.5px solid rgba(255,255,255,.10);pointer-events:none;"></div>
     <div style="position:absolute;right:-60px;top:-60px;width:380px;height:380px;border-radius:50%;border:1.5px solid rgba(255,255,255,.08);pointer-events:none;"></div>
@@ -542,7 +591,10 @@
     </div>
 </section>
 
+@endif
+
 {{-- ═══════════ 06 · POR TIPO DE VEHÍCULO ═══════════ --}}
+@if($on('tipo_vehiculo'))
 @php
     $vehTotalViajes = $vehiculos->sum('viajes');
     $vehTotalKg     = (int) round($vehiculos->sum('toneladas') * 1000);
@@ -554,7 +606,7 @@
 <section class="page">
     <div class="p-corner-ring"></div>
     <div class="p-body">
-        {!! $pageHeader('06', 'truck', 'Parque de vehículos') !!}
+        {!! $pageHeader($numSeccion['tipo_vehiculo'], 'truck', 'Parque de vehículos') !!}
         <h2 class="p-title">Composición por tipo de vehículo</h2>
         <p class="p-desc"><span style="color:var(--ink-700);font-weight:600;">Distribución por tipo de camión.</span>
             @if($vehMayorViajes && $vehMayorKg && $vehMayorViajes['nombre'] !== $vehMayorKg['nombre'])
@@ -620,7 +672,10 @@
     </div>
 </section>
 
+@endif
+
 {{-- ═══════════ SEPARADOR · ZONAS Y SERVICIOS ═══════════ --}}
+@if($grupoZonas)
 <section class="page" style="color:#fff;background:radial-gradient(circle at 78% 12%, oklch(0.30 0.07 144), oklch(0.20 0.045 144) 72%);">
     <div style="position:absolute;right:-150px;top:-150px;width:560px;height:560px;border-radius:50%;border:1.5px solid rgba(255,255,255,.10);pointer-events:none;"></div>
     <div style="position:absolute;right:-60px;top:-60px;width:380px;height:380px;border-radius:50%;border:1.5px solid rgba(255,255,255,.08);pointer-events:none;"></div>
@@ -656,12 +711,15 @@
     </div>
 </section>
 
+@endif
+
 {{-- ═══════════ 07 · QUÉ ES CADA SERVICIO ═══════════ --}}
+@if($on('que_es_servicio'))
 @php $svcIconOrder = ['house', 'file', 'bars', 'layers', 'pin']; @endphp
 <section class="page">
     <div class="p-corner-ring"></div>
     <div class="p-body">
-        {!! $pageHeader('07', 'layers', 'Tipos de servicio') !!}
+        {!! $pageHeader($numSeccion['que_es_servicio'], 'layers', 'Tipos de servicio') !!}
         <h2 class="p-title">¿Qué es cada servicio?</h2>
         <p class="p-desc"><span style="color:var(--ink-700);font-weight:600;">Los tipos de recolección.</span> Cada tipo de servicio agrupa los residuos que ingresan al predio de disposición final.</p>
 
@@ -688,7 +746,10 @@
     </div>
 </section>
 
+@endif
+
 {{-- ═══════════ 08 · CUÁNTO RECOLECTA CADA SERVICIO ═══════════ --}}
+@if($on('recoleccion_servicio'))
 @php
     $svcTop2 = $porServicio->take(2);
     $svcTop2Pct = $porServicio->sum('kg') > 0 ? round(($svcTop2->sum('kg') / $porServicio->sum('kg')) * 100) : 0;
@@ -697,7 +758,7 @@
     <div class="p-corner-ring"></div>
     <svg aria-hidden="true" width="230" height="230" viewBox="0 0 24 24" fill="none" stroke="var(--g-100)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;right:-46px;bottom:-46px;pointer-events:none;">{!! $icons['recycle'] !!}</svg>
     <div class="p-body">
-        {!! $pageHeader('08', 'trending', 'Aporte por servicio') !!}
+        {!! $pageHeader($numSeccion['recoleccion_servicio'], 'trending', 'Aporte por servicio') !!}
         <h2 class="p-title">¿Cuánto recolecta cada servicio?</h2>
         <p class="p-desc"><span style="color:var(--ink-700);font-weight:600;">Participación de cada servicio en el total.</span> Kilogramos recolectados por cada tipo de servicio y su participación en el total del período.</p>
 
@@ -724,8 +785,10 @@
     </div>
 </section>
 
+@endif
+
 {{-- ═══════════ 09 · ZONAS DEL SERVICIO PRINCIPAL ═══════════ --}}
-@if($topServicio)
+@if($topServicio && $on('zonas_servicio'))
 @php
     $topZonas = collect($topServicio['zonas'])->take(12)->values();
     $topZonaMax = $topZonas->max('kg') ?: 1;
@@ -734,7 +797,7 @@
 <section class="page">
     <div class="p-corner-ring"></div>
     <div class="p-body">
-        {!! $pageHeader('09', 'pin', 'Zonas — '.$topServicio['nombre']) !!}
+        {!! $pageHeader($numSeccion['zonas_top'], 'pin', 'Zonas — '.$topServicio['nombre']) !!}
         <h2 class="p-title">Recolección por zona — {{ $topServicio['nombre'] }}</h2>
         <p class="p-desc">
             @if($topResto > 0)
@@ -788,11 +851,12 @@
 @endif
 
 {{-- ═══════════ 10 · ZONAS DE LOS OTROS SERVICIOS ═══════════ --}}
+@if($on('zonas_servicio'))
 @foreach($otrosChunks as $chunkIdx => $chunk)
 <section class="page">
     <div class="p-corner-ring"></div>
     <div class="p-body">
-        {!! $pageHeader('10', 'pin', 'Zonas — otros servicios'.(count($otrosChunks) > 1 ? ' ('.($chunkIdx + 1).'/'.count($otrosChunks).')' : '')) !!}
+        {!! $pageHeader($numSeccion['zonas_otros'], 'pin', 'Zonas — otros servicios'.(count($otrosChunks) > 1 ? ' ('.($chunkIdx + 1).'/'.count($otrosChunks).')' : '')) !!}
         <h2 class="p-title">{{ collect($chunk)->pluck('nombre')->implode(', ') }}</h2>
         <p class="p-desc">Desglose por zona de los servicios restantes, según el registro de balanza del período.</p>
 
@@ -842,6 +906,7 @@
     </div>
 </section>
 @endforeach
+@endif
 
 {{-- ═══════════ 11 · CIERRE ═══════════ --}}
 <section class="page" style="color:#fff;background:radial-gradient(circle at 80% 15%, oklch(0.30 0.07 144), oklch(0.20 0.045 144) 72%);">

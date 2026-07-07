@@ -110,6 +110,12 @@ class GenerarReporteJob implements ShouldQueue
         } else {
             $formatos = explode('+', $generado->formato);
 
+            // Secciones resueltas al generar (personalización del programado o
+            // default de la organización) y congeladas en el snapshot: el envío
+            // y las re-descargas reproducen el documento idéntico aunque la
+            // configuración cambie después.
+            $reporte['secciones'] = $programado->secciones($config);
+
             // Las conclusiones IA solo se imprimen en el PDF, así que la
             // llamada a la API se evita cuando ese formato no está elegido.
             if (in_array('pdf', $formatos, true)) {

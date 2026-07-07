@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\ReporteProgramado;
 use App\Repositories\ReporteDestinatarioRepository;
 use App\Repositories\ReporteProgramadoRepository;
+use App\Support\ReporteSecciones;
 use Carbon\Carbon;
 
 class ReporteProgramadoService
@@ -100,7 +101,22 @@ class ReporteProgramadoService
             'formatos' => $formatos ?: ['pdf'],
             'revision' => $validated['revision'] ?? 'heredar',
         ];
-        unset($validated['formatos'], $validated['revision']);
+
+        // 'secciones' también vive en opciones: solo cuando el programado las
+        // personaliza (informe mensual); sin personalizar se remueve la clave y
+        // el programado vuelve a heredar la configuración general. Al personalizar,
+        // una lista pdf ausente significa "sin páginas de contenido" ([]), nunca
+        // "todas" — por eso no se pasa null a sanitizar.
+        $personaliza = ($validated['secciones_personalizadas'] ?? false) && $validated['tipo'] === 'informe_mensual';
+        if ($personaliza) {
+            $opciones['secciones'] = ReporteSecciones::sanitizar([
+                'pdf'   => $validated['secciones']['pdf'] ?? [],
+                'excel' => $validated['secciones']['excel'] ?? [],
+            ]);
+        } else {
+            unset($opciones['secciones']);
+        }
+        unset($validated['formatos'], $validated['revision'], $validated['secciones'], $validated['secciones_personalizadas']);
 
         return [
             ...$validated,

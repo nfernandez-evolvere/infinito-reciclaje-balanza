@@ -3,6 +3,7 @@
 namespace Tests\Feature\Reporte;
 
 use App\Models\Pesaje;
+use App\Models\ReporteConfiguracion;
 use App\Models\ReporteGenerado;
 use App\Models\TipoServicio;
 use App\Models\TipoVehiculo;
@@ -10,6 +11,7 @@ use App\Models\Vehiculo;
 use App\Models\Zona;
 use App\Services\PdfService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -90,5 +92,39 @@ class ReporteHistorialV2Test extends TestCase
 
         $response->assertOk()->assertHeader('Content-Type', 'application/pdf');
         $this->assertStringStartsWith('%PDF', $response->getContent());
+    }
+
+    #[Test]
+    public function la_redescarga_respeta_las_secciones_congeladas_aunque_la_configuracion_cambie(): void
+    {
+        $this->sembrar();
+        $admin = $this->admin();
+
+        // Descarga con secciones ad-hoc: solo la hoja Resumen.
+        $this->actingAs($admin)
+            ->get(route('admin.reportes.excel-v2', [
+                'desde' => '2026-05-01', 'hasta' => '2026-05-31', 'secciones' => ['resumen'],
+            ]))
+            ->assertOk();
+
+        $generado = ReporteGenerado::query()->latest('id')->first();
+        $this->assertSame(['resumen'], $generado->snapshot['secciones']['excel']);
+
+        // La configuración general cambia después: no debe afectar lo ya generado.
+        ReporteConfiguracion::create(['secciones' => ['excel' => ['base_datos']]]);
+
+        $contenido = $this->actingAs($admin)
+            ->get(route('admin.reportes.historial.download', ['generado' => $generado, 'formato' => 'excel']))
+            ->assertOk()
+            ->streamedContent();
+
+        $tmp = tempnam(sys_get_temp_dir(), 'xlsx');
+        file_put_contents($tmp, $contenido);
+
+        try {
+            $this->assertSame(['Resumen'], IOFactory::load($tmp)->getSheetNames());
+        } finally {
+            unlink($tmp);
+        }
     }
 }

@@ -31,6 +31,7 @@ use App\Services\ReporteProgramadoService;
 use App\Services\ReporteService;
 use App\Services\ReporteSnapshotService;
 use App\Services\SvgChartService;
+use App\Support\ReporteSecciones;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -168,6 +169,7 @@ class ReporteController extends Controller
         $filtros = array_filter($request->only(['zona_id', 'tipo_servicio_id', 'tipo_vehiculo_id']));
 
         $reporte = $this->construirReporteExcelV2($desde, $hasta, $filtros);
+        $reporte['secciones'] = $this->resolverSeccionesExport($request, 'excel');
 
         $this->generadoService->registrarDescarga(
             'excel', 'informe_mensual', $desde, $hasta, $filtros, null, $this->snapshotService->capturarV2($reporte),
@@ -188,6 +190,7 @@ class ReporteController extends Controller
         $filtros = array_filter($request->only(['zona_id', 'tipo_servicio_id', 'tipo_vehiculo_id']));
 
         $reporte = $this->construirReportePdfV2($desde, $hasta, $filtros);
+        $reporte['secciones'] = $this->resolverSeccionesExport($request, 'pdf');
         $reporte['conclusiones'] = $this->generarConclusionesAI($reporte, $desde);
 
         $this->generadoService->registrarDescarga(
@@ -467,6 +470,7 @@ class ReporteController extends Controller
         }
 
         $reporte = $this->construirReportePdfV2($desde, $hasta, []);
+        $reporte['secciones'] = $programado->secciones($this->configuracionRepository->first());
         $reporte['conclusiones'] = $this->generarConclusionesAI($reporte, $desde);
 
         return $this->responderPdfV2($reporte, $desde);
@@ -476,7 +480,10 @@ class ReporteController extends Controller
     {
         [$desde, $hasta] = $this->programadoService->calcularPeriodo($programado->frecuencia);
 
-        return $this->renderExcelV2($this->construirReporteExcelV2($desde, $hasta, []));
+        $reporte = $this->construirReporteExcelV2($desde, $hasta, []);
+        $reporte['secciones'] = $programado->secciones($this->configuracionRepository->first());
+
+        return $this->renderExcelV2($reporte);
     }
 
     // ── Helpers privados ───────────────────────────────────────────────────
@@ -568,6 +575,27 @@ class ReporteController extends Controller
         $reporte['detalle'] = $this->reporteService->detalleParaExcel($reporte['detalle']);
 
         return $reporte;
+    }
+
+    /**
+     * Secciones para una descarga manual v2: la lista ad-hoc del popover de la
+     * pantalla Generar (si vino) reemplaza, solo para el formato descargado, el
+     * default de la configuración general. Sin configuración creada → todas.
+     *
+     * @return array{pdf: list<string>, excel: list<string>}
+     */
+    private function resolverSeccionesExport(ExportReporteRequest $request, string $formato): array
+    {
+        $config = $this->configuracionRepository->first();
+        $secciones = $config?->secciones() ?? ReporteSecciones::sanitizar(null);
+
+        if ($request->has('secciones')) {
+            $secciones[$formato] = $formato === 'excel'
+                ? ReporteSecciones::sanitizarExcel($request->input('secciones'))
+                : ReporteSecciones::sanitizarPdf($request->input('secciones'));
+        }
+
+        return $secciones;
     }
 
     /**

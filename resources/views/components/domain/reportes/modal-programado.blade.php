@@ -67,10 +67,12 @@
                 <input type="hidden" name="_mode" :value="modalMode">
                 <input type="hidden" name="_editing_id" :value="form.id ?? ''">
 
-                <div class="flex-1 min-h-0 overflow-y-auto p-6 space-y-4">
+                <div class="flex-1 min-h-0 overflow-y-auto p-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                     <x-ui.form-field
                         for="m-nombre"
+                        class="sm:col-span-2"
                         :state="$errors->has('nombre') ? 'destructive' : null"
                         :message="$errors->first('nombre')"
                     >
@@ -125,7 +127,7 @@
                     </x-ui.form-field>
 
                     {{-- Formatos del envío — solo aplica al informe mensual (las alertas van siempre en PDF) --}}
-                    <div x-show="form.tipo === 'informe_mensual'" x-cloak class="space-y-2">
+                    <div x-show="form.tipo === 'informe_mensual'" x-cloak class="sm:col-span-2 space-y-2">
                         <x-ui.form-field
                             :state="$errors->has('formatos') ? 'destructive' : null"
                             :message="$errors->first('formatos')"
@@ -156,7 +158,95 @@
                         </template>
                     </div>
 
+                    {{-- Secciones del informe — hereda la configuración general o personaliza (solo informe mensual) --}}
+                    <div x-show="form.tipo === 'informe_mensual'" x-cloak class="sm:col-span-2 space-y-3">
+                        <div class="flex items-center justify-between gap-2">
+                            <div>
+                                <p class="text-label">Secciones del reporte</p>
+                                <p class="text-caption" x-text="form.secciones_personalizadas
+                                    ? 'Este programado usa su propia selección de secciones.'
+                                    : 'Usa las secciones de la configuración general.'"></p>
+                            </div>
+                            <button
+                                type="button"
+                                role="switch"
+                                :aria-checked="form.secciones_personalizadas ? 'true' : 'false'"
+                                :data-state="form.secciones_personalizadas ? 'checked' : 'unchecked'"
+                                @click="form.secciones_personalizadas = !form.secciones_personalizadas"
+                                :class="form.secciones_personalizadas ? 'bg-primary' : 'bg-input'"
+                                class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring"
+                            >
+                                <span
+                                    :data-state="form.secciones_personalizadas ? 'checked' : 'unchecked'"
+                                    class="pointer-events-none inline-block size-5 rounded-full bg-background shadow-sm ring-0 transition-transform translate-x-0 data-[state=checked]:translate-x-5"
+                                ></span>
+                            </button>
+                        </div>
+                        <input type="hidden" name="secciones_personalizadas" :value="form.secciones_personalizadas ? '1' : '0'">
+
+                        <div x-show="form.secciones_personalizadas" x-cloak class="space-y-4 rounded-lg border border-border p-4">
+                            <div x-show="form.formatos.includes('pdf')" x-cloak class="space-y-2.5">
+                                <div>
+                                    <p class="text-label">PDF · páginas</p>
+                                    <p class="text-caption">La portada y el cierre se incluyen siempre.</p>
+                                </div>
+                                @foreach (\App\Support\ReporteSecciones::pdf() as $clave => $meta)
+                                    <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                                        <button
+                                            type="button"
+                                            role="checkbox"
+                                            :aria-checked="form.secciones.pdf.includes('{{ $clave }}') ? 'true' : 'false'"
+                                            @click="toggleSeccion('pdf', '{{ $clave }}')"
+                                            :class="form.secciones.pdf.includes('{{ $clave }}') ? 'bg-primary border-primary text-primary-foreground' : 'bg-background border-input'"
+                                            class="size-4 shrink-0 rounded border flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                        >
+                                            <x-lucide-check class="size-3" stroke-width="3" x-show="form.secciones.pdf.includes('{{ $clave }}')" x-cloak />
+                                        </button>
+                                        <span class="text-sm">{{ $meta['label'] }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+
+                            <x-ui.form-field
+                                x-show="form.formatos.includes('excel')"
+                                x-cloak
+                                :state="$errors->has('secciones.excel') ? 'destructive' : null"
+                                :message="$errors->first('secciones.excel')"
+                            >
+                                <div>
+                                    <p class="text-label">Excel · hojas</p>
+                                    <p class="text-caption">Elegí al menos una hoja.</p>
+                                </div>
+                                <div class="flex flex-col gap-2.5 pt-1">
+                                    @foreach (\App\Support\ReporteSecciones::excel() as $clave => $meta)
+                                        <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                                            <button
+                                                type="button"
+                                                role="checkbox"
+                                                :aria-checked="form.secciones.excel.includes('{{ $clave }}') ? 'true' : 'false'"
+                                                @click="toggleSeccion('excel', '{{ $clave }}')"
+                                                :class="form.secciones.excel.includes('{{ $clave }}') ? 'bg-primary border-primary text-primary-foreground' : 'bg-background border-input'"
+                                                class="size-4 shrink-0 rounded border flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                            >
+                                                <x-lucide-check class="size-3" stroke-width="3" x-show="form.secciones.excel.includes('{{ $clave }}')" x-cloak />
+                                            </button>
+                                            <span class="text-sm">{{ $meta['label'] }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </x-ui.form-field>
+                        </div>
+
+                        <template x-for="s in form.secciones.pdf" :key="'sp-' + s">
+                            <input type="hidden" name="secciones[pdf][]" :value="s">
+                        </template>
+                        <template x-for="s in form.secciones.excel" :key="'se-' + s">
+                            <input type="hidden" name="secciones[excel][]" :value="s">
+                        </template>
+                    </div>
+
                     <x-ui.form-field
+                        class="sm:col-span-2"
                         :state="$errors->has('destinatarios') ? 'destructive' : null"
                         :message="$errors->first('destinatarios')"
                     >
@@ -172,6 +262,7 @@
 
                     <x-ui.form-field
                         for="m-revision"
+                        class="sm:col-span-2"
                         :state="$errors->has('revision') ? 'destructive' : null"
                         :message="$errors->first('revision')"
                     >
@@ -181,7 +272,6 @@
                                 <x-ui.select.value placeholder="Seleccionar" />
                             </x-ui.select.trigger>
                             <x-ui.select.content>
-                                <x-ui.select.item value="heredar">Según configuración general ({{ ($config->revision_requerida ?? true) ? 'con revisión' : 'envío directo' }})</x-ui.select.item>
                                 <x-ui.select.item value="revisar">Revisar siempre antes de enviar</x-ui.select.item>
                                 <x-ui.select.item value="directo">Enviar directo, sin revisión</x-ui.select.item>
                             </x-ui.select.content>
@@ -189,10 +279,12 @@
                         <p class="text-caption">Con revisión, el reporte queda pendiente en el historial hasta que lo apruebes.</p>
                     </x-ui.form-field>
 
-                    <div class="flex items-center justify-between py-1">
+                    <x-ui.separator class="sm:col-span-2" />
+
+                    <div class="sm:col-span-2 flex items-center justify-between py-1">
                         <div>
-                            <p class="text-label">Activo</p>
-                            <p class="text-caption">El envío se ejecutará automáticamente.</p>
+                            <p class="text-label">Programado activo</p>
+                            <p class="text-caption">Si lo desactivás, este reporte deja de enviarse solo hasta que lo reactives.</p>
                         </div>
                         <button
                             type="button"
@@ -211,6 +303,7 @@
                         </button>
                     </div>
 
+                </div>
                 </div>
 
                 {{-- Footer --}}
