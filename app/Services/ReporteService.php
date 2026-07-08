@@ -109,11 +109,11 @@ class ReporteService
     }
 
     /**
-     * Aplana los pesajes a las filas de la hoja "Detalle" del Excel: solo escalares
-     * (fechas/horas ya formateadas, nombres de relaciones resueltos), sin modelos
-     * Eloquent. Es la forma que consume ReporteExcelExport y la que se congela en
-     * el snapshot del historial — así la hoja Detalle preserva la tara y el neto del
-     * momento, aunque luego se recalcule la tara del vehículo.
+     * Aplana los pesajes a las filas de la hoja "Base de datos" del Excel: solo
+     * escalares (fechas/horas ya formateadas, nombres de relaciones resueltos),
+     * sin modelos Eloquent. Es la forma que consume ReporteExcelExportV2 y la
+     * que se congela en el snapshot del historial — así la hoja preserva la
+     * tara y el neto del momento, aunque luego se recalcule la tara del vehículo.
      *
      * @return list<array<string, mixed>>
      */
@@ -137,31 +137,13 @@ class ReporteService
         ])->all();
     }
 
-    // ── Pivots para el reporte municipal (Excel) ─────────────────────────────
+    // ── Cálculos compartidos por los pivots de Excel v2 ──────────────────────
     //
     // Estos métodos NO forman parte de generar(): son cálculos más pesados que
-    // solo el export Excel necesita. Se computan en memoria sobre la misma
-    // colección de pesajes (ya cargada con zona y vehiculo.tipoVehiculo), sin
-    // queries adicionales. Mantenerlos fuera de generar() evita encarecer la
-    // vista web y el PDF, y preserva la estructura que valida ReporteServiceTest.
-
-    /**
-     * Bloques cruzados que imitan la hoja "Dashboard" del reporte municipal:
-     * desglose diario por tipo de vehículo, tabla zona × tipo y matriz zona × día.
-     *
-     * @return array{tipos: Collection, diario: array, zonaTipo: array, zonaDia: array}
-     */
-    public function pivotsParaExcel(Collection $pesajes, Carbon $desde, Carbon $hasta): array
-    {
-        $tipos = $this->tiposPresentes($pesajes);
-
-        return [
-            'tipos'    => $tipos,
-            'diario'   => $this->calcularDiarioPorTipo($pesajes, $desde, $hasta, $tipos),
-            'zonaTipo' => $this->calcularZonaTipo($pesajes, $tipos),
-            'zonaDia'  => $this->calcularZonaDia($pesajes, $desde, $hasta),
-        ];
-    }
+    // solo el export Excel v2 necesita (datosExcelV2, zonasPorServicio). Se
+    // computan en memoria sobre la misma colección de pesajes (ya cargada con
+    // zona y vehiculo.tipoVehiculo), sin queries adicionales. Mantenerlos fuera
+    // de generar() evita encarecer la vista web y el PDF.
 
     /**
      * Tipos de vehículo presentes en el período, ordenados por kg netos desc.
@@ -215,39 +197,6 @@ class ReporteService
             'promedio' => $this->statsPorColumna($operativos, $tipoIds, 'avg'),
             'maximo'   => $this->statsPorColumna($operativos, $tipoIds, 'max'),
             'minimo'   => $this->statsPorColumna($operativos, $tipoIds, 'min'),
-        ];
-    }
-
-    /**
-     * Tabla zona × tipo: una fila por (zona, turno) con Viajes/KG por tipo,
-     * totales de la fila y % del total general. Ordenada por kg netos desc.
-     * El porcentaje se devuelve como fracción (0–1) para el formato 0.0% de Excel.
-     */
-    private function calcularZonaTipo(Collection $pesajes, Collection $tipos): array
-    {
-        $tipoIds = $tipos->pluck('id')->all();
-        $granTotal = $pesajes->sum('peso_neto_kg');
-
-        $filas = $pesajes
-            ->filter(fn ($p) => $p->zona_id !== null)
-            ->groupBy(fn ($p) => $p->zona_id.'|'.($p->turno ?? ''))
-            ->map(function ($grupo) use ($tipoIds, $granTotal) {
-                $totalKg = (int) $grupo->sum('peso_neto_kg');
-
-                return [
-                    'label'        => $this->etiquetaZona((string) ($grupo->first()->zona->nombre ?? '—'), $grupo->first()->turno),
-                    'total_viajes' => $grupo->count(),
-                    'total_kg'     => $totalKg,
-                    'tipos'        => $this->desglosarPorTipo($grupo, $tipoIds),
-                    'porcentaje'   => $granTotal > 0 ? $totalKg / $granTotal : 0.0,
-                ];
-            })
-            ->sortByDesc('total_kg')
-            ->values();
-
-        return [
-            'filas'   => $filas->all(),
-            'totales' => $this->totalizarZonaTipo($filas, $tipoIds, $granTotal),
         ];
     }
 
@@ -350,31 +299,6 @@ class ReporteService
         ];
     }
 
-    /**
-     * Suma las filas de la tabla zona × tipo para la fila TOTALES.
-     *
-     * @param  array<int>  $tipoIds
-     */
-    private function totalizarZonaTipo(Collection $filas, array $tipoIds, int|float $granTotal): array
-    {
-        $tipos = [];
-        foreach ($tipoIds as $id) {
-            $tipos[$id] = [
-                'viajes' => (int) $filas->sum(fn ($f) => $f['tipos'][$id]['viajes']),
-                'kg'     => (int) $filas->sum(fn ($f) => $f['tipos'][$id]['kg']),
-            ];
-        }
-
-        $totalKg = (int) $filas->sum('total_kg');
-
-        return [
-            'total_viajes' => (int) $filas->sum('total_viajes'),
-            'total_kg'     => $totalKg,
-            'tipos'        => $tipos,
-            'porcentaje'   => $granTotal > 0 ? $totalKg / $granTotal : 0.0,
-        ];
-    }
-
     /** Etiqueta de fila "ZONA 1 DIURNA": nombre de zona + turno en mayúsculas. */
     private function etiquetaZona(string $nombre, ?string $turno): string
     {
@@ -383,10 +307,10 @@ class ReporteService
 
     // ── Reporte v2 — Excel por servicio / N° interno ─────────────────────────
     //
-    // Igual que pivotsParaExcel(): cálculos en memoria sobre la misma colección
-    // de pesajes ya cargada (con zona, tipoServicio y vehiculo.tipoVehiculo), sin
-    // queries adicionales. datosExcelV2() es el orquestador que consume el export
-    // v2; porServicio() se expone aparte porque también lo usa el PDF v2.
+    // Cálculos en memoria sobre la misma colección de pesajes ya cargada (con
+    // zona, tipoServicio y vehiculo.tipoVehiculo), sin queries adicionales.
+    // datosExcelV2() es el orquestador que consume el export v2; porServicio()
+    // se expone aparte porque también lo usa el PDF v2.
 
     /**
      * Reparto por tipo de servicio, clasificado por pesaje.tipo_servicio_id (regla

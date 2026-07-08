@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Exports\ReporteExcelExport;
 use App\Exports\ReporteExcelExportV2;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\DescartarReporteGeneradoRequest;
@@ -142,21 +141,6 @@ class ReporteController extends Controller
 
     // ── Exports ────────────────────────────────────────────────────────────
 
-    public function exportExcel(ExportReporteRequest $request): StreamedResponse
-    {
-        $desde = Carbon::parse($request->input('desde'));
-        $hasta = Carbon::parse($request->input('hasta'));
-        $filtros = array_filter($request->only(['zona_id', 'tipo_servicio_id', 'tipo_vehiculo_id']));
-
-        $reporte = $this->construirReporteExcel($desde, $hasta, $filtros);
-
-        $this->generadoService->registrarDescarga(
-            'excel', 'informe_mensual', $desde, $hasta, $filtros, null, $this->snapshotService->capturar($reporte),
-        );
-
-        return $this->renderExcel($reporte);
-    }
-
     /**
      * Export Excel v2: formato del cliente (hojas por servicio y por N° interno).
      * Descarga directa; la integración con historial/snapshot llega en una fase
@@ -202,35 +186,13 @@ class ReporteController extends Controller
         return $this->responderPdfV2($reporte, $desde);
     }
 
-    public function exportPdfPresentacion(ExportReporteRequest $request): Response
-    {
-        $desde = Carbon::parse($request->input('desde'));
-        $hasta = Carbon::parse($request->input('hasta'));
-        $tipo = $request->input('tipo', 'informe_mensual');
-        $filtros = array_filter($request->only(['zona_id', 'tipo_servicio_id', 'tipo_vehiculo_id']));
-
-        $reporte = $this->construirReportePdf($desde, $hasta, $filtros, $tipo);
-
-        if ($tipo !== 'alertas') {
-            $reporte['conclusiones'] = $this->generarConclusionesAI($reporte, $desde);
-        }
-
-        $this->generadoService->registrarDescarga(
-            'pdf', $tipo, $desde, $hasta, $filtros,
-            $reporte['conclusiones']['analisis'] ?? null,
-            $this->snapshotService->capturar($reporte),
-        );
-
-        return $this->responderPdf($reporte, $tipo, $desde);
-    }
-
     /**
      * Vuelve a descargar un reporte del historial. No registra una entrada nueva:
-     * es una re-descarga de algo ya producido. Para entradas multi-formato
-     * (pdf+excel) el formato a bajar se elige con ?formato=; sin él se usa el
-     * primero. Si la entrada tiene snapshot, se reproduce idéntica desde los datos
-     * congelados (sin recalcular sobre los pesajes vivos). Las entradas previas al
-     * snapshot caen al recálculo, reusando la narrativa IA preservada tal cual.
+     * es una re-descarga de algo ya producido, siempre desde el snapshot
+     * congelado (nunca recalcula sobre los pesajes vivos). Para entradas
+     * multi-formato (pdf+excel) el formato a bajar se elige con ?formato=; sin
+     * él se usa el primero. La UI nunca ofrece descargar una entrada sin
+     * snapshot (ver `tiene_snapshot` en tabla-historial), así que siempre hay uno.
      */
     public function downloadHistorial(Request $request, ReporteGenerado $generado): StreamedResponse|Response
     {
@@ -240,39 +202,19 @@ class ReporteController extends Controller
         // Solo se puede pedir un formato que esta entrada efectivamente produjo.
         abort_unless(in_array($formato, $formatos, true), 404);
 
-        if ($generado->snapshot !== null) {
-            // Los snapshots v2 llevan version=2: se reproducen con los generadores v2.
-            if ((int) ($generado->snapshot['version'] ?? 1) === 2) {
-                $reporte = $this->snapshotService->rehidratarV2($generado);
-
-                return $formato === 'excel'
-                    ? $this->renderExcelV2($reporte)
-                    : $this->responderPdfV2($reporte, $reporte['desde']);
-            }
-
-            $reporte = $this->snapshotService->rehidratar($generado);
+        // Los snapshots v2 (informe mensual) llevan version=2: se reproducen con
+        // los generadores v2. Las alertas (sin versión v2) siguen el camino v1.
+        if ((int) ($generado->snapshot['version'] ?? 1) === 2) {
+            $reporte = $this->snapshotService->rehidratarV2($generado);
 
             return $formato === 'excel'
-                ? $this->renderExcel($reporte)
-                : $this->responderPdf($reporte, $generado->tipo, $reporte['desde']);
+                ? $this->renderExcelV2($reporte)
+                : $this->responderPdfV2($reporte, $reporte['desde']);
         }
 
-        // Legacy: entradas previas al snapshot → recálculo bajo demanda.
-        $desde = $generado->periodo_desde->copy()->startOfDay();
-        $hasta = $generado->periodo_hasta->copy()->endOfDay();
-        $filtros = $generado->filtrosNormalizados();
+        $reporte = $this->snapshotService->rehidratar($generado);
 
-        if ($formato === 'excel') {
-            return $this->renderExcel($this->construirReporteExcel($desde, $hasta, $filtros));
-        }
-
-        $reporte = $this->construirReportePdf($desde, $hasta, $filtros, $generado->tipo);
-
-        if ($generado->conclusiones !== null) {
-            $reporte['conclusiones'] = ['analisis' => $generado->conclusiones];
-        }
-
-        return $this->responderPdf($reporte, $generado->tipo, $desde);
+        return $this->responderPdf($reporte, $generado->tipo, $reporte['desde']);
     }
 
     // ── Programados ────────────────────────────────────────────────────────
@@ -316,7 +258,7 @@ class ReporteController extends Controller
         session()->flash('toast', [
             'message'     => 'Reporte programado eliminado.',
             'description' => "\"{$nombre}\" fue removido. Los reportes históricos no se ven afectados.",
-            'variant'     => 'destructive',
+            'variant'     => 'success',
         ]);
 
         return redirect()->route('admin.reportes.index', ['tab' => 'programados']);
@@ -538,26 +480,6 @@ class ReporteController extends Controller
     }
 
     /**
-     * Arma el reporte para el Excel municipal: KPIs/vehículos + config + pivots +
-     * detalle aplanado + total de kg netos. No incluye el mapa de calor (el Excel
-     * no lo usa). El detalle se aplana a escalares para que sea serializable y se
-     * pueda congelar idéntico en el snapshot.
-     *
-     * @param  array<string, int>  $filtros
-     * @return array<string, mixed>
-     */
-    private function construirReporteExcel(Carbon $desde, Carbon $hasta, array $filtros): array
-    {
-        $reporte = $this->reporteService->generar($desde, $hasta, $filtros);
-        $reporte['config'] = $this->configuracionRepository->first();
-        $reporte['pivots'] = $this->reporteService->pivotsParaExcel($reporte['detalle'], $desde, $hasta);
-        $reporte['kg_netos_total'] = (int) $reporte['detalle']->sum('peso_neto_kg');
-        $reporte['detalle'] = $this->reporteService->detalleParaExcel($reporte['detalle']);
-
-        return $reporte;
-    }
-
-    /**
      * Arma el reporte para el Excel v2 (formato del cliente). Sobre la salida de
      * generar() agrega config, kg netos total, los bloques v2 (datosExcelV2, que
      * necesita la colección de pesajes con modelos) y recién después aplana el
@@ -618,19 +540,6 @@ class ReporteController extends Controller
         return [
             'analisis' => $aiService->generarAnalisis($reporte['kpis'], $reporte['zonas'], $desde->translatedFormat('F Y')),
         ];
-    }
-
-    /**
-     * Arma y descarga el Excel municipal a partir de un reporte ya construido
-     * (vivo o rehidratado del snapshot).
-     *
-     * @param  array<string, mixed>  $reporte
-     */
-    private function renderExcel(array $reporte): StreamedResponse
-    {
-        $filename = 'reporte_'.$reporte['desde']->format('Y-m-d').'_'.$reporte['hasta']->format('Y-m-d').'.xlsx';
-
-        return (new ReporteExcelExport($reporte))->download($filename);
     }
 
     /**

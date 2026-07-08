@@ -75,16 +75,15 @@
                     <div class="divide-y divide-border">
 
                         {{-- Grupo · Datos generales --}}
-                        <section class="space-y-4 p-6">
+                        <section class="space-y-4 px-6 py-4">
                             <div class="flex items-center gap-2">
                                 <x-lucide-file-pen class="size-3.5 text-muted-foreground" />
                                 <h3 class="text-overline">Datos generales</h3>
                             </div>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 <x-ui.form-field
                                     for="m-nombre"
-                                    class="sm:col-span-2"
                                     :state="$errors->has('nombre') ? 'destructive' : null"
                                     :message="$errors->first('nombre')"
                                 >
@@ -142,7 +141,7 @@
 
                         {{-- Grupo · Contenido del reporte — solo aplica al informe mensual
                              (las alertas van siempre en PDF con secciones fijas) --}}
-                        <section x-show="form.tipo === 'informe_mensual'" x-cloak class="space-y-4 p-6">
+                        <section x-show="form.tipo === 'informe_mensual'" x-cloak class="space-y-4 px-6 py-4">
                             <div class="flex items-center gap-2">
                                 <x-lucide-layout-list class="size-3.5 text-muted-foreground" />
                                 <h3 class="text-overline">Contenido del reporte</h3>
@@ -267,7 +266,7 @@
                         </section>
 
                         {{-- Grupo · Envío --}}
-                        <section class="space-y-4 p-6">
+                        <section class="space-y-4 px-6 py-4">
                             <div class="flex items-center gap-2">
                                 <x-lucide-send class="size-3.5 text-muted-foreground" />
                                 <h3 class="text-overline">Envío</h3>
@@ -275,7 +274,6 @@
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <x-ui.form-field
-                                    class="sm:col-span-2"
                                     :state="$errors->has('destinatarios') ? 'destructive' : null"
                                     :message="$errors->first('destinatarios')"
                                 >
@@ -291,7 +289,6 @@
 
                                 <x-ui.form-field
                                     for="m-revision"
-                                    class="sm:col-span-2"
                                     :state="$errors->has('revision') ? 'destructive' : null"
                                     :message="$errors->first('revision')"
                                 >
@@ -308,10 +305,6 @@
                                     <p class="text-caption">Con revisión, el reporte queda pendiente en el historial hasta que lo apruebes.</p>
                                 </x-ui.form-field>
                             </div>
-                        </section>
-
-                        {{-- Grupo · Estado --}}
-                        <section class="p-6">
                             <div class="flex items-center justify-between gap-2">
                                 <div>
                                     <p class="text-label">Programado activo</p>
@@ -334,7 +327,6 @@
                                 </button>
                             </div>
                         </section>
-
                     </div>
                 </div>
 

@@ -94,8 +94,8 @@ abstract class ReporteExcelBase
     /**
      * Desglose diario de ingresos: Fecha · Total Viajes · Total KG · {tipo} Viajes ·
      * {tipo} KG por cada tipo presente, más las filas de estadística TOTALES /
-     * PROMEDIO / MÁXIMO / MÍNIMO. Lo consumen tanto el export v1 (hoja Resumen) como
-     * el v2 (hoja Por N° interno); el bloque `$diario` viene de calcularDiarioPorTipo().
+     * PROMEDIO / MÁXIMO / MÍNIMO. Lo consume la hoja "Por N° interno"; el bloque
+     * `$diario` viene de `ReporteService::calcularDiarioPorTipo()` (vía `datosExcelV2()`).
      *
      * @param  Collection<int, array{id: int, nombre: string}>  $tipos
      * @param  array{filas: list<array>, totales: array, promedio: array, maximo: array, minimo: array}  $diario
@@ -169,8 +169,8 @@ abstract class ReporteExcelBase
     }
 
     /**
-     * Hoja de detalle crudo de pesajes (v1: "Detalle"; v2: "Base de datos"). Vuelca el
-     * detalle ya aplanado por ReporteService::detalleParaExcel() con encabezado fijo.
+     * Hoja "Base de datos": detalle crudo de pesajes. Vuelca el detalle ya
+     * aplanado por ReporteService::detalleParaExcel() con encabezado fijo.
      */
     protected function buildDetalleSheet(Worksheet $sheet, string $titulo): void
     {

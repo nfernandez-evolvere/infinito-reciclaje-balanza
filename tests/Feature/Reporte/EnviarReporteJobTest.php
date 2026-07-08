@@ -9,6 +9,8 @@ use App\Models\ReporteGenerado;
 use App\Models\ReporteProgramado;
 use App\Services\PdfService;
 use App\Services\ReporteService;
+use App\Services\ReporteSnapshotService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
@@ -68,17 +70,25 @@ class EnviarReporteJobTest extends TestCase
         ], $overrides);
     }
 
-    /** Pivots serializados (arrays) con las claves que lee ReporteExcelExport. */
-    private function pivotsSerializados(): array
+    /**
+     * Snapshot v2 real (con las hojas del Excel v2 y sus bloques): el informe
+     * mensual siempre congela en v2, así que un adjunto excel necesita 'datosV2'
+     * (no lo produce el `snapshot()` mínimo de arriba, que solo cubre el PDF).
+     */
+    private function snapshotV2ConExcel(): array
     {
-        $stat = ['total_viajes' => 0, 'total_kg' => 0, 'tipos' => []];
+        $desde = Carbon::parse('2026-05-01');
+        $hasta = Carbon::parse('2026-05-31');
+        $reporteService = app(ReporteService::class);
 
-        return [
-            'tipos'    => [],
-            'diario'   => ['filas' => [], 'totales' => $stat, 'promedio' => $stat, 'maximo' => $stat, 'minimo' => $stat],
-            'zonaTipo' => ['filas' => [], 'totales' => ['total_viajes' => 0, 'total_kg' => 0, 'tipos' => [], 'porcentaje' => 0.0]],
-            'zonaDia'  => ['fechas' => [], 'filas' => [], 'totales' => ['dias' => [], 'total' => 0]],
-        ];
+        $reporte = $reporteService->generar($desde, $hasta);
+        $reporte['config'] = null;
+        $reporte['conclusiones'] = [];
+        $reporte['kg_netos_total'] = (int) $reporte['detalle']->sum('peso_neto_kg');
+        $reporte['datosV2'] = $reporteService->datosExcelV2($reporte['detalle'], $desde, $hasta);
+        $reporte['detalle'] = $reporteService->detalleParaExcel($reporte['detalle']);
+
+        return app(ReporteSnapshotService::class)->capturarV2($reporte);
     }
 
     private function mockPdf(): void
@@ -152,10 +162,7 @@ class EnviarReporteJobTest extends TestCase
 
         $generado = $this->generado($this->programado(), [
             'formato'  => 'pdf+excel',
-            'snapshot' => $this->snapshot([
-                'pivots'  => $this->pivotsSerializados(),
-                'detalle' => [],
-            ]),
+            'snapshot' => $this->snapshotV2ConExcel(),
         ]);
 
         EnviarReporteJob::dispatchSync($generado->id);

@@ -24,9 +24,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
     Route::get('/reportes/historial/parcial', [ReporteController::class, 'historialParcial'])
         ->name('reportes.historial.parcial');
-    Route::get('/reportes/pdf-presentacion', [ReporteController::class, 'exportPdfPresentacion'])->name('reportes.pdf-presentacion');
     Route::get('/reportes/pdf-v2', [ReporteController::class, 'exportPdfV2'])->name('reportes.pdf-v2');
-    Route::get('/reportes/excel', [ReporteController::class, 'exportExcel'])->name('reportes.excel');
     Route::get('/reportes/excel-v2', [ReporteController::class, 'exportExcelV2'])->name('reportes.excel-v2');
     Route::get('/reportes/historial/{generado}/descargar', [ReporteController::class, 'downloadHistorial'])
         ->name('reportes.historial.download');
