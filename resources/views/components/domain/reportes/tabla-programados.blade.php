@@ -1,7 +1,7 @@
 @props(['programados'])
 
 @php
-    $tiposLabel = ['informe_mensual' => 'Informe', 'alertas' => 'Alertas'];
+    $tiposLabel = ['informe_mensual' => 'Reporte', 'alertas' => 'Alertas'];
     $frecLabels = ['diaria' => 'Diaria', 'semanal' => 'Semanal', 'quincenal' => 'Quincenal', 'mensual' => 'Mensual'];
 @endphp
 

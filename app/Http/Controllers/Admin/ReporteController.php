@@ -661,7 +661,7 @@ class ReporteController extends Controller
 
         return response($pdf, 200, [
             'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="informe_v2_'.$desde->format('Y-m').'.pdf"',
+            'Content-Disposition' => 'attachment; filename="reporte_'.$desde->format('Y-m').'.pdf"',
         ]);
     }
 
@@ -674,7 +674,7 @@ class ReporteController extends Controller
     {
         $filename = $tipo === 'alertas'
             ? 'alertas_'.$desde->format('Y-m').'.pdf'
-            : 'informe_'.$desde->format('Y-m').'.pdf';
+            : 'reporte_'.$desde->format('Y-m').'.pdf';
 
         $pdfContent = $this->pdfService->fromView('modules.admin.reportes.pdf-presentacion', compact('reporte', 'tipo'));
 

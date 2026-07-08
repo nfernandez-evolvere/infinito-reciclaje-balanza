@@ -166,8 +166,8 @@ class EnviarReporteJobTest extends TestCase
             return count($m->adjuntos) === 2
                 && in_array('application/pdf', $mimes, true)
                 && collect($mimes)->contains(fn ($mime) => str_contains($mime, 'spreadsheetml'))
-                && str_ends_with($m->adjuntos[0]['filename'], 'informe_2026-05.pdf')
-                && str_ends_with($m->adjuntos[1]['filename'], 'informe_2026-05.xlsx');
+                && str_ends_with($m->adjuntos[0]['filename'], 'reporte_2026-05.pdf')
+                && str_ends_with($m->adjuntos[1]['filename'], 'reporte_2026-05.xlsx');
         });
     }
 

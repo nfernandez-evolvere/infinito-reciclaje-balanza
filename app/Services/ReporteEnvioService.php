@@ -83,12 +83,12 @@ class ReporteEnvioService
                     'content' => $esV2
                         ? (new ReporteExcelExportV2($reporte))->contents()
                         : (new ReporteExcelExport($reporte))->contents(),
-                    'filename' => 'informe_'.$desde->format('Y-m').'.xlsx',
+                    'filename' => 'reporte_'.$desde->format('Y-m').'.xlsx',
                     'mime'     => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                 ]
                 : [
                     'content'  => $this->pdfService->fromView($vistaPdf, compact('reporte', 'tipo')),
-                    'filename' => 'informe_'.$desde->format('Y-m').'.pdf',
+                    'filename' => 'reporte_'.$desde->format('Y-m').'.pdf',
                     'mime'     => 'application/pdf',
                 ];
         }

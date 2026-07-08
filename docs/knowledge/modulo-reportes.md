@@ -8,7 +8,7 @@
 
 ## Para qué sirve este módulo
 
-El módulo de Reportes genera los informes formales de la operación de recolección. Reemplaza la tarea manual de armar los reportes mensuales en Excel — algo que antes llevaba entre 2 y 3 horas por mes.
+El módulo de Reportes genera los reportes formales de la operación de recolección. Reemplaza la tarea manual de armar los reportes mensuales en Excel — algo que antes llevaba entre 2 y 3 horas por mes.
 
 El reporte principal es el **reporte mensual** que se entrega al municipio. También podés generar reportes trimestrales o por rango de fechas personalizado para análisis internos.
 
@@ -155,10 +155,10 @@ La pestaña **Programados** te permite configurar el envío automático de repor
 
 | Campo | Descripción |
 |-------|-------------|
-| Nombre | Nombre identificatorio del programado (ej: "Informe mensual municipio") |
-| Tipo de reporte | **Informe mensual** (resumen de operación) o **Alertas** (reporte de alertas del período) |
+| Nombre | Nombre identificatorio del programado (ej: "Reporte mensual municipio") |
+| Tipo de reporte | **Reporte mensual** (resumen de operación) o **Alertas** (reporte de alertas del período) |
 | Frecuencia | **Diaria** (ayer), **Semanal** (últimos 7 días), **Quincenal** (últimos 15 días) o **Mensual** (últimos 30 días) |
-| Formatos del envío | Solo para **Informe mensual**: elegí en qué se adjunta el reporte al email — **PDF**, **Excel** o ambos. Tenés que dejar al menos uno marcado. Las **Alertas** se envían siempre en PDF, así que este campo no aparece. |
+| Formatos del envío | Solo para **Reporte mensual**: elegí en qué se adjunta el reporte al email — **PDF**, **Excel** o ambos. Tenés que dejar al menos uno marcado. Las **Alertas** se envían siempre en PDF, así que este campo no aparece. |
 | Destinatarios | Uno o más emails — presioná Enter o coma para confirmar cada uno |
 | Revisión antes de enviar | **Según configuración general** (heredar), **Revisar siempre** o **Enviar directo**. La opción del programado pisa la configuración global. Ver la sección "Revisión de envíos". |
 | Activo | Switch para activar o desactivar el envío automático |
@@ -183,13 +183,13 @@ La tabla muestra **Último envío** y **Próximo envío** para cada programado. 
 
 ## Revisión de envíos (aprobación manual)
 
-Por defecto, **ningún reporte programado se envía solo**: el sistema lo genera, lo deja **pendiente de revisión** en la pestaña Historial y espera tu aprobación. Recién cuando lo aprobás, el email sale hacia los destinatarios. Esto es especialmente importante cuando el informe incluye el análisis generado con IA: nada llega al municipio sin que alguien lo haya leído.
+Por defecto, **ningún reporte programado se envía solo**: el sistema lo genera, lo deja **pendiente de revisión** en la pestaña Historial y espera tu aprobación. Recién cuando lo aprobás, el email sale hacia los destinatarios. Esto es especialmente importante cuando el reporte incluye el análisis generado con IA: nada llega al municipio sin que alguien lo haya leído.
 
 ### Cómo funciona el flujo
 
 1. El sistema genera el reporte en la fecha programada (o cuando usás "Enviar ahora") y congela su contenido.
 2. El reporte queda **En revisión** en el Historial. Los administradores reciben un email de aviso, y la pantalla de Reportes muestra un banner y un contador en la pestaña Historial.
-3. Desde la acción **Revisar** podés: ver el PDF y el Excel exactamente como se enviarían, corregir el texto del análisis (si el informe usa IA), aprobar el envío o descartarlo.
+3. Desde la acción **Revisar** podés: ver el PDF y el Excel exactamente como se enviarían, corregir el texto del análisis (si el reporte usa IA), aprobar el envío o descartarlo.
 4. Al aprobar, el envío sale en los próximos minutos hacia los destinatarios configurados.
 
 > Lo que ves en la revisión es exactamente lo que se envía: el contenido queda congelado al generarse. Si después se corrige un pesaje del período, el reporte aprobado no cambia.
@@ -201,7 +201,7 @@ Por defecto, **ningún reporte programado se envía solo**: el sistema lo genera
 
 ### Editar el análisis de IA
 
-Si el informe incluye el análisis generado con IA, en el modal de revisión podés corregir el texto antes de aprobar. El texto original de la IA se conserva como registro interno. Mientras tengas cambios sin guardar, el botón **Aprobar y enviar** queda deshabilitado — guardá primero, después aprobá.
+Si el reporte incluye el análisis generado con IA, en el modal de revisión podés corregir el texto antes de aprobar. El texto original de la IA se conserva como registro interno. Mientras tengas cambios sin guardar, el botón **Aprobar y enviar** queda deshabilitado — guardá primero, después aprobá.
 
 ### Descartar un reporte
 
@@ -236,11 +236,11 @@ La pestaña **Configuración** define los datos institucionales de los PDFs y el
 
 | Sección | Descripción |
 |---------|-------------|
-| Nombre del municipio | Aparece en la portada y pie de página del informe |
-| Texto de presentación | Descripción de la empresa para la sección "Quiénes Somos" del informe |
+| Nombre del municipio | Aparece en la portada y pie de página del reporte |
+| Texto de presentación | Descripción de la empresa para la sección "Quiénes Somos" del reporte |
 | Servicios destacados | Cards de servicios que aparecen en la sección "Quiénes Somos" (máximo 6) |
-| Inteligencia Artificial | Genera automáticamente la sección de análisis del informe PDF (requiere una API key de Google AI Studio) |
-| Tipos de reporte activos | Qué tipos se pueden generar y programar: Informe mensual y/o Alertas |
+| Inteligencia Artificial | Genera automáticamente la sección de análisis del reporte PDF (requiere una API key de Google AI Studio) |
+| Tipos de reporte activos | Qué tipos se pueden generar y programar: Reporte mensual y/o Alertas |
 | Revisión de envíos | Si los reportes programados requieren aprobación manual antes de enviarse — **activado por defecto** |
 
 Completar los datos institucionales antes de generar el primer PDF formal para el municipio.
@@ -283,7 +283,7 @@ No. Podés generar reportes de cualquier período desde el inicio de la operaci�
 Sí. En la pestaña **Programados** podés crear un reporte programado con frecuencia mensual y los emails del municipio como destinatarios. El sistema lo genera y envía automáticamente en la fecha configurada.
 
 **¿Puedo elegir si el reporte programado llega en PDF o en Excel?**
-Sí, en los programados de tipo **Informe mensual**. Al crear o editar el programado marcás **PDF**, **Excel** o ambos en "Formatos del envío" (al menos uno). El email automático adjunta los formatos elegidos. Los programados de tipo **Alertas** se envían siempre en PDF.
+Sí, en los programados de tipo **Reporte mensual**. Al crear o editar el programado marcás **PDF**, **Excel** o ambos en "Formatos del envío" (al menos uno). El email automático adjunta los formatos elegidos. Los programados de tipo **Alertas** se envían siempre en PDF.
 
 **¿Puedo configurar el logo y los datos del municipio en el PDF?**
 Los datos institucionales (nombre del municipio, texto de presentación, servicios destacados) se configuran en la pestaña **Configuración** del módulo de Reportes.
@@ -291,7 +291,7 @@ Los datos institucionales (nombre del municipio, texto de presentación, servici
 **¿Por qué mi reporte programado no llegó a los destinatarios?**
 Lo más probable es que esté esperando tu aprobación: por defecto, los envíos programados quedan **En revisión** en la pestaña Historial hasta que alguien los apruebe. Revisá el banner de la pantalla de Reportes o el contador del tab Historial. Si en cambio figura como **Fallido**, abrí su menú y usá **Reintentar**.
 
-**¿Puedo corregir el texto de la IA antes de que salga el informe?**
+**¿Puedo corregir el texto de la IA antes de que salga el reporte?**
 Sí. Con la revisión activada, el reporte queda pendiente en el Historial: desde **Revisar** editás el análisis, lo guardás y recién entonces aprobás el envío. El texto original de la IA se conserva como registro.
 
 **¿La re-descarga desde el Historial recalcula los datos?**

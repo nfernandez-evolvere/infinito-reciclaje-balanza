@@ -1,9 +1,9 @@
 <x-mail::message>
-# Informe de Pesajes — {{ $periodo }}
+# Reporte de Pesajes — {{ $periodo }}
 
 Estimados,
 
-Se adjunta el informe de pesajes correspondiente a **{{ $periodo }}**, generado por **{{ $municipalidad }}**.
+Se adjunta el reporte de pesajes correspondiente a **{{ $periodo }}**, generado por **{{ $municipalidad }}**.
 
 El documento incluye el resumen de actividad del período, evolución diaria, desglose por zona y por tipo de vehículo.
 

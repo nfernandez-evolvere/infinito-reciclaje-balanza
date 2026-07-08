@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<title>Informe de Pesajes</title>
+<title>Reporte de Pesajes</title>
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
@@ -103,7 +103,7 @@
     $features = collect($config?->servicios ?: [
         ['titulo' => 'Pesaje trazable', 'descripcion' => 'Cada camión se identifica por patente y se pesa con mínima intervención manual. El neto se calcula como bruto de entrada menos tara del padrón.'],
         ['titulo' => 'Registro auditado', 'descripcion' => 'Cada pesaje queda registrado con historial trazable, disponible para el control del organismo contratante.'],
-        ['titulo' => 'Evidencia mensual', 'descripcion' => 'Este informe reúne los kilos netos, los ingresos, la composición por vehículo y el desglose por servicio y zona del período.'],
+        ['titulo' => 'Evidencia mensual', 'descripcion' => 'Este reporte reúne los kilos netos, los ingresos, la composición por vehículo y el desglose por servicio y zona del período.'],
     ])->take(3);
 
     // Iconos genéricos (paths lucide) reutilizados como badges — un set fijo, sin
@@ -220,7 +220,7 @@
 
         <div style="max-width:680px;">
             <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border:1px solid rgba(255,255,255,.28);border-radius:100px;font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.9);margin-bottom:26px;">
-                Informe institucional
+                Reporte institucional
             </div>
             <h1 style="margin:0;font-size:72px;line-height:1.02;font-weight:800;letter-spacing:-.025em;">Reporte mensual<br>de pesajes</h1>
             <div style="display:flex;align-items:baseline;gap:16px;margin-top:22px;">

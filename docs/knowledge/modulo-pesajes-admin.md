@@ -173,7 +173,7 @@ El aviso no bloqueó el guardado — el operador decidió que el peso era correc
 
 ## Exportar pesajes
 
-Esta pantalla no tiene exportación propia: es para consultar, filtrar y auditar en línea. Para llevarte los datos a un archivo usá el **módulo de Reportes**, que exporta en Excel (detalle de cada pesaje) y en PDF (informe formal para el municipio), con sus propios filtros de período, origen, servicio y tipo de vehículo.
+Esta pantalla no tiene exportación propia: es para consultar, filtrar y auditar en línea. Para llevarte los datos a un archivo usá el **módulo de Reportes**, que exporta en Excel (detalle de cada pesaje) y en PDF (reporte formal para el municipio), con sus propios filtros de período, origen, servicio y tipo de vehículo.
 
 Ver [`modulo-reportes.md`](modulo-reportes.md).
 

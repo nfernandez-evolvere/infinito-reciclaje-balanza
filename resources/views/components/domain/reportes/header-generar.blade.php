@@ -12,7 +12,7 @@
 
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-            <p class="text-overline">Informe de recolección</p>
+            <p class="text-overline">Reporte de recolección</p>
             <h2 class="text-h3 mt-1">
                 {{ $reporte['desde']->translatedFormat('d M') }} — {{ $reporte['hasta']->translatedFormat('d M Y') }}
             </h2>

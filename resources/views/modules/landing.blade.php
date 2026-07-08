@@ -286,9 +286,9 @@
                          x-data="{
                              current: 0,
                              slides: [
-                                 { src: '/assets/reportes-pesajes-1.png', alt: 'Portada — Informe de Pesajes', label: 'Informe de Pesajes' },
-                                 { src: '/assets/reportes-pesajes-2.png', alt: 'Evolución diaria de toneladas',  label: 'Informe de Pesajes' },
-                                 { src: '/assets/reportes-pesajes-3.png', alt: 'Distribución por zona',          label: 'Informe de Pesajes' },
+                                 { src: '/assets/reportes-pesajes-1.png', alt: 'Portada — Reporte de Pesajes', label: 'Reporte de Pesajes' },
+                                 { src: '/assets/reportes-pesajes-2.png', alt: 'Evolución diaria de toneladas',  label: 'Reporte de Pesajes' },
+                                 { src: '/assets/reportes-pesajes-3.png', alt: 'Distribución por zona',          label: 'Reporte de Pesajes' },
                                  { src: '/assets/reportes-alertas-1.png', alt: 'Portada — Reporte de Alertas',  label: 'Reporte de Alertas' },
                                  { src: '/assets/reportes-alertas-2.png', alt: 'Alertas del período',           label: 'Reporte de Alertas' },
                              ],
@@ -339,14 +339,14 @@
                         <div class="mb-4 flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                             <x-lucide-file-text class="size-5" />
                         </div>
-                        <h2 class="text-3xl font-semibold tracking-tight">Informes que se generan solos</h2>
+                        <h2 class="text-3xl font-semibold tracking-tight">Reportes que se generan solos</h2>
                         <p class="mt-4 text-muted-foreground">
                             El sistema produce reportes PDF mensuales de pesajes y alertas. Portada institucional, evolución diaria de toneladas, distribución por zona y detección de anomalías — listos para enviar o presentar a la gestión municipal.
                         </p>
                         <ul class="mt-6 space-y-2.5 text-sm text-muted-foreground">
                             <li class="flex items-center gap-2.5">
                                 <x-lucide-check class="size-4 shrink-0 text-primary" />
-                                Informe mensual con evolución diaria y distribución territorial
+                                Reporte mensual con evolución diaria y distribución territorial
                             </li>
                             <li class="flex items-center gap-2.5">
                                 <x-lucide-check class="size-4 shrink-0 text-primary" />
