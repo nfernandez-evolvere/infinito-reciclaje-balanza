@@ -76,7 +76,19 @@
     $porServicio   = $reporte['porServicio'] ?? collect();
     $zonasServicio = $reporte['zonasServicio'] ?? [];
 
-    $periodo      = ucfirst($desde->translatedFormat('F Y'));
+    $mismoMes = $desde->isSameMonth($hasta);
+
+    // Si el rango cae dentro de un único mes se muestra "Junio 2026"; si cruza
+    // meses (o años) se muestra el rango completo para no sugerir un mes que
+    // no cubre todo el período ("Jun – Jul 2026" o "Dic 2025 – Ene 2026").
+    $periodo = $mismoMes
+        ? ucfirst($desde->translatedFormat('F Y'))
+        : ($desde->isSameYear($hasta)
+            ? ucfirst($desde->translatedFormat('M')).' – '.ucfirst($hasta->translatedFormat('M Y'))
+            : ucfirst($desde->translatedFormat('M Y')).' – '.ucfirst($hasta->translatedFormat('M Y')));
+
+    $tituloReporte    = $mismoMes ? 'Reporte mensual' : 'Reporte del período';
+    $tituloReporteCap = $mismoMes ? 'Reporte Mensual de Pesajes' : 'Reporte del Período de Pesajes';
     $organizacion = $config?->municipalidad_nombre ?? 'la organización';
     $kgTotal      = (int) round(($kpis['toneladas'] ?? 0) * 1000);
 
@@ -169,7 +181,7 @@
     }
 
     /** Barra decorativa + eyebrow + título de página (idéntico en todas las páginas de contenido). */
-    $pageHeader = function (string $numero, string $icon, string $eyebrow) use ($icons, $periodo) {
+    $pageHeader = function (string $numero, string $icon, string $eyebrow) use ($icons, $periodo, $tituloReporte) {
         return '
         <div class="p-topgrad"></div>
         <div class="p-leftbar"></div>
@@ -178,7 +190,7 @@
                 <div class="p-eyebrow-badge"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'.($icons[$icon] ?? '').'</svg></div>
                 <span class="p-eyebrow">'.$numero.' · '.$eyebrow.'</span>
             </div>
-            <span class="p-period">Reporte mensual · '.$periodo.'</span>
+            <span class="p-period">'.$tituloReporte.' · '.$periodo.'</span>
         </div>';
     };
 
@@ -209,7 +221,7 @@
                 </div>
                 <div style="line-height:1.15;">
                     <div style="font-size:19px;font-weight:800;letter-spacing:-.01em;">Infinito Reciclaje</div>
-                    <div style="font-size:12px;font-weight:500;color:rgba(255,255,255,.72);">Reporte Mensual de Pesajes</div>
+                    <div style="font-size:12px;font-weight:500;color:rgba(255,255,255,.72);">{{ $tituloReporteCap }}</div>
                 </div>
             </div>
             <div style="text-align:right;font-size:12px;font-weight:500;color:rgba(255,255,255,.78);line-height:1.5;">
@@ -222,7 +234,7 @@
             <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border:1px solid rgba(255,255,255,.28);border-radius:100px;font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.9);margin-bottom:26px;">
                 Reporte institucional
             </div>
-            <h1 style="margin:0;font-size:72px;line-height:1.02;font-weight:800;letter-spacing:-.025em;">Reporte mensual<br>de pesajes</h1>
+            <h1 style="margin:0;font-size:72px;line-height:1.02;font-weight:800;letter-spacing:-.025em;">{{ $tituloReporte }}<br>de pesajes</h1>
             <div style="display:flex;align-items:baseline;gap:16px;margin-top:22px;">
                 <span class="num" style="font-size:34px;font-weight:700;color:var(--g-200);">{{ $periodo }}</span>
                 <span style="width:1px;height:26px;background:rgba(255,255,255,.3);"></span>
@@ -315,10 +327,10 @@
                 </div>
                 <div style="line-height:1.15;">
                     <div style="font-size:17px;font-weight:800;">Infinito Reciclaje</div>
-                    <div style="font-size:12px;color:rgba(255,255,255,.7);">Reporte Mensual de Pesajes</div>
+                    <div style="font-size:12px;color:rgba(255,255,255,.7);">{{ $tituloReporteCap }}</div>
                 </div>
             </div>
-            <span style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--g-300);">Reporte mensual · {{ $periodo }}</span>
+            <span style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--g-300);">{{ $tituloReporte }} · {{ $periodo }}</span>
         </div>
 
         <div style="max-width:720px;">
@@ -569,10 +581,10 @@
                 </div>
                 <div style="line-height:1.15;">
                     <div style="font-size:17px;font-weight:800;">Infinito Reciclaje</div>
-                    <div style="font-size:12px;color:rgba(255,255,255,.7);">Reporte Mensual de Pesajes</div>
+                    <div style="font-size:12px;color:rgba(255,255,255,.7);">{{ $tituloReporteCap }}</div>
                 </div>
             </div>
-            <span style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--g-300);">Reporte mensual · {{ $periodo }}</span>
+            <span style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--g-300);">{{ $tituloReporte }} · {{ $periodo }}</span>
         </div>
 
         <div style="max-width:720px;">
@@ -689,10 +701,10 @@
                 </div>
                 <div style="line-height:1.15;">
                     <div style="font-size:17px;font-weight:800;">Infinito Reciclaje</div>
-                    <div style="font-size:12px;color:rgba(255,255,255,.7);">Reporte Mensual de Pesajes</div>
+                    <div style="font-size:12px;color:rgba(255,255,255,.7);">{{ $tituloReporteCap }}</div>
                 </div>
             </div>
-            <span style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--g-300);">Reporte mensual · {{ $periodo }}</span>
+            <span style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--g-300);">{{ $tituloReporte }} · {{ $periodo }}</span>
         </div>
 
         <div style="max-width:720px;">
@@ -922,7 +934,7 @@
                 </div>
                 <div style="line-height:1.15;">
                     <div style="font-size:17px;font-weight:800;">Infinito Reciclaje</div>
-                    <div style="font-size:12px;color:rgba(255,255,255,.7);">Reporte Mensual de Pesajes</div>
+                    <div style="font-size:12px;color:rgba(255,255,255,.7);">{{ $tituloReporteCap }}</div>
                 </div>
             </div>
             <span style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--g-300);">{{ $totalPaginas }} · Cierre</span>

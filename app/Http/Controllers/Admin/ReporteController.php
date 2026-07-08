@@ -568,9 +568,18 @@ class ReporteController extends Controller
             'tipo'    => 'informe_mensual',
         ]);
 
+        /** @var Carbon $hasta */
+        $hasta = $reporte['hasta'];
+
+        // Si el rango cruza meses el nombre de archivo refleja ambos extremos
+        // para no sugerir que el reporte cubre solo el mes de inicio.
+        $sufijo = $desde->isSameMonth($hasta)
+            ? $desde->format('Y-m')
+            : $desde->format('Y-m-d').'_a_'.$hasta->format('Y-m-d');
+
         return response($pdf, 200, [
             'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="reporte_'.$desde->format('Y-m').'.pdf"',
+            'Content-Disposition' => 'attachment; filename="reporte_'.$sufijo.'.pdf"',
         ]);
     }
 

@@ -15,15 +15,39 @@ class TipoServicioSeeder extends Seeder
         $volquete = TipoVehiculo::where('nombre', 'Volquete')->value('id');
 
         $servicios = [
-            ['nombre' => 'Domiciliario',            'vehiculos' => [$compactador]],
-            ['nombre' => 'Voluminoso',               'vehiculos' => [$compactador]],
-            ['nombre' => 'Barrido',                  'vehiculos' => [$volcador]],
-            ['nombre' => 'Servicios Especiales',     'vehiculos' => [$volcador]],
-            ['nombre' => 'Centros de Transferencia', 'vehiculos' => [$volquete]],
+            [
+                'nombre'      => 'Domiciliario',
+                'descripcion' => 'Recolección regular de residuos domiciliarios en frecuencia establecida por zona.',
+                'vehiculos'   => [$compactador],
+            ],
+            [
+                'nombre'      => 'Voluminoso',
+                'descripcion' => 'Retiro de residuos de gran volumen (muebles, escombros menores, poda) fuera de la recolección regular.',
+                'vehiculos'   => [$compactador],
+            ],
+            [
+                'nombre'      => 'Barrido',
+                'descripcion' => 'Limpieza y barrido de calles y espacios públicos, con recolección de lo acumulado.',
+                'vehiculos'   => [$volcador],
+            ],
+            [
+                'nombre'      => 'Servicios Especiales',
+                'descripcion' => 'Operativos puntuales fuera del esquema regular, solicitados por el organismo contratante.',
+                'vehiculos'   => [$volcador],
+            ],
+            [
+                'nombre'      => 'Centros de Transferencia',
+                'descripcion' => 'Traslado de residuos desde centros de transferencia hacia el predio de disposición final.',
+                'vehiculos'   => [$volquete],
+            ],
         ];
 
         foreach ($servicios as $data) {
-            $tipo = TipoServicio::firstOrCreate(['nombre' => $data['nombre']]);
+            $tipo = TipoServicio::firstOrCreate(
+                ['nombre' => $data['nombre']],
+                ['descripcion' => $data['descripcion']]
+            );
+            $tipo->fill(['descripcion' => $data['descripcion']])->save();
             $tipo->tiposVehiculo()->sync(array_filter($data['vehiculos']));
         }
     }
