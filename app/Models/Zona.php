@@ -61,7 +61,7 @@ class Zona extends Model
         return $query->where('activo', true);
     }
 
-    /** Returns ['Diurna', 'Nocturna'] format for Alpine */
+    /** Returns array of turno names (p. ej. ['Diurna', 'Nocturna']) for Alpine */
     public function getTurnosArrayAttribute(): array
     {
         return $this->turnos->pluck('turno')->toArray();

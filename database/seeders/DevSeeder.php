@@ -20,6 +20,9 @@ class DevSeeder extends Seeder
     {
         // Limpia datos previos en orden correcto (hijos antes que padres)
         DB::table('alertas')->delete();
+        // reportes_generados referencia users (usuario_id, revisado_por_id) — debe
+        // limpiarse antes del delete de users, más abajo.
+        DB::table('reportes_generados')->delete();
         DB::table('config_alertas')->delete();
         DB::table('pesajes_log')->delete();
         DB::table('pesajes')->delete();

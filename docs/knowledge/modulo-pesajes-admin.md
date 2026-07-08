@@ -14,7 +14,7 @@ El módulo de Pesajes es el log completo de todos los pesajes registrados en el 
 - Editar un pesaje cuando hay un error
 - Ver el historial de cambios de cualquier pesaje
 
-Ambas vistas (admin y operador) muestran todos los pesajes de la organización sin límite de fecha. La diferencia está en los filtros disponibles: el operador puede filtrar por fecha, patente, estado y operario; el admin tiene además filtros de zona, tipo de servicio, alertas de peso y pesajes editados.
+Ambas vistas (admin y operador) muestran todos los pesajes de la organización sin límite de fecha, con el mismo panel de filtros. La diferencia entre ambas es que el admin tiene además la pestaña **Modificaciones**, exclusiva para auditar ediciones y cancelaciones (ver más abajo).
 
 ---
 
@@ -51,7 +51,7 @@ La tabla muestra todos los pesajes ordenados del más reciente al más antiguo. 
 | Estado | Distintivos del pesaje: **Cancelado**, **Editado** y/o **Alerta** de peso |
 | Acciones | Menú (⋯) con Detalles, Editar, Marcar egreso, Ver cambios y Cancelar |
 
-> El operador, que NO tiene su propia tabla, ve estas mismas columnas. La diferencia con el admin son los filtros disponibles, no las columnas.
+> El operador, que NO tiene su propia tabla, ve estas mismas columnas y los mismos filtros. La diferencia con el admin es la pestaña **Modificaciones**, exclusiva del administrador.
 
 ---
 
@@ -63,12 +63,13 @@ Encima de la tabla hay un panel de filtros. Podés combinar cualquiera de estos 
 |--------|----------|
 | Rango de fechas | Fecha desde / Fecha hasta |
 | Patente o número interno | Texto libre |
-| Tipo de servicio | Lista de todos los servicios activos |
-| Zona | Lista de todas las zonas activas |
-| Operador | Lista de todos los usuarios operadores |
 | Estado | Todos / Activos / Cancelados |
-| Con alerta de peso | Solo los pesajes que generaron aviso naranja |
-| Editados | Solo los pesajes que fueron modificados |
+| Operador | Lista de todos los usuarios operadores |
+| Servicio | Lista de todos los tipos de servicio activos |
+| Zona | Lista de todas las zonas activas (se acota según el servicio elegido) |
+| Tipo de vehículo | Lista de todos los tipos de vehículo activos |
+| Mostrar | Todos / Con alerta de peso / Editados |
+| Orden de fecha | Más reciente primero / Más antiguo primero |
 
 > El filtro **Estado** separa los pesajes vigentes (**Activos** — en predio o cerrados) de los **Cancelados**. La distinción entre EN PREDIO y CERRADO se ve en cada fila, no en este filtro.
 
@@ -201,4 +202,4 @@ Sí, por fecha de **Ingreso**. Hacé clic en el encabezado de la columna *Ingres
 
 ---
 
-*Documento actualizado: 18/06/2026 | Versión: 1.1*
+*Documento actualizado: 08/07/2026 | Versión: 1.2*

@@ -129,10 +129,19 @@ class CreatePesajeTest extends TestCase
     }
 
     #[Test]
-    public function store_validates_turno_only_diurna_or_nocturna(): void
+    public function store_accepts_any_turno_text_written_for_the_zona(): void
+    {
+        // Turno es texto libre (sin catálogo): cualquier string corto es válido.
+        $this->actingAs($this->operador())
+            ->post(route('pesajes.store'), $this->payload(['turno' => 'Refuerzo']))
+            ->assertSessionDoesntHaveErrors('turno');
+    }
+
+    #[Test]
+    public function store_validates_turno_max_20_chars(): void
     {
         $this->actingAs($this->operador())
-            ->post(route('pesajes.store'), $this->payload(['turno' => 'Mañana']))
+            ->post(route('pesajes.store'), $this->payload(['turno' => str_repeat('a', 21)]))
             ->assertSessionHasErrors('turno');
     }
 

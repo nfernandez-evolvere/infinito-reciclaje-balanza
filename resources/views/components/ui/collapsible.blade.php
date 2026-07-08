@@ -1,6 +1,7 @@
 @props(['open' => false, 'disabled' => false])
 
 <div
+    x-modelable="open"
     x-data="{
         open:     @js((bool) $open),
         disabled: @js((bool) $disabled),

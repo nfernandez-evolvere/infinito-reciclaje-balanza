@@ -408,10 +408,10 @@ Las zonas son las áreas geográficas de recolección. **Cada zona pertenece a u
 | Hectáreas | Superficie de la zona en hectáreas | No |
 | Cantidad de barrios | Barrios que componen la zona | No |
 | Área en el mapa | Polígono dibujado con la herramienta de mapa (para los mapas de calor) | No |
-| Turnos | Si la zona opera en turnos: **Diurna**, **Nocturna**, ambos, o ninguno | No |
+| Turnos | Si la zona opera en turnos: nombres libres que vos cargás (ej. Diurna, Nocturna, Refuerzo), o ninguno | No |
 | Horarios de recorrido | Optativo: días y franjas horarias del recorrido | No |
 
-**Cómo configurar los turnos:** usá el switch "Opera con turnos". Si está apagado, el operador no ve selector de turno para esa zona. Si está encendido, podés activar Diurna, Nocturna o ambas.
+**Cómo configurar los turnos:** usá el switch "Opera con turnos". Si está apagado, el operador no ve selector de turno para esa zona. Si está encendido, escribí el nombre del turno y presioná Enter para agregarlo como chip (podés cargar los que necesites, no hay una lista fija). Para sacar uno, tocá la × del chip.
 
 **Cómo configurar los horarios:** seleccioná los días activos (chips Lun–Dom) y cargá las franjas horarias para cada día. Podés agregar más de una franja por día.
 

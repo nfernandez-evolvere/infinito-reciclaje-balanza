@@ -1,7 +1,7 @@
 @props(['tiposVehiculo'])
 
 <div x-data="{ get open() { return modalOpen }, set open(v) { modalOpen = v } }">
-    <x-ui.dialog.content size="lg">
+    <x-ui.dialog.content size="xl">
         <form
             method="POST"
             :action="modalMode === 'create'

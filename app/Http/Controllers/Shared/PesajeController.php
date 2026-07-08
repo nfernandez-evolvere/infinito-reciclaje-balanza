@@ -47,13 +47,16 @@ class PesajeController extends Controller
     public function index(Request $request): View
     {
         $isAdmin = auth()->user()->isAdmin();
-        $filtros = $this->buildFiltros($request, $isAdmin);
+        $filtros = $this->buildFiltros($request);
 
         $pesajes = $this->pesajeRepository->filtrado($filtros);
         $kpis = $this->pesajeRepository->kpisFiltrado($filtros);
         $kpisHoy = $this->pesajeRepository->kpisDelTurno();
         $ultimoPesaje = $this->pesajeRepository->ultimoDelTurno();
         $operarios = $this->usuarioRepository->getOperadoresDeLaOrg();
+        $zonas = $this->zonaRepository->activos();
+        $tiposServicio = $this->tipoServicioRepository->activos();
+        $tiposVehiculo = $this->tipoVehiculoRepository->activos();
 
         if (! $isAdmin) {
             return view('modules.shared.historial', [
@@ -65,6 +68,9 @@ class PesajeController extends Controller
                 'operarios'      => $operarios,
                 'titulo'         => 'Pesajes',
                 'routeHistorial' => route('historial'),
+                'zonas'          => $zonas,
+                'tiposServicio'  => $tiposServicio,
+                'tiposVehiculo'  => $tiposVehiculo,
             ]);
         }
 
@@ -86,9 +92,9 @@ class PesajeController extends Controller
             'operarios'      => $operarios,
             'titulo'         => 'Pesajes',
             'routeHistorial' => route('admin.pesajes.index'),
-            'zonas'          => $this->zonaRepository->activos(),
-            'tiposServicio'  => $this->tipoServicioRepository->activos(),
-            'tiposVehiculo'  => $this->tipoVehiculoRepository->activos(),
+            'zonas'          => $zonas,
+            'tiposServicio'  => $tiposServicio,
+            'tiposVehiculo'  => $tiposVehiculo,
         ]);
     }
 
@@ -215,11 +221,11 @@ class PesajeController extends Controller
         return response()->json($grupos);
     }
 
-    private function buildFiltros(Request $request, bool $isAdmin): array
+    private function buildFiltros(Request $request): array
     {
-        // El select «Mostrar» (admin) expone un único parámetro `mostrar` que se
-        // traduce a los flags que entiende PesajeRepository::buildQuery().
-        $mostrar = $isAdmin ? $request->input('mostrar') : null;
+        // El select «Mostrar» expone un único parámetro `mostrar` que se traduce
+        // a los flags que entiende PesajeRepository::buildQuery().
+        $mostrar = $request->input('mostrar');
 
         return [
             'desde'            => $request->input('desde') ?: null,
@@ -227,9 +233,9 @@ class PesajeController extends Controller
             'patente'          => $request->input('patente') ?: null,
             'estado'           => $request->input('estado') ?: null,
             'operario_id'      => $request->input('operario_id') ?: null,
-            'zona_id'          => $isAdmin ? ($request->input('zona_id') ?: null) : null,
-            'tipo_servicio_id' => $isAdmin ? ($request->input('tipo_servicio_id') ?: null) : null,
-            'tipo_vehiculo_id' => $isAdmin ? ($request->input('tipo_vehiculo_id') ?: null) : null,
+            'zona_id'          => $request->input('zona_id') ?: null,
+            'tipo_servicio_id' => $request->input('tipo_servicio_id') ?: null,
+            'tipo_vehiculo_id' => $request->input('tipo_vehiculo_id') ?: null,
             'solo_alerta'      => $mostrar === 'alerta' ? true : null,
             'solo_editados'    => $mostrar === 'editados' ? true : null,
             'direction'        => in_array($request->input('direction'), ['asc', 'desc']) ? $request->input('direction') : 'desc',

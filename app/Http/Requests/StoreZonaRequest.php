@@ -31,14 +31,16 @@ class StoreZonaRequest extends FormRequest
                 // Dos servicios pueden tener su propia "Zona Norte" sin colisionar.
                 Rule::unique('zonas', 'nombre')->where('tipo_servicio_id', $this->input('tipo_servicio_id')),
             ],
-            'hectareas'           => ['nullable', 'numeric', 'min:0'],
-            'barrios'             => ['nullable', 'integer', 'min:0'],
-            'habitantes'          => ['nullable', 'integer', 'min:0'],
-            'geojson'             => ['nullable', 'json'],
-            'centro_lat'          => ['nullable', 'numeric', 'between:-90,90'],
-            'centro_lng'          => ['nullable', 'numeric', 'between:-180,180'],
+            'hectareas'  => ['nullable', 'numeric', 'min:0'],
+            'barrios'    => ['nullable', 'integer', 'min:0'],
+            'habitantes' => ['nullable', 'integer', 'min:0'],
+            'geojson'    => ['nullable', 'json'],
+            'centro_lat' => ['nullable', 'numeric', 'between:-90,90'],
+            'centro_lng' => ['nullable', 'numeric', 'between:-180,180'],
+            // Turnos de texto libre por zona (sin catálogo): el operador los escribe
+            // en el modal (chips). No hay validación contra una lista fija.
             'turnos'              => ['nullable', 'array'],
-            'turnos.*'            => ['string', 'in:Diurna,Nocturna'],
+            'turnos.*'            => ['required', 'string', 'max:20', 'distinct'],
             'horarios'            => ['nullable', 'array'],
             'horarios.*'          => ['nullable', 'array'],
             'horarios.*.*'        => ['nullable', 'array'],

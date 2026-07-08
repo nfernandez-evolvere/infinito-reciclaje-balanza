@@ -72,7 +72,7 @@ erDiagram
 
     zona_turnos {
         bigint      zona_id         PK,FK
-        nvarchar    turno           PK "Diurna | Nocturna"
+        nvarchar    turno           PK "string libre, sin catálogo (chips en el modal de zona)"
     }
 
     zona_horarios {
@@ -286,7 +286,7 @@ erDiagram
 | `vehiculos` → `vehiculos_log` | 1:N | Audit trail por campo editado. Cascade en delete. |
 | `users` → `vehiculos_log` | 1:N | Usuario que editó. noAction. |
 | `tipos_servicio` → `zonas` | 1:N | Cada servicio tiene sus propias zonas; una zona pertenece a un único servicio. `tipo_servicio_id` noAction (segundo camino a `organizaciones`). Unique `(tipo_servicio_id, nombre)`. |
-| `zonas` → `zona_turnos` | 1:0..N | 0 = sin turno; 1 = solo Diurna o solo Nocturna; 2 = ambos. PK `(zona_id, turno)`. Cascade. |
+| `zonas` → `zona_turnos` | 1:0..N | 0 = sin turno; N = tantos como el admin haya cargado como texto libre para esa zona (sin catálogo). PK `(zona_id, turno)`. Cascade. |
 | `zonas` → `zona_horarios` | 1:0..N | Múltiples franjas por día, optativo. PK `(zona_id, dia_semana, franja)`. Cascade. |
 | `vehiculos` → `pesajes` | 1:N | noAction en delete. |
 | `users` → `pesajes` | 1:N | `operador_id` (registra) + `cancelado_por_id` (nullable, cancela). noAction. |

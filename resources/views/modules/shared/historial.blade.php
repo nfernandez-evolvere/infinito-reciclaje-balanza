@@ -30,6 +30,7 @@
             || $filtros['operario_id']
             || ($filtros['zona_id'] ?? null)
             || ($filtros['tipo_servicio_id'] ?? null)
+            || ($filtros['tipo_vehiculo_id'] ?? null)
             || ($filtros['solo_alerta'] ?? null)
             || ($filtros['solo_editados'] ?? null);
 
@@ -44,8 +45,6 @@
         } else {
             $subtitulo = 'Todos los pesajes';
         }
-        $zonas         = $zonas ?? collect();
-        $tiposServicio = $tiposServicio ?? collect();
     @endphp
 
     <div class="flex flex-col lg:flex-row items-start justify-between gap-4">
@@ -66,7 +65,7 @@
 
     <x-domain.historial.kpis :kpis="$kpis" />
 
-    <x-domain.historial.filtros :filtros="$filtros" :operarios="$operarios" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" :zonas="$zonas" :tiposServicio="$tiposServicio" :sortDirection="$filtros['direction']" />
+    <x-domain.historial.filtros :filtros="$filtros" :operarios="$operarios" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" :zonas="$zonas" :tiposServicio="$tiposServicio" :tiposVehiculo="$tiposVehiculo" :sortDirection="$filtros['direction']" />
 
     <x-domain.historial.tabla :pesajes="$pesajes" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" :sortDirection="$filtros['direction']" />
 

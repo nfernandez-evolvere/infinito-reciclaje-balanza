@@ -21,9 +21,11 @@ class StorePesajeRequest extends FormRequest
             'vehiculo_id'      => ['required', 'integer', 'exists:vehiculos,id'],
             'tipo_servicio_id' => ['required', 'integer', 'exists:tipos_servicio,id'],
             'zona_id'          => ['required', 'integer', 'exists:zonas,id'],
-            'turno'            => ['nullable', 'string', 'in:Diurna,Nocturna'],
-            'peso_bruto_kg'    => ['required', 'integer', 'min:1'],
-            'observaciones'    => ['nullable', 'string', 'max:500'],
+            // El turno es texto libre, copiado del que el operador eligió entre los
+            // configurados para la zona (sin catálogo ni validación cruzada).
+            'turno'         => ['nullable', 'string', 'max:20'],
+            'peso_bruto_kg' => ['required', 'integer', 'min:1'],
+            'observaciones' => ['nullable', 'string', 'max:500'],
         ];
     }
 

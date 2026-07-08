@@ -13,7 +13,7 @@
     grilla). Cada campo es un elemento raíz para que herede el layout del contenedor.
 --}}
 
-<x-ui.form-field class="col-span-2">
+<x-ui.form-field>
     <x-ui.label>Período</x-ui.label>
     <x-ui.date-range-picker
         startName="desde"

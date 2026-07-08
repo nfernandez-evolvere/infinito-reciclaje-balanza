@@ -166,14 +166,14 @@ Entidad geográfica. **Cada zona pertenece a un único servicio** (`tipo_servici
 
 ### `zona_turnos`
 
-Turnos disponibles de una zona. Sin filas → el formulario no muestra el campo turno; con filas → el operador debe seleccionar uno.
+Turnos disponibles de una zona: **texto libre, sin catálogo**. Se cargan como chips en el modal de la zona (agregar con Enter, quitar con la ×) — no hay tabla de turnos permitidos ni ABM aparte. Sin filas → el formulario no muestra el campo turno; con filas → el operador debe seleccionar uno.
 
 | Columna | Tipo | Nullable | Constraints |
 |---------|------|----------|-------------|
 | `zona_id` | `bigint` | NO | PK compuesta, FK → `zonas.id`, CASCADE |
-| `turno` | `nvarchar(10)` | NO | PK compuesta — `'Diurna'` \| `'Nocturna'` |
+| `turno` | `nvarchar(20)` | NO | PK compuesta — string libre (`required\|string\|max:20\|distinct` en el Form Request, sin validación contra catálogo) |
 
-**PK compuesta:** `(zona_id, turno)`.
+**PK compuesta:** `(zona_id, turno)`. Editar el nombre de un turno es sacar el chip viejo y escribir uno nuevo — no reescribe los pesajes históricos que ya tengan el nombre anterior (ver `pesajes.turno`).
 
 ---
 
@@ -255,7 +255,7 @@ Tabla operacional central. Cada fila es un camión que entró al predio. Se escr
 | `operador_id` | `bigint` | NO | — | FK → `users.id`, **noAction** | Usuario que registró el pesaje |
 | `tipo_servicio_id` | `bigint` | NO | — | FK → `tipos_servicio.id`, **noAction** | — |
 | `zona_id` | `bigint` | NO | — | FK → `zonas.id`, **noAction** | — |
-| `turno` | `nvarchar(10)` | SÍ | NULL | `'Diurna'` \| `'Nocturna'` | Obligatorio (en app) cuando la combinación zona+servicio tiene turnos. |
+| `turno` | `nvarchar(20)` | SÍ | NULL | string libre, copiado del que el operador eligió entre los cargados para la zona (`nullable\|string\|max:20`, sin catálogo) | Obligatorio (en app) cuando la combinación zona+servicio tiene turnos. El valor queda congelado en el pesaje: si luego se edita/borra el turno de la zona, el histórico no cambia. |
 | `peso_bruto_kg` | `int` | NO | — | — | Peso que muestra la balanza al ingreso |
 | `peso_tara_kg` | `int` | NO | — | — | Copiado de `vehiculos.tara_kg` al crear. Se recalcula solo ante corrección retroactiva de tara (ver `vehiculos_log`). |
 | `peso_neto_kg` | `int` | NO | — | — | Calculado en el Service: `peso_bruto_kg - peso_tara_kg`. |

@@ -72,7 +72,7 @@ Ir a **Configuración → Servicios**, expandir el servicio (botón "Ver zonas")
 - Área en el mapa (opcional): dibujá el polígono para los mapas de calor
 
 **2. Turnos y horarios de esa zona:**
-- Turnos: usá el switch "Opera con turnos" para activar y elegir Diurna, Nocturna o ambas
+- Turnos: usá el switch "Opera con turnos" y escribí el nombre de cada uno (Enter para agregarlo como chip; no hay una lista fija, podés cargar los que necesites)
 - Horarios de recorrido (opcional): seleccioná los días activos y cargá las franjas horarias
 
 Esta configuración determina qué zonas y turnos le aparecen al operador al registrar un pesaje del servicio elegido.
