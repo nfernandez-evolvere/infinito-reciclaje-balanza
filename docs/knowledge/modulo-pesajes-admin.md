@@ -45,8 +45,8 @@ La tabla muestra todos los pesajes ordenados del más reciente al más antiguo. 
 |---------|-------------|
 | Ingreso | Fecha y hora de entrada del camión (es la columna que ordena la tabla) |
 | Patente / N.° interno | Patente y número interno del vehículo |
-| Origen | Origen de recolección (con el turno, si corresponde) |
 | Servicio | Tipo de servicio registrado |
+| Zona | Zona de recolección (con el turno, si corresponde) |
 | Peso neto | Kilogramos netos del pesaje (con el detalle bruto − tara al pasar el cursor) |
 | Estado | Distintivos del pesaje: **Cancelado**, **Editado** y/o **Alerta** de peso |
 | Acciones | Menú (⋯) con Detalles, Editar, Marcar egreso, Ver cambios y Cancelar |
@@ -81,7 +81,7 @@ Los filtros se aplican desde un panel lateral y se reflejan como chips arriba de
 
 Hacé clic en el menú de cualquier fila y selecciona la opción Detalles. Muestra:
 
-- Todos los campos del pesaje (vehículo, servicio, origen, pesos, operador, fechas)
+- Todos los campos del pesaje (vehículo, servicio, zona, pesos, operador, fechas)
 - Observaciones (si tiene)
 - Indicador de alerta de peso (si la tuvo)
 - Historial de cambios (si fue editado)
@@ -101,7 +101,7 @@ Podés editar un pesaje cuando el operador cometió un error o cuando los datos 
 ### Qué campos se pueden editar
 
 - Tipo de servicio
-- Origen
+- Zona (y turno, si la zona opera con turnos)
 - Peso bruto
 - Observaciones
 
@@ -174,7 +174,7 @@ El aviso no bloqueó el guardado — el operador decidió que el peso era correc
 
 ## Exportar pesajes
 
-Esta pantalla no tiene exportación propia: es para consultar, filtrar y auditar en línea. Para llevarte los datos a un archivo usá el **módulo de Reportes**, que exporta en Excel (detalle de cada pesaje) y en PDF (reporte formal para el municipio), con sus propios filtros de período, origen, servicio y tipo de vehículo.
+Esta pantalla no tiene exportación propia: es para consultar, filtrar y auditar en línea. Para llevarte los datos a un archivo usá el **módulo de Reportes**, que exporta en Excel (detalle de cada pesaje) y en PDF (reporte formal para el municipio), con sus propios filtros de período, servicio, zona y tipo de vehículo.
 
 Ver [`modulo-reportes.md`](modulo-reportes.md).
 
@@ -202,4 +202,4 @@ Sí, por fecha de **Ingreso**. Hacé clic en el encabezado de la columna *Ingres
 
 ---
 
-*Documento actualizado: 08/07/2026 | Versión: 1.2*
+*Documento actualizado: 13/07/2026 | Versión: 1.3*

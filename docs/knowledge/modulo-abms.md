@@ -173,7 +173,7 @@ El padrón de vehículos registra todos los camiones habilitados para operar en 
 
 ### Para qué se usa este padrón
 
-Sin vehículos cargados, los operadores no pueden registrar pesajes. Al ingresar una patente o número interno en la balanza, el sistema busca el vehículo en este padrón, carga su tara automáticamente y sugiere las observaciones del registro. Si el vehículo no está en el padrón o está inactivo, no aparece en los resultados.
+Sin vehículos cargados, los operadores no pueden registrar pesajes. Al ingresar una patente o número interno en la balanza, el sistema busca el vehículo en este padrón y carga automáticamente su tara, su tipo y su titular. Si el vehículo no está en el padrón o está inactivo, no aparece en los resultados.
 
 La **tara** es el campo más crítico: un error en ese valor afecta el cálculo del peso neto en todos los pesajes futuros de ese vehículo.
 
@@ -189,7 +189,7 @@ La **tara** es el campo más crítico: un error en ese valor afecta el cálculo 
 | Titular | Propietario o responsable del vehículo (ej: Municipalidad de San Juan) | Sí |
 | Tara (kg) | Peso del vehículo completamente vacío, en kilogramos enteros | Sí |
 | Capacidad (kg) | Carga máxima teórica del vehículo. Informativo, no afecta los cálculos | No |
-| Observaciones | Texto libre visible para el operador al seleccionar el vehículo. Se autocompleta en el formulario de pesaje | No |
+| Observaciones | Texto libre sobre el vehículo, para referencia del administrador en el padrón | No |
 
 > **Importante:** la tara se copia al pesaje en el momento del ingreso y no se actualiza si el padrón cambia después. Si la tara de un vehículo cambia (por una modificación estructural, por ejemplo), corregirla en el padrón afecta solo los pesajes futuros — los históricos conservan la tara original.
 
@@ -263,8 +263,8 @@ Los pesajes futuros usan la tara nueva. Los pesajes ya registrados conservan la 
 **¿Los vehículos inactivos aparecen en los reportes?**
 Sus datos históricos sí. Los reportes incluyen todos los pesajes registrados, independientemente del estado actual del vehículo. Lo que cambia es que el vehículo inactivo no aparece en el autocompletado del operador para nuevos pesajes.
 
-**¿El campo observaciones es lo que ve el operador en la balanza?**
-Sí. Al seleccionar un vehículo, el campo observaciones del padrón se autocompleta en el formulario de pesaje. El operador puede modificarlo antes de guardar, pero el cambio no se guarda en el padrón — solo queda en ese pesaje puntual.
+**¿El operador ve el campo observaciones del vehículo en la balanza?**
+No. Las observaciones del padrón de vehículos son una referencia interna del administrador; no se muestran ni se autocompletan en el formulario de pesaje del operador. El pesaje tiene su propio campo de observaciones, que se completa al editar un pesaje.
 
 **¿Qué es la capacidad y para qué sirve?**
 Es la carga máxima teórica del vehículo. No se usa en ningún cálculo automático — es un dato informativo para el admin. Puede dejarse en blanco sin afectar el funcionamiento del sistema.
@@ -492,4 +492,4 @@ Sí. En **Configuración → Servicios**, expandí el servicio, y en la fila de 
 
 ---
 
-*Documento actualizado: 18/06/2026 | Versión: 1.4*
+*Documento actualizado: 13/07/2026 | Versión: 1.5*

@@ -53,8 +53,8 @@ Podés acotar el reporte por cualquier combinación de:
 
 | Filtro | Opciones |
 |--------|----------|
-| Origen | Un origen específico o todos |
 | Tipo de servicio | Un servicio específico o todos |
+| Zona | Una zona específica o todas (se acota según el servicio elegido) |
 | Tipo de vehículo | Un tipo específico o todos |
 
 Si no aplicás ningún filtro, el reporte incluye todos los datos del período seleccionado.
@@ -92,30 +92,14 @@ El reporte mensual incluye las siguientes secciones:
 - Promedio diario de toneladas
 - Días operativos del período
 
-### Detalle por origen
-Para cada origen:
-- Cantidad de pesajes
-- Toneladas netas totales
-- Promedio por pesaje
-- Indicadores per cápita y por hectárea (si los datos demográficos están cargados)
+### Por zona y turno
+Las zonas se agrupan por su servicio. Para cada zona (y turno, si corresponde): cantidad de viajes, toneladas netas, kg/viaje, porcentaje del total y kg por hectárea (si la zona tiene hectáreas cargadas).
 
-### Detalle por tipo de servicio
-Para cada tipo de servicio:
-- Cantidad de pesajes
-- Toneladas netas totales
-- Porcentaje del total del período
-
-### Detalle por tipo de vehículo
-Para cada tipo de vehículo:
-- Cantidad de pesajes
-- Toneladas netas totales
-- Cantidad de vehículos únicos que operaron
+### Por tipo de vehículo
+Para cada tipo de vehículo: cantidad de viajes, toneladas netas, kg/viaje y porcentaje del total del período.
 
 ### Evolución diaria
-Tabla con un registro por día del período, mostrando pesajes y toneladas netas de cada jornada.
-
-### Pesajes con alerta de peso
-Listado de los pesajes que generaron aviso por peso inusual durante el período. Útil para detectar patrones o errores de registro sistemáticos.
+Un registro por día del período, mostrando los pesajes y las toneladas netas de cada jornada.
 
 ---
 
@@ -130,16 +114,15 @@ El reporte mensual se genera **después del último día del mes**, cuando ya es
 
 ---
 
-## Indicadores per cápita y de densidad
+## Indicador de densidad (kg por hectárea)
 
-Si las zonas tienen cargados los datos de hectáreas, el reporte incluye:
+Si las zonas tienen cargadas sus hectáreas, la tabla "Por zona y turno" del PDF incluye la columna **kg/ha** (kilogramos netos recolectados por hectárea en el período).
 
 | Indicador | Cálculo | Descripción |
 |-----------|---------|-------------|
-| kg per cápita | Toneladas netas × 1000 ÷ Habitantes | Kg recolectados por habitante en el período |
-| kg por hectárea | Toneladas netas × 1000 ÷ Hectáreas | Kg recolectados por hectárea en el período |
+| kg por hectárea | Kg netos ÷ Hectáreas de la zona | Kg recolectados por hectárea en el período |
 
-Si un origen tiene habitantes o hectáreas en cero, estos indicadores no se calculan para ese origen.
+Si una zona tiene las hectáreas en cero, la columna muestra "—" para esa zona. Los indicadores per cápita (kg por habitante) se ven en el Dashboard y en el mapa de calor, no en el PDF.
 
 ---
 
@@ -274,8 +257,8 @@ Se incluyen con los valores corregidos. El reporte siempre muestra el estado act
 **¿El reporte incluye los pesajes con estado EN PREDIO (sin egreso registrado)?**
 Sí. El peso neto se calcula al momento del ingreso y se incluye en el reporte independientemente de si el egreso fue registrado o no.
 
-**¿Puedo generar un reporte de un origen específico?**
-Sí. Aplicá el filtro de origen antes de generar el reporte. El PDF generado refleja solo los datos de ese origen.
+**¿Puedo generar un reporte de una zona específica?**
+Sí. Aplicá el filtro de zona antes de generar el reporte (podés acotar primero por servicio). El PDF generado refleja solo los datos de esa zona.
 
 **¿Hay un límite de períodos que puedo exportar?**
 No. Podés generar reportes de cualquier período desde el inicio de la operación.
@@ -306,4 +289,4 @@ Nada se pierde: el reporte pendiente sigue en el Historial con sus destinatarios
 
 ---
 
-*Documento actualizado: 10/06/2026 | Versión: 1.3*
+*Documento actualizado: 13/07/2026 | Versión: 1.4*

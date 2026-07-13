@@ -147,8 +147,8 @@ Antes de habilitar el sistema para operación real:
 | No aparece el autocompletado de un vehículo | Verificar que la patente o número interno estén cargados exactamente como el operador los ingresa |
 | El peso neto parece incorrecto | Verificar la tara del vehículo en Configuración → Vehículos |
 | Un operador no puede ingresar | Verificar que su usuario esté activo en Sistema → Usuarios |
-| Un servicio no muestra zonas en el select | Verificar que la zona tenga asignado el tipo de servicio correcto en **Configuración → Zonas** |
+| Un servicio no muestra zonas en el select | Verificar que el servicio tenga zonas cargadas en **Configuración → Servicios** (expandir el servicio → "Ver zonas") |
 
 ---
 
-*Documento actualizado: 18/06/2026 | Versión: 1.3*
+*Documento actualizado: 13/07/2026 | Versión: 1.4*

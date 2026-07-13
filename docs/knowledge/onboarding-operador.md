@@ -32,13 +32,13 @@ El sistema te va a llevar directo a la pantalla de pesaje.
 Cuando entrás, vas a ver el formulario de pesaje. Tiene tres pasos que se completan de arriba hacia abajo:
 
 ```
-[ 1 · Vehículo        ]
-[ 2 · Tipo de servicio ]
-[ 3 · Peso bruto       ]
-[ Resumen del pesaje   ]
+[ 1 · Vehículo               ]
+[ 2 · Tipo de servicio y zona ]
+[ 3 · Peso bruto             ]
+[ Resumen del pesaje         ]
 ```
 
-Abajo de todo hay una barra con el botón para guardar.
+Abajo de todo hay una barra con los botones para limpiar y para guardar.
 
 ---
 
@@ -58,16 +58,16 @@ Una vez seleccionado, el sistema completa automáticamente:
 
 No tenés que tipear nada de eso — ya está.
 
-### Paso 2 — Elegí el tipo de servicio
+### Paso 2 — Elegí el tipo de servicio y la zona
 
-Hacé clic en el campo de servicio y elegí el tipo que corresponde a ese camión:
+Hacé clic en el campo de servicio y elegí el tipo que corresponde a ese camión (los que tenga configurados tu organización), por ejemplo:
 - Domiciliario
 - Voluminoso
 - Barrido
 - Servicios Especiales
 - Centros de Transferencia
 
-El sistema completa el origen automáticamente. Si el origen que aparece no es el correcto, podés cambiarlo.
+Al elegir el servicio aparece el campo **Zona**: elegí la zona que corresponde al viaje (no viene pre-seleccionada). Si esa zona opera con turnos, aparece también el campo **Turno**, que hay que completar.
 
 ### Paso 3 — Ingresá el peso bruto
 
@@ -124,7 +124,7 @@ Arriba ves un resumen del turno actual:
 - Promedio por viaje
 - Cuántos camiones están en el predio en este momento
 
-En la tabla podés ver cada registro con la hora de entrada, salida, estado, patente, servicio, origen y pesos.
+En la tabla podés ver cada registro con la hora de entrada, el estado, la patente, el servicio, la zona y el peso neto.
 
 ---
 
@@ -183,8 +183,8 @@ Sí. Si el sistema sugiere un tipo de vehículo diferente al que tiene el camió
 El pesaje en curso se pierde. Antes de cerrar, el sistema te pregunta si estás seguro cuando hay un pesaje sin guardar.
 
 **¿Cómo sé cuántos camiones quedan en el predio?**
-En la barra de abajo siempre aparece el número de camiones "en predio". También podés verlo en el Historial.
+En la pantalla de **Historial**, arriba de la tabla, aparece el número de camiones "en predio". También podés filtrar la tabla por estado EN PREDIO para verlos.
 
 ---
 
-*Documento actualizado: 18/06/2026 | Versión: 1.1*
+*Documento actualizado: 13/07/2026 | Versión: 1.2*

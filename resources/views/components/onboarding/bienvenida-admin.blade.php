@@ -94,7 +94,7 @@
                             </div>
                             <div>
                                 <p class="text-sm font-semibold">Atendé las alertas cuando aparezcan</p>
-                                <p class="text-xs text-muted-foreground mt-0.5">El sistema avisa solo cuando algo se sale de lo normal: un gap sin pesajes en horario operativo, un peso fuera del rango del vehículo o una frecuencia atípica en un origen. Desde la alerta saltás directo al pesaje para corregirlo y la marcás como resuelta.</p>
+                                <p class="text-xs text-muted-foreground mt-0.5">El sistema avisa solo cuando algo se sale de lo normal: un gap sin pesajes en horario operativo, un peso fuera del rango del vehículo o una frecuencia atípica en una zona. Desde la alerta saltás directo al pesaje para corregirlo y la marcás como resuelta.</p>
                             </div>
                         </div>
                         {{-- Paso 4 --}}
