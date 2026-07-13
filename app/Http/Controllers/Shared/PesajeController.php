@@ -121,9 +121,10 @@ class PesajeController extends Controller
             'interno'  => $v->numero_interno,
             'tara'     => $v->tara_kg,
             'tipo'     => $v->tipoVehiculo?->nombre,
-            'titular'  => $v->titular,
-            'peso_min' => $v->tipoVehiculo?->peso_min_kg,
-            'peso_max' => $v->tipoVehiculo?->peso_max_kg,
+            'titular'   => $v->titular,
+            'peso_min'  => $v->tipoVehiculo?->peso_min_kg,
+            'peso_max'  => $v->tipoVehiculo?->peso_max_kg,
+            'peso_tope' => $v->tipoVehiculo?->peso_tope_kg,
         ];
 
         $servicio = $pesaje->tipoServicio;

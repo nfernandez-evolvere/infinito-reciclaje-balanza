@@ -39,7 +39,7 @@ class StorePesajeRequest extends FormRequest
                 return;
             }
 
-            $vehiculo = Vehiculo::find($vehiculoId);
+            $vehiculo = Vehiculo::with('tipoVehiculo')->find($vehiculoId);
             if (! $vehiculo) {
                 return;
             }
@@ -48,6 +48,14 @@ class StorePesajeRequest extends FormRequest
                 $v->errors()->add(
                     'peso_bruto_kg',
                     "El peso bruto ({$pesoBruto} kg) no puede ser menor a la tara del vehículo ({$vehiculo->tara_kg} kg)."
+                );
+            }
+
+            $tope = $vehiculo->tipoVehiculo?->peso_tope_kg;
+            if ($tope !== null && $pesoBruto > $tope) {
+                $v->errors()->add(
+                    'peso_bruto_kg',
+                    "El peso bruto ({$pesoBruto} kg) supera el máximo permitido para {$vehiculo->tipoVehiculo->nombre} ({$tope} kg). Revisá el valor ingresado."
                 );
             }
         });

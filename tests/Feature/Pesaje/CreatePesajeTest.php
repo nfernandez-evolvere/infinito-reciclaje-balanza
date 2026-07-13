@@ -190,6 +190,47 @@ class CreatePesajeTest extends TestCase
         $this->assertSame(0, $pesaje->peso_neto_kg);
     }
 
+    #[Test]
+    public function store_rechaza_bruto_por_encima_del_tope_duro(): void
+    {
+        // Tope duro = peso_max × FACTOR_TOPE_PESO (2) = 20.000 kg. Borde exacto:
+        // la condición es `bruto > tope`, así que tope + 1 debe fallar y no persistir.
+        $tipo = TipoVehiculo::factory()->create(['peso_min_kg' => 5000, 'peso_max_kg' => 10000]);
+        $vehiculo = Vehiculo::factory()->create(['tara_kg' => 4000, 'tipo_vehiculo_id' => $tipo->id]);
+
+        $this->actingAs($this->operador())
+            ->post(route('pesajes.store'), $this->payload([
+                'vehiculo_id'   => $vehiculo->id,
+                'peso_bruto_kg' => 20001,
+            ]))
+            ->assertSessionHasErrors('peso_bruto_kg');
+
+        $this->assertDatabaseCount('pesajes', 0);
+    }
+
+    #[Test]
+    public function store_acepta_bruto_igual_al_tope_duro_con_alerta(): void
+    {
+        // Borde exacto del lado válido: bruto == tope (20.000) pasa la regla, pero
+        // como sigue por encima del máximo habitual (10.000) se guarda con alerta.
+        $admin = $this->admin();
+        app('organizacion')->users()->syncWithoutDetaching([$admin->id]);
+
+        $tipo = TipoVehiculo::factory()->create(['peso_min_kg' => 5000, 'peso_max_kg' => 10000]);
+        $vehiculo = Vehiculo::factory()->create(['tara_kg' => 4000, 'tipo_vehiculo_id' => $tipo->id]);
+
+        $this->actingAs($this->operador())
+            ->post(route('pesajes.store'), $this->payload([
+                'vehiculo_id'   => $vehiculo->id,
+                'peso_bruto_kg' => 20000,
+            ]))
+            ->assertSessionHasNoErrors();
+
+        $pesaje = Pesaje::firstOrFail();
+        $this->assertSame(20000, $pesaje->peso_bruto_kg);
+        $this->assertTrue($pesaje->alerta_peso);
+    }
+
     // ── Integración con Alertas ───────────────────────────────────────
 
     #[Test]
@@ -202,11 +243,12 @@ class CreatePesajeTest extends TestCase
         $tipo = TipoVehiculo::factory()->create(['peso_min_kg' => 5000, 'peso_max_kg' => 10000]);
         $vehiculo = Vehiculo::factory()->create(['tara_kg' => 4000, 'tipo_vehiculo_id' => $tipo->id]);
 
-        // Peso bruto fuera del rango del tipo (> 10.000 kg)
+        // Peso bruto fuera del rango (> 10.000 kg) pero dentro del tope duro
+        // (≤ 20.000 kg = peso_max × FACTOR_TOPE_PESO): genera alerta, no bloquea.
         $this->actingAs($this->operador())
             ->post(route('pesajes.store'), $this->payload([
                 'vehiculo_id'   => $vehiculo->id,
-                'peso_bruto_kg' => 25000,
+                'peso_bruto_kg' => 15000,
             ]));
 
         $pesaje = Pesaje::firstOrFail();

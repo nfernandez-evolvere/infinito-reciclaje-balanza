@@ -42,6 +42,10 @@ export default function balanza(initial = null, opts = {}) {
             if (!this.vehiculo || this.brutoN <= 0) return false;
             return this.brutoN < this.vehiculo.tara;
         },
+        get aboveHardLimit() {
+            if (!this.vehiculo?.peso_tope || this.brutoN <= 0) return false;
+            return this.brutoN > this.vehiculo.peso_tope;
+        },
         get tipoMismatch() {
             return this.vehiculo && this.tiposSugeridos.length > 0 && !this.tiposSugeridos.includes(this.vehiculo.tipo);
         },
@@ -49,7 +53,7 @@ export default function balanza(initial = null, opts = {}) {
             return !!(this.servicioId && this.zonaId && (!this.requiereTurno || this.turno));
         },
         get canSave() {
-            const base = !!(this.vehiculo && this.servicioId && this.zonaId && (!this.requiereTurno || this.turno) && this.brutoN > 0 && !this.belowTara);
+            const base = !!(this.vehiculo && this.servicioId && this.zonaId && (!this.requiereTurno || this.turno) && this.brutoN > 0 && !this.belowTara && !this.aboveHardLimit);
             return this.editMode ? base && !!this.motivo.trim() : base;
         },
         get hintContextual() {
@@ -60,6 +64,7 @@ export default function balanza(initial = null, opts = {}) {
             }
             if (this.canSave) return 'Listo para guardar';
             if (this.belowTara) return 'El peso bruto no puede ser menor a la tara';
+            if (this.aboveHardLimit) return 'El peso supera el máximo permitido';
             if (this.vehiculo && this.servicioId && this.zonaId && this.requiereTurno && !this.turno) return 'Elegí el turno';
             if (this.vehiculo && this.servicioId && this.zonaId) return 'Ingresá el peso bruto';
             if (this.vehiculo && this.servicioId) return 'Elegí el origen';
