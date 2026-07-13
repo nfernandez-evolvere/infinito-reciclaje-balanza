@@ -33,13 +33,13 @@ parameters:
 		-
 			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\TipoVehiculo\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
-			count: 3
+			count: 4
 			path: app/Http/Controllers/Shared/PesajeController.php
 
 		-
 			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\TipoVehiculo\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
-			count: 3
+			count: 4
 			path: app/Http/Controllers/Shared/VehiculoController.php
 
 		-
@@ -55,8 +55,26 @@ parameters:
 			path: app/Http/Requests/EgresoPesajeRequest.php
 
 		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\TipoVehiculo\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Requests/StorePesajeRequest.php
+
+		-
 			message: '#^Expression on left side of \?\? is not nullable\.$#'
 			identifier: nullCoalesce.expr
+			count: 1
+			path: app/Http/Requests/UpdatePesajeRequest.php
+
+		-
+			message: '#^Using nullsafe method call on non\-nullable type App\\Models\\Vehiculo\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Requests/UpdatePesajeRequest.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\TipoVehiculo\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
 			count: 1
 			path: app/Http/Requests/UpdatePesajeRequest.php
 
@@ -71,6 +89,12 @@ parameters:
 			identifier: nullsafe.neverNull
 			count: 1
 			path: app/Mail/WelcomeMail.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between int and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Models/TipoVehiculo.php
 
 		-
 			message: '#^Method App\\Models\\User\:\:resolveRouteBinding\(\) should return static\(App\\Models\\User\)\|null but returns App\\Models\\User\|null\.$#'

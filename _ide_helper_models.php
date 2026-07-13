@@ -23,16 +23,16 @@ namespace App\Models{
  * @property int|null $pesaje_id
  * @property int|null $zona_id
  * @property int|null $reporte_generado_id
- * @property Pesaje|null $pesaje
- * @property Zona|null $zona
- * @property ReporteGenerado|null $reporteGenerado
- * @property Carbon $fecha_deteccion
+ * @property \Illuminate\Support\Carbon $fecha_deteccion
  * @property bool $leida
- * @property Carbon|null $leida_at
- * @property Carbon $created_at
- * @property Carbon $updated_at
+ * @property \Illuminate\Support\Carbon|null $leida_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\User|null $leidaPor
  * @property-read \App\Models\Organizacion $organizacion
+ * @property-read \App\Models\Pesaje|null $pesaje
+ * @property-read \App\Models\ReporteGenerado|null $reporteGenerado
+ * @property-read \App\Models\Zona|null $zona
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Alerta newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Alerta newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Alerta query()
@@ -64,10 +64,10 @@ namespace App\Models{
  * @property string $tipo
  * @property bool $activo
  * @property float|null $umbral_valor
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
  * @property string|null $hora_inicio
  * @property string|null $hora_fin
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\Organizacion $organizacion
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ConfigAlerta newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ConfigAlerta newQuery()
@@ -231,9 +231,10 @@ namespace App\Models{
  * @property string|null $ai_prompt
  * @property bool $tipo_informe_mensual_activo
  * @property bool $tipo_alertas_activo
+ * @property bool $revision_requerida
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property bool $revision_requerida
+ * @property array<array-key, mixed>|null $secciones
  * @property-read \App\Models\Organizacion $organizacion
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteConfiguracion newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteConfiguracion newQuery()
@@ -249,6 +250,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteConfiguracion whereMunicipalidadNombre($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteConfiguracion whereOrganizacionId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteConfiguracion whereRevisionRequerida($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteConfiguracion whereSecciones($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteConfiguracion whereServicios($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteConfiguracion whereTipoAlertasActivo($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteConfiguracion whereTipoInformeMensualActivo($value)
@@ -313,13 +315,13 @@ namespace App\Models{
  * @property string $estado
  * @property string|null $error
  * @property string|null $conclusiones
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
  * @property array<array-key, mixed>|null $snapshot
  * @property int|null $revisado_por_id
  * @property \Illuminate\Support\Carbon|null $revisado_at
  * @property \Illuminate\Support\Carbon|null $enviado_at
  * @property string|null $motivo_descarte
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\Organizacion $organizacion
  * @property-read \App\Models\ReporteProgramado|null $programado
  * @property-read \App\Models\User|null $revisadoPor
@@ -358,6 +360,7 @@ namespace App\Models{
 /**
  * @property int $id
  * @property int $organizacion_id
+ * @property int|null $creado_por_id
  * @property string $tipo
  * @property string $nombre
  * @property string $frecuencia
@@ -369,7 +372,7 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $proximo_envio_at
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property int|null $creado_por_id
+ * @property \Illuminate\Support\Carbon|null $inicio_en
  * @property-read \App\Models\User|null $creadoPor
  * @property-read \App\Models\Organizacion $organizacion
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteProgramado activos()
@@ -383,6 +386,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteProgramado whereDestinatarios($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteProgramado whereFrecuencia($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteProgramado whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteProgramado whereInicioEn($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteProgramado whereNombre($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteProgramado whereOpciones($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReporteProgramado whereOrganizacionId($value)
@@ -439,6 +443,7 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\Organizacion $organizacion
+ * @property-read mixed $peso_tope_kg
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TipoVehiculo activos()
  * @method static \Database\Factories\TipoVehiculoFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TipoVehiculo newModelQuery()
@@ -579,12 +584,12 @@ namespace App\Models{
  * @property float|null $hectareas
  * @property int|null $barrios
  * @property int|null $habitantes
- * @property bool $activo
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
  * @property string|null $geojson
  * @property float|null $centro_lat
  * @property float|null $centro_lng
+ * @property bool $activo
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read array $horarios_por_dia
  * @property-read array $turnos_array
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ZonaHorario> $horarios
