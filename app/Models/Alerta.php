@@ -27,6 +27,7 @@ use Illuminate\Support\Str;
  * @property Carbon|null $leida_at
  * @property Carbon $created_at
  * @property Carbon $updated_at
+ *
  * @mixin IdeHelperAlerta
  */
 class Alerta extends Model
