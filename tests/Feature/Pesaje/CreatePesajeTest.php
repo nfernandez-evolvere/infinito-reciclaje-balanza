@@ -79,9 +79,16 @@ class CreatePesajeTest extends TestCase
     #[Test]
     public function store_persists_operador_id_of_authenticated_user(): void
     {
+        // Tipo de vehículo con tope amplio: el payload por defecto usa
+        // peso_bruto_kg = 20.000 y no debe chocar con el tope duro aleatorio
+        // que generaría TipoVehiculo::factory() sin overrides.
+        $tipo = TipoVehiculo::factory()->create(['peso_min_kg' => 5000, 'peso_max_kg' => 30000]);
+        $vehiculo = Vehiculo::factory()->create(['tara_kg' => 8000, 'tipo_vehiculo_id' => $tipo->id]);
         $operador = $this->operador();
 
-        $this->actingAs($operador)->post(route('pesajes.store'), $this->payload());
+        $this->actingAs($operador)->post(route('pesajes.store'), $this->payload([
+            'vehiculo_id' => $vehiculo->id,
+        ]));
 
         $this->assertDatabaseHas('pesajes', ['operador_id' => $operador->id]);
     }
