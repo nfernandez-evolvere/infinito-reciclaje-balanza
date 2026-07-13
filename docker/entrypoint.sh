@@ -38,7 +38,12 @@ else
     # Habilitar validación de timestamps en opcache: en prod está en 0 (máx perf),
     # pero en dev con bind mount los archivos cambian en disco y opcache debe
     # detectarlo para que PHP pickee los cambios sin reiniciar el contenedor.
-    echo "opcache.validate_timestamps=1" > /usr/local/etc/php/conf.d/zz-dev-opcache.ini
+    #
+    # OJO con el nombre: los .ini de conf.d se cargan en orden ALFABÉTICO y gana el
+    # último. El opcache de producción se hornea como `zz-opcache.ini` (Dockerfile),
+    # así que este override DEBE ordenar después ('zzz-' > 'zz-o') o queda pisado y
+    # el modo dev correría con validate_timestamps=0 (cambios de Blade invisibles).
+    echo "opcache.validate_timestamps=1" > /usr/local/etc/php/conf.d/zzz-dev-opcache.ini
     echo "[entrypoint] Modo local — caches omitidas, opcache.validate_timestamps=1."
 fi
 

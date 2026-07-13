@@ -1,0 +1,65 @@
+# Runner de TESTS. Corre la suite (`php artisan test`) contra la base FÍSICA
+# dedicada `infinito_balanza_testing` en el SQL Server de Docker (mssql-balanza).
+#
+# ── Por qué un compose aparte y no `compose.dev.yaml exec` ────────────────────
+# compose.dev.yaml hace `env_file: .env` → hornea las DB_* de DEV en el entorno
+# del contenedor. El Dotenv de Laravel es *immutable* (el entorno real gana sobre
+# los archivos .env*), así que `.env.testing` NO puede pisar esos valores adentro
+# del contenedor dev. Este servicio usa `env_file: .env.testing` para que la
+# conexión de tests sea la correcta.
+#
+# ── Por qué un vendor propio ──────────────────────────────────────────────────
+# La imagen `balanza:dev` se construye con `composer install --no-dev`: NO trae
+# PHPUnit. El volumen `balanza_test_vendor` contiene un vendor CON dev-deps.
+# Se genera una vez (o cuando cambian las deps) con:
+#
+#   docker run --rm -v "$PWD":/app -v balanza_test_vendor:/app/vendor -w /app \
+#     composer:2 composer install --ignore-platform-reqs --no-interaction --no-scripts
+#
+# La imagen balanza:dev aporta PHP 8.4 + pdo_sqlsrv (necesario para conectar a
+# SQL Server); el volumen aporta PHPUnit/Collision. Los assets no se usan en
+# tests (TestCase hace withoutVite()).
+#
+# ── Uso ───────────────────────────────────────────────────────────────────────
+#   Toda la suite:
+#     docker compose -f compose.test.yaml run --rm test
+#   Una suite / filtro (todo lo que va después de `test` reemplaza al CMD):
+#     docker compose -f compose.test.yaml run --rm test test --filter=PesajeTest
+#     docker compose -f compose.test.yaml run --rm test test tests/Feature/Pesaje
+
+# Proyecto compose propio → no toma los contenedores de dev como "orphans"
+# (evita que un `--remove-orphans` accidental frene el stack de desarrollo).
+name: balanza-test
+
+services:
+  test:
+    image: balanza:dev
+    env_file: .env.testing
+    working_dir: /app
+    # Se saltea el entrypoint de la imagen (storage:link + config:cache de prod):
+    # el runner lee config fresca en cada boot, sin cache. `test` es el CMD por
+    # defecto; `docker compose run test <args>` lo reemplaza (ej: test --filter=…).
+    entrypoint: ["php", "artisan"]
+    command: ["test"]
+    volumes:
+      # Código fuente actual del host → se testea lo que está en disco.
+      - .:/app
+      # Vendor CON dev-deps (PHPUnit). Pisa el vendor --no-dev de la imagen.
+      - balanza_test_vendor:/app/vendor
+      # Assets del build de la imagen — no los pisa el bind mount de arriba.
+      - /app/public/build
+      # OJO: NO montar un volumen anónimo sobre bootstrap/cache. La imagen trae un
+      # packages.php horneado con --no-dev (sin Collision/Pail) → `php artisan test`
+      # no existiría. Usando el bootstrap/cache vacío del host, Laravel regenera el
+      # package discovery desde el vendor de dev y registra el comando `test`.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  # Volumen EXTERNO con nombre fijo (no namespaceado por proyecto). Se puebla una
+  # sola vez con el `composer install ... --no-scripts` de la cabecera. Compose lo
+  # usa tal cual; si fuera namespaceado, compose crearía uno vacío y lo sembraría
+  # con el vendor --no-dev de la imagen (sin PHPUnit).
+  balanza_test_vendor:
+    external: true
+    name: balanza_test_vendor

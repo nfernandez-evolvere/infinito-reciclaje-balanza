@@ -15,6 +15,7 @@ Los documentos están numerados en orden de lectura recomendado.
 | [`docs/07-abm-guide.md`](docs/07-abm-guide.md) | Guía para construir módulos ABM: patrón canónico de controller, service, repository, requests y vistas |
 | [`docs/08-testing-strategy.md`](docs/08-testing-strategy.md) | Estrategia y convenciones de testing: taxonomía de suites, naming, roadmap de cobertura, CI |
 | [`docs/09-deployment-docker.md`](docs/09-deployment-docker.md) | Infraestructura Docker: imagen multi-stage, compose dev/prod, blue-green con nginx edge, CI/CD (GitHub Actions → GHCR → SSH), runbook de servidor y troubleshooting |
+| [`docs/11-entorno-local-macos.md`](docs/11-entorno-local-macos.md) | Puesta en marcha local en macOS sin PHP: SQL Server en Docker, migraciones, seeds, credenciales sembradas y cómo ver la BD con un administrador |
 | [`docs/10-oportunidades-girsu.md`](docs/10-oportunidades-girsu.md) | Análisis de producto: oportunidades de funcionalidades a partir del marco GIRSU nacional (Ley 25.916, Decreto 779/22, ENGIRSU 2025), matriz de priorización y roadmap post go-live |
 | [`docs/knowledge/README.md`](docs/knowledge/README.md) | Base de conocimiento de usuario: onboarding, configuración inicial y referencia de cada módulo (preparada para RAG) |
 
