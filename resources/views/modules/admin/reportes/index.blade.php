@@ -1,5 +1,5 @@
 @php
-    $hasProgramadoErrors = $errors->hasAny(['nombre', 'tipo', 'frecuencia', 'destinatarios', 'formatos', 'revision', 'activo']);
+    $hasProgramadoErrors = $errors->hasAny(['nombre', 'tipo', 'frecuencia', 'inicio_en', 'destinatarios', 'formatos', 'revision', 'secciones.pdf', 'secciones.excel']);
     $isEditing      = old('_mode') === 'edit';
     $defaultTipo    = ($config->tipo_informe_mensual_activo ?? true) ? 'informe_mensual' : 'alertas';
     $initialProgramado = $hasProgramadoErrors ? [
@@ -10,12 +10,19 @@
             'nombre'     => old('nombre', ''),
             'tipo'       => old('tipo', $defaultTipo),
             'frecuencia' => old('frecuencia', 'mensual'),
+            'inicio_en'  => old('inicio_en', now()->toDateString()),
             'formatos'   => array_values(array_intersect(['pdf', 'excel'], (array) old('formatos', ['pdf']))) ?: ['pdf'],
-            'revision'   => old('revision', 'heredar'),
-            'activo'     => old('activo', true),
+            'revision'   => old('revision', 'revisar'),
+            'secciones_personalizadas' => (bool) old('secciones_personalizadas'),
+            'secciones'  => [
+                'pdf'   => \App\Support\ReporteSecciones::sanitizarPdf((array) old('secciones.pdf', [])),
+                'excel' => array_values(array_intersect(\App\Support\ReporteSecciones::excelKeys(), (array) old('secciones.excel', []))),
+            ],
         ],
         '_oldDestinatariosStr' => old('destinatarios', ''),
     ] : [];
+    // Secciones de la configuración general: punto de partida al personalizar un programado.
+    $initialProgramado['seccionesDefault'] = $config->secciones();
 @endphp
 
 <x-layouts.app title="Reportes">
@@ -83,6 +90,14 @@
     <x-ui.tabs.content value="generar" class="mt-0">
         <div x-data="{ filterOpen: false }" class="flex flex-col gap-8">
 
+            {{-- Filtros: panel inline (md+) arriba de todo + sheet mobile (teleportado) --}}
+            <x-domain.reportes.filtros
+                :zonas="$zonas"
+                :tiposServicio="$tiposServicio"
+                :tiposVehiculo="$tiposVehiculo"
+                :filters="$filters"
+            />
+
             <x-domain.reportes.header-generar
                 :reporte="$reporte"
                 :filters="$filters"
@@ -90,6 +105,7 @@
                 :tiposServicio="$tiposServicio"
                 :tiposVehiculo="$tiposVehiculo"
                 :activeFilters="$activeFilters"
+                :config="$config"
             />
 
             @if($reporte)
@@ -103,6 +119,8 @@
                     <x-domain.reportes.evolucion :evolucion="$reporte['evolucion']" />
                 @endif
 
+                {{-- En reportes el selector refleja el alcance del informe (servicios
+                     presentes en el dataset), por eso no se pasa la lista completa. --}}
                 <x-domain.mapa-calor.panel
                     :zonas="$mapaZonas"
                     description="Intensidad de recolección del período por zona, según los filtros aplicados. Suma todos los turnos de cada zona."
@@ -122,19 +140,12 @@
                     description="Usá los filtros para seleccionar un período y generar el reporte."
                     class="py-20"
                 >
-                    <x-ui.button variant="outline" @click="filterOpen = true">
+                    <x-ui.button variant="outline" @click="filterOpen = true" class="md:hidden">
                         <x-lucide-calendar-days class="size-4" />
                         Seleccionar período
                     </x-ui.button>
                 </x-ui.empty-state>
             @endif
-
-            <x-domain.reportes.filtros
-                :zonas="$zonas"
-                :tiposServicio="$tiposServicio"
-                :tiposVehiculo="$tiposVehiculo"
-                :filters="$filters"
-            />
 
         </div>
     </x-ui.tabs.content>
@@ -154,6 +165,7 @@
             <x-domain.reportes.tabla-programados :programados="$programados" />
             <x-domain.reportes.modal-programado :config="$config" />
             <x-domain.reportes.modal-enviar />
+            <x-domain.reportes.modal-toggle />
             <x-domain.reportes.modal-delete />
 
         </div>

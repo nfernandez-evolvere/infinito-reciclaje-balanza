@@ -35,4 +35,4 @@ Para indexar, tratar cada sección `##` como un chunk independiente.
 
 ---
 
-*Base de conocimiento actualizada: 18/06/2026*
+*Base de conocimiento actualizada: 13/07/2026*

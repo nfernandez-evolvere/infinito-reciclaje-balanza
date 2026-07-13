@@ -9,8 +9,7 @@ use App\Models\TipoVehiculo;
 use App\Models\User;
 use App\Models\Vehiculo;
 use App\Models\Zona;
-use App\Models\ZonaServicio;
-use App\Models\ZonaServicioTurno;
+use App\Models\ZonaTurno;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -21,18 +20,21 @@ class DevSeeder extends Seeder
     {
         // Limpia datos previos en orden correcto (hijos antes que padres)
         DB::table('alertas')->delete();
+        // reportes_generados referencia users (usuario_id, revisado_por_id) — debe
+        // limpiarse antes del delete de users, más abajo.
+        DB::table('reportes_generados')->delete();
         DB::table('config_alertas')->delete();
         DB::table('pesajes_log')->delete();
         DB::table('pesajes')->delete();
         DB::table('vehiculos_log')->delete();
-        DB::table('zona_servicio_horarios')->delete();
-        DB::table('zona_servicio_turnos')->delete();
-        DB::table('zona_servicios')->delete();
+        DB::table('zona_horarios')->delete();
+        DB::table('zona_turnos')->delete();
+        // zonas antes que tipos_servicio: zonas.tipo_servicio_id es noActionOnDelete.
+        DB::table('zonas')->delete();
         DB::table('tipo_servicio_tipo_vehiculo')->delete();
         DB::table('vehiculos')->delete();
         DB::table('tipos_servicio')->delete();
         DB::table('tipos_vehiculo')->delete();
-        DB::table('zonas')->delete();
         DB::table('reportes_programados')->delete();
         DB::table('reporte_destinatarios')->delete();
         DB::table('reporte_configuraciones')->delete();
@@ -88,7 +90,7 @@ class DevSeeder extends Seeder
         ]);
         $org->users()->attach($operario->id);
 
-        // ── Tipos de vehículo ─────────────────────────────────────────────────
+        // ── Tipos de vehículo ───────────────────────────────────────────────
         $compactador = TipoVehiculo::create([
             'organizacion_id' => $org->id,
             'nombre'          => "Compactador $suffix",
@@ -190,28 +192,24 @@ class DevSeeder extends Seeder
         foreach ($zonasData as $data) {
             $geo = $this->geoFromCoords($data['coords']);
 
-            $zona = Zona::create([
-                'organizacion_id' => $org->id,
-                'nombre'          => $data['nombre'],
-                'hectareas'       => $data['hectareas'],
-                'barrios'         => $data['barrios'],
-                'habitantes'      => $data['habitantes'],
-                'geojson'         => $geo['geojson'],
-                'centro_lat'      => $geo['centro_lat'],
-                'centro_lng'      => $geo['centro_lng'],
-            ]);
-
+            // Modelo 1:N — la misma área se materializa como una zona por servicio.
             foreach ($data['servicios'] as $servicio) {
-                ZonaServicio::create([
-                    'zona_id'          => $zona->id,
+                $zona = Zona::create([
+                    'organizacion_id'  => $org->id,
                     'tipo_servicio_id' => $servicio['id'],
+                    'nombre'           => $data['nombre'],
+                    'hectareas'        => $data['hectareas'],
+                    'barrios'          => $data['barrios'],
+                    'habitantes'       => $data['habitantes'],
+                    'geojson'          => $geo['geojson'],
+                    'centro_lat'       => $geo['centro_lat'],
+                    'centro_lng'       => $geo['centro_lng'],
                 ]);
 
                 foreach ($servicio['turnos'] as $turno) {
-                    ZonaServicioTurno::create([
-                        'zona_id'          => $zona->id,
-                        'tipo_servicio_id' => $servicio['id'],
-                        'turno'            => $turno,
+                    ZonaTurno::create([
+                        'zona_id' => $zona->id,
+                        'turno'   => $turno,
                     ]);
                 }
             }

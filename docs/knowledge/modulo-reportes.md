@@ -8,7 +8,7 @@
 
 ## Para qué sirve este módulo
 
-El módulo de Reportes genera los informes formales de la operación de recolección. Reemplaza la tarea manual de armar los reportes mensuales en Excel — algo que antes llevaba entre 2 y 3 horas por mes.
+El módulo de Reportes genera los reportes formales de la operación de recolección. Reemplaza la tarea manual de armar los reportes mensuales en Excel — algo que antes llevaba entre 2 y 3 horas por mes.
 
 El reporte principal es el **reporte mensual** que se entrega al municipio. También podés generar reportes trimestrales o por rango de fechas personalizado para análisis internos.
 
@@ -53,8 +53,8 @@ Podés acotar el reporte por cualquier combinación de:
 
 | Filtro | Opciones |
 |--------|----------|
-| Origen | Un origen específico o todos |
 | Tipo de servicio | Un servicio específico o todos |
+| Zona | Una zona específica o todas (se acota según el servicio elegido) |
 | Tipo de vehículo | Un tipo específico o todos |
 
 Si no aplicás ningún filtro, el reporte incluye todos los datos del período seleccionado.
@@ -92,30 +92,14 @@ El reporte mensual incluye las siguientes secciones:
 - Promedio diario de toneladas
 - Días operativos del período
 
-### Detalle por origen
-Para cada origen:
-- Cantidad de pesajes
-- Toneladas netas totales
-- Promedio por pesaje
-- Indicadores per cápita y por hectárea (si los datos demográficos están cargados)
+### Por zona y turno
+Las zonas se agrupan por su servicio. Para cada zona (y turno, si corresponde): cantidad de viajes, toneladas netas, kg/viaje, porcentaje del total y kg por hectárea (si la zona tiene hectáreas cargadas).
 
-### Detalle por tipo de servicio
-Para cada tipo de servicio:
-- Cantidad de pesajes
-- Toneladas netas totales
-- Porcentaje del total del período
-
-### Detalle por tipo de vehículo
-Para cada tipo de vehículo:
-- Cantidad de pesajes
-- Toneladas netas totales
-- Cantidad de vehículos únicos que operaron
+### Por tipo de vehículo
+Para cada tipo de vehículo: cantidad de viajes, toneladas netas, kg/viaje y porcentaje del total del período.
 
 ### Evolución diaria
-Tabla con un registro por día del período, mostrando pesajes y toneladas netas de cada jornada.
-
-### Pesajes con alerta de peso
-Listado de los pesajes que generaron aviso por peso inusual durante el período. Útil para detectar patrones o errores de registro sistemáticos.
+Un registro por día del período, mostrando los pesajes y las toneladas netas de cada jornada.
 
 ---
 
@@ -130,16 +114,15 @@ El reporte mensual se genera **después del último día del mes**, cuando ya es
 
 ---
 
-## Indicadores per cápita y de densidad
+## Indicador de densidad (kg por hectárea)
 
-Si las zonas tienen cargados los datos de hectáreas, el reporte incluye:
+Si las zonas tienen cargadas sus hectáreas, la tabla "Por zona y turno" del PDF incluye la columna **kg/ha** (kilogramos netos recolectados por hectárea en el período).
 
 | Indicador | Cálculo | Descripción |
 |-----------|---------|-------------|
-| kg per cápita | Toneladas netas × 1000 ÷ Habitantes | Kg recolectados por habitante en el período |
-| kg por hectárea | Toneladas netas × 1000 ÷ Hectáreas | Kg recolectados por hectárea en el período |
+| kg por hectárea | Kg netos ÷ Hectáreas de la zona | Kg recolectados por hectárea en el período |
 
-Si un origen tiene habitantes o hectáreas en cero, estos indicadores no se calculan para ese origen.
+Si una zona tiene las hectáreas en cero, la columna muestra "—" para esa zona. Los indicadores per cápita (kg por habitante) se ven en el Dashboard y en el mapa de calor, no en el PDF.
 
 ---
 
@@ -155,10 +138,11 @@ La pestaña **Programados** te permite configurar el envío automático de repor
 
 | Campo | Descripción |
 |-------|-------------|
-| Nombre | Nombre identificatorio del programado (ej: "Informe mensual municipio") |
-| Tipo de reporte | **Informe mensual** (resumen de operación) o **Alertas** (reporte de alertas del período) |
-| Frecuencia | **Diaria** (ayer), **Semanal** (últimos 7 días), **Quincenal** (últimos 15 días) o **Mensual** (últimos 30 días) |
-| Formatos del envío | Solo para **Informe mensual**: elegí en qué se adjunta el reporte al email — **PDF**, **Excel** o ambos. Tenés que dejar al menos uno marcado. Las **Alertas** se envían siempre en PDF, así que este campo no aparece. |
+| Nombre | Nombre identificatorio del programado (ej: "Reporte mensual municipio") |
+| Tipo de reporte | **Reporte mensual** (resumen de operación) o **Alertas** (reporte de alertas del período) |
+| Frecuencia | **Diaria** (cubre el día anterior), **Semanal** (los 7 días anteriores), **Quincenal** (los 15 días anteriores) o **Mensual** (el mes anterior al envío) |
+| Primer envío | Desde cuándo corre el programado: hoy o una fecha futura. El envío sale ese día a las 08:00 y se repite según la frecuencia manteniendo el día elegido — si elegís el 1 del mes con frecuencia mensual, corre todos los 1 cubriendo el mes anterior completo. |
+| Formatos del envío | Solo para **Reporte mensual**: elegí en qué se adjunta el reporte al email — **PDF**, **Excel** o ambos. Tenés que dejar al menos uno marcado. Las **Alertas** se envían siempre en PDF, así que este campo no aparece. |
 | Destinatarios | Uno o más emails — presioná Enter o coma para confirmar cada uno |
 | Revisión antes de enviar | **Según configuración general** (heredar), **Revisar siempre** o **Enviar directo**. La opción del programado pisa la configuración global. Ver la sección "Revisión de envíos". |
 | Activo | Switch para activar o desactivar el envío automático |
@@ -177,19 +161,19 @@ Desde el menú de acciones (⋯) de cada programado:
 
 ### Cuándo ver el próximo envío
 
-La tabla muestra **Último envío** y **Próximo envío** para cada programado. Si el campo "Próximo envío" dice "—", el sistema todavía no calculó la próxima ejecución.
+La tabla muestra **Último envío** y **Próximo envío** para cada programado. El próximo envío queda fijado por la fecha de **Primer envío** elegida al crear el programado y avanza según la frecuencia (siempre a las 08:00). Al editar, el campo muestra la fecha del próximo envío: si no la tocás, el cronograma no cambia. "Enviar ahora" tampoco lo mueve — el envío programado sigue en pie.
 
 ---
 
 ## Revisión de envíos (aprobación manual)
 
-Por defecto, **ningún reporte programado se envía solo**: el sistema lo genera, lo deja **pendiente de revisión** en la pestaña Historial y espera tu aprobación. Recién cuando lo aprobás, el email sale hacia los destinatarios. Esto es especialmente importante cuando el informe incluye el análisis generado con IA: nada llega al municipio sin que alguien lo haya leído.
+Por defecto, **ningún reporte programado se envía solo**: el sistema lo genera, lo deja **pendiente de revisión** en la pestaña Historial y espera tu aprobación. Recién cuando lo aprobás, el email sale hacia los destinatarios. Esto es especialmente importante cuando el reporte incluye el análisis generado con IA: nada llega al municipio sin que alguien lo haya leído.
 
 ### Cómo funciona el flujo
 
 1. El sistema genera el reporte en la fecha programada (o cuando usás "Enviar ahora") y congela su contenido.
 2. El reporte queda **En revisión** en el Historial. Los administradores reciben un email de aviso, y la pantalla de Reportes muestra un banner y un contador en la pestaña Historial.
-3. Desde la acción **Revisar** podés: ver el PDF y el Excel exactamente como se enviarían, corregir el texto del análisis (si el informe usa IA), aprobar el envío o descartarlo.
+3. Desde la acción **Revisar** podés: ver el PDF y el Excel exactamente como se enviarían, corregir el texto del análisis (si el reporte usa IA), aprobar el envío o descartarlo.
 4. Al aprobar, el envío sale en los próximos minutos hacia los destinatarios configurados.
 
 > Lo que ves en la revisión es exactamente lo que se envía: el contenido queda congelado al generarse. Si después se corrige un pesaje del período, el reporte aprobado no cambia.
@@ -201,7 +185,7 @@ Por defecto, **ningún reporte programado se envía solo**: el sistema lo genera
 
 ### Editar el análisis de IA
 
-Si el informe incluye el análisis generado con IA, en el modal de revisión podés corregir el texto antes de aprobar. El texto original de la IA se conserva como registro interno. Mientras tengas cambios sin guardar, el botón **Aprobar y enviar** queda deshabilitado — guardá primero, después aprobá.
+Si el reporte incluye el análisis generado con IA, en el modal de revisión podés corregir el texto antes de aprobar. El texto original de la IA se conserva como registro interno. Mientras tengas cambios sin guardar, el botón **Aprobar y enviar** queda deshabilitado — guardá primero, después aprobá.
 
 ### Descartar un reporte
 
@@ -236,11 +220,11 @@ La pestaña **Configuración** define los datos institucionales de los PDFs y el
 
 | Sección | Descripción |
 |---------|-------------|
-| Nombre del municipio | Aparece en la portada y pie de página del informe |
-| Texto de presentación | Descripción de la empresa para la sección "Quiénes Somos" del informe |
+| Nombre del municipio | Aparece en la portada y pie de página del reporte |
+| Texto de presentación | Descripción de la empresa para la sección "Quiénes Somos" del reporte |
 | Servicios destacados | Cards de servicios que aparecen en la sección "Quiénes Somos" (máximo 6) |
-| Inteligencia Artificial | Genera automáticamente la sección de análisis del informe PDF (requiere una API key de Google AI Studio) |
-| Tipos de reporte activos | Qué tipos se pueden generar y programar: Informe mensual y/o Alertas |
+| Inteligencia Artificial | Genera automáticamente la sección de análisis del reporte PDF (requiere una API key de Google AI Studio) |
+| Tipos de reporte activos | Qué tipos se pueden generar y programar: Reporte mensual y/o Alertas |
 | Revisión de envíos | Si los reportes programados requieren aprobación manual antes de enviarse — **activado por defecto** |
 
 Completar los datos institucionales antes de generar el primer PDF formal para el municipio.
@@ -273,8 +257,8 @@ Se incluyen con los valores corregidos. El reporte siempre muestra el estado act
 **¿El reporte incluye los pesajes con estado EN PREDIO (sin egreso registrado)?**
 Sí. El peso neto se calcula al momento del ingreso y se incluye en el reporte independientemente de si el egreso fue registrado o no.
 
-**¿Puedo generar un reporte de un origen específico?**
-Sí. Aplicá el filtro de origen antes de generar el reporte. El PDF generado refleja solo los datos de ese origen.
+**¿Puedo generar un reporte de una zona específica?**
+Sí. Aplicá el filtro de zona antes de generar el reporte (podés acotar primero por servicio). El PDF generado refleja solo los datos de esa zona.
 
 **¿Hay un límite de períodos que puedo exportar?**
 No. Podés generar reportes de cualquier período desde el inicio de la operación.
@@ -282,8 +266,11 @@ No. Podés generar reportes de cualquier período desde el inicio de la operaci�
 **¿Puedo programar el envío automático del reporte al municipio?**
 Sí. En la pestaña **Programados** podés crear un reporte programado con frecuencia mensual y los emails del municipio como destinatarios. El sistema lo genera y envía automáticamente en la fecha configurada.
 
+**¿Puedo hacer que el reporte corra el 1 de cada mes con los datos del mes anterior?**
+Sí, ese es el caso típico. Al crear el programado elegí frecuencia **Mensual** y en **Primer envío** el día 1 del mes que viene: el reporte sale todos los 1 a las 08:00 cubriendo el mes calendario anterior completo. Lo mismo aplica a cualquier otro día — si elegís el 5, corre todos los 5 con el mes previo a esa fecha.
+
 **¿Puedo elegir si el reporte programado llega en PDF o en Excel?**
-Sí, en los programados de tipo **Informe mensual**. Al crear o editar el programado marcás **PDF**, **Excel** o ambos en "Formatos del envío" (al menos uno). El email automático adjunta los formatos elegidos. Los programados de tipo **Alertas** se envían siempre en PDF.
+Sí, en los programados de tipo **Reporte mensual**. Al crear o editar el programado marcás **PDF**, **Excel** o ambos en "Formatos del envío" (al menos uno). El email automático adjunta los formatos elegidos. Los programados de tipo **Alertas** se envían siempre en PDF.
 
 **¿Puedo configurar el logo y los datos del municipio en el PDF?**
 Los datos institucionales (nombre del municipio, texto de presentación, servicios destacados) se configuran en la pestaña **Configuración** del módulo de Reportes.
@@ -291,7 +278,7 @@ Los datos institucionales (nombre del municipio, texto de presentación, servici
 **¿Por qué mi reporte programado no llegó a los destinatarios?**
 Lo más probable es que esté esperando tu aprobación: por defecto, los envíos programados quedan **En revisión** en la pestaña Historial hasta que alguien los apruebe. Revisá el banner de la pantalla de Reportes o el contador del tab Historial. Si en cambio figura como **Fallido**, abrí su menú y usá **Reintentar**.
 
-**¿Puedo corregir el texto de la IA antes de que salga el informe?**
+**¿Puedo corregir el texto de la IA antes de que salga el reporte?**
 Sí. Con la revisión activada, el reporte queda pendiente en el Historial: desde **Revisar** editás el análisis, lo guardás y recién entonces aprobás el envío. El texto original de la IA se conserva como registro.
 
 **¿La re-descarga desde el Historial recalcula los datos?**
@@ -302,4 +289,4 @@ Nada se pierde: el reporte pendiente sigue en el Historial con sus destinatarios
 
 ---
 
-*Documento actualizado: 10/06/2026 | Versión: 1.3*
+*Documento actualizado: 13/07/2026 | Versión: 1.4*

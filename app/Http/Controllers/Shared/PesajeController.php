@@ -11,6 +11,7 @@ use App\Models\PesajeLog;
 use App\Repositories\PesajeLogRepository;
 use App\Repositories\PesajeRepository;
 use App\Repositories\TipoServicioRepository;
+use App\Repositories\TipoVehiculoRepository;
 use App\Repositories\UsuarioRepository;
 use App\Repositories\ZonaRepository;
 use App\Services\PesajeService;
@@ -40,18 +41,22 @@ class PesajeController extends Controller
         protected UsuarioRepository $usuarioRepository,
         protected ZonaRepository $zonaRepository,
         protected TipoServicioRepository $tipoServicioRepository,
+        protected TipoVehiculoRepository $tipoVehiculoRepository,
     ) {}
 
     public function index(Request $request): View
     {
         $isAdmin = auth()->user()->isAdmin();
-        $filtros = $this->buildFiltros($request, $isAdmin);
+        $filtros = $this->buildFiltros($request);
 
         $pesajes = $this->pesajeRepository->filtrado($filtros);
         $kpis = $this->pesajeRepository->kpisFiltrado($filtros);
         $kpisHoy = $this->pesajeRepository->kpisDelTurno();
         $ultimoPesaje = $this->pesajeRepository->ultimoDelTurno();
         $operarios = $this->usuarioRepository->getOperadoresDeLaOrg();
+        $zonas = $this->zonaRepository->activos();
+        $tiposServicio = $this->tipoServicioRepository->activos();
+        $tiposVehiculo = $this->tipoVehiculoRepository->activos();
 
         if (! $isAdmin) {
             return view('modules.shared.historial', [
@@ -63,6 +68,9 @@ class PesajeController extends Controller
                 'operarios'      => $operarios,
                 'titulo'         => 'Pesajes',
                 'routeHistorial' => route('historial'),
+                'zonas'          => $zonas,
+                'tiposServicio'  => $tiposServicio,
+                'tiposVehiculo'  => $tiposVehiculo,
             ]);
         }
 
@@ -84,8 +92,9 @@ class PesajeController extends Controller
             'operarios'      => $operarios,
             'titulo'         => 'Pesajes',
             'routeHistorial' => route('admin.pesajes.index'),
-            'zonas'          => $this->zonaRepository->activos(),
-            'tiposServicio'  => $this->tipoServicioRepository->activos(),
+            'zonas'          => $zonas,
+            'tiposServicio'  => $tiposServicio,
+            'tiposVehiculo'  => $tiposVehiculo,
         ]);
     }
 
@@ -107,14 +116,15 @@ class PesajeController extends Controller
 
         $v = $pesaje->vehiculo;
         $vehiculoJs = [
-            'id'       => $v->id,
-            'patente'  => $v->patente,
-            'interno'  => $v->numero_interno,
-            'tara'     => $v->tara_kg,
-            'tipo'     => $v->tipoVehiculo?->nombre,
-            'titular'  => $v->titular,
-            'peso_min' => $v->tipoVehiculo?->peso_min_kg,
-            'peso_max' => $v->tipoVehiculo?->peso_max_kg,
+            'id'        => $v->id,
+            'patente'   => $v->patente,
+            'interno'   => $v->numero_interno,
+            'tara'      => $v->tara_kg,
+            'tipo'      => $v->tipoVehiculo?->nombre,
+            'titular'   => $v->titular,
+            'peso_min'  => $v->tipoVehiculo?->peso_min_kg,
+            'peso_max'  => $v->tipoVehiculo?->peso_max_kg,
+            'peso_tope' => $v->tipoVehiculo?->peso_tope_kg,
         ];
 
         $servicio = $pesaje->tipoServicio;
@@ -135,7 +145,12 @@ class PesajeController extends Controller
             'observaciones'     => $pesaje->observaciones ?? '',
         ];
 
-        return view('modules.operador.pesaje-editar', compact('pesaje', 'servicios', 'initial'));
+        // Al cancelar la edición se vuelve al mismo listado al que redirige guardar,
+        // según rol y pantalla de origen (evita el 403 del admin contra 'historial').
+        $rutaRetorno = $this->rutaRetorno();
+        $cancelUrl = route($rutaRetorno, $this->tabRetorno($rutaRetorno));
+
+        return view('modules.operador.pesaje-editar', compact('pesaje', 'servicios', 'initial', 'cancelUrl'));
     }
 
     public function update(UpdatePesajeRequest $request, Pesaje $pesaje): RedirectResponse
@@ -207,18 +222,23 @@ class PesajeController extends Controller
         return response()->json($grupos);
     }
 
-    private function buildFiltros(Request $request, bool $isAdmin): array
+    private function buildFiltros(Request $request): array
     {
+        // El select «Mostrar» expone un único parámetro `mostrar` que se traduce
+        // a los flags que entiende PesajeRepository::buildQuery().
+        $mostrar = $request->input('mostrar');
+
         return [
             'desde'            => $request->input('desde') ?: null,
             'hasta'            => $request->input('hasta') ?: null,
             'patente'          => $request->input('patente') ?: null,
             'estado'           => $request->input('estado') ?: null,
             'operario_id'      => $request->input('operario_id') ?: null,
-            'zona_id'          => $isAdmin ? ($request->input('zona_id') ?: null) : null,
-            'tipo_servicio_id' => $isAdmin ? ($request->input('tipo_servicio_id') ?: null) : null,
-            'solo_alerta'      => $isAdmin ? ($request->boolean('solo_alerta') ?: null) : null,
-            'solo_editados'    => $isAdmin ? ($request->boolean('solo_editados') ?: null) : null,
+            'zona_id'          => $request->input('zona_id') ?: null,
+            'tipo_servicio_id' => $request->input('tipo_servicio_id') ?: null,
+            'tipo_vehiculo_id' => $request->input('tipo_vehiculo_id') ?: null,
+            'solo_alerta'      => $mostrar === 'alerta' ? true : null,
+            'solo_editados'    => $mostrar === 'editados' ? true : null,
             'direction'        => in_array($request->input('direction'), ['asc', 'desc']) ? $request->input('direction') : 'desc',
         ];
     }
@@ -239,6 +259,7 @@ class PesajeController extends Controller
             'operario_id'      => $request->input('m_operario_id') ?: null,
             'zona_id'          => $request->input('m_zona_id') ?: null,
             'tipo_servicio_id' => $request->input('m_tipo_servicio_id') ?: null,
+            'tipo_vehiculo_id' => $request->input('m_tipo_vehiculo_id') ?: null,
             'direction'        => in_array($request->input('m_direction'), ['asc', 'desc']) ? $request->input('m_direction') : 'desc',
         ];
     }

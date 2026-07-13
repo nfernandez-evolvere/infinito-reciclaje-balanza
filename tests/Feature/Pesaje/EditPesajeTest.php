@@ -28,7 +28,12 @@ class EditPesajeTest extends TestCase
     #[Test]
     public function editing_bruto_recalculates_neto_and_appears_in_log(): void
     {
+        // Tipo con tope holgado (peso_max × 2 = 60.000) para que el nuevo bruto
+        // no dispare la validación de tope duro del update.
+        $tipo = TipoVehiculo::factory()->create(['peso_min_kg' => 5000, 'peso_max_kg' => 30000]);
+        $vehiculo = Vehiculo::factory()->create(['tara_kg' => 8000, 'tipo_vehiculo_id' => $tipo->id]);
         $pesaje = Pesaje::factory()->create([
+            'vehiculo_id'   => $vehiculo->id,
             'peso_bruto_kg' => 20000,
             'peso_tara_kg'  => 8000,
             'peso_neto_kg'  => 12000,
@@ -81,7 +86,10 @@ class EditPesajeTest extends TestCase
     #[Test]
     public function admin_update_redirects_to_admin_index(): void
     {
+        $tipo = TipoVehiculo::factory()->create(['peso_min_kg' => 5000, 'peso_max_kg' => 30000]);
+        $vehiculo = Vehiculo::factory()->create(['tara_kg' => 8000, 'tipo_vehiculo_id' => $tipo->id]);
         $pesaje = Pesaje::factory()->create([
+            'vehiculo_id'   => $vehiculo->id,
             'peso_bruto_kg' => 20000,
             'peso_tara_kg'  => 8000,
             'peso_neto_kg'  => 12000,
@@ -93,6 +101,34 @@ class EditPesajeTest extends TestCase
                 'motivo'        => 'Corrección verificada por admin.',
             ])
             ->assertRedirect(route('admin.pesajes.index'));
+    }
+
+    #[Test]
+    public function update_rechaza_bruto_por_encima_del_tope_duro(): void
+    {
+        // Misma defensa que en la creación: editar a un bruto por encima del tope
+        // duro (peso_max × 2 = 20.000) se rechaza y no modifica el pesaje.
+        $tipo = TipoVehiculo::factory()->create(['peso_min_kg' => 5000, 'peso_max_kg' => 10000]);
+        $vehiculo = Vehiculo::factory()->create(['tara_kg' => 4000, 'tipo_vehiculo_id' => $tipo->id]);
+        $pesaje = Pesaje::factory()->create([
+            'vehiculo_id'   => $vehiculo->id,
+            'peso_bruto_kg' => 9000,
+            'peso_tara_kg'  => 4000,
+            'peso_neto_kg'  => 5000,
+        ]);
+
+        $this->actingAs($this->operador())
+            ->put(route('pesajes.update', $pesaje), [
+                'peso_bruto_kg' => 20001,
+                'motivo'        => 'Intento de corrección con valor erróneo.',
+            ])
+            ->assertSessionHasErrors('peso_bruto_kg');
+
+        $this->assertDatabaseHas('pesajes', [
+            'id'            => $pesaje->id,
+            'peso_bruto_kg' => 9000,
+        ]);
+        $this->assertDatabaseCount('pesajes_log', 0);
     }
 
     #[Test]

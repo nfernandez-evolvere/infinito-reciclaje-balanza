@@ -1,6 +1,6 @@
 @props(['servicios'])
 
-<x-domain.balanza.paso numero="2" titulo="Tipo de servicio y origen" completo="servicioCompleto" inactivo="!vehiculo" abierto="paso2Editando">
+<x-domain.balanza.paso numero="2" titulo="Tipo de servicio y zona" completo="servicioCompleto" inactivo="!vehiculo" abierto="paso2Editando">
 
     <x-slot:resumen>
         <div class="flex flex-wrap gap-2">
@@ -28,13 +28,13 @@
             </div>
         </div>
 
-        {{-- Select origen --}}
+        {{-- Select zona --}}
         <div x-show="servicioId" x-cloak class="flex flex-col gap-2.5">
-            <x-ui.label>Origen</x-ui.label>
-            <div x-ref="wrapOrigen" @select-change.stop="onZonaChange($event.detail)">
+            <x-ui.label>Zona</x-ui.label>
+            <div x-ref="wrapZona" @select-change.stop="onZonaChange($event.detail)">
                 <x-ui.select>
                     <x-ui.select.trigger>
-                        <x-ui.select.value placeholder="Seleccionar origen…" />
+                        <x-ui.select.value placeholder="Seleccionar zona…" />
                     </x-ui.select.trigger>
                     <x-ui.select.content>
                         <template x-for="z in zonasDisponibles" :key="z.id">

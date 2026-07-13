@@ -1,7 +1,7 @@
 <x-layouts.app title="Editar pesaje">
 
 <div
-    x-data="balanza(@js($initial))"
+    x-data="balanza(@js($initial), { cancelUrl: @js($cancelUrl) })"
     x-init="init()"
     @keydown.window="onKey($event)"
     x-effect="setBeforeUnload(sucio)"

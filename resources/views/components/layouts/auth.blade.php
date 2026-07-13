@@ -108,15 +108,25 @@
                             </div>
                         </div>
 
+                        {{-- Powered by EVOLVERE --}}
+                        <a href="https://evolvere.ar" target="_blank" rel="noopener noreferrer"
+                           class="group absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 text-xs whitespace-nowrap">
+                            <span class="opacity-50 transition-opacity group-hover:opacity-70">Powered by</span>
+                            <span class="font-bold tracking-wide opacity-80 transition-opacity group-hover:opacity-100">EVOLVERE</span>
+                        </a>
+
                     </div>
 
                 </div>
             </div>
 
             {{-- Footer --}}
-            <p class="mt-4 text-center text-xs text-muted-foreground">
-                Balanza v1 · Gestión de pesajes
-            </p>
+            <div class="mt-4 flex flex-col items-center gap-1.5">
+                <p class="text-center text-xs text-muted-foreground">
+                    Balanza v1 · Gestión de pesajes
+                </p>
+                <x-powered-by-evolvere />
+            </div>
 
         </div>
     </div>

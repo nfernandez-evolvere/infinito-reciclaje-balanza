@@ -3,6 +3,7 @@
 namespace Tests\Feature\Reporte;
 
 use App\Models\ReporteConfiguracion;
+use App\Support\ReporteSecciones;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -59,6 +60,64 @@ class ReporteConfiguracionTest extends TestCase
             'tipo_informe_mensual_activo' => true,
             'tipo_alertas_activo'         => false,
         ]);
+    }
+
+    // ── secciones del informe ─────────────────────────────────────────
+
+    #[Test]
+    public function persiste_un_subconjunto_de_secciones_saneado(): void
+    {
+        $this->actingAs($this->admin())
+            ->put(route('admin.reportes.configuracion.update'), $this->payload([
+                'secciones' => [
+                    'pdf'   => ['tipo_vehiculo', 'quienes_somos'], // desordenadas a propósito
+                    'excel' => ['resumen', 'base_datos'],
+                ],
+            ]))
+            ->assertRedirect(route('admin.reportes.index', ['tab' => 'configuracion']))
+            ->assertSessionHasNoErrors();
+
+        $config = ReporteConfiguracion::sole();
+        $this->assertSame(['quienes_somos', 'tipo_vehiculo'], $config->seccionesPdf());
+        $this->assertSame(['resumen', 'base_datos'], $config->seccionesExcel());
+    }
+
+    #[Test]
+    public function con_todas_las_secciones_activas_persiste_null(): void
+    {
+        // Null = todas: así los defaults siguen la evolución del catálogo.
+        $this->actingAs($this->admin())
+            ->put(route('admin.reportes.configuracion.update'), $this->payload([
+                'secciones' => [
+                    'pdf'   => ReporteSecciones::pdfKeys(),
+                    'excel' => ReporteSecciones::excelKeys(),
+                ],
+            ]))
+            ->assertSessionHasNoErrors();
+
+        $this->assertNull(ReporteConfiguracion::sole()->getRawOriginal('secciones'));
+    }
+
+    #[Test]
+    public function rechaza_excel_sin_hojas_cuando_hay_secciones(): void
+    {
+        $this->actingAs($this->admin())
+            ->put(route('admin.reportes.configuracion.update'), $this->payload([
+                'secciones' => ['pdf' => ['quienes_somos']],
+            ]))
+            ->assertSessionHasErrors('secciones.excel');
+
+        $this->assertDatabaseCount('reporte_configuraciones', 0);
+    }
+
+    #[Test]
+    public function rechaza_secciones_con_claves_invalidas(): void
+    {
+        $this->actingAs($this->admin())
+            ->put(route('admin.reportes.configuracion.update'), $this->payload([
+                'secciones' => ['pdf' => ['inventada'], 'excel' => ['resumen']],
+            ]))
+            ->assertSessionHasErrors('secciones.pdf.0');
     }
 
     #[Test]
@@ -118,5 +177,20 @@ class ReporteConfiguracionTest extends TestCase
                 'municipalidad_nombre' => str_repeat('a', 201),
             ]))
             ->assertSessionHasErrors('municipalidad_nombre');
+    }
+
+    #[Test]
+    public function acepta_municipalidad_nombre_en_el_limite_de_longitud(): void
+    {
+        // Borde exacto del lado válido: max:200 acepta exactamente 200 chars.
+        $nombre = str_repeat('a', 200);
+
+        $this->actingAs($this->admin())
+            ->put(route('admin.reportes.configuracion.update'), $this->payload([
+                'municipalidad_nombre' => $nombre,
+            ]))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('reporte_configuraciones', ['municipalidad_nombre' => $nombre]);
     }
 }

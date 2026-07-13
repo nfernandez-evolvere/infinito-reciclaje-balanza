@@ -76,7 +76,7 @@ class ReporteNotificacionService
      */
     private function contenido(ReporteGenerado $generado, string $evento): array
     {
-        $nombre = $generado->tipo === 'alertas' ? 'El reporte de alertas' : 'El informe mensual';
+        $nombre = $generado->tipo === 'alertas' ? 'El reporte de alertas' : 'El reporte mensual';
         $periodo = $generado->periodo_desde->format('d/m/Y').' al '.$generado->periodo_hasta->format('d/m/Y');
 
         return match ($evento) {

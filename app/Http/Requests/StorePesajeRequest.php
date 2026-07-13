@@ -21,9 +21,11 @@ class StorePesajeRequest extends FormRequest
             'vehiculo_id'      => ['required', 'integer', 'exists:vehiculos,id'],
             'tipo_servicio_id' => ['required', 'integer', 'exists:tipos_servicio,id'],
             'zona_id'          => ['required', 'integer', 'exists:zonas,id'],
-            'turno'            => ['nullable', 'string', 'in:Diurna,Nocturna'],
-            'peso_bruto_kg'    => ['required', 'integer', 'min:1'],
-            'observaciones'    => ['nullable', 'string', 'max:500'],
+            // El turno es texto libre, copiado del que el operador eligió entre los
+            // configurados para la zona (sin catálogo ni validación cruzada).
+            'turno'         => ['nullable', 'string', 'max:20'],
+            'peso_bruto_kg' => ['required', 'integer', 'min:1'],
+            'observaciones' => ['nullable', 'string', 'max:500'],
         ];
     }
 
@@ -37,7 +39,7 @@ class StorePesajeRequest extends FormRequest
                 return;
             }
 
-            $vehiculo = Vehiculo::find($vehiculoId);
+            $vehiculo = Vehiculo::with('tipoVehiculo')->find($vehiculoId);
             if (! $vehiculo) {
                 return;
             }
@@ -46,6 +48,14 @@ class StorePesajeRequest extends FormRequest
                 $v->errors()->add(
                     'peso_bruto_kg',
                     "El peso bruto ({$pesoBruto} kg) no puede ser menor a la tara del vehículo ({$vehiculo->tara_kg} kg)."
+                );
+            }
+
+            $tope = $vehiculo->tipoVehiculo?->peso_tope_kg;
+            if ($tope !== null && $pesoBruto > $tope) {
+                $v->errors()->add(
+                    'peso_bruto_kg',
+                    "El peso bruto ({$pesoBruto} kg) supera el máximo permitido para {$vehiculo->tipoVehiculo->nombre} ({$tope} kg). Revisá el valor ingresado."
                 );
             }
         });

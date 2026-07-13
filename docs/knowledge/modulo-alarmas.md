@@ -18,25 +18,36 @@ No todas las alarmas indican un problema real — algunas son falsos positivos q
 
 Las alarmas aparecen en dos lugares:
 
-1. **Dashboard** — en la parte superior, cuando hay alarmas activas sin resolver. Muestra la cantidad y un botón para ir al detalle.
+1. **Dashboard** — un banner naranja en la parte superior cuando hay alarmas activas sin resolver. Muestra solo la **cantidad** de alertas activas y un botón **Revisar** para ir al módulo. No detalla el tipo de cada alarma en el banner.
 2. **Módulo de Alarmas** — la lista completa con el detalle de cada alarma, incluyendo las ya resueltas.
 
 **Ruta al módulo:** Sistema → Alertas (en la barra lateral)
 
 ---
 
+## Cuándo se generan las alarmas
+
+Según el tipo, la alarma se genera en dos momentos distintos:
+
+- **Al registrar un pesaje (en el momento):** las alarmas de **peso fuera de rango** y **vehículo no habitual** se generan apenas el operador guarda un pesaje que cumple la condición.
+- **Al día siguiente (proceso automático):** las alarmas de **sin actividad (gap)**, **volumen diario atípico** y **frecuencia atípica por zona** las calcula un proceso que corre **todos los días a las 00:30** y analiza la jornada **del día anterior**. No se generan en tiempo real durante el día: recién las ves a la mañana siguiente.
+
+En ningún caso el sistema envía emails ni notificaciones por fuera de la pantalla: las alarmas solo se ven en el Dashboard y en el módulo de Alertas.
+
+---
+
 ## Tipos de alarma
 
-### Tipo 1 — Gap de pesajes
+### Tipo 1 — Sin actividad (gap de pesajes)
 
-**Qué es:** No se registraron pesajes durante un período prolongado dentro del horario operativo configurado.
+**Qué es:** No se registraron pesajes durante un período prolongado dentro del horario operativo configurado, o no hubo ningún pesaje en toda la jornada.
 
-**Ejemplo:** Pasaron 90 minutos en horario operativo sin ningún pesaje registrado.
+**Ejemplo:** No se registraron pesajes entre las 09:00 y las 11:30 (150 minutos) en horario operativo.
 
-> El horario operativo (hora de inicio y de fin) lo definís vos en la configuración de la alarma. Por defecto es de 8:00 a 18:00. Fuera de ese rango, la ausencia de pesajes no genera esta alarma.
+> Esta alarma se evalúa **al día siguiente** (00:30) sobre la jornada anterior, y **solo en días hábiles (lunes a sábado)** — los domingos no se evalúa. El horario operativo (hora de inicio y de fin) lo definís vos en la configuración; por defecto es de 8:00 a 18:00. Fuera de ese rango, la ausencia de pesajes no genera esta alarma. Se genera como máximo una alarma de este tipo por día.
 
 **Causas posibles:**
-- El operador está registrando pesajes en papel y olvidó cargarlos al sistema
+- El operador estuvo registrando pesajes en papel y olvidó cargarlos al sistema
 - Problema técnico que impidió el acceso al sistema
 - Hubo una pausa real en la operación (almuerzo extendido, lluvia intensa, etc.)
 - El operador cerró el navegador y no pudo reconectarse
@@ -48,9 +59,9 @@ Las alarmas aparecen en dos lugares:
 
 ---
 
-### Tipo 2 — Peso inusual
+### Tipo 2 — Peso fuera de rango
 
-**Qué es:** Se registró un pesaje con un peso bruto que está fuera del rango configurado para ese tipo de vehículo.
+**Qué es:** Se registró un pesaje con un peso bruto que está fuera del rango configurado para ese tipo de vehículo. Se genera **en el momento** del registro (es el mismo caso que dispara el aviso naranja en el formulario del operador).
 
 **Ejemplo:** Un Compactador (rango esperado: 10.000–26.500 kg) se registró con 4.200 kg.
 
@@ -67,28 +78,47 @@ Las alarmas aparecen en dos lugares:
 
 ---
 
-### Tipo 3 — Frecuencia atípica por origen
+### Tipo 3 — Vehículo no habitual
 
-**Qué es:** Un origen registró muchos más o muchos menos pesajes de lo habitual en el período.
+**Qué es:** Se registró un pesaje con un tipo de vehículo que no coincide con los tipos habituales del servicio elegido. Se genera **en el momento** del registro.
 
-**Ejemplo:** El Origen Norte tuvo 0 pesajes en todo el día cuando habitualmente tiene entre 8 y 12.
+**Ejemplo:** El servicio Domiciliario tiene como habituales Compactador y Volcador, y se registró un pesaje con un Volquete.
+
+> Es solo un aviso: el pesaje se guarda igual. El tipo de vehículo "habitual" de cada servicio es una sugerencia configurable en **Configuración → Servicios**, no una restricción.
+
+**Causas posibles:**
+- Se usó un vehículo distinto al habitual por una necesidad operativa puntual
+- El vehículo tiene mal asignado su tipo en el padrón
+- El servicio tiene mal configurados sus tipos habituales
+
+**Qué hacer:**
+1. Verificar que el tipo del vehículo en el padrón sea correcto
+2. Si el uso fue legítimo, marcar la alarma como resuelta con un comentario
+
+---
+
+### Tipo 4 — Frecuencia atípica por zona
+
+**Qué es:** Una zona registró muchos más o muchos menos pesajes de lo habitual respecto a su promedio histórico. Se evalúa **al día siguiente** sobre la jornada anterior.
+
+**Ejemplo:** La Zona Norte tuvo 0 pesajes en todo el día cuando habitualmente tiene entre 8 y 12.
 
 **Causas posibles:**
 - Cambio en la planificación de rutas que no fue comunicado
-- Feriado o evento que afectó ese origen
-- El operador asignó los pesajes a un origen diferente por error
-- Problema real de recolección en ese origen
+- Feriado o evento que afectó esa zona
+- El operador asignó los pesajes a una zona diferente por error
+- Problema real de recolección en esa zona
 
 **Qué hacer:**
 1. Verificar con quien coordina la operación si hubo cambios en las rutas
-2. Revisar si hay pesajes de ese origen asignados incorrectamente a otro origen
+2. Revisar si hay pesajes de esa zona asignados incorrectamente a otra zona
 3. Si es un cambio legítimo, marcar la alarma como resuelta
 
 ---
 
-### Tipo 4 — Volumen diario atípico
+### Tipo 5 — Volumen diario atípico
 
-**Qué es:** El total de toneladas netas registradas en el día se desvía demasiado del promedio histórico de la operación (muy por encima o muy por debajo).
+**Qué es:** El total de toneladas netas registradas en el día se desvía demasiado del promedio de los últimos 30 días (muy por encima o muy por debajo). Se evalúa **al día siguiente** sobre la jornada anterior.
 
 **Ejemplo:** Un día se registran 12 toneladas cuando el promedio ronda las 40.
 
@@ -125,13 +155,13 @@ El módulo muestra todas las alarmas: activas e históricas. Las alarmas resuelt
 - Cuándo se resolvió
 - El comentario de resolución
 
-Este historial permite identificar patrones: si el mismo tipo de alarma se repite seguido en el mismo origen, puede haber un problema estructural que vale la pena investigar.
+Este historial permite identificar patrones: si el mismo tipo de alarma se repite seguido en la misma zona, puede haber un problema estructural que vale la pena investigar.
 
 ---
 
 ## Configuración de umbrales
 
-Los umbrales que disparan las alarmas son configurables. Para acceder a la configuración, buscar el botón **Configurar umbrales** dentro del módulo de Alarmas.
+Los umbrales que disparan las alarmas son configurables desde **Sistema → Alertas → Configuración**. Cada tipo de alarma tiene su propia tarjeta, con un switch para activarla o desactivarla y sus umbrales.
 
 ### Umbral de gap de pesajes
 
@@ -147,11 +177,11 @@ Si los minutos son muy pocos (ej: 20), se van a generar muchas alarmas falsas du
 
 Ajustá el **horario operativo** a la realidad de tu predio: si trabajás de 7 a 15, ponelo así y no recibirás alarmas por la tarde cuando no hay operación. Fuera del horario configurado, la falta de pesajes nunca dispara esta alarma.
 
-### Umbrales de peso inusual
+### Umbrales de peso fuera de rango
 
-Los rangos de peso están definidos en **Padrón → Vehículos** (pestaña **Tipos de vehículo**; ver módulo de ABMs). Las alarmas de peso inusual se disparan cuando un pesaje queda fuera de esos rangos.
+Los rangos de peso están definidos en **Configuración → Vehículos** (pestaña **Tipos de vehículo**; ver módulo de ABMs). Las alarmas de peso fuera de rango se disparan cuando un pesaje queda fuera de esos rangos.
 
-Para ajustar los umbrales de peso: ir a Padrón → Vehículos, pestaña Tipos de vehículo, y editar el tipo correspondiente.
+Para ajustar los umbrales de peso: ir a Configuración → Vehículos, pestaña Tipos de vehículo, y editar el tipo correspondiente.
 
 ### Umbral de volumen diario atípico
 
@@ -161,9 +191,9 @@ Define qué desviación respecto al promedio histórico de toneladas del día se
 |---------------|-------------|
 | Variación mínima | Porcentaje de desviación del promedio diario para disparar la alarma (default: 20%) |
 
-### Umbral de frecuencia atípica
+### Umbral de frecuencia atípica por zona
 
-Define qué variación respecto al promedio histórico por origen se considera "atípica".
+Define qué variación respecto al promedio histórico por zona se considera "atípica".
 
 | Configuración | Descripción |
 |---------------|-------------|
@@ -188,7 +218,7 @@ No. Las alarmas requieren resolución manual. Permanecen activas hasta que las c
 No bloquean nada. Son avisos informativos — el operador puede seguir registrando pesajes aunque haya alarmas activas.
 
 **¿Puedo desactivar un tipo de alarma?**
-Sí. En la configuración de umbrales, podés desactivar un tipo de alarma completo si generan demasiado ruido. No se recomienda desactivar las alarmas de peso inusual.
+Sí. En **Sistema → Alertas → Configuración**, cada tarjeta tiene un switch para desactivar ese tipo de alarma si genera demasiado ruido. No se recomienda desactivar las alarmas de peso fuera de rango.
 
 **¿Qué pasa si ajusto un umbral y hay alarmas activas del umbral anterior?**
 Las alarmas activas ya generadas no se recalculan. El nuevo umbral aplica solo para las alarmas futuras.
@@ -198,4 +228,4 @@ Sí. El historial de alarmas no tiene límite de fecha. Podés filtrar por perí
 
 ---
 
-*Documento actualizado: 18/06/2026 | Versión: 1.2*
+*Documento actualizado: 13/07/2026 | Versión: 2.0*

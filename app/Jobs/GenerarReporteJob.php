@@ -110,6 +110,12 @@ class GenerarReporteJob implements ShouldQueue
         } else {
             $formatos = explode('+', $generado->formato);
 
+            // Secciones resueltas al generar (personalización del programado o
+            // default de la organización) y congeladas en el snapshot: el envío
+            // y las re-descargas reproducen el documento idéntico aunque la
+            // configuración cambie después.
+            $reporte['secciones'] = $programado->secciones($config);
+
             // Las conclusiones IA solo se imprimen en el PDF, así que la
             // llamada a la API se evita cuando ese formato no está elegido.
             if (in_array('pdf', $formatos, true)) {
@@ -137,19 +143,30 @@ class GenerarReporteJob implements ShouldQueue
 
                 // Mapa de calor por zona para las páginas de choropleth del PDF.
                 $reporte['mapaZonas'] = $dashboardService->metricasPorZona($desde, $hasta);
+
+                // Bloques del informe institucional v2 (usan la colección de modelos,
+                // por eso van antes de aplanar el detalle en el bloque de Excel).
+                $reporte['semanas'] = $reporteService->porSemana($reporte['detalle'], $desde, $hasta);
+                $reporte['diaSemana'] = $reporteService->porDiaSemana($reporte['detalle']);
+                $reporte['flotaActiva'] = $reporteService->vehiculosOperativos($reporte['detalle']);
+                $reporte['porServicio'] = $reporteService->porServicio($reporte['detalle']);
+                $reporte['zonasServicio'] = $reporteService->zonasPorServicio($reporte['detalle'], $desde, $hasta);
             }
 
-            // Excel — reutiliza los pivots del reporte municipal. El detalle se
-            // aplana a escalares: es lo que consume el export y lo que se congela
-            // en el snapshot (preserva la tara/neto del momento).
+            // Excel v2 — bloques por servicio / N° interno. El detalle se aplana a
+            // escalares al final: es lo que consume el export y lo que se congela en
+            // el snapshot (preserva la tara/neto del momento).
             if (in_array('excel', $formatos, true)) {
-                $reporte['pivots'] = $reporteService->pivotsParaExcel($reporte['detalle'], $desde, $hasta);
                 $reporte['kg_netos_total'] = (int) $reporte['detalle']->sum('peso_neto_kg');
+                $reporte['datosV2'] = $reporteService->datosExcelV2($reporte['detalle'], $desde, $hasta);
                 $reporte['detalle'] = $reporteService->detalleParaExcel($reporte['detalle']);
             }
         }
 
-        $snapshot = $snapshotService->capturar($reporte);
+        // El informe mensual congela un snapshot v2; alertas mantiene el v1.
+        $snapshot = $tipo === 'alertas'
+            ? $snapshotService->capturar($reporte)
+            : $snapshotService->capturarV2($reporte);
 
         if ($programado->requiereRevision($config)) {
             $generadoService->marcarEnRevision($generado, $analisisTexto, $snapshot);

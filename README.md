@@ -52,8 +52,7 @@ El `super_admin` no pertenece a ninguna organización: ingresa desde el contexto
 | `tipos_vehiculo` | — |
 | `tipos_servicio` | `(organizacion_id, nombre)` |
 | `vehiculos` | `(organizacion_id, patente)`, `(organizacion_id, numero_interno)` |
-| `zonas` | `(organizacion_id, nombre)` |
-| `zona_servicios` | FK chain desde zonas / tipos_servicio |
+| `zonas` | `(tipo_servicio_id, nombre)` — única dentro de cada servicio |
 
 El trait `BelongsToOrganizacion` (`app/Models/Concerns/`) aplica un global scope automático en todos los modelos de dominio: las queries filtran por la org del request sin intervención manual.
 

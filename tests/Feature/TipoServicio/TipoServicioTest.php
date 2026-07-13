@@ -4,6 +4,7 @@ namespace Tests\Feature\TipoServicio;
 
 use App\Models\TipoServicio;
 use App\Models\TipoVehiculo;
+use App\Models\Zona;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -101,12 +102,28 @@ class TipoServicioTest extends TestCase
     }
 
     #[Test]
+    public function test_index_muestra_las_zonas_del_servicio_con_sus_turnos(): void
+    {
+        // Las zonas se gestionan dentro de cada servicio: el index las anida
+        // (nombre + turnos) en la card expandible del servicio.
+        $tipo = TipoServicio::factory()->create(['nombre' => 'Domiciliario']);
+        $zona = Zona::factory()->create(['tipo_servicio_id' => $tipo->id, 'nombre' => 'Zona Norte Anidada']);
+        $zona->turnos()->create(['turno' => 'Nocturna']);
+
+        $this->actingAs($this->admin())
+            ->get(route('admin.tipos-servicio.index'))
+            ->assertOk()
+            ->assertSee('Zona Norte Anidada')
+            ->assertSee('Nocturna');
+    }
+
+    #[Test]
     public function test_index_shows_empty_state_when_no_records(): void
     {
         $this->actingAs($this->admin())
             ->get(route('admin.tipos-servicio.index'))
             ->assertStatus(200)
-            ->assertSee('Todavía no hay tipos de servicio');
+            ->assertSee('Todavía no hay servicios');
     }
 
     #[Test]
@@ -190,6 +207,20 @@ class TipoServicioTest extends TestCase
     }
 
     #[Test]
+    public function test_store_acepta_nombre_en_el_limite_de_longitud(): void
+    {
+        // Borde exacto: 100 chars (max:100) es válido; 101 no.
+        $nombre = str_repeat('a', 100);
+
+        $this->actingAs($this->admin())
+            ->post(route('admin.tipos-servicio.store'), $this->payload(['nombre' => $nombre]))
+            ->assertRedirect(route('admin.tipos-servicio.index'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('tipos_servicio', ['nombre' => $nombre]);
+    }
+
+    #[Test]
     public function test_store_validates_nombre_unique(): void
     {
         TipoServicio::factory()->create(['nombre' => 'Domiciliario']);
@@ -232,6 +263,69 @@ class TipoServicioTest extends TestCase
             'tipo_servicio_id' => $tipo->id,
             'tipo_vehiculo_id' => $tv->id,
         ]);
+    }
+
+    #[Test]
+    public function test_store_persiste_la_descripcion(): void
+    {
+        $this->actingAs($this->admin())
+            ->post(route('admin.tipos-servicio.store'), $this->payload([
+                'nombre'      => 'Domiciliario',
+                'descripcion' => 'Recolección de residuos comunes de los hogares.',
+            ]))
+            ->assertRedirect(route('admin.tipos-servicio.index'));
+
+        $this->assertDatabaseHas('tipos_servicio', [
+            'nombre'      => 'Domiciliario',
+            'descripcion' => 'Recolección de residuos comunes de los hogares.',
+        ]);
+    }
+
+    #[Test]
+    public function test_update_actualiza_la_descripcion(): void
+    {
+        $tipo = TipoServicio::factory()->create(['nombre' => 'Domiciliario', 'descripcion' => 'Vieja']);
+
+        $this->actingAs($this->admin())
+            ->put(route('admin.tipos-servicio.update', $tipo), [
+                'nombre'            => 'Domiciliario',
+                'descripcion'       => 'Nueva descripción del servicio.',
+                'tipo_vehiculo_ids' => [],
+            ])
+            ->assertRedirect(route('admin.tipos-servicio.index'));
+
+        $this->assertDatabaseHas('tipos_servicio', [
+            'id'          => $tipo->id,
+            'descripcion' => 'Nueva descripción del servicio.',
+        ]);
+    }
+
+    #[Test]
+    public function test_store_acepta_descripcion_en_el_limite_de_longitud(): void
+    {
+        $descripcion = str_repeat('a', 300);
+
+        $this->actingAs($this->admin())
+            ->post(route('admin.tipos-servicio.store'), $this->payload([
+                'nombre'      => 'Domiciliario',
+                'descripcion' => $descripcion,
+            ]))
+            ->assertRedirect(route('admin.tipos-servicio.index'));
+
+        $this->assertDatabaseHas('tipos_servicio', ['nombre' => 'Domiciliario', 'descripcion' => $descripcion]);
+    }
+
+    #[Test]
+    public function test_store_rechaza_descripcion_demasiado_larga(): void
+    {
+        $this->actingAs($this->admin())
+            ->post(route('admin.tipos-servicio.store'), $this->payload([
+                'nombre'      => 'Domiciliario',
+                'descripcion' => str_repeat('a', 301),
+            ]))
+            ->assertSessionHasErrors('descripcion');
+
+        $this->assertDatabaseMissing('tipos_servicio', ['nombre' => 'Domiciliario']);
     }
 
     #[Test]
@@ -369,6 +463,22 @@ class TipoServicioTest extends TestCase
             ->assertRedirect(route('admin.tipos-servicio.index'));
 
         $this->assertDatabaseMissing('tipos_servicio', ['id' => $tipo->id]);
+    }
+
+    #[Test]
+    public function test_no_puede_eliminar_servicio_con_zonas(): void
+    {
+        // zonas.tipo_servicio_id es noActionOnDelete: la FK bloquea el borrado del
+        // servicio mientras tenga zonas. El controller lo captura y avisa.
+        $tipo = TipoServicio::factory()->create();
+        Zona::factory()->create(['tipo_servicio_id' => $tipo->id]);
+
+        $this->actingAs($this->admin())
+            ->delete(route('admin.tipos-servicio.destroy', $tipo))
+            ->assertRedirect(route('admin.tipos-servicio.index'))
+            ->assertSessionHas('toast');
+
+        $this->assertDatabaseHas('tipos_servicio', ['id' => $tipo->id]);
     }
 
     // — Acceso ——————————————————————————————————————————————————

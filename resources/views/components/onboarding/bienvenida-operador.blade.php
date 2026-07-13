@@ -83,7 +83,7 @@
                                 <span class="text-xs font-bold text-primary">2</span>
                             </div>
                             <div>
-                                <p class="text-sm font-semibold">Elegí el servicio y el origen</p>
+                                <p class="text-sm font-semibold">Elegí el servicio y la zona</p>
                                 <p class="text-xs text-muted-foreground mt-0.5">Si el servicio requiere turno, el selector aparece solo. Tenés que elegirlo antes de continuar.</p>
                             </div>
                         </div>

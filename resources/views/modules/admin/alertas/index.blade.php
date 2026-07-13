@@ -19,6 +19,18 @@
                 @endif
             </x-ui.typography>
         </div>
+
+        {{-- Marcar todas como leídas: solo en el tab de alertas y si hay alertas --}}
+        @if($alertas->total() > 0)
+            <form method="POST" action="{{ route('admin.alertas.leer-todas') }}" x-show="active === 'alertas'" x-cloak class="shrink-0">
+                @csrf
+                <x-ui.button type="submit" variant="ghost">
+                    <x-lucide-check-check class="size-4" />
+                    <span class="hidden sm:inline">Marcar todas como leídas</span>
+                    <span class="sm:hidden">Marcar leídas</span>
+                </x-ui.button>
+            </form>
+        @endif
     </div>
 
     <x-ui.tabs.list class="flex w-full sm:w-fit">

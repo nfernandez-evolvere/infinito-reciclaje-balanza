@@ -42,6 +42,10 @@ export default function balanza(initial = null, opts = {}) {
             if (!this.vehiculo || this.brutoN <= 0) return false;
             return this.brutoN < this.vehiculo.tara;
         },
+        get aboveHardLimit() {
+            if (!this.vehiculo?.peso_tope || this.brutoN <= 0) return false;
+            return this.brutoN > this.vehiculo.peso_tope;
+        },
         get tipoMismatch() {
             return this.vehiculo && this.tiposSugeridos.length > 0 && !this.tiposSugeridos.includes(this.vehiculo.tipo);
         },
@@ -49,7 +53,7 @@ export default function balanza(initial = null, opts = {}) {
             return !!(this.servicioId && this.zonaId && (!this.requiereTurno || this.turno));
         },
         get canSave() {
-            const base = !!(this.vehiculo && this.servicioId && this.zonaId && (!this.requiereTurno || this.turno) && this.brutoN > 0 && !this.belowTara);
+            const base = !!(this.vehiculo && this.servicioId && this.zonaId && (!this.requiereTurno || this.turno) && this.brutoN > 0 && !this.belowTara && !this.aboveHardLimit);
             return this.editMode ? base && !!this.motivo.trim() : base;
         },
         get hintContextual() {
@@ -60,9 +64,10 @@ export default function balanza(initial = null, opts = {}) {
             }
             if (this.canSave) return 'Listo para guardar';
             if (this.belowTara) return 'El peso bruto no puede ser menor a la tara';
+            if (this.aboveHardLimit) return 'El peso supera el máximo permitido';
             if (this.vehiculo && this.servicioId && this.zonaId && this.requiereTurno && !this.turno) return 'Elegí el turno';
             if (this.vehiculo && this.servicioId && this.zonaId) return 'Ingresá el peso bruto';
-            if (this.vehiculo && this.servicioId) return 'Elegí el origen';
+            if (this.vehiculo && this.servicioId) return 'Elegí la zona';
             if (this.vehiculo) return 'Elegí el servicio';
             return 'Buscá el vehículo';
         },
@@ -101,7 +106,7 @@ export default function balanza(initial = null, opts = {}) {
                     this._selectEl('wrapServicio')?.dispatchEvent(
                         new CustomEvent('select-sync', { detail: { value: String(initial.servicioId) } })
                     );
-                    this._selectEl('wrapOrigen')?.dispatchEvent(
+                    this._selectEl('wrapZona')?.dispatchEvent(
                         new CustomEvent('select-sync', { detail: { value: String(initial.zonaId) } })
                     );
                     if (initial.turno) {
@@ -156,8 +161,8 @@ export default function balanza(initial = null, opts = {}) {
             this.servicioNombre = label ?? '';
             this.zonaId = ''; this.zonaNombre = ''; this.turno = '';
             this.turnosDisponibles = []; this.zonasDisponibles = []; this.tiposSugeridos = [];
-            this._selectEl('wrapOrigen')?.dispatchEvent(new CustomEvent('select-sync', { detail: { value: '' } }));
-            this._selectEl('wrapOrigen')?.dispatchEvent(new CustomEvent('select-items-clear'));
+            this._selectEl('wrapZona')?.dispatchEvent(new CustomEvent('select-sync', { detail: { value: '' } }));
+            this._selectEl('wrapZona')?.dispatchEvent(new CustomEvent('select-items-clear'));
             this._selectEl('wrapTurno')?.dispatchEvent(new CustomEvent('select-sync',  { detail: { value: '' } }));
             this._selectEl('wrapTurno')?.dispatchEvent(new CustomEvent('select-items-clear'));
             if (!value) return;
@@ -166,7 +171,7 @@ export default function balanza(initial = null, opts = {}) {
                 .then(data => {
                     this.tiposSugeridos   = data.tipos_vehiculo_sugeridos ?? [];
                     this.zonasDisponibles = data.zonas ?? [];
-                    this.$nextTick(() => this.$refs.wrapOrigen?.querySelector('button')?.focus());
+                    this.$nextTick(() => this.$refs.wrapZona?.querySelector('button')?.focus());
                 });
         },
         onZonaChange({ value, label }) {
@@ -197,7 +202,7 @@ export default function balanza(initial = null, opts = {}) {
             this.paso1Editando = false; this.paso2Editando = false; this.paso3Editando = false;
             this.mobileResumenAbierto = false;
             this._selectEl('wrapServicio')?.dispatchEvent(new CustomEvent('select-sync', { detail: { value: '' } }));
-            ['wrapOrigen', 'wrapTurno'].forEach(ref => {
+            ['wrapZona', 'wrapTurno'].forEach(ref => {
                 this._selectEl(ref)?.dispatchEvent(new CustomEvent('select-sync', { detail: { value: '' } }));
                 this._selectEl(ref)?.dispatchEvent(new CustomEvent('select-items-clear'));
             });

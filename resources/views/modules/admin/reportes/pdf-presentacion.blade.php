@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<title>Informe de Pesajes</title>
+<title>Reporte de Pesajes</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
@@ -1454,12 +1454,12 @@
             @endif
             Infinito Reciclaje
         </div>
-        <div class="cover-label">{{ $esAlerta ? 'Reporte de alertas de peso' : 'Informe mensual de gestión' }}</div>
+        <div class="cover-label">{{ $esAlerta ? 'Reporte de alertas de peso' : 'Reporte mensual de gestión' }}</div>
         <div class="cover-title">
             @if ($esAlerta)
                 Reporte<br>de <span>Alertas</span><br>{{ $periodo }}
             @else
-                Informe<br>de <span>Pesajes</span><br>{{ $periodo }}
+                Reporte<br>de <span>Pesajes</span><br>{{ $periodo }}
             @endif
         </div>
         <div class="cover-period">{{ $periodoLargo }}</div>
@@ -2361,7 +2361,7 @@
 
     <div class="ai-body">
         <div class="ai-header">
-            <div class="ai-eyebrow">Informe · {{ $periodo }}</div>
+            <div class="ai-eyebrow">Reporte · {{ $periodo }}</div>
             <div class="ai-title">
                 Análisis <span>Estratégico</span>
                 @if($aiTotal > 1)
@@ -2420,7 +2420,7 @@
         <div class="thank-rule"></div>
         <div class="thank-org">{{ $organizacion }}</div>
         <p class="thank-caption">
-            Informe correspondiente a {{ $periodo }}, generado a partir de los registros del sistema de balanza digital.<br>
+            Reporte correspondiente a {{ $periodo }}, generado a partir de los registros del sistema de balanza digital.<br>
             Cada pesaje queda trazado con fecha, vehículo, zona y peso neto: eso permite auditar la operación
             y comparar la evolución entre períodos.
         </p>

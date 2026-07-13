@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Exports\ReporteExcelExport;
+use App\Exports\ReporteExcelExportV2;
 use App\Mail\ReporteAlertaMail;
 use App\Mail\ReporteMensualMail;
 use App\Models\ReporteGenerado;
@@ -30,7 +30,12 @@ class ReporteEnvioService
             throw new RuntimeException('El reporte no tiene datos congelados para enviar.');
         }
 
-        $reporte = $this->snapshotService->rehidratar($generado);
+        // Los informes mensuales se congelan en v2 (snapshot['version'] === 2);
+        // alertas es el único tipo que sigue el camino v1.
+        $reporte = ((int) ($generado->snapshot['version'] ?? 1) === 2)
+            ? $this->snapshotService->rehidratarV2($generado)
+            : $this->snapshotService->rehidratar($generado);
+
         $mailable = $this->construirMailable($generado, $reporte);
 
         foreach ($generado->destinatarios ?? [] as $email) {
@@ -64,18 +69,20 @@ class ReporteEnvioService
             );
         }
 
+        // El informe mensual siempre se congela en v2 (alertas es el único tipo
+        // que sigue el camino v1, y siempre en PDF — ver construirMailable arriba).
         $adjuntos = [];
 
         foreach (explode('+', $generado->formato) as $formato) {
             $adjuntos[] = $formato === 'excel'
                 ? [
-                    'content'  => (new ReporteExcelExport($reporte))->contents(),
-                    'filename' => 'informe_'.$desde->format('Y-m').'.xlsx',
+                    'content'  => (new ReporteExcelExportV2($reporte))->contents(),
+                    'filename' => 'reporte_'.$desde->format('Y-m').'.xlsx',
                     'mime'     => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                 ]
                 : [
-                    'content'  => $this->pdfService->fromView('modules.admin.reportes.pdf-presentacion', compact('reporte', 'tipo')),
-                    'filename' => 'informe_'.$desde->format('Y-m').'.pdf',
+                    'content'  => $this->pdfService->fromView('modules.admin.reportes.pdf-presentacion-v2', compact('reporte', 'tipo')),
+                    'filename' => 'reporte_'.$desde->format('Y-m').'.pdf',
                     'mime'     => 'application/pdf',
                 ];
         }

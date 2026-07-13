@@ -24,12 +24,12 @@ class StoreZonaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nombre' => [
+            'tipo_servicio_id' => ['required', 'integer', 'exists:tipos_servicio,id'],
+            'nombre'           => [
                 'required', 'string', 'max:150',
-                // La unicidad es por organización (espeja el unique compuesto de la BD:
-                // unique(organizacion_id, nombre)). Sin el scope, el nombre de otra
-                // organización en la tabla compartida dispararía un falso "ya en uso".
-                Rule::unique('zonas', 'nombre')->where('organizacion_id', app('organizacion')?->id),
+                // El nombre es único dentro de cada servicio (espeja unique(tipo_servicio_id, nombre)).
+                // Dos servicios pueden tener su propia "Zona Norte" sin colisionar.
+                Rule::unique('zonas', 'nombre')->where('tipo_servicio_id', $this->input('tipo_servicio_id')),
             ],
             'hectareas'  => ['nullable', 'numeric', 'min:0'],
             'barrios'    => ['nullable', 'integer', 'min:0'],
@@ -37,19 +37,29 @@ class StoreZonaRequest extends FormRequest
             'geojson'    => ['nullable', 'json'],
             'centro_lat' => ['nullable', 'numeric', 'between:-90,90'],
             'centro_lng' => ['nullable', 'numeric', 'between:-180,180'],
+            // Turnos de texto libre por zona (sin catálogo): el operador los escribe
+            // en el modal (chips). No hay validación contra una lista fija.
+            'turnos'              => ['nullable', 'array'],
+            'turnos.*'            => ['required', 'string', 'max:20', 'distinct'],
+            'horarios'            => ['nullable', 'array'],
+            'horarios.*'          => ['nullable', 'array'],
+            'horarios.*.*'        => ['nullable', 'array'],
+            'horarios.*.*.inicio' => ['nullable', 'string', 'date_format:H:i'],
+            'horarios.*.*.fin'    => ['nullable', 'string', 'date_format:H:i'],
         ];
     }
 
     public function attributes(): array
     {
         return [
-            'nombre'     => 'nombre',
-            'hectareas'  => 'hectáreas',
-            'barrios'    => 'cantidad de barrios',
-            'habitantes' => 'cantidad de habitantes',
-            'geojson'    => 'área en el mapa',
-            'centro_lat' => 'latitud del centro',
-            'centro_lng' => 'longitud del centro',
+            'tipo_servicio_id' => 'servicio',
+            'nombre'           => 'nombre',
+            'hectareas'        => 'hectáreas',
+            'barrios'          => 'cantidad de barrios',
+            'habitantes'       => 'cantidad de habitantes',
+            'geojson'          => 'área en el mapa',
+            'centro_lat'       => 'latitud del centro',
+            'centro_lng'       => 'longitud del centro',
         ];
     }
 }

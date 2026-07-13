@@ -1,12 +1,21 @@
+// Fecha local en YYYY-MM-DD ('sv' usa ISO): toISOString() correría un día
+// en horarios donde UTC ya cambió de fecha.
+const hoyISO = () => new Date().toLocaleDateString('sv');
+
 const formVacio = () => ({
     id:             null,
     nombre:         '',
     tipo:           'informe_mensual',
     frecuencia:     'mensual',
     cron_expresion: '0 8 1 * *',
+    // Primer envío: ancla del cronograma (default hoy → conserva el "corre ya").
+    inicio_en:      hoyISO(),
     formatos:       ['pdf'],
-    revision:       'heredar',
-    activo:         true,
+    revision:       'revisar',
+    // Secciones del informe: sin personalizar hereda la configuración general.
+    // Las listas arrancan con el default general (openCreate/openEdit las cargan).
+    secciones_personalizadas: false,
+    secciones:      { pdf: [], excel: [] },
 });
 
 const resetDestinatarios = (tags) => {
@@ -20,6 +29,8 @@ export default (initial = {}) => ({
     modalMode:              'create',
     form:                   formVacio(),
     _oldDestinatariosStr:   '',
+    // Secciones de la configuración general: punto de partida al personalizar.
+    seccionesDefault:       { pdf: [], excel: [] },
 
     deleteOpen:   false,
     deleteId:     null,
@@ -31,6 +42,11 @@ export default (initial = {}) => ({
     enviarUrl:    null,
     enviando:     false,
 
+    toggleOpen:   false,
+    toggleId:     null,
+    toggleNombre: '',
+    toggleActivo: false,
+
     ...initial,
 
     init() {
@@ -41,9 +57,10 @@ export default (initial = {}) => ({
     },
 
     openCreate() {
-        this.form      = formVacio();
-        this.modalMode = 'create';
-        this.modalOpen = true;
+        this.form           = formVacio();
+        this.form.secciones = this._seccionesDefaultCopy();
+        this.modalMode      = 'create';
+        this.modalOpen      = true;
         this.$nextTick(() => resetDestinatarios([]));
     },
 
@@ -54,6 +71,23 @@ export default (initial = {}) => ({
         } else {
             this.form.formatos.splice(i, 1);
         }
+    },
+
+    toggleSeccion(formato, clave) {
+        const lista = this.form.secciones[formato];
+        const i = lista.indexOf(clave);
+        if (i === -1) {
+            lista.push(clave);
+        } else {
+            lista.splice(i, 1);
+        }
+    },
+
+    _seccionesDefaultCopy() {
+        return {
+            pdf:   [...(this.seccionesDefault.pdf ?? [])],
+            excel: [...(this.seccionesDefault.excel ?? [])],
+        };
     },
 
     confirmEnviar(id, nombre, url) {
@@ -106,6 +140,17 @@ export default (initial = {}) => ({
         document.getElementById('delete-' + this.deleteId).submit();
     },
 
+    confirmToggle(id, nombre, activo) {
+        this.toggleId     = id;
+        this.toggleNombre = nombre;
+        this.toggleActivo = activo;
+        this.toggleOpen   = true;
+    },
+
+    executeToggle() {
+        document.getElementById('toggle-' + this.toggleId).submit();
+    },
+
     openEdit(p) {
         this.form = {
             id:             p.id,
@@ -113,9 +158,18 @@ export default (initial = {}) => ({
             tipo:           p.tipo,
             frecuencia:     p.frecuencia,
             cron_expresion: p.cron_expresion,
+            // Prefill con el próximo envío vigente (guardar sin tocarlo no
+            // re-ancla el cronograma); clamp a hoy si quedó vencido, para no
+            // chocar con la validación after_or_equal:today.
+            inicio_en:      p.proximo && p.proximo >= hoyISO() ? p.proximo : hoyISO(),
             formatos:       Array.isArray(p.formatos) && p.formatos.length ? p.formatos : ['pdf'],
             revision:       p.revision || 'heredar',
-            activo:         p.activo,
+            // p.secciones solo viene cuando el programado personalizó; si no,
+            // se precargan las de la configuración general como punto de partida.
+            secciones_personalizadas: !! p.secciones,
+            secciones: p.secciones
+                ? { pdf: [...(p.secciones.pdf ?? [])], excel: [...(p.secciones.excel ?? [])] }
+                : this._seccionesDefaultCopy(),
         };
         this.modalMode = 'edit';
         this.modalOpen = true;

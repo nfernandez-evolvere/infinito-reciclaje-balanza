@@ -50,7 +50,7 @@ Footer: último pesaje (patente · neto · hora) · totales del turno · camione
 **Shell del admin** — sidebar izquierdo, 240px:
 ```
 Grupo Operación (items):   Dashboard · Pesajes · Reportes · Alertas
-Grupo Padrón (items):      Zonas · Tipos de servicio
+Grupo Configuración (items): Zonas · Tipos de servicio
 Separador
 Grupo Transporte (acordeón): Vehículos · Tipos de vehículo
 Grupo Sistema (acordeón):    Usuarios
@@ -65,8 +65,7 @@ Footer sidebar:    avatar · nombre · rol · selector de organización · logou
 | Reportes programados | `/admin/reportes/programados` | Envíos automáticos por cron, con revisión opcional |
 | Historial de reportes | `/admin/reportes/historial` | Generados/enviados; aprobar, descartar, reintentar, re-descargar |
 | Alertas | `/admin/alertas` | Listado de alertas + configuración de umbrales y horario operativo |
-| Zonas | `/admin/zonas` | ABM zonas con geometría (mapa), servicios, turnos y horarios |
-| Tipos de servicio | `/admin/servicios` | ABM servicios con tipos de vehículo sugeridos (N:M) |
+| Servicios | `/admin/tipos-servicio` | ABM servicios con tipos de vehículo sugeridos (N:M) y **sus zonas** (geometría/mapa, turnos y horarios) anidadas |
 | Vehículos | `/admin/vehiculos` | ABM padrón de vehículos (grupo Transporte) |
 | Tipos de vehículo | `/admin/tipos-vehiculo` | ABM tipos con rangos de peso bruto (grupo Transporte) |
 | Usuarios | `/admin/usuarios` | ABM usuarios con rol (grupo Sistema) |
@@ -122,7 +121,7 @@ Helpers en `User`: `isSuperAdmin()`, `isAdmin()`, `isOperador()`
 |-------|--------|
 | Multi-tenant | `organizaciones` · `organizacion_user` (N:M con `users`) |
 | Acceso | `users` (`super_admin` \| `admin` \| `operador`) |
-| Padrón maestro | `tipos_vehiculo` · `tipos_servicio` · `tipo_servicio_tipo_vehiculo` (N:M) · `zonas` (con geometría) · `zona_servicios` · `zona_servicio_turnos` · `zona_servicio_horarios` · `vehiculos` · `vehiculos_log` |
+| Padrón maestro | `tipos_vehiculo` · `tipos_servicio` · `tipo_servicio_tipo_vehiculo` (N:M) · `zonas` (1:N de `tipos_servicio`, con geometría) · `zona_turnos` · `zona_horarios` · `vehiculos` · `vehiculos_log` |
 | Operación | `pesajes` (con `uuid` y cancelación) · `pesajes_log` |
 | Alertas | `alertas` · `config_alertas` (umbrales + horario operativo) |
 | Reportes | `reporte_configuraciones` · `reportes_programados` · `reporte_destinatarios` · `reportes_generados` |
@@ -137,8 +136,8 @@ Helpers en `User`: `isSuperAdmin()`, `isAdmin()`, `isOperador()`
 | `peso_tara_kg` en pesajes | Desnormalización intencional: se copia del padrón al ingreso para preservar historial si la tara cambia. |
 | `peso_neto_kg` calculado en Service | No es computed column SQL Server — permite log granular del campo en `pesajes_log` al editarlo. |
 | `activo` en lugar de `SoftDeletes` | El ABM admin necesita mostrar registros inactivos. `activo bit` es explícito, sin scopes globales. |
-| Relación `tipos_servicio` ↔ `zonas` es N:M (vía `zona_servicios`) | Una zona puede operar bajo varios servicios. Los turnos se configuran por combinación zona+servicio en `zona_servicio_turnos`. El formulario de pesaje filtra zonas por el servicio elegido. |
-| `zona_servicios` + `zona_servicio_turnos` (relación N:M zonas ↔ servicios) | Una zona se crea una sola vez. Los turnos se configuran por combinación zona+servicio. Evita duplicar zonas (ej: "Zona Sur Diurna" y "Zona Sur Nocturna"). `pesajes.turno` persiste el turno elegido; obligatorio cuando la combinación tiene turnos configurados. |
+| Relación `tipos_servicio` → `zonas` es 1:N (`zonas.tipo_servicio_id`) | Cada servicio tiene sus propias zonas; una zona pertenece a un único servicio. Los turnos y horarios se definen por zona (`zona_turnos` / `zona_horarios`). El formulario de pesaje filtra zonas por el servicio elegido. |
+| Zonas gestionadas dentro de cada servicio | La pantalla de Servicios (`/admin/tipos-servicio`) expande cada servicio para crear/editar sus zonas (con mapa, turnos y horarios). La misma área cubierta por dos servicios son dos zonas distintas. `pesajes.turno` persiste el turno elegido; obligatorio cuando la zona tiene turnos configurados. |
 | Edición auditada | Ambos roles editan con `motivo` obligatorio. Cada campo modificado genera una fila en `pesajes_log`. |
 
 ---

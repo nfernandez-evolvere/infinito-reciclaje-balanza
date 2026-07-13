@@ -2,83 +2,104 @@
 ## Sistema de Gestión de Balanza — Infinito Reciclaje
 
 **Dirigido a:** Administrador
-**Cuándo usarlo:** Referencia de cómo leer e interpretar el panel de control en tiempo real
+**Cuándo usarlo:** Referencia de cómo leer e interpretar el panel de control de la operación
 
 ---
 
 ## Para qué sirve el Dashboard
 
-El Dashboard es tu vista de control de la operación. Te muestra en una sola pantalla qué está pasando ahora mismo en el predio, cómo va el día y cómo viene el mes. Es la primera pantalla que ves cuando ingresás como administrador.
+El Dashboard es tu vista de control de la operación. Te muestra en una sola pantalla cómo viene el día, cómo viene el mes y —si querés— cualquier período que elijas. Es la primera pantalla que ves cuando ingresás como administrador.
 
 No reemplaza revisar los pesajes uno por uno — para eso está el módulo de Pesajes. El Dashboard te da la lectura rápida: si todo está bien, en 30 segundos lo sabés.
 
 ---
 
+## Cómo se actualiza
+
+El Dashboard se refresca **automáticamente cada 10 minutos**. Además, arriba a la derecha hay un botón que muestra la hora del último refresco ("Últ: 14:35") y te permite **actualizar manualmente** cuando quieras. No hace falta recargar la página del navegador.
+
+---
+
+## Los tres períodos: Hoy, Este mes y Personalizado
+
+El contenido del Dashboard está organizado en tres pestañas:
+
+| Pestaña | Qué muestra |
+|---------|-------------|
+| **Hoy** | La operación del día de hoy (desde las 00:00 hasta ahora) |
+| **Este mes** | Los acumulados del mes en curso, con el gráfico de evolución diaria |
+| **Personalizado** | Un rango de fechas que elegís vos (aparece solo cuando definís un rango en el filtro de período) |
+
+Cada pestaña muestra sus propios KPIs, mapa de calor y desgloses para ese período.
+
+Además, arriba hay un **filtro de período** (un panel colapsable en escritorio, un panel lateral en celular) donde elegís el rango personalizado. El botón de ayuda (?) al lado de las pestañas resume cómo se calculan los números.
+
+---
+
 ## Horario operativo
 
-El sistema usa un **horario operativo configurable** (por defecto **8:00 a 18:00**) para una sola cosa: la alarma de inactividad ("gap de pesajes"). Dentro de ese rango, si pasa demasiado tiempo sin pesajes, se genera una alarma; fuera de él, la ausencia de pesajes nunca genera alarma.
+El horario operativo (por defecto **8:00 a 18:00**) se usa para **una sola cosa**: la alarma de inactividad ("sin actividad" / gap de pesajes), que se evalúa una vez por día. Dentro de ese rango, si pasa demasiado tiempo sin pesajes, se genera una alarma; fuera de él, la ausencia de pesajes nunca genera alarma.
 
 Los KPIs y desgloses del Dashboard **no** dependen de este horario: cuentan todos los pesajes del día sin importar la hora.
 
-Podés ajustar el horario operativo en **Sistema → Alertas → Configuración**, en la tarjeta "Sin actividad en horario operativo".
+Podés ajustar el horario operativo en **Sistema → Alertas → Configuración**, en la tarjeta "Sin actividad en horario operativo". Ver [`modulo-alarmas.md`](modulo-alarmas.md).
 
 ---
 
-## Sección 1 — Alertas activas
+## Banner de alertas
 
-Esta sección aparece **solo cuando hay alertas** sin resolver. Está en la parte superior de la pantalla, con un color llamativo (naranja o rojo según el tipo).
+Arriba de todo, **solo cuando hay alarmas activas sin leer**, aparece un banner naranja que muestra la **cantidad** de alertas activas y un botón **Revisar** que te lleva al módulo de Alertas (Sistema → Alertas).
 
-Muestra:
-- Cantidad de alertas activas
-- Tipo de alerta (gap de pesajes, peso inusual, volumen diario atípico, frecuencia atípica por origen)
-- Un botón **Ver alertas** que te lleva al módulo de Alertas (Sistema → Alertas)
+El banner no detalla el tipo de cada alarma — para ver el detalle usá el botón Revisar. Si no hay alarmas activas, el banner no aparece.
 
-Si no hay alertas activas, esta sección no aparece y el resto del dashboard ocupa ese espacio.
+> **Importante:** el Dashboard **no** muestra una sección de "camiones en el predio ahora". El estado EN PREDIO de cada camión se consulta en el módulo de **Pesajes** (o en el Historial), filtrando por estado. Ver [`modulo-pesajes-admin.md`](modulo-pesajes-admin.md).
 
 ---
 
-## Sección 2 — Camiones en el predio ahora
+## KPIs del día (pestaña "Hoy")
 
-Muestra los camiones que **entraron pero todavía no salieron** (pesajes con estado EN PREDIO).
-
-Para cada camión muestra:
-- Patente y número interno
-- Tipo de servicio y origen
-- Hora de entrada
-- Tiempo transcurrido desde la entrada
-
-Esta sección se actualiza automáticamente. Si un operador registra un egreso, el camión desaparece de esta lista sin necesidad de recargar la página.
-
-**Cuándo prestar atención:** si un camión lleva más de 2 horas en el predio sin que se haya registrado su egreso, probablemente el operador se olvidó de marcarlo. Podés pedirle al operador que lo registre, o editarlo vos desde el módulo de Pesajes.
-
----
-
-## Sección 3 — KPIs del día
-
-Indicadores acumulados desde el inicio del día operativo (00:00 hasta ahora).
+Indicadores acumulados desde el inicio del día (00:00 hasta ahora). Cada KPI tiene un ícono de ayuda (?) y, al pasar el cursor sobre el porcentaje de variación, muestra la comparación contra el **mismo día del mes anterior**.
 
 | KPI | Qué mide |
 |-----|----------|
-| **Pesajes** | Cantidad total de pesajes registrados hoy |
-| **Toneladas netas** | Suma de kg netos de todos los pesajes, expresada en toneladas |
-| **Promedio por viaje** | Toneladas netas ÷ cantidad de pesajes |
-| **Horas operativas** | Horas transcurridas desde el primer pesaje del día |
+| **Pesajes hoy** | Cantidad total de pesajes registrados hoy |
+| **Toneladas netas** | Suma de kg netos de todos los pesajes del día, en toneladas |
+| **Promedio / viaje** | Toneladas netas promedio por pesaje |
+| **Último pesaje** | Minutos transcurridos desde el último pesaje registrado hoy (indica si la operación está activa) |
+| **kg / hectárea** | Kg netos por hectárea de zona de servicio (muestra "—" si no hay hectáreas cargadas) |
+| **kg / persona** | Kg netos por habitante de la zona de servicio (muestra "—" si no hay habitantes cargados) |
 
-Estos valores se actualizan con cada nuevo pesaje registrado por el operador.
-
----
-
-## Sección 4 — KPIs del mes
-
-Indicadores acumulados del mes en curso (del día 1 al día de hoy).
-
-Muestra los mismos indicadores que los KPIs del día, más una comparación con el mismo período del mes anterior cuando el dato está disponible.
+Debajo de los KPIs, **cuando hay al menos un pesaje en el día**, aparecen el mapa de calor y los desgloses (ver más abajo). Si todavía no hay pesajes hoy, se muestra un mensaje indicándolo.
 
 ---
 
-## Sección 5 — Evolución diaria (gráfico)
+## KPIs del mes (pestaña "Este mes")
 
-Gráfico de barras con los últimos 7 días. Cada barra muestra las toneladas netas registradas ese día.
+Indicadores acumulados del mes en curso (del día 1 al día de hoy). La comparación de variación es contra el **mismo período del mes anterior**.
+
+| KPI | Qué mide |
+|-----|----------|
+| **Días operativos** | Cantidad de días del mes con al menos un pesaje registrado |
+| **Pesajes del mes** | Total de pesajes desde el 1° del mes |
+| **Toneladas del mes** | Suma de toneladas netas acumuladas en el mes |
+| **kg / hectárea** | Kg netos acumulados por hectárea de zona de servicio |
+| **kg / persona** | Kg netos acumulados por habitante de la zona de servicio |
+
+La pestaña "Este mes" incluye además el **gráfico de evolución diaria** (ver abajo).
+
+---
+
+## Período personalizado (pestaña "Personalizado")
+
+Cuando elegís un rango de fechas en el filtro de período, aparece la pestaña **Personalizado** con los KPIs de ese rango (pesajes, toneladas netas, días operativos, promedio por día, kg/hectárea y kg/persona), su gráfico de evolución y los mismos desgloses y mapa de calor que las otras pestañas.
+
+Es la forma de analizar un tramo específico (una semana, un trimestre, un evento puntual) sin salir del Dashboard.
+
+---
+
+## Gráfico de evolución diaria
+
+En las pestañas "Este mes" y "Personalizado" hay un gráfico de barras con las **toneladas netas de cada día** del período. Incluye una línea de promedio.
 
 Te permite ver de un vistazo si hay días con actividad inusualmente alta o baja. Un día con una barra muy corta (pocas toneladas) puede indicar:
 - Día feriado o paro
@@ -87,38 +108,48 @@ Te permite ver de un vistazo si hay días con actividad inusualmente alta o baja
 
 ---
 
-## Sección 6 — Por origen
+## Mapa de calor por zona
 
-Panel con el desglose de la operación del día por origen, acompañado de un gráfico. En la pantalla el panel aparece rotulado **"Por Zona"** (origen y zona son el mismo dato: el admin lo gestiona como "Zona" y la columna lo muestra como "Origen").
+Cada pestaña incluye un **mapa de calor** (choropleth) que pinta las zonas según su intensidad de recolección en el período. Para cada zona calcula cuatro métricas sobre el peso neto: **toneladas**, **viajes**, **per cápita** (kg/habitante) y **densidad** (kg/hectárea).
 
-| Columna | Descripción |
-|---------|-------------|
-| Origen | Nombre del origen |
-| Viajes | Cantidad de pesajes registrados para ese origen hoy |
-| Toneladas | Suma de kg netos del origen, en toneladas |
-| kg/viaje | Promedio de kg netos por pesaje |
-| kg/ha | Kg por hectárea (si la zona tiene hectáreas cargadas; si no, muestra "—") |
-| kg/hab | Kg por habitante (si la zona tiene habitantes cargados; si no, muestra "—") |
-| Porcentaje | Proporción respecto al total del día |
+- Las zonas con polígono dibujado se pintan en el mapa; el resto se listan aparte.
+- Si hay más de un servicio, un selector permite **filtrar el mapa por servicio** (cada zona pertenece a un servicio).
+- El mapa suma todos los turnos de cada zona.
 
 ---
 
-## Sección 7 — Por tipo de vehículo
+## Desglose por tipo de vehículo (distribución de flota)
 
-Panel similar al de orígenes, pero desglosado por tipo de vehículo (Compactador, Volcador, Volquete, Particular).
+Panel con la operación del período desglosada por tipo de vehículo (Compactador, Volcador, Volquete, Particular…), con un gráfico de dona. Para cada tipo muestra viajes, toneladas, kg/viaje y porcentaje del total.
 
 Útil para verificar que la distribución de la flota está dentro de los parámetros esperados.
 
 ---
 
+## Desglose por zona y turno
+
+Panel con la operación del período desglosada por zona, acompañado de un gráfico. **Una misma zona puede ocupar varias filas, una por turno.** Si hay más de un servicio, un selector permite elegir de qué servicio ver las zonas.
+
+| Columna | Descripción |
+|---------|-------------|
+| Zona y turno | Nombre de la zona (con el turno, si corresponde) |
+| Viajes | Cantidad de pesajes de esa zona/turno en el período |
+| Toneladas | Suma de kg netos, en toneladas |
+| kg/viaje | Promedio de kg netos por pesaje |
+| kg/ha | Kg por hectárea (si la zona tiene hectáreas cargadas; si no, "—") |
+| kg/hab | Kg por habitante (si la zona tiene habitantes cargados; si no, "—") |
+| Porcentaje | Proporción respecto al total del período |
+
+---
+
 ## Con qué frecuencia revisar el Dashboard
 
-Durante el horario operativo (8:00–18:00) se recomienda revisarlo **al menos una vez por hora**. Las alertas aparecen automáticamente, pero el sistema no envía notificaciones fuera de la pantalla — si no abrís el Dashboard, no sabés que hay una alerta.
+Durante el horario operativo (por defecto 8:00–18:00) se recomienda revisarlo **al menos una vez por hora**. El banner de alertas aparece automáticamente, pero el sistema **no envía notificaciones por fuera de la pantalla** — si no abrís el Dashboard (o el módulo de Alertas), no te enterás de que hay una alarma.
 
 Una revisión rápida de 30 segundos alcanza para detectar:
-- Camiones que llevan demasiado tiempo en el predio
-- Alertas activas
-- Caídas repentinas en la actividad (posible gap de pesajes)
+- Alarmas activas (banner naranja)
+- Caídas o picos repentinos en la actividad del día
+- Cómo viene la evolución del mes respecto al mes anterior
 
 ---
 
@@ -126,34 +157,37 @@ Una revisión rápida de 30 segundos alcanza para detectar:
 
 | Sección | Qué hacés si algo llama la atención |
 |---------|-------------------------------------|
-| Alertas activas | Ir a Sistema → Alertas, revisar cada alerta y marcarla como resuelta |
-| Camiones en predio | Hablar con el operador para que registre el egreso, o hacerlo vos desde Pesajes |
+| Banner de alertas | Ir a Sistema → Alertas, revisar cada alarma y marcarla como resuelta |
 | KPIs del día muy bajos | Verificar con el operador si hay algún problema operativo o de sistema |
 | Gráfico con día en cero | Investigar si fue feriado, paro o problema técnico |
-| Origen con actividad inusual | Cruzar con el log de Pesajes para ver qué pesajes corresponden |
+| Zona con actividad inusual | Cruzar con el log de Pesajes para ver qué pesajes corresponden |
+| Camiones sin egreso | Ir a **Pesajes** y filtrar por estado EN PREDIO (el Dashboard no lo lista) |
 
 ---
 
 ## Preguntas frecuentes
 
 **¿El Dashboard se actualiza solo o tengo que recargar?**
-Se actualiza automáticamente. No hace falta que recargues la página.
+Se actualiza automáticamente cada 10 minutos. También podés forzar un refresco con el botón de arriba a la derecha. No hace falta recargar la página del navegador.
 
-**¿Puedo ver el Dashboard de días anteriores?**
-No directamente. El Dashboard siempre muestra el estado actual. Para ver la actividad de días anteriores, usar el módulo de Reportes o el log de Pesajes con filtros por fecha.
+**¿Puedo ver el Dashboard de días o períodos anteriores?**
+Sí. Además de "Hoy" y "Este mes", el filtro de período te deja elegir un **rango personalizado** de fechas y ver sus KPIs, evolución y desgloses en la pestaña "Personalizado". Para el detalle pesaje por pesaje, usá el módulo de Pesajes o de Reportes.
+
+**¿Dónde veo qué camiones están en el predio ahora?**
+En el módulo de **Pesajes** (o en el Historial), filtrando por estado EN PREDIO. El Dashboard no tiene una sección de camiones en predio.
 
 **¿Qué pasa si el operador no registró pesajes en todo el día?**
-Los KPIs del día aparecen en cero y se genera una alerta de tipo "gap de pesajes" durante el horario operativo. El Dashboard lo muestra en la sección de alertas.
+Los KPIs del día aparecen en cero. Si además fue un día hábil (lunes a sábado) dentro del horario operativo, a las 00:30 del día siguiente el sistema genera una alarma de tipo "sin actividad" (gap de pesajes). Ver [`modulo-alarmas.md`](modulo-alarmas.md).
 
 **¿Los KPIs del mes incluyen el día de hoy?**
 Sí, incluyen todos los datos desde el día 1 del mes hasta el momento en que estás viendo el Dashboard.
 
 **¿Las toneladas son netas o brutas?**
-Todos los indicadores del Dashboard trabajan con **toneladas netas** (peso bruto menos tara).
+Todos los indicadores del Dashboard trabajan con **toneladas netas** (peso bruto menos tara). Los pesajes cancelados no se cuentan.
 
-**¿Puedo filtrar el Dashboard por origen o por tipo de servicio?**
-No. El Dashboard muestra la operación total. Para análisis filtrados, usar el módulo de Reportes.
+**¿Puedo filtrar el Dashboard?**
+Por **período** sí (Hoy / Este mes / rango personalizado), y el **mapa de calor** se puede filtrar por servicio. Para desgloses por servicio, tipo de vehículo o zona con más detalle, usá el módulo de Reportes.
 
 ---
 
-*Documento actualizado: 18/06/2026 | Versión: 1.2*
+*Documento actualizado: 13/07/2026 | Versión: 2.0*

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\ReporteProgramado;
 use App\Repositories\ReporteDestinatarioRepository;
 use App\Repositories\ReporteProgramadoRepository;
+use App\Support\ReporteSecciones;
 use Carbon\Carbon;
 
 class ReporteProgramadoService
@@ -37,29 +38,52 @@ class ReporteProgramadoService
         $this->programadoRepository->delete($programado);
     }
 
+    public function toggleActivo(ReporteProgramado $programado): ReporteProgramado
+    {
+        return $this->programadoRepository->update($programado, ['activo' => ! $programado->activo]);
+    }
+
     /**
-     * Período que cubre el reporte según la frecuencia del programado.
+     * Período que cubre el reporte: el intervalo completo anterior a la corrida.
+     * Mensual anclado el 1/08 cubre julio entero (1/07 00:00 → 31/07 23:59);
+     * el día de la corrida nunca se incluye (a las 08:00 casi no tiene datos).
+     * Sin $corrida (descargas manuales, "enviar ahora") se calcula desde hoy.
      *
      * @return array{0: Carbon, 1: Carbon} [$desde, $hasta]
      */
-    public function calcularPeriodo(string $frecuencia): array
+    public function calcularPeriodo(string $frecuencia, ?Carbon $corrida = null): array
     {
-        return match ($frecuencia) {
-            'diaria'    => [now()->subDay()->startOfDay(),    now()->subDay()->endOfDay()],
-            'semanal'   => [now()->subDays(7)->startOfDay(),  now()->endOfDay()],
-            'quincenal' => [now()->subDays(15)->startOfDay(), now()->endOfDay()],
-            default     => [now()->subDays(30)->startOfDay(), now()->endOfDay()], // mensual
+        $corrida ??= now();
+        $hasta = $corrida->copy()->subDay()->endOfDay();
+
+        $desde = match ($frecuencia) {
+            'diaria'    => $corrida->copy()->subDay(),
+            'semanal'   => $corrida->copy()->subDays(7),
+            'quincenal' => $corrida->copy()->subDays(15),
+            default     => $corrida->copy()->subMonthNoOverflow(), // mensual
         };
+
+        return [$desde->startOfDay(), $hasta];
     }
 
-    public function calcularProximoEnvio(string $frecuencia): Carbon
+    /**
+     * Próxima corrida a partir de la que acaba de vencer (proximo_envio_at):
+     * la fecha elegida como primer envío define la fase del cronograma (elegís
+     * el 5 → corre todos los 5). El loop absorbe downtime prolongado sin
+     * disparar una ráfaga de envíos atrasados. Mensual recupera el día ancla
+     * de inicio_en tras meses cortos (31/01 → 28/02 → 31/03).
+     */
+    public function calcularProximoEnvio(ReporteProgramado $programado): Carbon
     {
-        return match ($frecuencia) {
-            'diaria'    => now()->addDay()->setTime(8, 0),
-            'semanal'   => now()->next(Carbon::MONDAY)->setTime(8, 0),
-            'quincenal' => $this->proximoQuincenal(),
-            default     => now()->addMonthNoOverflow()->startOfMonth()->setTime(8, 0), // mensual
-        };
+        // Hora normalizada ANTES de iterar: normalizar después podría retroceder
+        // el resultado a antes de now() (anclas legacy con hora distinta de las 08:00).
+        $proximo = ($programado->proximo_envio_at ?? now())->copy()->setTime(8, 0);
+
+        do {
+            $proximo = $this->sumarIntervalo($proximo, $programado->frecuencia, $programado->inicio_en?->day);
+        } while ($proximo->lte(now()));
+
+        return $proximo;
     }
 
     /**
@@ -70,15 +94,25 @@ class ReporteProgramadoService
     public function avanzarProximoEnvio(ReporteProgramado $programado): void
     {
         $this->programadoRepository->update($programado, [
-            'proximo_envio_at' => $this->calcularProximoEnvio($programado->frecuencia),
+            'proximo_envio_at' => $this->calcularProximoEnvio($programado),
         ]);
     }
 
-    private function proximoQuincenal(): Carbon
+    private function sumarIntervalo(Carbon $desde, string $frecuencia, ?int $diaAncla): Carbon
     {
-        return now()->day < 15
-            ? now()->setDay(15)->setTime(8, 0)
-            : now()->addMonthNoOverflow()->startOfMonth()->setTime(8, 0);
+        if ($frecuencia === 'mensual') {
+            $siguiente = $desde->copy()->addMonthNoOverflow();
+
+            // El día ancla (del primer envío) se reimpone cada mes: sin esto,
+            // un ancla 31 quedaría clavada en 28 después de pasar por febrero.
+            return $siguiente->setDay(min($diaAncla ?? $desde->day, $siguiente->daysInMonth));
+        }
+
+        return match ($frecuencia) {
+            'diaria'  => $desde->copy()->addDay(),
+            'semanal' => $desde->copy()->addDays(7),
+            default   => $desde->copy()->addDays(15), // quincenal
+        };
     }
 
     private function prepareData(array $validated, ?ReporteProgramado $existing = null): array
@@ -100,14 +134,34 @@ class ReporteProgramadoService
             'formatos' => $formatos ?: ['pdf'],
             'revision' => $validated['revision'] ?? 'heredar',
         ];
-        unset($validated['formatos'], $validated['revision']);
 
+        // 'secciones' también vive en opciones: solo cuando el programado las
+        // personaliza (informe mensual); sin personalizar se remueve la clave y
+        // el programado vuelve a heredar la configuración general. Al personalizar,
+        // una lista pdf ausente significa "sin páginas de contenido" ([]), nunca
+        // "todas" — por eso no se pasa null a sanitizar.
+        $personaliza = ($validated['secciones_personalizadas'] ?? false) && $validated['tipo'] === 'informe_mensual';
+        if ($personaliza) {
+            $opciones['secciones'] = ReporteSecciones::sanitizar([
+                'pdf'   => $validated['secciones']['pdf'] ?? [],
+                'excel' => $validated['secciones']['excel'] ?? [],
+            ]);
+        } else {
+            unset($opciones['secciones']);
+        }
+        unset($validated['formatos'], $validated['revision'], $validated['secciones'], $validated['secciones_personalizadas']);
+
+        // La fecha elegida como primer envío ancla el cronograma: el primer
+        // disparo es ese día a las 08:00 (si ya pasaron, el scheduler lo levanta
+        // en su próximo tick). En edición el modal manda la fecha del próximo
+        // envío prefijada: guardar sin tocarla re-ancla al mismo día — editar
+        // ya no re-dispara el envío.
         return [
             ...$validated,
             'destinatarios'    => $destinatarios,
             'opciones'         => $opciones,
             'cron_expresion'   => $this->cronDesdeFrecuencia($validated['frecuencia']),
-            'proximo_envio_at' => now()->addMinute(),
+            'proximo_envio_at' => Carbon::parse($validated['inicio_en'])->setTime(8, 0),
         ];
     }
 

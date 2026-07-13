@@ -42,6 +42,7 @@ GitHub Actions.
 | Topología prod | **Un host Linux + reverse proxy** | Escala del proyecto; blue-green por swap de upstream |
 | CI/CD | **GitHub Actions → GHCR → SSH** | El repo ya está en GitHub; GHCR es gratis para el repo |
 | Cola + scheduler | **Un único worker** fuera del blue-green | Evita doble-scheduling de reportes/alertas contra la DB compartida |
+| WebSockets en vivo | **Reverb** en un contenedor único persistente, fuera del blue-green | Notificaciones de reportes en tiempo real; el edge proxea `/app`. Detalle en [§14](#14-websockets-en-tiempo-real-reverb) |
 | Generación de PDF | **Browsershot** (Chromium + Node en runtime) | Es lo que ya usa `app/Services/PdfService.php` |
 
 ---
@@ -52,14 +53,14 @@ GitHub Actions.
 .
 ├── Dockerfile                     # imagen multi-stage de producción
 ├── .dockerignore                  # qué NO entra al contexto de build
-├── .env.docker.example            # plantilla de .env.prod (copiar en el server)
-├── .env.staging.example           # plantilla de .env.staging (copiar en el server)
+├── .env.docker.example            # plantilla de .env.prod (incluye bloque REVERB_*) (copiar en el server)
+├── .env.staging.example           # plantilla de .env.staging (incluye bloque REVERB_*) (copiar en el server)
 ├── .env.edge.example              # plantilla de .env.edge: dominios del edge (copiar en el server)
 │
 ├── compose.dev.yaml               # desarrollo: bind mount + Vite dev server + SQL Server del host
 ├── compose.prod-local.yaml        # testear imagen de producción localmente (sin bind mounts, APP_ENV=production)
 ├── compose.prod.yaml              # prod/staging: stack WEB de un color — parametrizado por ENV_PREFIX/COLOR/HTTP_PORT/TAG
-├── compose.worker.yaml            # prod/staging: cola + scheduler — parametrizado por ENV_PREFIX/TAG
+├── compose.worker.yaml            # prod/staging: cola + scheduler + servidor Reverb (WS) — parametrizado por ENV_PREFIX/TAG
 ├── compose.edge.yaml              # nginx router persistente (único, maneja ambos entornos)
 │
 ├── docker/
@@ -72,7 +73,8 @@ GitHub Actions.
 │   ├── supervisor/web.conf        # grupo WEB: nginx + php-fpm
 │   ├── supervisor/worker.conf     # grupo WORKER: queue + scheduler
 │   └── edge/
-│       ├── default.conf.template  # nginx EDGE: dos server{} (prod + staging) — server_name = ${APP_DOMAIN}/${STAGE_DOMAIN}
+│       ├── default.conf.template  # nginx EDGE: dos server{} (prod + staging) — server_name = ${APP_DOMAIN}/${STAGE_DOMAIN};
+│       │                          # cada uno con location / (app) y location /app (WS → contenedor reverb)
 │       ├── prod/
 │       │   ├── upstream-blue.conf   # upstream balanza_prod_app → balanza-prod-app-blue
 │       │   ├── upstream-green.conf  # upstream balanza_prod_app → balanza-prod-app-green
@@ -147,6 +149,11 @@ La imagen trae **dos grupos de supervisord**, seleccionables por el `CMD`:
 CMD por defecto = supervisord -c /etc/supervisor/conf.d/web.conf   (grupo web)
 El worker lo sobreescribe:  command: [..., worker.conf, ...]
 ```
+
+> **Reverb no es un grupo de supervisord.** El contenedor `reverb` (definido junto al worker
+> en `compose.worker.yaml`) corre la misma imagen pero sobreescribe el CMD por un proceso
+> único: `php artisan reverb:start --host=0.0.0.0 --port=8080`. No usa supervisord ni nginx,
+> por eso también lleva `healthcheck: disable: true`. Ver [§14](#14-websockets-en-tiempo-real-reverb).
 
 > El **scheduler** corre dentro del grupo worker. El deploy anterior no lo corría,
 > así que los reportes programados (cada 15 min) y la detección de alertas diaria
@@ -327,13 +334,16 @@ Cada entorno tiene su propio par blue/green y su propio worker.
                      ▼                     ▼
          ┌──────────────────┐  ┌──────────────────────┐  compose.worker.yaml
          │ balanza-prod-    │  │ balanza-staging-      │  ENV_PREFIX=prod|staging
-         │ worker           │  │ worker                │  queue:work + schedule:work
-         └────────┬─────────┘  └──────────┬────────────┘
+         │  worker + reverb │  │  worker + reverb      │  worker: queue + schedule
+         └────────┬─────────┘  └──────────┬────────────┘  reverb: reverb:start (WS)
                   └───────────────┬────────┘
                                   ▼
               SQL Server externo compartido
               (prefijo de tabla por entorno: prod_ / stg_)
 ```
+
+> El edge también proxea el `location /app` de cada dominio al contenedor `reverb` del
+> entorno (WebSocket persistente, fuera del blue-green). Ver [§14](#14-websockets-en-tiempo-real-reverb).
 
 ### Nombres de contenedores y puertos
 
@@ -345,6 +355,8 @@ Cada entorno tiene su propio par blue/green y su propio worker.
 | staging | green | `balanza-staging-app-green` | `127.0.0.1:8084` |
 | prod | — | `balanza-prod-worker` | — |
 | staging | — | `balanza-staging-worker` | — |
+| prod | — | `balanza-prod-reverb` | — (interno `:8080`, vía edge `/app`) |
+| staging | — | `balanza-staging-reverb` | — (interno `:8080`, vía edge `/app`) |
 | edge | — | `balanza-edge` | `0.0.0.0:80` |
 
 ### Variables de parametrización de `compose.prod.yaml` y `compose.worker.yaml`
@@ -414,9 +426,14 @@ por SSH). El segundo argumento determina el entorno; por defecto es `prod`.
 6. CUTOVER:  cp docker/edge/<ENV_PREFIX>/upstream-<inactivo>.conf active-upstream.conf
              docker exec balanza-edge nginx -t && nginx -s reload
 7. Baja el color viejo
-8. Actualiza el worker del entorno a la imagen nueva
+8. Actualiza el stack worker del entorno a la imagen nueva (`compose.worker.yaml` → worker **y** reverb)
 9. docker image prune
 ```
+
+> **El paso 8 también recrea el contenedor `reverb`** (está en el mismo `compose.worker.yaml`).
+> El reinicio corta las conexiones WS un instante, pero Echo reconecta solo y la novedad ya
+> quedó persistida en la campana. Ocurre **después** del cutover, así que no afecta el tráfico
+> web. Ver [§14](#14-websockets-en-tiempo-real-reverb).
 
 **Ejemplos de invocación:**
 
@@ -663,10 +680,12 @@ Variables críticas de `.env.prod`:
 | `DB_HOST` | IP o hostname del SQL Server compartido |
 | `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | credenciales del SQL Server |
 | `RESEND_KEY` | API key de Resend para el envío de emails |
+| `REVERB_APP_ID`, `REVERB_APP_KEY`, `REVERB_APP_SECRET` | credenciales del WebSocket (Reverb). Generar valores propios por entorno; `REVERB_HOST` ya viene seteado al contenedor (`balanza-prod-reverb`) en el `.example`. Ver [§14](#14-websockets-en-tiempo-real-reverb) |
 
 `.env.staging` es igual pero **nunca comparte base ni clave** con prod: `APP_URL` de
-staging, `DB_DATABASE` propia, `DB_TABLE_PREFIX=stg_` y un `APP_KEY` distinto (generá
-otro con el mismo comando). Ver `.env.docker.example` / `.env.staging.example` y la
+staging, `DB_DATABASE` propia, `DB_TABLE_PREFIX=stg_`, un `APP_KEY` distinto y sus propias
+`REVERB_APP_*` (con `REVERB_HOST=balanza-staging-reverb`). Generá las claves con el mismo
+comando. Ver `.env.docker.example` / `.env.staging.example` y la
 [sección 11](#11-secrets-y-variables-de-entorno) para la lista completa.
 
 **2.4 — Crear la red compartida** (el edge la necesita para arrancar):
@@ -719,8 +738,9 @@ GHCR_TOKEN="$GHCR_TOKEN" GHCR_USER="<usuario-github>" \
 ```
 
 Hace pull de la imagen, levanta blue en `:8081`, health-check en `/up`, conmuta el edge
-al upstream de prod y levanta el worker de prod. Después, **por separado**, aplicás las
-migraciones (siempre manuales — la base es compartida):
+al upstream de prod y levanta el stack worker de prod (`worker` **y** `reverb`). El edge ya
+sirve el `location /app` hacia el contenedor `reverb` desde que se recreó en la fase 2.6.
+Después, **por separado**, aplicás las migraciones (siempre manuales — la base es compartida):
 
 ```bash
 docker exec balanza-prod-app-blue php artisan migrate --force
@@ -793,8 +813,12 @@ environments. Si están en VPS distintas, cada environment tiene sus propios val
 | `LOG_LEVEL` | `warning` | `debug` |
 | `MAIL_MAILER` | Resend (emails reales) | Mailtrap o Resend con dominio de test |
 | `APP_KEY` | clave propia de prod | clave propia de staging (distinta) |
+| `BROADCAST_CONNECTION` | `reverb` | `reverb` |
+| `REVERB_APP_ID` / `KEY` / `SECRET` | claves propias de prod | claves propias de staging (distintas) |
+| `REVERB_HOST` | `balanza-prod-reverb` | `balanza-staging-reverb` |
 
-Ver `.env.docker.example` y `.env.staging.example` para la lista completa.
+Ver `.env.docker.example` y `.env.staging.example` para la lista completa (incluido el bloque
+`REVERB_*` y las variables opcionales `REVERB_PUBLIC_*`, detalladas en [§14](#14-websockets-en-tiempo-real-reverb)).
 
 ### `.env.edge` (en el server, NO se commitea)
 
@@ -824,6 +848,8 @@ no lo toca (no está trackeado). Ver `.env.edge.example` y [§7](#7-los-dos-ngin
 | `supervisorctl` devuelve `does not include supervisorctl section` | faltaban `[unix_http_server]` y `[supervisorctl]` en el conf | ya incluidas en `web.conf` y `worker.conf`; verificar con `docker exec <contenedor> supervisorctl status` |
 | Emails/reportes no se envían | worker no levantado, scheduler no corriendo, o `RESEND_KEY` no seteada | ver diagnóstico de emails más abajo |
 | Reportes duplicados | dos schedulers corriendo | el scheduler va **solo** en el worker único, no en blue/green |
+| Notificaciones en vivo no llegan (toast/campana no se refrescan sin recargar) | contenedor `reverb` caído, el edge no proxea `/app`, o `REVERB_APP_*` no matchean entre `.env.{env}` y el contenedor | la campana es la capa durable (best-effort el WS); diagnóstico en [§14 Troubleshooting](#14-websockets-en-tiempo-real-reverb) |
+| `curl /app/test` da 502 en el edge | contenedor `reverb` no levantado, o el edge no se recreó tras cambiar el template | levantar el stack worker (`compose.worker.yaml up -d`) y recrear el edge — [§14](#14-websockets-en-tiempo-real-reverb) |
 | El cutover no cambia el tráfico | edge no recargó | `docker exec balanza-edge nginx -t && docker exec balanza-edge nginx -s reload` |
 | Cambié el dominio / `default.conf.template` / `compose.edge.yaml` y no se aplica | el template solo se renderiza al **iniciar** el contenedor; un deploy no recrea el edge y `nginx -s reload` no re-ejecuta `envsubst` | recrear el edge: `docker compose -p app-edge -f compose.edge.yaml up -d` |
 | `nginx -t` falla con `server_name ;` en el edge | `APP_DOMAIN` o `STAGE_DOMAIN` vacíos/ausentes en `.env.edge` | completar **ambas** variables en `.env.edge` y recrear el edge |
@@ -864,9 +890,10 @@ cat docker/edge/staging/active-upstream.conf
 # Estado de todos los contenedores del proyecto
 docker ps --filter name=balanza --format "table {{.Names}}\t{{.Status}}\t{{.Image}}"
 
-# Logs de un color / del worker / del edge (ejemplos con prod)
+# Logs de un color / del worker / del reverb / del edge (ejemplos con prod)
 docker logs -f balanza-prod-app-blue
 docker logs -f balanza-prod-worker
+docker logs -f balanza-prod-reverb
 docker logs -f balanza-edge
 
 # Reintentar jobs fallidos
@@ -965,8 +992,13 @@ Plantillas: `.env.docker.example` (prod) y `.env.staging.example`.
 
 ### Deploy
 
+En deploys automáticos **no hay que hacer nada manual**: el paso 8 de `deploy.sh`
+([§8](#8-el-script-de-deploy)) recrea el stack worker entero (`worker` + `reverb`) con la
+imagen nueva, después del cutover. Los comandos de abajo son para el primer deploy u
+operación manual:
+
 ```bash
-# El stack worker ahora incluye el contenedor reverb. Levantarlo/actualizarlo:
+# El stack worker incluye el contenedor reverb. Levantarlo/actualizarlo a mano:
 ENV_PREFIX=prod    TAG=<sha> docker compose -p prod-worker    -f compose.worker.yaml up -d
 ENV_PREFIX=staging TAG=<sha> docker compose -p staging-worker -f compose.worker.yaml up -d
 

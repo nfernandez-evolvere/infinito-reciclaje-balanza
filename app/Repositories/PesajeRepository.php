@@ -28,7 +28,7 @@ class PesajeRepository
 
     public function paraDesglosePorZona(Carbon $desde, Carbon $hasta): Collection
     {
-        return Pesaje::with('zona')
+        return Pesaje::with('zona.tipoServicio')
             ->whereDate('created_at', '>=', $desde)
             ->whereDate('created_at', '<=', $hasta)
             ->where('estado', '!=', 'Cancelado')
@@ -121,7 +121,7 @@ class PesajeRepository
 
     public function paraReporte(Carbon $desde, Carbon $hasta, array $filtros = []): Collection
     {
-        return Pesaje::with(['zona', 'vehiculo.tipoVehiculo', 'tipoServicio', 'operador'])
+        return Pesaje::with(['zona.tipoServicio', 'vehiculo.tipoVehiculo', 'tipoServicio', 'operador'])
             ->whereDate('created_at', '>=', $desde)
             ->whereDate('created_at', '<=', $hasta)
             ->where('estado', '!=', 'Cancelado')
@@ -207,6 +207,10 @@ class PesajeRepository
             ->when($filtros['operario_id'] ?? null, fn ($q, $id) => $q->where('operador_id', $id))
             ->when($filtros['zona_id'] ?? null, fn ($q, $id) => $q->where('zona_id', $id))
             ->when($filtros['tipo_servicio_id'] ?? null, fn ($q, $id) => $q->where('tipo_servicio_id', $id))
+            ->when(
+                $filtros['tipo_vehiculo_id'] ?? null,
+                fn ($q, $id) => $q->whereHas('vehiculo', fn ($v) => $v->where('tipo_vehiculo_id', $id))
+            )
             ->when($filtros['solo_alerta'] ?? null, fn ($q) => $q->where('alerta_peso', true))
             ->when($filtros['solo_editados'] ?? null, fn ($q) => $q->where('editado', true))
             // Universo de "Modificaciones": pesajes editados o cancelados, con sub-filtro por tipo.

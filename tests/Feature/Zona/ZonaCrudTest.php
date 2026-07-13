@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Zona;
 
+use App\Models\Pesaje;
+use App\Models\TipoServicio;
 use App\Models\Zona;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -11,35 +13,29 @@ class ZonaCrudTest extends TestCase
 {
     use RefreshDatabase;
 
+    private const INDEX = 'admin.tipos-servicio.index';
+
+    private TipoServicio $servicio;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Cada zona pertenece a un servicio. Las zonas se gestionan dentro de él.
+        $this->servicio = TipoServicio::factory()->create();
+    }
+
     private function payload(array $overrides = []): array
     {
         return array_merge([
-            'nombre'     => 'Zona Norte',
-            'hectareas'  => 250.5,
-            'barrios'    => 8,
-            'habitantes' => 15000,
+            'tipo_servicio_id' => $this->servicio->id,
+            'nombre'           => 'Zona Norte',
+            'hectareas'        => 250.5,
+            'barrios'          => 8,
+            'habitantes'       => 15000,
         ], $overrides);
     }
 
     // ── Acceso ────────────────────────────────────────────────────────
-
-    #[Test]
-    public function solo_admin_accede_al_index(): void
-    {
-        $this->actingAs($this->operador())
-            ->get(route('admin.zonas.index'))
-            ->assertForbidden();
-
-        $this->actingAs($this->admin())
-            ->get(route('admin.zonas.index'))
-            ->assertOk();
-    }
-
-    #[Test]
-    public function guest_es_redirigido_al_login(): void
-    {
-        $this->get(route('admin.zonas.index'))->assertRedirect(route('login'));
-    }
 
     #[Test]
     public function operador_no_puede_crear_zona(): void
@@ -49,19 +45,11 @@ class ZonaCrudTest extends TestCase
             ->assertForbidden();
     }
 
-    // ── Index ─────────────────────────────────────────────────────────
-
     #[Test]
-    public function index_lista_zonas_existentes(): void
+    public function guest_no_puede_crear_zona(): void
     {
-        Zona::factory()->create(['nombre' => 'Zona Norte']);
-        Zona::factory()->create(['nombre' => 'Zona Sur']);
-
-        $this->actingAs($this->admin())
-            ->get(route('admin.zonas.index'))
-            ->assertOk()
-            ->assertSee('Zona Norte')
-            ->assertSee('Zona Sur');
+        $this->post(route('admin.zonas.store'), $this->payload())
+            ->assertRedirect(route('login'));
     }
 
     // ── Store ─────────────────────────────────────────────────────────
@@ -76,14 +64,15 @@ class ZonaCrudTest extends TestCase
                 'barrios'    => 5,
                 'habitantes' => 8000,
             ]))
-            ->assertRedirect(route('admin.zonas.index'));
+            ->assertRedirect(route(self::INDEX));
 
         $this->assertDatabaseHas('zonas', [
-            'nombre'     => 'Zona Centro',
-            'hectareas'  => 100.0,
-            'barrios'    => 5,
-            'habitantes' => 8000,
-            'activo'     => true,
+            'tipo_servicio_id' => $this->servicio->id,
+            'nombre'           => 'Zona Centro',
+            'hectareas'        => 100.0,
+            'barrios'          => 5,
+            'habitantes'       => 8000,
+            'activo'           => true,
         ]);
     }
 
@@ -92,13 +81,26 @@ class ZonaCrudTest extends TestCase
     {
         $this->actingAs($this->admin())
             ->post(route('admin.zonas.store'), [
-                'nombre'     => 'Zona Mínima',
-                'hectareas'  => null,
-                'barrios'    => null,
-                'habitantes' => null,
+                'tipo_servicio_id' => $this->servicio->id,
+                'nombre'           => 'Zona Mínima',
+                'hectareas'        => null,
+                'barrios'          => null,
+                'habitantes'       => null,
             ])
-            ->assertRedirect(route('admin.zonas.index'))
+            ->assertRedirect(route(self::INDEX))
             ->assertSessionHasNoErrors();
+    }
+
+    #[Test]
+    public function store_validates_tipo_servicio_required_and_exists(): void
+    {
+        $this->actingAs($this->admin())
+            ->post(route('admin.zonas.store'), $this->payload(['tipo_servicio_id' => null]))
+            ->assertSessionHasErrors('tipo_servicio_id');
+
+        $this->actingAs($this->admin())
+            ->post(route('admin.zonas.store'), $this->payload(['tipo_servicio_id' => 999999]))
+            ->assertSessionHasErrors('tipo_servicio_id');
     }
 
     #[Test]
@@ -110,13 +112,27 @@ class ZonaCrudTest extends TestCase
     }
 
     #[Test]
-    public function store_validates_nombre_unique(): void
+    public function store_validates_nombre_unique_dentro_del_servicio(): void
     {
-        Zona::factory()->create(['nombre' => 'Zona Norte']);
+        Zona::factory()->create(['tipo_servicio_id' => $this->servicio->id, 'nombre' => 'Zona Norte']);
 
         $this->actingAs($this->admin())
             ->post(route('admin.zonas.store'), $this->payload(['nombre' => 'Zona Norte']))
             ->assertSessionHasErrors('nombre');
+    }
+
+    #[Test]
+    public function store_permite_mismo_nombre_en_otro_servicio(): void
+    {
+        $otroServicio = TipoServicio::factory()->create();
+        Zona::factory()->create(['tipo_servicio_id' => $otroServicio->id, 'nombre' => 'Zona Norte']);
+
+        $this->actingAs($this->admin())
+            ->post(route('admin.zonas.store'), $this->payload(['nombre' => 'Zona Norte']))
+            ->assertRedirect(route(self::INDEX))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame(2, Zona::withoutGlobalScopes()->where('nombre', 'Zona Norte')->count());
     }
 
     #[Test]
@@ -135,19 +151,114 @@ class ZonaCrudTest extends TestCase
             ->assertSessionHasErrors('habitantes');
     }
 
+    #[Test]
+    public function store_acepta_los_bordes_validos_de_los_rangos(): void
+    {
+        // El valor exacto del límite es válido: min:0 acepta 0; between acepta ±90 / ±180.
+        $this->actingAs($this->admin())
+            ->post(route('admin.zonas.store'), $this->payload([
+                'nombre'     => 'Borde superior',
+                'hectareas'  => 0,
+                'habitantes' => 0,
+                'centro_lat' => 90,
+                'centro_lng' => 180,
+            ]))
+            ->assertRedirect(route(self::INDEX))
+            ->assertSessionHasNoErrors();
+
+        $this->actingAs($this->admin())
+            ->post(route('admin.zonas.store'), $this->payload([
+                'nombre'     => 'Borde inferior',
+                'centro_lat' => -90,
+                'centro_lng' => -180,
+            ]))
+            ->assertRedirect(route(self::INDEX))
+            ->assertSessionHasNoErrors();
+
+        $zona = Zona::where('nombre', 'Borde superior')->firstOrFail();
+        $this->assertEquals(0.0, $zona->hectareas);
+        $this->assertEquals(0, $zona->habitantes);
+        $this->assertEquals(90, $zona->centro_lat);
+        $this->assertEquals(180, $zona->centro_lng);
+    }
+
+    // ── Turnos y horarios ─────────────────────────────────────────────
+
+    #[Test]
+    public function store_persiste_los_turnos(): void
+    {
+        $this->actingAs($this->admin())
+            ->post(route('admin.zonas.store'), $this->payload([
+                'nombre' => 'Zona Con Turnos',
+                'turnos' => ['Diurna', 'Nocturna'],
+            ]))
+            ->assertRedirect(route(self::INDEX))
+            ->assertSessionHasNoErrors();
+
+        $zona = Zona::where('nombre', 'Zona Con Turnos')->firstOrFail();
+        $this->assertDatabaseHas('zona_turnos', ['zona_id' => $zona->id, 'turno' => 'Diurna']);
+        $this->assertDatabaseHas('zona_turnos', ['zona_id' => $zona->id, 'turno' => 'Nocturna']);
+    }
+
+    #[Test]
+    public function update_reemplaza_los_turnos(): void
+    {
+        $zona = Zona::factory()->create(['tipo_servicio_id' => $this->servicio->id, 'nombre' => 'Zona Turnos']);
+        $zona->turnos()->create(['turno' => 'Diurna']);
+
+        $this->actingAs($this->admin())
+            ->put(route('admin.zonas.update', $zona), $this->payload([
+                'nombre' => 'Zona Turnos',
+                'turnos' => ['Nocturna'],
+            ]))
+            ->assertRedirect(route(self::INDEX))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('zona_turnos', ['zona_id' => $zona->id, 'turno' => 'Nocturna']);
+        $this->assertDatabaseMissing('zona_turnos', ['zona_id' => $zona->id, 'turno' => 'Diurna']);
+    }
+
+    #[Test]
+    public function store_persiste_los_horarios(): void
+    {
+        $this->actingAs($this->admin())
+            ->post(route('admin.zonas.store'), $this->payload([
+                'nombre'   => 'Zona Horarios',
+                'horarios' => [
+                    0 => [['inicio' => '08:00', 'fin' => '12:00']], // Lunes
+                ],
+            ]))
+            ->assertRedirect(route(self::INDEX))
+            ->assertSessionHasNoErrors();
+
+        $zona = Zona::where('nombre', 'Zona Horarios')->firstOrFail();
+        $horario = $zona->horarios()->first();
+
+        $this->assertNotNull($horario);
+        $this->assertSame(1, (int) $horario->dia_semana);
+        $this->assertSame(1, (int) $horario->franja);
+        // El formato de TIME varía por motor (SQLite: "08:00", SQL Server: "08:00:00").
+        $this->assertSame('08:00', substr((string) $horario->hora_inicio, 0, 5));
+        $this->assertSame('12:00', substr((string) $horario->hora_fin, 0, 5));
+    }
+
     // ── Update ────────────────────────────────────────────────────────
 
     #[Test]
     public function update_modifica_nombre_y_datos_y_redirige(): void
     {
-        $zona = Zona::factory()->create(['nombre' => 'Nombre Viejo', 'hectareas' => 100.0]);
+        $zona = Zona::factory()->create([
+            'tipo_servicio_id' => $this->servicio->id,
+            'nombre'           => 'Nombre Viejo',
+            'hectareas'        => 100.0,
+        ]);
 
         $this->actingAs($this->admin())
-            ->put(route('admin.zonas.update', $zona), [
+            ->put(route('admin.zonas.update', $zona), $this->payload([
                 'nombre'    => 'Nombre Nuevo',
                 'hectareas' => 200.0,
-            ])
-            ->assertRedirect(route('admin.zonas.index'));
+            ]))
+            ->assertRedirect(route(self::INDEX));
 
         $this->assertDatabaseHas('zonas', [
             'id'        => $zona->id,
@@ -160,72 +271,26 @@ class ZonaCrudTest extends TestCase
     #[Test]
     public function update_permite_el_mismo_nombre_en_el_mismo_registro(): void
     {
-        $zona = Zona::factory()->create(['nombre' => 'Zona Única']);
+        $zona = Zona::factory()->create(['tipo_servicio_id' => $this->servicio->id, 'nombre' => 'Zona Única']);
 
         $this->actingAs($this->admin())
-            ->put(route('admin.zonas.update', $zona), [
+            ->put(route('admin.zonas.update', $zona), $this->payload([
                 'nombre'    => 'Zona Única',
                 'hectareas' => 300.0,
-            ])
-            ->assertRedirect(route('admin.zonas.index'))
+            ]))
+            ->assertRedirect(route(self::INDEX))
             ->assertSessionHasNoErrors();
     }
 
     #[Test]
-    public function update_rechaza_nombre_de_otra_zona(): void
+    public function update_rechaza_nombre_de_otra_zona_del_mismo_servicio(): void
     {
-        Zona::factory()->create(['nombre' => 'Zona A']);
-        $zona = Zona::factory()->create(['nombre' => 'Zona B']);
+        Zona::factory()->create(['tipo_servicio_id' => $this->servicio->id, 'nombre' => 'Zona A']);
+        $zona = Zona::factory()->create(['tipo_servicio_id' => $this->servicio->id, 'nombre' => 'Zona B']);
 
         $this->actingAs($this->admin())
-            ->put(route('admin.zonas.update', $zona), ['nombre' => 'Zona A'])
+            ->put(route('admin.zonas.update', $zona), $this->payload(['nombre' => 'Zona A']))
             ->assertSessionHasErrors('nombre');
-    }
-
-    // ── Aislamiento multi-tenant ──────────────────────────────────────
-    // La unicidad de nombre es por organización (unique compuesto en la BD).
-    // En la tabla compartida, el nombre de otra organización no debe interferir.
-
-    #[Test]
-    public function update_permite_editar_con_nombre_que_existe_en_otra_organizacion(): void
-    {
-        // Otra organización ya tiene una zona llamada "Zona Norte".
-        $otraOrg = $this->createOrganizacion('Otra Organización');
-        $this->actingInOrg($otraOrg, fn () => Zona::factory()->create(['nombre' => 'Zona Norte']));
-
-        // La organización actual también tiene su "Zona Norte" (permitido: distinta org).
-        $zona = Zona::factory()->create(['nombre' => 'Zona Norte', 'geojson' => null]);
-        $geojson = $this->validGeojson();
-
-        // Editar sólo el contorno, conservando el nombre, no debe chocar con la otra org.
-        $this->actingAs($this->admin())
-            ->put(route('admin.zonas.update', $zona), [
-                'nombre'     => 'Zona Norte',
-                'geojson'    => $geojson,
-                'centro_lat' => '-27.46',
-                'centro_lng' => '-58.83',
-            ])
-            ->assertRedirect(route('admin.zonas.index'))
-            ->assertSessionHasNoErrors();
-
-        $zona->refresh();
-        $this->assertSame($geojson, $zona->geojson);
-        $this->assertEquals(-27.46, $zona->centro_lat);
-    }
-
-    #[Test]
-    public function store_permite_mismo_nombre_en_otra_organizacion(): void
-    {
-        $otraOrg = $this->createOrganizacion('Otra Organización');
-        $this->actingInOrg($otraOrg, fn () => Zona::factory()->create(['nombre' => 'Zona Norte']));
-
-        $this->actingAs($this->admin())
-            ->post(route('admin.zonas.store'), $this->payload(['nombre' => 'Zona Norte']))
-            ->assertRedirect(route('admin.zonas.index'))
-            ->assertSessionHasNoErrors();
-
-        // Una zona "Zona Norte" en cada organización: dos filas, distinta org.
-        $this->assertSame(2, Zona::withoutGlobalScopes()->where('nombre', 'Zona Norte')->count());
     }
 
     // ── Geometría ─────────────────────────────────────────────────────
@@ -263,7 +328,7 @@ class ZonaCrudTest extends TestCase
                 'centro_lat' => '-27.46',
                 'centro_lng' => '-58.83',
             ]))
-            ->assertRedirect(route('admin.zonas.index'))
+            ->assertRedirect(route(self::INDEX))
             ->assertSessionHasNoErrors();
 
         $zona = Zona::where('nombre', 'Zona Mapeada')->firstOrFail();
@@ -283,7 +348,7 @@ class ZonaCrudTest extends TestCase
                 'centro_lat' => '',
                 'centro_lng' => '',
             ]))
-            ->assertRedirect(route('admin.zonas.index'))
+            ->assertRedirect(route(self::INDEX))
             ->assertSessionHasNoErrors();
 
         $zona = Zona::where('nombre', 'Zona Sin Mapa')->firstOrFail();
@@ -320,17 +385,17 @@ class ZonaCrudTest extends TestCase
     #[Test]
     public function update_persiste_la_geometria(): void
     {
-        $zona = Zona::factory()->create(['nombre' => 'Zona Geo', 'geojson' => null]);
+        $zona = Zona::factory()->create(['tipo_servicio_id' => $this->servicio->id, 'nombre' => 'Zona Geo', 'geojson' => null]);
         $geojson = $this->validGeojson();
 
         $this->actingAs($this->admin())
-            ->put(route('admin.zonas.update', $zona), [
+            ->put(route('admin.zonas.update', $zona), $this->payload([
                 'nombre'     => 'Zona Geo',
                 'geojson'    => $geojson,
                 'centro_lat' => '-27.46',
                 'centro_lng' => '-58.83',
-            ])
-            ->assertRedirect(route('admin.zonas.index'))
+            ]))
+            ->assertRedirect(route(self::INDEX))
             ->assertSessionHasNoErrors();
 
         $zona->refresh();
@@ -343,16 +408,16 @@ class ZonaCrudTest extends TestCase
     #[Test]
     public function update_puede_borrar_la_geometria(): void
     {
-        $zona = Zona::factory()->conGeometria()->create(['nombre' => 'Zona Con Geo']);
+        $zona = Zona::factory()->conGeometria()->create(['tipo_servicio_id' => $this->servicio->id, 'nombre' => 'Zona Con Geo']);
 
         $this->actingAs($this->admin())
-            ->put(route('admin.zonas.update', $zona), [
+            ->put(route('admin.zonas.update', $zona), $this->payload([
                 'nombre'     => 'Zona Con Geo',
                 'geojson'    => '',
                 'centro_lat' => '',
                 'centro_lng' => '',
-            ])
-            ->assertRedirect(route('admin.zonas.index'))
+            ]))
+            ->assertRedirect(route(self::INDEX))
             ->assertSessionHasNoErrors();
 
         $zona->refresh();
@@ -367,11 +432,11 @@ class ZonaCrudTest extends TestCase
     #[Test]
     public function toggle_desactiva_una_zona_activa(): void
     {
-        $zona = Zona::factory()->create(['activo' => true]);
+        $zona = Zona::factory()->create(['tipo_servicio_id' => $this->servicio->id, 'activo' => true]);
 
         $this->actingAs($this->admin())
             ->patch(route('admin.zonas.toggle', $zona))
-            ->assertRedirect(route('admin.zonas.index'));
+            ->assertRedirect(route(self::INDEX));
 
         $this->assertDatabaseHas('zonas', ['id' => $zona->id, 'activo' => false]);
     }
@@ -379,11 +444,11 @@ class ZonaCrudTest extends TestCase
     #[Test]
     public function toggle_activa_una_zona_inactiva(): void
     {
-        $zona = Zona::factory()->inactiva()->create();
+        $zona = Zona::factory()->inactiva()->create(['tipo_servicio_id' => $this->servicio->id]);
 
         $this->actingAs($this->admin())
             ->patch(route('admin.zonas.toggle', $zona))
-            ->assertRedirect(route('admin.zonas.index'));
+            ->assertRedirect(route(self::INDEX));
 
         $this->assertDatabaseHas('zonas', ['id' => $zona->id, 'activo' => true]);
     }
@@ -393,12 +458,29 @@ class ZonaCrudTest extends TestCase
     #[Test]
     public function destroy_elimina_zona_sin_pesajes(): void
     {
-        $zona = Zona::factory()->create();
+        $zona = Zona::factory()->create(['tipo_servicio_id' => $this->servicio->id]);
 
         $this->actingAs($this->admin())
             ->delete(route('admin.zonas.destroy', $zona))
-            ->assertRedirect(route('admin.zonas.index'));
+            ->assertRedirect(route(self::INDEX));
 
         $this->assertDatabaseMissing('zonas', ['id' => $zona->id]);
+    }
+
+    #[Test]
+    public function destroy_no_elimina_zona_con_pesajes(): void
+    {
+        // pesajes.zona_id es noActionOnDelete: la FK bloquea el borrado. El controller
+        // captura el QueryException y avisa "no se puede eliminar" en lugar de romper.
+        $zona = Zona::factory()->create(['tipo_servicio_id' => $this->servicio->id]);
+        Pesaje::factory()->create(['zona_id' => $zona->id, 'tipo_servicio_id' => $this->servicio->id]);
+
+        $this->actingAs($this->admin())
+            ->delete(route('admin.zonas.destroy', $zona))
+            ->assertRedirect(route(self::INDEX))
+            ->assertSessionHas('toast');
+
+        // La zona sigue existiendo: el borrado fue rechazado, no ejecutado.
+        $this->assertDatabaseHas('zonas', ['id' => $zona->id]);
     }
 }

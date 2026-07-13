@@ -70,7 +70,7 @@
                     <div class="text-sm font-semibold">{{ $pesaje->tipoServicio->nombre }}</div>
                 </div>
                 <div>
-                    <div class="text-overline mb-1">Origen</div>
+                    <div class="text-overline mb-1">Zona</div>
                     <div class="text-sm font-semibold">{{ $pesaje->zona->nombre }}</div>
                 </div>
                 @if($pesaje->turno)

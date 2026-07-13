@@ -21,7 +21,7 @@ class ConfiguracionInicialService
     {
         $orgId = app()->bound('organizacion') ? app('organizacion')?->id : 0;
 
-        return Cache::remember("config_inicial_v2_{$orgId}", now()->addMinutes(10), function () {
+        return Cache::remember("config_inicial_v2_{$orgId}", now()->addMinutes(10), function () use ($orgId) {
             $steps = [
                 [
                     'label'  => 'Tipos de vehículo',
@@ -36,9 +36,9 @@ class ConfiguracionInicialService
                     'params' => [],
                 ],
                 [
-                    'label'  => 'Zonas con servicios',
-                    'done'   => rescue(fn () => Zona::where('activo', true)->whereHas('zonaServicios')->exists(), false),
-                    'route'  => 'admin.zonas.index',
+                    'label'  => 'Zonas por servicio',
+                    'done'   => rescue(fn () => Zona::where('activo', true)->exists(), false),
+                    'route'  => 'admin.tipos-servicio.index',
                     'params' => [],
                 ],
                 [
@@ -48,8 +48,11 @@ class ConfiguracionInicialService
                     'params' => [],
                 ],
                 [
-                    'label'  => 'Operadores creados',
-                    'done'   => rescue(fn () => User::where('role', 'operador')->where('activo', true)->exists(), false),
+                    'label' => 'Operadores creados',
+                    'done'  => rescue(fn () => User::where('role', 'operador')
+                        ->where('activo', true)
+                        ->whereHas('organizaciones', fn ($q) => $q->where('organizaciones.id', $orgId))
+                        ->exists(), false),
                     'route'  => 'admin.usuarios.index',
                     'params' => [],
                 ],

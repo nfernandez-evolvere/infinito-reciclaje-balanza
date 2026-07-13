@@ -74,7 +74,7 @@
             >
                 @csrf
                 @method('PUT')
-                <x-ui.label for="rev-conclusiones">Análisis del informe</x-ui.label>
+                <x-ui.label for="rev-conclusiones">Análisis del reporte</x-ui.label>
                 <x-ui.textarea
                     id="rev-conclusiones"
                     name="conclusiones"

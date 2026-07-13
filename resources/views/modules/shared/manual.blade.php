@@ -6,20 +6,24 @@
 
 {{-- Mobile: selector de sección --}}
 <div class="mb-4 lg:hidden">
-    <div class="relative">
-        <x-lucide-book-open class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <select
-            onchange="window.location.href = this.value"
-            class="h-9 w-full appearance-none rounded-md border border-input bg-background pl-9 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-        >
+    <x-ui.select
+        :value="route('manual.show', $slug)"
+        @select-change="window.location.href = $event.detail.value"
+    >
+        <x-ui.select.trigger>
+            <span class="flex min-w-0 items-center gap-2">
+                <x-lucide-book-open class="size-4 shrink-0 text-muted-foreground" />
+                <x-ui.select.value placeholder="Elegí una sección" />
+            </span>
+        </x-ui.select.trigger>
+        <x-ui.select.content>
             @foreach($docs as $docSlug => $doc)
-                <option value="{{ route('manual.show', $docSlug) }}" @selected($docSlug === $slug)>
+                <x-ui.select.item value="{{ route('manual.show', $docSlug) }}">
                     {{ $doc['label'] }}
-                </option>
+                </x-ui.select.item>
             @endforeach
-        </select>
-        <x-lucide-chevron-down class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-    </div>
+        </x-ui.select.content>
+    </x-ui.select>
 </div>
 
 <div class="flex flex-col gap-4 lg:flex-row lg:gap-6 lg:items-start">

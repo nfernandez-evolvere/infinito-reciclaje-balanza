@@ -105,17 +105,20 @@ Catálogo de tipos de camión con rangos de peso. Define los umbrales de `alerta
 
 ### `tipos_servicio`
 
-Tipos de recolección disponibles. Cada servicio puede sugerir **varios tipos de vehículo** (N:M vía `tipo_servicio_tipo_vehiculo`). La relación con zonas y turnos se modela en `zona_servicios` y `zona_servicio_turnos` (también N:M).
+Tipos de recolección disponibles. Cada servicio puede sugerir **varios tipos de vehículo** (N:M vía `tipo_servicio_tipo_vehiculo`) y **tiene sus propias zonas** (1:N vía `zonas.tipo_servicio_id`); cada zona define sus turnos y horarios.
 
 | Columna | Tipo | Nullable | Default | Constraints | Descripción |
 |---------|------|----------|---------|-------------|-------------|
 | `id` | `bigint` | NO | IDENTITY | PK | — |
 | `organizacion_id` | `bigint` | NO | — | FK → `organizaciones.id`, CASCADE | — |
 | `nombre` | `nvarchar(100)` | NO | — | — | Ej: `'Domiciliario'` |
+| `descripcion` | `nvarchar(300)` | SÍ | NULL | — | Texto para el reporte mensual (página "¿Qué es cada servicio?"). NULL = sin descripción. |
 | `activo` | `bit` | NO | `1` | — | — |
 | `created_at` / `updated_at` | `datetime2(0)` | SÍ | NULL | — | — |
 
 **Único:** `UNIQUE (organizacion_id, nombre)`.
+
+> **Migración:** `descripcion` se agregó post-inicial vía migración aditiva `2026_07_03_120000_add_descripcion_to_tipos_servicio_table` (la tabla ya estaba en producción). Es la excepción documentada al patrón "una migración `create_*` por tabla".
 
 > **Histórico:** existió una FK única `tipo_vehiculo_sugerido_id` (un solo vehículo sugerido por servicio). Se reemplazó por la N:M `tipo_servicio_tipo_vehiculo`.
 
@@ -136,12 +139,13 @@ Pivot entre servicios y tipos de vehículo. Define qué tipos de vehículo se su
 
 ### `zonas`
 
-Entidad geográfica. La asociación con servicios se modela en `zona_servicios`.
+Entidad geográfica. **Cada zona pertenece a un único servicio** (`tipo_servicio_id`); la misma área cubierta por dos servicios son dos zonas distintas. Turnos y horarios cuelgan directamente de la zona.
 
 | Columna | Tipo | Nullable | Default | Constraints | Descripción |
 |---------|------|----------|---------|-------------|-------------|
 | `id` | `bigint` | NO | IDENTITY | PK | — |
-| `organizacion_id` | `bigint` | NO | — | FK → `organizaciones.id`, CASCADE | — |
+| `organizacion_id` | `bigint` | NO | — | FK → `organizaciones.id`, CASCADE | Denormalizado (derivable del servicio) para el global scope de tenant. |
+| `tipo_servicio_id` | `bigint` | NO | — | FK → `tipos_servicio.id`, **noAction** | Servicio dueño de la zona. |
 | `nombre` | `nvarchar(150)` | NO | — | — | Ej: `'Zona Norte'` |
 | `hectareas` | `decimal(10,2)` | SÍ | NULL | — | NULL = dato no disponible. 0 = verificado como cero. |
 | `barrios` | `int` | SÍ | NULL | — | — |
@@ -152,7 +156,7 @@ Entidad geográfica. La asociación con servicios se modela en `zona_servicios`.
 | `activo` | `bit` | NO | `1` | — | — |
 | `created_at` / `updated_at` | `datetime2(0)` | SÍ | NULL | — | — |
 
-**Único:** `UNIQUE (organizacion_id, nombre)`.
+**Único:** `UNIQUE (tipo_servicio_id, nombre)` — el nombre es único **dentro de cada servicio**; dos servicios pueden tener su propia "Zona Norte".
 
 **Geometría (`geojson`):** se guarda el `FeatureCollection` serializado tal cual lo emite Leaflet, sin cast en el modelo. Para consumirlo en PHP: `json_decode($zona->geojson, true)`. A este volumen (un puñado de zonas por organización) no se usa el tipo `geography` ni índices espaciales — el choropleth se arma en el cliente. La asignación de zona a cada pesaje sigue siendo manual (`zona_id`); el polígono es para visualización (mapas de calor en Dashboard y Reportes).
 
@@ -160,50 +164,32 @@ Entidad geográfica. La asociación con servicios se modela en `zona_servicios`.
 
 ---
 
-### `zona_servicios`
+### `zona_turnos`
 
-Pivot entre zonas y tipos de servicio. Define qué servicios operan en cada zona. Si no existe fila para una combinación zona+servicio, esa zona no aparece como opción cuando el operador elige ese servicio.
+Turnos disponibles de una zona: **texto libre, sin catálogo**. Se cargan como chips en el modal de la zona (agregar con Enter, quitar con la ×) — no hay tabla de turnos permitidos ni ABM aparte. Sin filas → el formulario no muestra el campo turno; con filas → el operador debe seleccionar uno.
 
 | Columna | Tipo | Nullable | Constraints |
 |---------|------|----------|-------------|
 | `zona_id` | `bigint` | NO | PK compuesta, FK → `zonas.id`, CASCADE |
-| `tipo_servicio_id` | `bigint` | NO | PK compuesta, FK → `tipos_servicio.id`, **noAction** |
-| `created_at` / `updated_at` | `datetime2(0)` | SÍ | — |
+| `turno` | `nvarchar(20)` | NO | PK compuesta — string libre (`required\|string\|max:20\|distinct` en el Form Request, sin validación contra catálogo) |
 
-**PK compuesta:** `(zona_id, tipo_servicio_id)`. `tipo_servicio_id` usa `noAction` (segundo camino a `organizaciones`).
-
----
-
-### `zona_servicio_turnos`
-
-Turnos disponibles para una combinación zona+servicio. Sin filas → el formulario no muestra el campo turno; con filas → el operador debe seleccionar uno.
-
-| Columna | Tipo | Nullable | Constraints |
-|---------|------|----------|-------------|
-| `zona_id` | `bigint` | NO | PK compuesta |
-| `tipo_servicio_id` | `bigint` | NO | PK compuesta |
-| `turno` | `nvarchar(10)` | NO | PK compuesta — `'Diurna'` \| `'Nocturna'` |
-
-**PK compuesta:** `(zona_id, tipo_servicio_id, turno)`.
-**FK compuesta** `(zona_id, tipo_servicio_id)` → `zona_servicios`, CASCADE.
+**PK compuesta:** `(zona_id, turno)`. Editar el nombre de un turno es sacar el chip viejo y escribir uno nuevo — no reescribe los pesajes históricos que ya tengan el nombre anterior (ver `pesajes.turno`).
 
 ---
 
-### `zona_servicio_horarios`
+### `zona_horarios`
 
-Franjas horarias de recorrido por día para cada combinación zona+servicio. Múltiples franjas por día (ej: Lun 08:00–12:00 y 20:00–02:00). Informativas — no bloquean el registro.
+Franjas horarias de recorrido por día de cada zona. Múltiples franjas por día (ej: Lun 08:00–12:00 y 20:00–02:00). Informativas — no bloquean el registro.
 
 | Columna | Tipo | Nullable | Constraints | Descripción |
 |---------|------|----------|-------------|-------------|
-| `zona_id` | `bigint` | NO | PK cuádruple | — |
-| `tipo_servicio_id` | `bigint` | NO | PK cuádruple | — |
+| `zona_id` | `bigint` | NO | PK cuádruple, FK → `zonas.id`, CASCADE | — |
 | `dia_semana` | `tinyint unsigned` | NO | PK cuádruple | 1=Lunes … 7=Domingo |
 | `franja` | `tinyint unsigned` | NO | PK cuádruple | Orden de la franja dentro del día |
 | `hora_inicio` | `time` | NO | — | — |
 | `hora_fin` | `time` | NO | — | Puede ser menor que `hora_inicio` cuando cruza medianoche (ej: 20:00–02:00). |
 
-**PK cuádruple:** `(zona_id, tipo_servicio_id, dia_semana, franja)`.
-**FK compuesta** `(zona_id, tipo_servicio_id)` → `zona_servicios`, CASCADE.
+**PK cuádruple:** `(zona_id, dia_semana, franja)`.
 
 ---
 
@@ -269,7 +255,7 @@ Tabla operacional central. Cada fila es un camión que entró al predio. Se escr
 | `operador_id` | `bigint` | NO | — | FK → `users.id`, **noAction** | Usuario que registró el pesaje |
 | `tipo_servicio_id` | `bigint` | NO | — | FK → `tipos_servicio.id`, **noAction** | — |
 | `zona_id` | `bigint` | NO | — | FK → `zonas.id`, **noAction** | — |
-| `turno` | `nvarchar(10)` | SÍ | NULL | `'Diurna'` \| `'Nocturna'` | Obligatorio (en app) cuando la combinación zona+servicio tiene turnos. |
+| `turno` | `nvarchar(20)` | SÍ | NULL | string libre, copiado del que el operador eligió entre los cargados para la zona (`nullable\|string\|max:20`, sin catálogo) | Obligatorio (en app) cuando la combinación zona+servicio tiene turnos. El valor queda congelado en el pesaje: si luego se edita/borra el turno de la zona, el histórico no cambia. |
 | `peso_bruto_kg` | `int` | NO | — | — | Peso que muestra la balanza al ingreso |
 | `peso_tara_kg` | `int` | NO | — | — | Copiado de `vehiculos.tara_kg` al crear. Se recalcula solo ante corrección retroactiva de tara (ver `vehiculos_log`). |
 | `peso_neto_kg` | `int` | NO | — | — | Calculado en el Service: `peso_bruto_kg - peso_tara_kg`. |
@@ -578,7 +564,7 @@ HAVING DATEDIFF(MINUTE, MAX(created_at), GETDATE()) > (
 | `peso_neto_kg` como columna regular | PERSISTED computed column | El computed impide log granular: al editar `peso_bruto_kg` necesitamos registrar el cambio derivado en `pesajes_log`. Se calcula en el Service. |
 | `activo bit` en lugar de `SoftDeletes` | `deleted_at` (Laravel SoftDeletes) | El ABM admin necesita mostrar registros inactivos sin `withTrashed()` en cada query. |
 | `tipo_servicio_tipo_vehiculo` (N:M) | FK única `tipo_vehiculo_sugerido_id` | Un servicio puede sugerir varios tipos de vehículo. |
-| `zona_servicios` + turnos/horarios (N:M) | FK directa `zonas.tipo_servicio_id` | Una zona opera bajo varios servicios, cada uno con su config de turnos/horarios. Evita duplicar zonas. |
+| FK directa `zonas.tipo_servicio_id` (1:N) + turnos/horarios por zona | Pivot N:M `zona_servicios` con turnos/horarios de clave compuesta | Cada servicio tiene sus propias zonas (requerimiento). La misma área en dos servicios son dos zonas. Elimina la clave compuesta y su eager-loading manual; el flujo de pesaje ya era servicio→zonas. |
 | `datetime2(3)` en `pesajes` | `datetime` | `datetime` redondea `.999` al segundo siguiente (desvía atribución por fecha) y parsea según `DATEFORMAT`. `datetime2` es exacto y siempre ISO. |
 | `uuid` público en `pesajes`/`alertas` | Exponer el `id` IDENTITY | No filtrar volumen ni permitir enumeración secuencial en URLs. |
 | `reportes_generados.snapshot` (json congelado) | Recalcular sobre pesajes vivos | La tara de un vehículo puede cambiar después; el reporte entregado debe poder re-descargarse idéntico. |
@@ -599,26 +585,26 @@ Con este volumen, los índices definidos son suficientes; no se requiere partici
 
 ## Referencia de migraciones Laravel
 
-Orden de ejecución (respetar dependencias de FK):
+Orden de ejecución (respetar dependencias de FK). El historial es **lineal**: cada
+tabla se define completa en una sola migración `create_*` (sin ALTER incrementales).
 
 ```
 0.  organizaciones                (raíz multi-tenant)
 1.  users + organizacion_user     (pivot N:M con organizaciones)
 2.  tipos_vehiculo                (FK → organizaciones)
 3.  tipos_servicio                (FK → organizaciones) + tipo_servicio_tipo_vehiculo
-4.  zonas                         (FK → organizaciones)  (+ geojson en migración posterior)
-5.  vehiculos                     (FK → organizaciones, tipos_vehiculo) + vehiculos_log
-6.  zona_servicios              (FK compuesta base)
-7.  zona_servicio_turnos        (FK compuesta → zona_servicios)
-8.  zona_servicio_horarios      (FK compuesta → zona_servicios)
-9.  reporte_configuraciones       (FK → organizaciones)
-10. reportes_programados          (FK → organizaciones)
-11. reporte_destinatarios         (FK → organizaciones)
+4.  zonas                         (FK → organizaciones, tipos_servicio; con geojson/centro)
+5.  vehiculos + vehiculos_log     (FK → organizaciones, tipos_vehiculo)
+6.  zona_turnos                   (FK → zonas, CASCADE)
+7.  zona_horarios                 (FK → zonas, CASCADE)
+8.  reporte_configuraciones       (FK → organizaciones)
+9.  reportes_programados          (FK → organizaciones, users)
+10. reporte_destinatarios         (FK → organizaciones)
+11. reportes_generados            (FK → organizaciones, users, reportes_programados) ← antes de alertas
 12. pesajes                       (FK → organizaciones, vehiculos, users, tipos_servicio, zonas)
 13. pesajes_log                   (FK → pesajes, users)
-14. alertas                       (FK → organizaciones, users, pesajes, zonas)
-15. config_alertas                (FK → organizaciones)  (+ horario operativo posterior)
-16. reportes_generados            (FK → organizaciones, users, reportes_programados)  (+ snapshot/revisión posterior)
+14. alertas                       (FK → organizaciones, users, pesajes, zonas, reportes_generados)
+15. config_alertas                (FK → organizaciones)
 ```
 
 **Rollback:** orden inverso.

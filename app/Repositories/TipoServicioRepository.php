@@ -9,6 +9,7 @@ use Illuminate\Support\Collection as SupportCollection;
 
 class TipoServicioRepository
 {
+    /** @return Collection<int, TipoServicio> */
     public function activos(): Collection
     {
         return TipoServicio::activos()->orderBy('nombre')->get();
@@ -33,7 +34,12 @@ class TipoServicioRepository
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         return TipoServicio::query()
-            ->with('tiposVehiculo')
+            ->with([
+                'tiposVehiculo',
+                'zonas' => fn ($q) => $q->orderBy('nombre'),
+                'zonas.turnos',
+                'zonas.horarios',
+            ])
             ->when(
                 ! empty($filters['nombre']),
                 fn ($q) => $q->where('nombre', 'like', '%'.$filters['nombre'].'%')
