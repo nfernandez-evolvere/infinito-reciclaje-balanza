@@ -105,6 +105,10 @@ class PdfService
     private function resolveChromePath(): ?string
     {
         $candidates = [
+            // Docker: Chrome for Testing (build de Google horneado en la imagen).
+            // Reemplaza al paquete `chromium` de Debian, que crashea con SIGTRAP
+            // al arrancar en WSL2/Docker. Es un symlink estable a /opt.
+            '/usr/local/bin/chrome',
             // Docker / Railway (Debian Bookworm)
             '/usr/bin/chromium',
             '/usr/bin/chromium-browser',
