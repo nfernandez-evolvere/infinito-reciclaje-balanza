@@ -21,9 +21,9 @@ class StoreReporteProgramadoRequest extends FormRequest
         }
 
         return [
-            'nombre'        => ['required', 'string', 'max:150'],
-            'tipo'          => ['required', Rule::in($tiposActivos)],
-            'frecuencia'    => ['required', 'in:diaria,semanal,quincenal,mensual'],
+            'nombre'     => ['required', 'string', 'max:150'],
+            'tipo'       => ['required', Rule::in($tiposActivos)],
+            'frecuencia' => ['required', 'in:diaria,semanal,quincenal,mensual'],
             // Fecha del primer envío (hoy o futura): ancla el cronograma — elegir
             // el 1 hace que corra todos los 1 cubriendo el mes anterior completo.
             'inicio_en'     => ['required', 'date', 'after_or_equal:today'],

@@ -32,11 +32,11 @@ class VehiculoController extends Controller
 
         return response()->json(
             $this->vehiculoRepository->buscar($q)->map(fn ($v) => [
-                'id'       => $v->id,
-                'patente'  => $v->patente,
-                'interno'  => $v->numero_interno,
-                'tara'     => $v->tara_kg,
-                'tipo'     => $v->tipoVehiculo?->nombre,
+                'id'        => $v->id,
+                'patente'   => $v->patente,
+                'interno'   => $v->numero_interno,
+                'tara'      => $v->tara_kg,
+                'tipo'      => $v->tipoVehiculo?->nombre,
                 'titular'   => $v->titular,
                 'peso_min'  => $v->tipoVehiculo?->peso_min_kg,
                 'peso_max'  => $v->tipoVehiculo?->peso_max_kg,

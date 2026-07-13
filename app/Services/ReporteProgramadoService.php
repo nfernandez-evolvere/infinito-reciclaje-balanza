@@ -109,9 +109,9 @@ class ReporteProgramadoService
         }
 
         return match ($frecuencia) {
-            'diaria'    => $desde->copy()->addDay(),
-            'semanal'   => $desde->copy()->addDays(7),
-            default     => $desde->copy()->addDays(15), // quincenal
+            'diaria'  => $desde->copy()->addDay(),
+            'semanal' => $desde->copy()->addDays(7),
+            default   => $desde->copy()->addDays(15), // quincenal
         };
     }
 
