@@ -305,27 +305,6 @@
                                     <p class="text-caption">Con revisión, el reporte queda pendiente en el historial hasta que lo apruebes.</p>
                                 </x-ui.form-field>
                             </div>
-                            <div class="flex items-center justify-between gap-2">
-                                <div>
-                                    <p class="text-label">Programado activo</p>
-                                    <p class="text-caption">Si lo desactivás, este reporte deja de enviarse solo hasta que lo reactives.</p>
-                                </div>
-                                <button
-                                    type="button"
-                                    role="switch"
-                                    :aria-checked="form.activo ? 'true' : 'false'"
-                                    :data-state="form.activo ? 'checked' : 'unchecked'"
-                                    @click="form.activo = !form.activo"
-                                    :class="form.activo ? 'bg-primary' : 'bg-input'"
-                                    class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring"
-                                >
-                                    <span
-                                        :data-state="form.activo ? 'checked' : 'unchecked'"
-                                        class="pointer-events-none inline-block size-5 rounded-full bg-background shadow-sm ring-0 transition-transform translate-x-0 data-[state=checked]:translate-x-5"
-                                    ></span>
-                                    <input type="hidden" name="activo" :value="form.activo ? '1' : '0'">
-                                </button>
-                            </div>
                         </section>
                     </div>
                 </div>

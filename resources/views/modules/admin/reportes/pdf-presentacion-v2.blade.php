@@ -78,14 +78,10 @@
 
     $mismoMes = $desde->isSameMonth($hasta);
 
-    // Si el rango cae dentro de un único mes se muestra "Junio 2026"; si cruza
-    // meses (o años) se muestra el rango completo para no sugerir un mes que
-    // no cubre todo el período ("Jun – Jul 2026" o "Dic 2025 – Ene 2026").
-    $periodo = $mismoMes
-        ? ucfirst($desde->translatedFormat('F Y'))
-        : ($desde->isSameYear($hasta)
-            ? ucfirst($desde->translatedFormat('M')).' – '.ucfirst($hasta->translatedFormat('M Y'))
-            : ucfirst($desde->translatedFormat('M Y')).' – '.ucfirst($hasta->translatedFormat('M Y')));
+    // Siempre se muestran las fechas exactas del rango ("1 de Julio a 15 de
+    // Julio de 2026") — el período puede ser parcial dentro de un mes, así
+    // que un rótulo tipo "Julio 2026" sugeriría el mes completo.
+    $periodo = \App\Support\FormatoPeriodo::texto($desde, $hasta);
 
     $tituloReporte    = $mismoMes ? 'Reporte mensual' : 'Reporte del período';
     $tituloReporteCap = $mismoMes ? 'Reporte Mensual de Pesajes' : 'Reporte del Período de Pesajes';
@@ -135,10 +131,7 @@
     ];
     $featureIconOrder = ['house', 'shield', 'file'];
 
-    $serviciosArr   = $porServicio->values()->all();
-    $topServicio    = $zonasServicio[0] ?? null;
-    $otrosServicios = array_slice($zonasServicio, 1);
-    $otrosChunks    = array_chunk($otrosServicios, 4);
+    $serviciosArr = $porServicio->values()->all();
 
     // Secciones habilitadas (congeladas en el snapshot al generar; los reportes
     // previos a la opción no traen la clave → todas). Portada y cierre son fijas;
@@ -151,9 +144,8 @@
     $grupoZonas   = $on('que_es_servicio') || $on('recoleccion_servicio') || $on('zonas_servicio');
 
     // Numeración de páginas: portada + cierre fijas, más las páginas y separadores
-    // activos + 1 de zonas del servicio principal (si hay algún servicio con zonas)
-    // + N páginas de "otros servicios" (de a 4).
-    $paginasZonas = $on('zonas_servicio') ? ($topServicio ? 1 : 0) + count($otrosChunks) : 0;
+    // activos + una página completa por cada servicio con zonas (todos por igual).
+    $paginasZonas = $on('zonas_servicio') ? count($zonasServicio) : 0;
     $totalPaginas = 2
         + (int) $on('quienes_somos')
         + (int) $grupoResumen + (int) $on('resumen_ejecutivo') + (int) $on('ingresos_semana') + (int) $on('dia_semana')
@@ -172,11 +164,8 @@
         }
     }
     if ($on('zonas_servicio')) {
-        if ($topServicio) {
-            $numSeccion['zonas_top'] = str_pad((string) ++$n, 2, '0', STR_PAD_LEFT);
-        }
-        if ($otrosChunks !== []) {
-            $numSeccion['zonas_otros'] = str_pad((string) ++$n, 2, '0', STR_PAD_LEFT);
+        foreach (array_keys($zonasServicio) as $idx) {
+            $numSeccion['zonas_'.$idx] = str_pad((string) ++$n, 2, '0', STR_PAD_LEFT);
         }
     }
 
@@ -235,9 +224,9 @@
                 Reporte institucional
             </div>
             <h1 style="margin:0;font-size:72px;line-height:1.02;font-weight:800;letter-spacing:-.025em;">{{ $tituloReporte }}<br>de pesajes</h1>
-            <div style="display:flex;align-items:baseline;gap:16px;margin-top:22px;">
-                <span class="num" style="font-size:34px;font-weight:700;color:var(--g-200);">{{ $periodo }}</span>
-                <span style="width:1px;height:26px;background:rgba(255,255,255,.3);"></span>
+            <div class="num" style="font-size:24px;font-weight:700;color:var(--g-200);margin-top:22px;">{{ $periodo }}</div>
+            <div style="display:flex;align-items:center;gap:12px;margin-top:10px;">
+                <span style="width:22px;height:1px;background:rgba(255,255,255,.3);"></span>
                 <span style="font-size:16px;font-weight:500;color:rgba(255,255,255,.78);">Registro de balanza del predio de disposición final</span>
             </div>
         </div>
@@ -774,7 +763,7 @@
         <h2 class="p-title">¿Cuánto recolecta cada servicio?</h2>
         <p class="p-desc"><span style="color:var(--ink-700);font-weight:600;">Participación de cada servicio en el total.</span> Kilogramos recolectados por cada tipo de servicio y su participación en el total del período.</p>
 
-        <div style="display:flex;flex-direction:column;justify-content:flex-start;gap:22px;margin-top:8px;">
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-start;gap:22px;margin-top:8px;">
             @foreach($porServicio as $svc)
             <div style="display:grid;grid-template-columns:190px 1fr 150px 66px;gap:18px;align-items:center;">
                 <span style="font-size:16px;font-weight:600;color:var(--ink-900);">{{ $svc['nombre'] }}</span>
@@ -799,23 +788,24 @@
 
 @endif
 
-{{-- ═══════════ 09 · ZONAS DEL SERVICIO PRINCIPAL ═══════════ --}}
-@if($topServicio && $on('zonas_servicio'))
+{{-- ═══════════ ZONAS POR SERVICIO — una página completa por servicio (todos por igual) ═══════════ --}}
+@if($on('zonas_servicio'))
+@foreach($zonasServicio as $svcIdx => $topServicio)
 @php
-    $topZonas = collect($topServicio['zonas'])->take(12)->values();
+    $topZonas = collect($topServicio['zonas'])->sortByDesc('kg')->take(12)->values();
     $topZonaMax = $topZonas->max('kg') ?: 1;
     $topResto = count($topServicio['zonas']) - $topZonas->count();
 @endphp
 <section class="page">
     <div class="p-corner-ring"></div>
     <div class="p-body">
-        {!! $pageHeader($numSeccion['zonas_top'], 'pin', 'Zonas — '.$topServicio['nombre']) !!}
+        {!! $pageHeader($numSeccion['zonas_'.$svcIdx], 'pin', 'Zonas — '.$topServicio['nombre']) !!}
         <h2 class="p-title">Recolección por zona — {{ $topServicio['nombre'] }}</h2>
         <p class="p-desc">
             @if($topResto > 0)
                 Se muestran las {{ $topZonas->count() }} zonas de mayor volumen sobre un total de {{ count($topServicio['zonas']) }}.
             @else
-                Desglose por zona del servicio con mayor volumen del período.
+                Desglose por zona del servicio, según el registro de balanza del período.
             @endif
         </p>
 
@@ -834,9 +824,9 @@
             </div>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;column-gap:32px;row-gap:2px;align-content:start;margin-bottom:14px;">
+        <div style="flex:1;display:grid;grid-template-columns:1fr;row-gap:2px;align-content:start;margin-bottom:14px;">
             @foreach($topZonas as $z)
-            <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);">
+            <div style="display:flex;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);">
                 <span style="width:150px;font-size:13.5px;font-weight:600;color:var(--ink-900);">{{ $z['label'] }}</span>
                 <div style="flex:1;height:16px;background:var(--g-50);border-radius:4px;overflow:hidden;">
                     <div style="height:100%;width:{{ round(($z['kg'] / $topZonaMax) * 100, 1) }}%;background:linear-gradient(90deg,var(--g-500),var(--g-700));"></div>
@@ -855,63 +845,6 @@
                 @endif
             </span>
             <span class="num" style="font-size:13px;font-weight:800;color:var(--ink-900);">Total: {{ number_format($topServicio['kg'], 0, ',', '.') }} kg · {{ number_format($topServicio['viajes'], 0, ',', '.') }} viajes · {{ count($topServicio['zonas']) }} zonas</span>
-        </div>
-
-        {!! $pageFooter() !!}
-    </div>
-</section>
-@endif
-
-{{-- ═══════════ 10 · ZONAS DE LOS OTROS SERVICIOS ═══════════ --}}
-@if($on('zonas_servicio'))
-@foreach($otrosChunks as $chunkIdx => $chunk)
-<section class="page">
-    <div class="p-corner-ring"></div>
-    <div class="p-body">
-        {!! $pageHeader($numSeccion['zonas_otros'], 'pin', 'Zonas — otros servicios'.(count($otrosChunks) > 1 ? ' ('.($chunkIdx + 1).'/'.count($otrosChunks).')' : '')) !!}
-        <h2 class="p-title">{{ collect($chunk)->pluck('nombre')->implode(', ') }}</h2>
-        <p class="p-desc">Desglose por zona de los servicios restantes, según el registro de balanza del período.</p>
-
-        <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:16px;min-height:0;align-items:start;align-content:start;">
-            @foreach($chunk as $svc)
-            @php
-                $zonasSvc = collect($svc['zonas']);
-                $zonasSvcMax = $zonasSvc->max('kg') ?: 1;
-                $unidad = count($svc['zonas']) === 1 ? 'zona' : 'zonas';
-            @endphp
-            @if($zonasSvc->count() <= 1)
-            <div style="border:1px solid var(--line);border-radius:12px;padding:16px 18px;background:var(--g-50);">
-                <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <div>
-                        <div style="font-size:15px;font-weight:800;color:var(--ink-900);">{{ $svc['nombre'] }}</div>
-                        <div style="font-size:12px;color:var(--ink-500);margin-top:2px;">{{ count($svc['zonas']) }} {{ $unidad }}</div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div class="num" style="font-size:20px;font-weight:800;color:var(--ink-900);">{{ number_format($svc['kg'], 0, ',', '.') }} <span style="font-size:12px;font-weight:600;color:var(--ink-500);">kg</span></div>
-                        <div class="num" style="font-size:12px;color:var(--ink-500);">{{ number_format($svc['viajes'], 0, ',', '.') }} viajes</div>
-                    </div>
-                </div>
-            </div>
-            @else
-            <div style="border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;">
-                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
-                    <span style="font-size:15px;font-weight:800;color:var(--ink-900);">{{ $svc['nombre'] }}</span>
-                    <span class="num" style="font-size:12px;color:var(--ink-500);">{{ number_format($svc['kg'], 0, ',', '.') }} kg · {{ number_format($svc['viajes'], 0, ',', '.') }} viajes · {{ count($svc['zonas']) }} {{ $unidad }}</span>
-                </div>
-                <div style="display:flex;flex-direction:column;flex:1;">
-                    @foreach($zonasSvc->take(9) as $zi => $z)
-                    <div style="display:flex;align-items:center;gap:10px;padding:5.5px 0;{{ $zi < min($zonasSvc->count(), 9) - 1 ? 'border-bottom:1px solid var(--line);' : '' }}">
-                        <span style="flex:1;font-size:12.5px;color:var(--ink-900);">{{ $z['label'] }}</span>
-                        <div style="width:80px;height:12px;background:var(--g-50);border-radius:3px;overflow:hidden;">
-                            <div style="height:100%;width:{{ round(($z['kg'] / $zonasSvcMax) * 100, 1) }}%;background:var(--g-600);"></div>
-                        </div>
-                        <span class="num" style="width:64px;text-align:right;font-size:12.5px;font-weight:700;">{{ number_format($z['kg'], 0, ',', '.') }}</span>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-            @endif
-            @endforeach
         </div>
 
         {!! $pageFooter() !!}

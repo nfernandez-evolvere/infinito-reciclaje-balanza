@@ -264,6 +264,27 @@ class ReporteController extends Controller
         return redirect()->route('admin.reportes.index', ['tab' => 'programados']);
     }
 
+    public function toggleProgramado(ReporteProgramado $programado): RedirectResponse
+    {
+        $eraActivo = $programado->activo;
+        $nombre = $programado->nombre;
+        $this->programadoService->toggleActivo($programado);
+
+        session()->flash('toast', $eraActivo
+            ? [
+                'message'     => 'Reporte programado desactivado.',
+                'description' => "\"{$nombre}\" no se enviará hasta que lo reactives.",
+                'variant'     => 'success',
+            ]
+            : [
+                'message'     => 'Reporte programado activado.',
+                'description' => "\"{$nombre}\" volvió a estar disponible para el envío automático.",
+                'variant'     => 'success',
+            ]);
+
+        return redirect()->route('admin.reportes.index', ['tab' => 'programados']);
+    }
+
     public function enviarAhoraProgramado(Request $request, ReporteProgramado $programado): RedirectResponse|JsonResponse
     {
         $this->generadoService->iniciarGeneracion($programado);

@@ -41,6 +41,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/reportes/programados', [ReporteController::class, 'storeProgramado'])->name('reportes.programados.store');
     Route::put('/reportes/programados/{programado}', [ReporteController::class, 'updateProgramado'])->name('reportes.programados.update');
     Route::delete('/reportes/programados/{programado}', [ReporteController::class, 'destroyProgramado'])->name('reportes.programados.destroy');
+    Route::patch('/reportes/programados/{programado}/toggle', [ReporteController::class, 'toggleProgramado'])
+        ->name('reportes.programados.toggle');
     Route::post('/reportes/programados/{programado}/enviar-ahora', [ReporteController::class, 'enviarAhoraProgramado'])
         ->name('reportes.programados.enviar-ahora');
     Route::get('/reportes/programados/{programado}/pdf', [ReporteController::class, 'downloadPdfProgramado'])

@@ -38,6 +38,11 @@ class ReporteProgramadoService
         $this->programadoRepository->delete($programado);
     }
 
+    public function toggleActivo(ReporteProgramado $programado): ReporteProgramado
+    {
+        return $this->programadoRepository->update($programado, ['activo' => ! $programado->activo]);
+    }
+
     /**
      * Período que cubre el reporte según la frecuencia del programado.
      *

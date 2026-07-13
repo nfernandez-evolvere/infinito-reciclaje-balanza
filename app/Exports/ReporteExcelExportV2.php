@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Support\FormatoPeriodo;
 use App\Support\ReporteSecciones;
 use Illuminate\Support\Collection;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
@@ -93,15 +94,14 @@ class ReporteExcelExportV2 extends ReporteExcelBase
     /** Banner de título (2 filas): título + subtítulo con municipio y período. */
     private function titulo(Worksheet $sheet, int $lastCol, string $titulo): int
     {
-        $desde = $this->reporte['desde']->format('d/m/Y');
-        $hasta = $this->reporte['hasta']->format('d/m/Y');
+        $periodo = FormatoPeriodo::texto($this->reporte['desde'], $this->reporte['hasta']);
         $muni = $this->reporte['config']?->municipalidad_nombre;
 
         $row = 2;
         $this->bar($sheet, $row, $lastCol, $titulo, self::C_TITLE, 16);
         $row++;
 
-        $subtitulo = trim(($muni ? $muni.'  ·  ' : '').'Período: '.$desde.' al '.$hasta);
+        $subtitulo = trim(($muni ? $muni.'  ·  ' : '').'Período: '.$periodo);
         $this->bar($sheet, $row, $lastCol, $subtitulo, self::C_SECTION, 11);
 
         return $row + 2;

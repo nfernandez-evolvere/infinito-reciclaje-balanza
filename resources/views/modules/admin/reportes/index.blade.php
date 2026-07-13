@@ -1,5 +1,5 @@
 @php
-    $hasProgramadoErrors = $errors->hasAny(['nombre', 'tipo', 'frecuencia', 'destinatarios', 'formatos', 'revision', 'secciones.pdf', 'secciones.excel', 'activo']);
+    $hasProgramadoErrors = $errors->hasAny(['nombre', 'tipo', 'frecuencia', 'destinatarios', 'formatos', 'revision', 'secciones.pdf', 'secciones.excel']);
     $isEditing      = old('_mode') === 'edit';
     $defaultTipo    = ($config->tipo_informe_mensual_activo ?? true) ? 'informe_mensual' : 'alertas';
     $initialProgramado = $hasProgramadoErrors ? [
@@ -17,7 +17,6 @@
                 'pdf'   => \App\Support\ReporteSecciones::sanitizarPdf((array) old('secciones.pdf', [])),
                 'excel' => array_values(array_intersect(\App\Support\ReporteSecciones::excelKeys(), (array) old('secciones.excel', []))),
             ],
-            'activo'     => old('activo', true),
         ],
         '_oldDestinatariosStr' => old('destinatarios', ''),
     ] : [];
@@ -165,6 +164,7 @@
             <x-domain.reportes.tabla-programados :programados="$programados" />
             <x-domain.reportes.modal-programado :config="$config" />
             <x-domain.reportes.modal-enviar />
+            <x-domain.reportes.modal-toggle />
             <x-domain.reportes.modal-delete />
 
         </div>

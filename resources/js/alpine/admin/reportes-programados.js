@@ -10,7 +10,6 @@ const formVacio = () => ({
     // Las listas arrancan con el default general (openCreate/openEdit las cargan).
     secciones_personalizadas: false,
     secciones:      { pdf: [], excel: [] },
-    activo:         true,
 });
 
 const resetDestinatarios = (tags) => {
@@ -36,6 +35,11 @@ export default (initial = {}) => ({
     enviarNombre: '',
     enviarUrl:    null,
     enviando:     false,
+
+    toggleOpen:   false,
+    toggleId:     null,
+    toggleNombre: '',
+    toggleActivo: false,
 
     ...initial,
 
@@ -130,6 +134,17 @@ export default (initial = {}) => ({
         document.getElementById('delete-' + this.deleteId).submit();
     },
 
+    confirmToggle(id, nombre, activo) {
+        this.toggleId     = id;
+        this.toggleNombre = nombre;
+        this.toggleActivo = activo;
+        this.toggleOpen   = true;
+    },
+
+    executeToggle() {
+        document.getElementById('toggle-' + this.toggleId).submit();
+    },
+
     openEdit(p) {
         this.form = {
             id:             p.id,
@@ -145,7 +160,6 @@ export default (initial = {}) => ({
             secciones: p.secciones
                 ? { pdf: [...(p.secciones.pdf ?? [])], excel: [...(p.secciones.excel ?? [])] }
                 : this._seccionesDefaultCopy(),
-            activo: p.activo,
         };
         this.modalMode = 'edit';
         this.modalOpen = true;
