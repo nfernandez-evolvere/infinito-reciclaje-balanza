@@ -1,5 +1,5 @@
 @php
-    $hasProgramadoErrors = $errors->hasAny(['nombre', 'tipo', 'frecuencia', 'destinatarios', 'formatos', 'revision', 'secciones.pdf', 'secciones.excel']);
+    $hasProgramadoErrors = $errors->hasAny(['nombre', 'tipo', 'frecuencia', 'inicio_en', 'destinatarios', 'formatos', 'revision', 'secciones.pdf', 'secciones.excel']);
     $isEditing      = old('_mode') === 'edit';
     $defaultTipo    = ($config->tipo_informe_mensual_activo ?? true) ? 'informe_mensual' : 'alertas';
     $initialProgramado = $hasProgramadoErrors ? [
@@ -10,6 +10,7 @@
             'nombre'     => old('nombre', ''),
             'tipo'       => old('tipo', $defaultTipo),
             'frecuencia' => old('frecuencia', 'mensual'),
+            'inicio_en'  => old('inicio_en', now()->toDateString()),
             'formatos'   => array_values(array_intersect(['pdf', 'excel'], (array) old('formatos', ['pdf']))) ?: ['pdf'],
             'revision'   => old('revision', 'revisar'),
             'secciones_personalizadas' => (bool) old('secciones_personalizadas'),

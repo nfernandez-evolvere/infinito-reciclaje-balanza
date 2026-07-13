@@ -24,6 +24,9 @@ class StoreReporteProgramadoRequest extends FormRequest
             'nombre'        => ['required', 'string', 'max:150'],
             'tipo'          => ['required', Rule::in($tiposActivos)],
             'frecuencia'    => ['required', 'in:diaria,semanal,quincenal,mensual'],
+            // Fecha del primer envío (hoy o futura): ancla el cronograma — elegir
+            // el 1 hace que corra todos los 1 cubriendo el mes anterior completo.
+            'inicio_en'     => ['required', 'date', 'after_or_equal:today'],
             'destinatarios' => ['required', 'string'],
             // El informe mensual elige sus formatos (al menos uno). Las alertas
             // se envían siempre en PDF, así que ahí el campo no es obligatorio.
@@ -51,6 +54,9 @@ class StoreReporteProgramadoRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'inicio_en.required'       => 'Elegí desde cuándo se envía el reporte.',
+            'inicio_en.date'           => 'La fecha del primer envío no es válida.',
+            'inicio_en.after_or_equal' => 'La fecha del primer envío no puede ser anterior a hoy.',
             'formatos.required'        => 'Elegí al menos un formato para el envío (PDF o Excel).',
             'formatos.*.in'            => 'El formato seleccionado no es válido.',
             'revision.in'              => 'La opción de revisión seleccionada no es válida.',

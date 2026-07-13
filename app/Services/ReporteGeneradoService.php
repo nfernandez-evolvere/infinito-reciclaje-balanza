@@ -66,7 +66,13 @@ class ReporteGeneradoService
      */
     public function iniciarGeneracion(ReporteProgramado $programado, bool $avanzarProximo = true): ReporteGenerado
     {
-        [$desde, $hasta] = $this->programadoService->calcularPeriodo($programado->frecuencia);
+        // Corrida de referencia del período: la fecha programada que venció
+        // (así un catch-up del 3/08 tras downtime igual cubre julio completo),
+        // o now() en los envíos manuales con cronograma al día.
+        $vencido = $programado->proximo_envio_at?->isPast() ?? false;
+        $corrida = $vencido ? $programado->proximo_envio_at->copy() : now();
+
+        [$desde, $hasta] = $this->programadoService->calcularPeriodo($programado->frecuencia, $corrida);
 
         $generado = $this->repository->create([
             ...$this->datosBase($programado, $desde, $hasta),

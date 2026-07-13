@@ -174,6 +174,17 @@ $initialValue = match($mode) {
             }
         },
 
+        // Setear la fecha desde afuera en modo single (ej: el date-picker
+        // sincronizando su x-model al abrir). Mueve la vista al mes de la fecha.
+        setValue(iso) {
+            if (this.mode !== 'single') return;
+            this.value = iso || null;
+            if (iso) {
+                const d = new Date(iso + 'T00:00:00');
+                if (!isNaN(d)) { this.viewYear = d.getFullYear(); this.viewMonth = d.getMonth(); }
+            }
+        },
+
         // Setear el rango desde afuera (ej: un select de «período rápido»). Actualiza la
         // selección y mueve la vista al mes de inicio. Solo aplica en modo range.
         setRange(start, end) {
@@ -186,6 +197,7 @@ $initialValue = match($mode) {
         },
     }"
     @set-range.window="setRange($event.detail.start, $event.detail.end)"
+    @set-value="setValue($event.detail.value)"
     {{ $attributes->twMerge('inline-block') }}
 >
     <div class="p-3 space-y-4 w-fit rounded-lg border border-border bg-background shadow-sm">

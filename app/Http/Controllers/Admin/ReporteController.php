@@ -287,7 +287,13 @@ class ReporteController extends Controller
 
     public function enviarAhoraProgramado(Request $request, ReporteProgramado $programado): RedirectResponse|JsonResponse
     {
-        $this->generadoService->iniciarGeneracion($programado);
+        // Un envío manual no mueve el ancla del cronograma (saltearía la próxima
+        // corrida programada). Solo avanza si ya estaba vencido, para que el
+        // scheduler no re-dispare el mismo vencimiento en su próximo tick.
+        $this->generadoService->iniciarGeneracion(
+            $programado,
+            avanzarProximo: $programado->proximo_envio_at?->isPast() ?? true,
+        );
 
         $config = $this->configuracionRepository->first();
 

@@ -1,4 +1,6 @@
+@aware(['state' => null])
 @props([
+    'id'            => null,    // id que recibe el botón trigger (lo asocia al label via for)
     'name'          => null,
     'value'         => null,
     'placeholder'   => 'Seleccionar fecha',
@@ -8,6 +10,7 @@
     'disabledDates' => [],
     'disabled'      => false,
     'size'          => 'md',    // sm | md | lg
+    'state'         => $state,  // null | destructive | success | warning | info — hereda del form-field ancestor
 ])
 
 @php
@@ -15,6 +18,14 @@ $triggerSize = match($size) {
     'sm'    => 'h-8 pl-3 pr-2 text-[13px] gap-1.5',
     'lg'    => 'h-12 pl-4 pr-3 text-base gap-2.5',
     default => 'h-10 pl-3 pr-2.5 text-sm gap-2',
+};
+
+$stateClass = match($state) {
+    'success'     => 'border-success-border focus-visible:ring-success',
+    'warning'     => 'border-warning-border focus-visible:ring-warning',
+    'info'        => 'border-info-border focus-visible:ring-info',
+    'destructive' => 'border-destructive-border focus-visible:ring-destructive',
+    default       => 'border-input focus-visible:ring-ring',
 };
 @endphp
 
@@ -44,6 +55,9 @@ $triggerSize = match($size) {
             if (@js($disabled)) return;
             this.open = true;
             this.$nextTick(() => {
+                // Sincroniza el calendario con el valor vigente: con x-model el
+                // valor puede haber cambiado desde afuera después del render.
+                this.$refs.cal?.dispatchEvent(new CustomEvent('set-value', { detail: { value: this.value } }));
                 this._place();
                 this._oc = e => {
                     const p = document.getElementById(this.uid);
@@ -85,6 +99,7 @@ $triggerSize = match($size) {
             this.left = Math.max(m, Math.min(this.left, innerWidth - pw - m));
         },
     }"
+    x-modelable="value"
     @keydown.escape="open && _close()"
     {{ $attributes->twMerge('inline-block w-full') }}
 >
@@ -92,10 +107,12 @@ $triggerSize = match($size) {
     <button
         type="button"
         x-ref="trigger"
+        @if($id) id="{{ $id }}" @endif
         @click="toggle()"
         :aria-expanded="open.toString()"
+        @if($state === 'destructive') aria-invalid="true" @endif
         @if($disabled) disabled @endif
-        class="w-full flex items-center gap-2 rounded-full border border-input bg-background text-left shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 {{ $triggerSize }}"
+        class="w-full flex items-center gap-2 rounded-full border bg-background text-left shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 {{ $stateClass }} {{ $triggerSize }}"
     >
         <x-lucide-calendar-days class="size-4 text-muted-foreground shrink-0" />
         <span
@@ -127,6 +144,7 @@ $triggerSize = match($size) {
             class="fixed z-(--z-popover)"
         >
             <x-ui.calendar
+                x-ref="cal"
                 :value="$value"
                 :min-date="$minDate"
                 :max-date="$maxDate"

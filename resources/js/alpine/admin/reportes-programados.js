@@ -1,9 +1,15 @@
+// Fecha local en YYYY-MM-DD ('sv' usa ISO): toISOString() correría un día
+// en horarios donde UTC ya cambió de fecha.
+const hoyISO = () => new Date().toLocaleDateString('sv');
+
 const formVacio = () => ({
     id:             null,
     nombre:         '',
     tipo:           'informe_mensual',
     frecuencia:     'mensual',
     cron_expresion: '0 8 1 * *',
+    // Primer envío: ancla del cronograma (default hoy → conserva el "corre ya").
+    inicio_en:      hoyISO(),
     formatos:       ['pdf'],
     revision:       'revisar',
     // Secciones del informe: sin personalizar hereda la configuración general.
@@ -152,6 +158,10 @@ export default (initial = {}) => ({
             tipo:           p.tipo,
             frecuencia:     p.frecuencia,
             cron_expresion: p.cron_expresion,
+            // Prefill con el próximo envío vigente (guardar sin tocarlo no
+            // re-ancla el cronograma); clamp a hoy si quedó vencido, para no
+            // chocar con la validación after_or_equal:today.
+            inicio_en:      p.proximo && p.proximo >= hoyISO() ? p.proximo : hoyISO(),
             formatos:       Array.isArray(p.formatos) && p.formatos.length ? p.formatos : ['pdf'],
             revision:       p.revision || 'heredar',
             // p.secciones solo viene cuando el programado personalizó; si no,

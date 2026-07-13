@@ -2,6 +2,11 @@
     'side'  => 'bottom',  // top | bottom | left | right
     'align' => 'start',   // start | center | end
     'width' => 'w-72',
+    // Abre/cierra también con hover (mouseenter/mouseleave), con un grace
+    // period para poder mover el mouse del trigger al panel sin que parpadee.
+    // El click sigue funcionando siempre → en touch (sin eventos hover) es
+    // el único disparador. Solo para contenido no interactivo (texto de ayuda).
+    'hover' => false,
 ])
 
 <div
@@ -11,11 +16,13 @@
         preferred: '{{ $side }}',
         actual:    '{{ $side }}',
         align:     '{{ $align }}',
+        hover:     @js($hover),
         top:  0,
         left: 0,
         uid:  null,
         _oc:  null,
         _sc:  null,
+        _closeTimer: null,
 
         init() {
             this.uid = 'pop-' + Math.random().toString(36).slice(2, 9);
@@ -26,6 +33,7 @@
         },
 
         _open() {
+            clearTimeout(this._closeTimer);
             this.open = true;
             this.$nextTick(() => {
                 this._place();
@@ -46,6 +54,20 @@
             document.removeEventListener('click', this._oc);
             window.removeEventListener('scroll', this._sc, true);
             window.removeEventListener('resize', this._sc);
+        },
+
+        // Solo con hover activo: salir del trigger o del panel agenda el
+        // cierre; volver a entrar (al otro) lo cancela — evita el parpadeo
+        // al cruzar el gap entre ambos.
+        _scheduleClose() {
+            if (!this.hover) return;
+            clearTimeout(this._closeTimer);
+            this._closeTimer = setTimeout(() => this._close(), 150);
+        },
+
+        _cancelClose() {
+            if (!this.hover) return;
+            clearTimeout(this._closeTimer);
         },
 
         _place() {
@@ -83,7 +105,13 @@
     @keydown.escape.window="_close()"
 >
     {{-- Trigger --}}
-    <div x-ref="trigger" @click="_toggle()" class="inline-flex cursor-pointer">
+    <div
+        x-ref="trigger"
+        @click="_toggle()"
+        @mouseenter="hover && _open()"
+        @mouseleave="_scheduleClose()"
+        class="inline-flex cursor-pointer"
+    >
         @isset($trigger){{ $trigger }}@endisset
     </div>
 
@@ -94,6 +122,8 @@
             x-show="open"
             :style="{ top: top + 'px', left: left + 'px' }"
             :class="_origin()"
+            @mouseenter="_cancelClose()"
+            @mouseleave="_scheduleClose()"
             x-transition:enter="transition ease-out duration-100"
             x-transition:enter-start="opacity-0 scale-95"
             x-transition:enter-end="opacity-100 scale-100"

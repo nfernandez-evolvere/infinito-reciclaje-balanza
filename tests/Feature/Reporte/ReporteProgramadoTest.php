@@ -22,6 +22,7 @@ class ReporteProgramadoTest extends TestCase
             'tipo'           => 'informe_mensual',
             'frecuencia'     => 'mensual',
             'cron_expresion' => '0 8 1 * *',
+            'inicio_en'      => now()->toDateString(),
             'destinatarios'  => 'dest@municipio.gob.ar',
             'formatos'       => ['pdf'],
             'activo'         => true,
@@ -91,6 +92,94 @@ class ReporteProgramadoTest extends TestCase
         $this->actingAs($this->admin())
             ->post(route('admin.reportes.programados.store'), $this->payload(['destinatarios' => '']))
             ->assertSessionHasErrors('destinatarios');
+    }
+
+    // ── inicio_en: fecha del primer envío ─────────────────────────────
+
+    #[Test]
+    public function store_schedules_the_first_envio_at_the_chosen_date_at_8am(): void
+    {
+        $inicio = now()->addDays(10)->toDateString();
+
+        $this->actingAs($this->admin())
+            ->post(route('admin.reportes.programados.store'), $this->payload([
+                'nombre'    => 'Informe anclado',
+                'inicio_en' => $inicio,
+            ]))
+            ->assertRedirect(route('admin.reportes.index', ['tab' => 'programados']))
+            ->assertSessionHasNoErrors();
+
+        $programado = ReporteProgramado::where('nombre', 'Informe anclado')->first();
+        $this->assertNotNull($programado);
+        $this->assertSame($inicio, $programado->inicio_en->toDateString());
+        // Nada de "corre al crear": el primer envío es el día elegido a las 08:00.
+        $this->assertSame($inicio.' 08:00:00', $programado->proximo_envio_at->format('Y-m-d H:i:s'));
+    }
+
+    #[Test]
+    public function store_accepts_inicio_en_today_as_the_exact_boundary(): void
+    {
+        // Borde exacto de after_or_equal:today — hoy es válido.
+        $this->actingAs($this->admin())
+            ->post(route('admin.reportes.programados.store'), $this->payload([
+                'nombre'    => 'Informe desde hoy',
+                'inicio_en' => now()->toDateString(),
+            ]))
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $programado = ReporteProgramado::where('nombre', 'Informe desde hoy')->first();
+        $this->assertSame(
+            now()->toDateString().' 08:00:00',
+            $programado->proximo_envio_at->format('Y-m-d H:i:s'),
+        );
+    }
+
+    #[Test]
+    public function store_rejects_inicio_en_in_the_past(): void
+    {
+        // Borde exacto: ayer ya no es válido.
+        $this->actingAs($this->admin())
+            ->post(route('admin.reportes.programados.store'), $this->payload([
+                'inicio_en' => now()->subDay()->toDateString(),
+            ]))
+            ->assertSessionHasErrors('inicio_en');
+
+        $this->assertDatabaseMissing('reportes_programados', ['nombre' => 'Informe mensual Norte']);
+    }
+
+    #[Test]
+    public function store_requires_inicio_en(): void
+    {
+        $this->actingAs($this->admin())
+            ->post(route('admin.reportes.programados.store'), $this->payload(['inicio_en' => '']))
+            ->assertSessionHasErrors('inicio_en');
+
+        $this->assertDatabaseMissing('reportes_programados', ['nombre' => 'Informe mensual Norte']);
+    }
+
+    #[Test]
+    public function update_resubmitting_the_same_date_does_not_reschedule_an_immediate_envio(): void
+    {
+        $inicio = now()->addDays(5)->toDateString();
+        $programado = $this->programado([
+            'inicio_en'        => $inicio,
+            'proximo_envio_at' => now()->addDays(5)->setTime(8, 0),
+        ]);
+
+        // El modal de edición reenvía la fecha del próximo envío prefijada:
+        // guardar sin tocarla no debe re-disparar el envío (bug previo:
+        // cualquier edición programaba proximo_envio_at a now()+1min).
+        $this->actingAs($this->admin())
+            ->put(route('admin.reportes.programados.update', $programado), $this->payload([
+                'inicio_en' => $inicio,
+            ]))
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $programado->refresh();
+        $this->assertSame($inicio.' 08:00:00', $programado->proximo_envio_at->format('Y-m-d H:i:s'));
+        $this->assertTrue($programado->proximo_envio_at->isFuture());
     }
 
     // ── formatos del informe mensual ──────────────────────────────────

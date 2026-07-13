@@ -81,7 +81,7 @@
                                 <h3 class="text-overline">Datos generales</h3>
                             </div>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <x-ui.form-field
                                     for="m-nombre"
                                     :state="$errors->has('nombre') ? 'destructive' : null"
@@ -129,12 +129,38 @@
                                             <x-ui.select.value placeholder="Seleccionar frecuencia" />
                                         </x-ui.select.trigger>
                                         <x-ui.select.content>
-                                            <x-ui.select.item value="diaria">Diaria — último día</x-ui.select.item>
-                                            <x-ui.select.item value="semanal">Semanal — últimos 7 días</x-ui.select.item>
-                                            <x-ui.select.item value="quincenal">Quincenal — últimos 15 días</x-ui.select.item>
-                                            <x-ui.select.item value="mensual">Mensual — últimos 30 días</x-ui.select.item>
+                                            <x-ui.select.item value="diaria">Diaria — cubre el día anterior</x-ui.select.item>
+                                            <x-ui.select.item value="semanal">Semanal — los 7 días anteriores</x-ui.select.item>
+                                            <x-ui.select.item value="quincenal">Quincenal — los 15 días anteriores</x-ui.select.item>
+                                            <x-ui.select.item value="mensual">Mensual — el mes anterior</x-ui.select.item>
                                         </x-ui.select.content>
                                     </x-ui.select>
+                                </x-ui.form-field>
+
+                                {{-- Primer envío: ancla el cronograma — elegir el 1 hace que
+                                     corra todos los 1 cubriendo el mes anterior completo. --}}
+                                <x-ui.form-field
+                                    for="m-inicio"
+                                    :state="$errors->has('inicio_en') ? 'destructive' : null"
+                                    :message="$errors->first('inicio_en')"
+                                >
+                                    <div class="flex items-center gap-1.5">
+                                        <x-ui.label for="m-inicio">
+                                            <span x-text="modalMode === 'create' ? 'Primer envío' : 'Próximo envío'"></span>
+                                        </x-ui.label>
+                                        <x-ui.popover hover align="start" width="w-64">
+                                            <x-slot:trigger>
+                                                <x-lucide-info class="size-3.5 text-muted-foreground hover:text-foreground transition-colors" />
+                                            </x-slot:trigger>
+                                            <p class="text-xs text-muted-foreground">Se envía a las 08:00 de ese día y se repite según la frecuencia. Cada envío cubre el período anterior a esa fecha.</p>
+                                        </x-ui.popover>
+                                    </div>
+                                    <x-ui.date-picker
+                                        id="m-inicio"
+                                        name="inicio_en"
+                                        x-model="form.inicio_en"
+                                        min-date="{{ now()->toDateString() }}"
+                                    />
                                 </x-ui.form-field>
                             </div>
                         </section>

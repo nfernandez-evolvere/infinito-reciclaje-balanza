@@ -24,6 +24,7 @@ class ReporteProgramado extends Model
         'nombre',
         'frecuencia',
         'cron_expresion',
+        'inicio_en',
         'destinatarios',
         'opciones',
         'activo',
@@ -32,6 +33,7 @@ class ReporteProgramado extends Model
     ];
 
     protected $casts = [
+        'inicio_en'        => 'date',
         'destinatarios'    => 'array',
         'opciones'         => 'array',
         'activo'           => 'boolean',

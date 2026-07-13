@@ -45,7 +45,7 @@
                         </x-ui.dropdown-menu.trigger>
                         <x-ui.dropdown-menu.content align="end">
                             <x-ui.dropdown-menu.item
-                                @click="openEdit({{ Js::from(['id' => $p->id, 'nombre' => $p->nombre, 'tipo' => $p->tipo, 'frecuencia' => $p->frecuencia, 'destinatarios_str' => implode(', ', $p->destinatarios), 'formatos' => $p->formatos(), 'revision' => $p->revisionOpcion(), 'secciones' => $p->seccionesPersonalizadas() ? $p->secciones(null) : null]) }})">
+                                @click="openEdit({{ Js::from(['id' => $p->id, 'nombre' => $p->nombre, 'tipo' => $p->tipo, 'frecuencia' => $p->frecuencia, 'proximo' => $p->proximo_envio_at?->format('Y-m-d'), 'destinatarios_str' => implode(', ', $p->destinatarios), 'formatos' => $p->formatos(), 'revision' => $p->revisionOpcion(), 'secciones' => $p->seccionesPersonalizadas() ? $p->secciones(null) : null]) }})">
                                 <x-lucide-pencil class="size-4" /> Editar
                             </x-ui.dropdown-menu.item>
                             <x-ui.dropdown-menu.item
@@ -156,7 +156,7 @@
                             </x-ui.dropdown-menu.trigger>
                             <x-ui.dropdown-menu.content align="end">
                                 <x-ui.dropdown-menu.item
-                                    @click="openEdit({{ Js::from(['id' => $p->id, 'nombre' => $p->nombre, 'tipo' => $p->tipo, 'frecuencia' => $p->frecuencia, 'destinatarios_str' => implode(', ', $p->destinatarios), 'formatos' => $p->formatos(), 'revision' => $p->revisionOpcion(), 'secciones' => $p->seccionesPersonalizadas() ? $p->secciones(null) : null]) }})">
+                                    @click="openEdit({{ Js::from(['id' => $p->id, 'nombre' => $p->nombre, 'tipo' => $p->tipo, 'frecuencia' => $p->frecuencia, 'proximo' => $p->proximo_envio_at?->format('Y-m-d'), 'destinatarios_str' => implode(', ', $p->destinatarios), 'formatos' => $p->formatos(), 'revision' => $p->revisionOpcion(), 'secciones' => $p->seccionesPersonalizadas() ? $p->secciones(null) : null]) }})">
                                     <x-lucide-pencil class="size-4" /> Editar
                                 </x-ui.dropdown-menu.item>
                                 <x-ui.dropdown-menu.item
