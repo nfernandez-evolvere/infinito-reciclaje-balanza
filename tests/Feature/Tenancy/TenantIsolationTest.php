@@ -268,11 +268,17 @@ class TenantIsolationTest extends TestCase
     public function crear_un_pesaje_lo_asigna_a_la_org_del_operador(): void
     {
         $orgA = $this->createOrganizacion('Org A');
-        [$vehiculo, $servicio, $zona] = $this->actingInOrg($orgA, fn () => [
-            Vehiculo::factory()->create(),
-            TipoServicio::factory()->create(),
-            Zona::factory()->create(),
-        ]);
+        [$vehiculo, $servicio, $zona] = $this->actingInOrg($orgA, function () {
+            // Tipo con tope amplio: el payload usa peso_bruto_kg = 20.000 y no debe
+            // chocar con el tope duro aleatorio (peso_max × 2) de TipoVehiculo::factory().
+            $tipo = TipoVehiculo::factory()->create(['peso_min_kg' => 5000, 'peso_max_kg' => 30000]);
+
+            return [
+                Vehiculo::factory()->create(['tara_kg' => 8000, 'tipo_vehiculo_id' => $tipo->id]),
+                TipoServicio::factory()->create(),
+                Zona::factory()->create(),
+            ];
+        });
         $operador = $this->userInOrg($orgA);
 
         $this->actingAs($operador)->withSession(['organizacion_id' => $orgA->id]);

@@ -36,6 +36,21 @@
                 </x-ui.form-field>
 
                 <x-ui.form-field
+                    for="descripcion"
+                    :state="$errors->has('descripcion') ? 'destructive' : null"
+                    :message="$errors->first('descripcion')"
+                >
+                    <x-ui.label for="descripcion">Descripción</x-ui.label>
+                    <x-ui.textarea
+                        id="descripcion"
+                        name="descripcion"
+                        x-model="form.descripcion"
+                        rows="3"
+                        placeholder="Qué recolecta este servicio. Aparece en el reporte mensual del municipio."
+                    />
+                </x-ui.form-field>
+
+                <x-ui.form-field
                     :state="$errors->has('tipo_vehiculo_ids') ? 'destructive' : null"
                     :message="$errors->first('tipo_vehiculo_ids')"
                 >

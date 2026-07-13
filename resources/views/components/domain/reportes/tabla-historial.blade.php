@@ -1,7 +1,7 @@
 @props(['historial'])
 
 @php
-    $tipoLabels = ['informe_mensual' => 'Informe', 'alertas' => 'Alertas'];
+    $tipoLabels = ['informe_mensual' => 'Reporte', 'alertas' => 'Alertas'];
     $origenLabels = ['manual' => 'Manual', 'programado' => 'Programado'];
     $estadoVariants = [
         'generando'   => 'secondary',

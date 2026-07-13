@@ -12,6 +12,7 @@ class ManualController extends Controller
 {
     private const ADMIN_DOCS = [
         'configuracion-inicial' => ['label' => 'Configuración inicial', 'icon' => 'list-checks'],
+        'onboarding-admin'      => ['label' => 'Guía de inicio',        'icon' => 'book-open'],
         'modulo-dashboard'      => ['label' => 'Dashboard',             'icon' => 'layout-dashboard'],
         'modulo-pesajes-admin'  => ['label' => 'Pesajes',               'icon' => 'scale'],
         'modulo-reportes'       => ['label' => 'Reportes',              'icon' => 'file-bar-chart'],

@@ -45,3 +45,10 @@
 .zona-guide-label.leaflet-tooltip::before {
     display: none;
 }
+
+/* Confina los z-index internos de Leaflet (panes 400–650, controles +/− en 1000)
+   dentro de un contexto de apilamiento propio del mapa, para que no se monten sobre
+   dialogs, popovers, sheets y tooltips del design system (ver design-tokens.css §9). */
+.leaflet-container {
+    isolation: isolate;
+}

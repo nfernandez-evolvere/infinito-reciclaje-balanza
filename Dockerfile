@@ -52,17 +52,29 @@ FROM php:8.4-fpm-bookworm AS runtime
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium \
+    PUPPETEER_EXECUTABLE_PATH=/usr/local/bin/chrome \
     NODE_PATH=/usr/lib/node_modules
 
-# --- Librerías de runtime + repos de Microsoft/NodeSource + Chromium ---------
+# --- Librerías de runtime + repos de Microsoft/NodeSource + libs de Chrome ----
+# NO se instala el paquete `chromium` de Debian: su build de Bookworm
+# (150.0.7871.46) crashea con SIGTRAP al arrancar en este entorno (WSL2/Docker),
+# tanto en headless new/old como con --no-sandbox/--single-process. En su lugar
+# se hornea Chrome for Testing (build oficial de Google, ver más abajo) y acá
+# solo se instalan las librerías compartidas que ese binario necesita — el set
+# canónico de dependencias de Chrome headless en Debian.
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
         ca-certificates curl gnupg unzip \
         nginx supervisor \
         libzip4 libpng16-16 libjpeg62-turbo libfreetype6 libicu72 \
-        chromium fonts-liberation; \
+        fonts-liberation \
+        libnss3 libnspr4 libdbus-1-3 libglib2.0-0 \
+        libatk1.0-0 libatk-bridge2.0-0 libatspi2.0-0 \
+        libcups2 libdrm2 libgbm1 libasound2 \
+        libpango-1.0-0 libcairo2 \
+        libx11-6 libxcb1 libxext6 libxi6 libxrender1 \
+        libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libxkbcommon0; \
     # Repositorio Microsoft (ODBC 18) — clave dearmorada a keyring propio +
     # signed-by explícito (determinístico; evita el "repository is not signed")
     curl -fsSL https://packages.microsoft.com/keys/microsoft.asc \
@@ -74,6 +86,14 @@ RUN set -eux; \
     apt-get update; \
     ACCEPT_EULA=Y apt-get install -y --no-install-recommends msodbcsql18 nodejs; \
     npm install -g puppeteer@25; \
+    # Chrome for Testing (build oficial de Google) — reemplaza al `chromium` de
+    # Debian, que crashea en runtime. Se instala a /opt y se expone por un
+    # symlink estable en /usr/local/bin/chrome (independiente de la versión, que
+    # queda embebida en la ruta de destino). Para actualizarlo: bumpear la
+    # versión pineada acá y reconstruir la imagen.
+    npx --yes @puppeteer/browsers install chrome@150.0.7871.115 --path /opt/chrome-for-testing; \
+    ln -sf "$(find /opt/chrome-for-testing -type f -name chrome | head -1)" /usr/local/bin/chrome; \
+    chmod -R a+rX /opt/chrome-for-testing; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/*
 

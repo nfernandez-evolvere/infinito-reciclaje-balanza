@@ -33,13 +33,13 @@ parameters:
 		-
 			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\TipoVehiculo\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
-			count: 3
+			count: 4
 			path: app/Http/Controllers/Shared/PesajeController.php
 
 		-
 			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\TipoVehiculo\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
-			count: 3
+			count: 4
 			path: app/Http/Controllers/Shared/VehiculoController.php
 
 		-
@@ -55,8 +55,26 @@ parameters:
 			path: app/Http/Requests/EgresoPesajeRequest.php
 
 		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\TipoVehiculo\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Requests/StorePesajeRequest.php
+
+		-
 			message: '#^Expression on left side of \?\? is not nullable\.$#'
 			identifier: nullCoalesce.expr
+			count: 1
+			path: app/Http/Requests/UpdatePesajeRequest.php
+
+		-
+			message: '#^Using nullsafe method call on non\-nullable type App\\Models\\Vehiculo\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Requests/UpdatePesajeRequest.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\TipoVehiculo\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
 			count: 1
 			path: app/Http/Requests/UpdatePesajeRequest.php
 
@@ -71,6 +89,12 @@ parameters:
 			identifier: nullsafe.neverNull
 			count: 1
 			path: app/Mail/WelcomeMail.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between int and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Models/TipoVehiculo.php
 
 		-
 			message: '#^Method App\\Models\\User\:\:resolveRouteBinding\(\) should return static\(App\\Models\\User\)\|null but returns App\\Models\\User\|null\.$#'
@@ -121,51 +145,21 @@ parameters:
 			path: app/Services/AlertaService.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$centro_lat\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/DashboardService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$centro_lng\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/DashboardService.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$created_at\.$#'
 			identifier: property.notFound
 			count: 7
 			path: app/Services/DashboardService.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$geojson\.$#'
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
 			identifier: property.notFound
 			count: 1
 			path: app/Services/DashboardService.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$habitantes\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Services/DashboardService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$hectareas\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Services/DashboardService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
-			identifier: property.notFound
-			count: 4
-			path: app/Services/DashboardService.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$nombre\.$#'
 			identifier: property.notFound
-			count: 3
+			count: 1
 			path: app/Services/DashboardService.php
 
 		-
@@ -193,6 +187,12 @@ parameters:
 			path: app/Services/DashboardService.php
 
 		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 2
+			path: app/Services/DashboardService.php
+
+		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\),Illuminate\\Database\\Eloquent\\Collection\<int, Illuminate\\Database\\Eloquent\\Model\>\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
 			count: 1
@@ -201,7 +201,7 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\),Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
-			count: 3
+			count: 1
 			path: app/Services/DashboardService.php
 
 		-
@@ -213,7 +213,7 @@ parameters:
 		-
 			message: '#^Using nullsafe property access "\?\-\>nombre" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
-			count: 2
+			count: 3
 			path: app/Services/DashboardService.php
 
 		-
@@ -221,6 +221,12 @@ parameters:
 			identifier: booleanAnd.leftAlwaysTrue
 			count: 1
 			path: app/Services/PesajeService.php
+
+		-
+			message: '#^Method App\\Services\\ReporteService\:\:porServicio\(\) should return Illuminate\\Support\\Collection\<int, array\{tipo_servicio_id\: int, nombre\: string, descripcion\: string\|null, zonas\: int, viajes\: int, kg\: int, toneladas\: float, porcentaje\: float\}\> but returns Illuminate\\Support\\Collection\<int, array\{tipo_servicio_id\: int, nombre\: string, descripcion\: mixed, zonas\: int, viajes\: int, kg\: int, toneladas\: float, porcentaje\: float\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Services/ReporteService.php
 
 		-
 			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
@@ -231,7 +237,7 @@ parameters:
 		-
 			message: '#^Using nullsafe property access "\?\-\>nombre" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
-			count: 5
+			count: 10
 			path: app/Services/ReporteService.php
 
 		-

@@ -6,9 +6,40 @@ export default function desgloseChart(sourceKey) {
     return {
         chart: null,
         datos: init[sourceKey] ?? [],
+        servicioFiltro: '',
 
         validDatos() {
-            return this.datos.filter(d => d.toneladas > 0);
+            return this.datos.filter(d =>
+                d.toneladas > 0 &&
+                (!this.servicioFiltro || String(d.tipo_servicio_id) === String(this.servicioFiltro))
+            );
+        },
+
+        // Color estable por zona: se toma de la posición en la lista completa (mismo
+        // criterio que desgloseColor en el dashboard), así el donut y los puntos de la
+        // tabla coinciden aunque el filtro de servicio muestre solo un subconjunto.
+        colorsFor(valid) {
+            const validAll = this.datos.filter(d => d.toneladas > 0);
+            return valid.map(d => PALETTE[validAll.findIndex(x => x.nombre === d.nombre) % PALETTE.length]);
+        },
+
+        // Servicios presentes (orden por nombre, igual que serviciosDesglose del
+        // dashboard) y servicio por defecto — el primero. Mantiene al donut alineado
+        // con el selector de la tabla sin depender del orden de inicialización.
+        serviciosPresentes() {
+            const vistos = new Map();
+            for (const d of this.datos) {
+                if (d.tipo_servicio_id != null && !vistos.has(d.tipo_servicio_id)) {
+                    vistos.set(d.tipo_servicio_id, d.tipo_servicio);
+                }
+            }
+            return [...vistos.entries()]
+                .map(([id, nombre]) => ({ id, nombre }))
+                .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+        },
+        servicioDefault() {
+            const s = this.serviciosPresentes();
+            return s.length ? String(s[0].id) : '';
         },
 
         themeColors() {
@@ -32,7 +63,7 @@ export default function desgloseChart(sourceKey) {
                     animations: { enabled: true, speed: 350, animateGradually: { enabled: false } },
                     fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
                 },
-                colors: PALETTE,
+                colors: this.colorsFor(valid),
                 series: valid.map(d => d.toneladas),
                 labels: valid.map(d => d.nombre),
                 dataLabels: { enabled: false },
@@ -81,6 +112,7 @@ export default function desgloseChart(sourceKey) {
         updateChart() {
             const valid = this.validDatos();
             this.chart.updateOptions({
+                colors: this.colorsFor(valid),
                 series: valid.map(d => d.toneladas),
                 labels: valid.map(d => d.nombre),
             });
@@ -90,11 +122,28 @@ export default function desgloseChart(sourceKey) {
             this.chart = new window.ApexCharts(this.$refs.chart, this.buildOptions());
             this.chart.render();
 
+            // Servicio por defecto al montar: el donut arranca mostrando un servicio.
+            this.servicioFiltro = this.servicioDefault();
+            this.updateChart();
+
             this._refreshHandler = (e) => {
                 this.datos = e.detail[sourceKey] ?? [];
+                // Si el servicio elegido ya no existe tras refrescar, vuelve al default.
+                const ids = this.serviciosPresentes().map(s => String(s.id));
+                if (ids.length && !ids.includes(String(this.servicioFiltro))) {
+                    this.servicioFiltro = this.servicioDefault();
+                }
                 this.updateChart();
             };
             window.addEventListener('dashboard-refreshed', this._refreshHandler);
+
+            // El selector de servicio (hermano en la card) filtra también el donut.
+            this._servicioHandler = (e) => {
+                if (e.detail?.source !== sourceKey) return;
+                this.servicioFiltro = e.detail.value ?? '';
+                this.updateChart();
+            };
+            window.addEventListener('desglose-servicio', this._servicioHandler);
 
             const mo = new MutationObserver(() => {
                 this.chart.updateOptions(this.buildOptions());
@@ -104,6 +153,7 @@ export default function desgloseChart(sourceKey) {
             this.$cleanup(() => {
                 mo.disconnect();
                 window.removeEventListener('dashboard-refreshed', this._refreshHandler);
+                window.removeEventListener('desglose-servicio', this._servicioHandler);
                 this.chart?.destroy();
             });
         },

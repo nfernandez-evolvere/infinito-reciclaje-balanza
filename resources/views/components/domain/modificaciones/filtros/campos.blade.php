@@ -1,0 +1,138 @@
+@props([
+    'filtros',
+    'operarios',
+    'zonas'         => collect(),
+    'tiposServicio' => collect(),
+    'tiposVehiculo' => collect(),
+    'sortDirection' => 'desc',
+])
+
+{{--
+    Campos del filtro del tab «Modificaciones». Usan names con prefijo `m_`
+    para no colisionar con el tab «Pesajes». Se reutilizan en el sheet mobile
+    (<x-ui.filter-sheet>) y en el panel inline (<x-ui.filter-panel>).
+--}}
+
+<input type="hidden" name="tab" value="modificaciones">
+
+<x-ui.form-field class="col-span-2">
+    <x-ui.label>Período</x-ui.label>
+    <x-ui.date-range-picker
+        startName="m_desde"
+        endName="m_hasta"
+        :start="$filtros['desde']"
+        :end="$filtros['hasta']"
+        placeholder="Todas las fechas"
+    />
+</x-ui.form-field>
+
+<x-ui.form-field>
+    <x-ui.label>Tipo</x-ui.label>
+    <x-ui.select name="m_tipo" value="{{ $filtros['tipo'] ?? '' }}">
+        <x-ui.select.trigger>
+            <x-ui.select.value placeholder="Todos" />
+        </x-ui.select.trigger>
+        <x-ui.select.content>
+            <x-ui.select.item value="">Todos</x-ui.select.item>
+            <x-ui.select.item value="editado">Editados</x-ui.select.item>
+            <x-ui.select.item value="cancelado">Cancelados</x-ui.select.item>
+        </x-ui.select.content>
+    </x-ui.select>
+</x-ui.form-field>
+
+<div x-data="historialFiltroPatente({ value: '{{ $filtros['patente'] ?? '' }}', url: '{{ route('vehiculos.activos') }}' })">
+    <x-ui.form-field>
+        <x-ui.label>Patente</x-ui.label>
+        <div class="relative">
+            <x-ui.input
+                type="text"
+                name="m_patente"
+                x-model="query"
+                @focus="cargar()"
+                @blur="setTimeout(() => showSugg = false, 150)"
+                placeholder="ABC 123"
+                autocomplete="off"
+            />
+            <div
+                x-show="showSugg && matches.length > 0"
+                x-cloak
+                class="absolute left-0 right-0 top-full mt-1 bg-popover border border-border rounded-lg shadow-md overflow-hidden z-30 max-h-56 overflow-y-auto"
+            >
+                <template x-for="v in matches" :key="v.id">
+                    <div
+                        class="px-3 py-2 cursor-pointer text-sm hover:bg-accent transition-colors"
+                        @mousedown.prevent="seleccionar(v.patente)"
+                    >
+                        <span class="font-medium" x-text="v.patente"></span>
+                        <span class="text-muted-foreground text-xs" x-text="' · int. ' + v.interno"></span>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </x-ui.form-field>
+</div>
+
+<x-ui.form-field>
+    <x-ui.label>Operario</x-ui.label>
+    <x-ui.select name="m_operario_id" value="{{ $filtros['operario_id'] ?? '' }}">
+        <x-ui.select.trigger>
+            <x-ui.select.value placeholder="Todos" />
+        </x-ui.select.trigger>
+        <x-ui.select.content>
+            <x-ui.select.item value="">Todos</x-ui.select.item>
+            @foreach($operarios as $op)
+                <x-ui.select.item value="{{ $op->id }}">{{ $op->name }}</x-ui.select.item>
+            @endforeach
+        </x-ui.select.content>
+    </x-ui.select>
+</x-ui.form-field>
+
+@if($zonas->isNotEmpty() || $tiposServicio->isNotEmpty())
+    <x-domain.pesajes.filtro-servicio-origen
+        prefix="m_"
+        :zonas="$zonas"
+        :tiposServicio="$tiposServicio"
+        :servicioId="$filtros['tipo_servicio_id'] ?? ''"
+        :zonaId="$filtros['zona_id'] ?? ''"
+    />
+@endif
+
+@if($tiposVehiculo->isNotEmpty())
+    <x-ui.form-field>
+        <x-ui.label>Tipo de vehículo</x-ui.label>
+        <x-ui.select name="m_tipo_vehiculo_id" value="{{ $filtros['tipo_vehiculo_id'] ?? '' }}">
+            <x-ui.select.trigger>
+                <x-ui.select.value placeholder="Todos" />
+            </x-ui.select.trigger>
+            <x-ui.select.content>
+                <x-ui.select.item value="">Todos</x-ui.select.item>
+                @foreach($tiposVehiculo as $tv)
+                    <x-ui.select.item value="{{ $tv->id }}">{{ $tv->nombre }}</x-ui.select.item>
+                @endforeach
+            </x-ui.select.content>
+        </x-ui.select>
+    </x-ui.form-field>
+@endif
+
+<x-ui.form-field>
+    <x-ui.label>Orden de fecha</x-ui.label>
+    <x-ui.select name="m_direction" value="{{ $sortDirection }}">
+        <x-ui.select.trigger>
+            <x-ui.select.value placeholder="Seleccionar" />
+        </x-ui.select.trigger>
+        <x-ui.select.content>
+            <x-ui.select.item value="desc">
+                <div class="flex items-center gap-1.5">
+                    <x-lucide-arrow-down class="size-3.5" />
+                    Más reciente primero
+                </div>
+            </x-ui.select.item>
+            <x-ui.select.item value="asc">
+                <div class="flex items-center gap-1.5">
+                    <x-lucide-arrow-up class="size-3.5" />
+                    Más antiguo primero
+                </div>
+            </x-ui.select.item>
+        </x-ui.select.content>
+    </x-ui.select>
+</x-ui.form-field>

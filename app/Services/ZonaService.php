@@ -3,9 +3,7 @@
 namespace App\Services;
 
 use App\Models\Zona;
-use App\Models\ZonaServicio;
 use App\Repositories\ZonaRepository;
-use Illuminate\Database\Eloquent\Collection;
 
 class ZonaService
 {
@@ -13,19 +11,14 @@ class ZonaService
         protected ZonaRepository $repository,
     ) {}
 
-    public function listar(array $filters = []): Collection
+    public function crear(array $data, array $turnos = [], array $horarios = []): Zona
     {
-        return $this->repository->all($filters);
+        return $this->repository->create($data, $turnos, $horarios);
     }
 
-    public function crear(array $data): Zona
+    public function actualizar(Zona $zona, array $data, array $turnos = [], array $horarios = []): Zona
     {
-        return $this->repository->create($data);
-    }
-
-    public function actualizar(Zona $zona, array $data): Zona
-    {
-        return $this->repository->update($zona, $data);
+        return $this->repository->update($zona, $data, $turnos, $horarios);
     }
 
     public function desactivar(Zona $zona): void
@@ -41,20 +34,5 @@ class ZonaService
     public function eliminar(Zona $zona): void
     {
         $this->repository->delete($zona);
-    }
-
-    public function asignarServicio(Zona $zona, int $tipoServicioId, array $turnos, array $horarios): ZonaServicio
-    {
-        return $this->repository->assignServicio($zona, $tipoServicioId, $turnos, $horarios);
-    }
-
-    public function actualizarServicio(Zona $zona, int $tipoServicioId, array $turnos, array $horarios): void
-    {
-        $this->repository->updateServicio($zona, $tipoServicioId, $turnos, $horarios);
-    }
-
-    public function quitarServicio(Zona $zona, int $tipoServicioId): void
-    {
-        $this->repository->removeServicio($zona, $tipoServicioId);
     }
 }

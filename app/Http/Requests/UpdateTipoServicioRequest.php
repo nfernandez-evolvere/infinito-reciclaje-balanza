@@ -28,6 +28,7 @@ class UpdateTipoServicioRequest extends FormRequest
                     ->where('organizacion_id', app('organizacion')?->id)
                     ->ignore($tipoId),
             ],
+            'descripcion'         => ['nullable', 'string', 'max:300'],
             'tipo_vehiculo_ids'   => ['nullable', 'array'],
             'tipo_vehiculo_ids.*' => ['integer', 'exists:tipos_vehiculo,id'],
         ];
@@ -37,6 +38,7 @@ class UpdateTipoServicioRequest extends FormRequest
     {
         return [
             'nombre'            => 'nombre',
+            'descripcion'       => 'descripción',
             'tipo_vehiculo_ids' => 'vehículos sugeridos',
         ];
     }

@@ -30,6 +30,7 @@
             || $filtros['operario_id']
             || ($filtros['zona_id'] ?? null)
             || ($filtros['tipo_servicio_id'] ?? null)
+            || ($filtros['tipo_vehiculo_id'] ?? null)
             || ($filtros['solo_alerta'] ?? null)
             || ($filtros['solo_editados'] ?? null);
 
@@ -44,8 +45,6 @@
         } else {
             $subtitulo = 'Todos los pesajes';
         }
-        $zonas         = $zonas ?? collect();
-        $tiposServicio = $tiposServicio ?? collect();
     @endphp
 
     <div class="flex flex-col lg:flex-row items-start justify-between gap-4">
@@ -53,21 +52,20 @@
             <x-ui.typography as="h2" class="truncate">{{ $titulo }}</x-ui.typography>
             <x-ui.typography as="muted" class="mt-1 truncate">{{ $subtitulo }}</x-ui.typography>
         </div>
-        <div class="flex items-center justify-end gap-1 w-full lg:w-auto shrink-0">
-            <div class="xl:hidden">
-                <x-ui.tooltip content="Métricas">
-                    <x-ui.button variant="ghost" size="icon" @click="metricasOpen = true">
-                        <x-lucide-chart-bar class="size-4" />
-                    </x-ui.button>
-                </x-ui.tooltip>
-            </div>
-            <x-domain.historial.filtros :filtros="$filtros" :operarios="$operarios" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" :zonas="$zonas" :tiposServicio="$tiposServicio" :sortDirection="$filtros['direction']" />
+        <div class="flex items-center justify-end gap-1 shrink-0 xl:hidden">
+            <x-ui.tooltip content="Métricas">
+                <x-ui.button variant="ghost" size="icon" @click="metricasOpen = true">
+                    <x-lucide-chart-bar class="size-4" />
+                </x-ui.button>
+            </x-ui.tooltip>
         </div>
     </div>
 
     <x-domain.historial.mobile-drawers :kpis="$kpis" />
 
     <x-domain.historial.kpis :kpis="$kpis" />
+
+    <x-domain.historial.filtros :filtros="$filtros" :operarios="$operarios" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" :zonas="$zonas" :tiposServicio="$tiposServicio" :tiposVehiculo="$tiposVehiculo" :sortDirection="$filtros['direction']" />
 
     <x-domain.historial.tabla :pesajes="$pesajes" :hayFiltros="$hayFiltros" :routeHistorial="$routeHistorial" :sortDirection="$filtros['direction']" />
 

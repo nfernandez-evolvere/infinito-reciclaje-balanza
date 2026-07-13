@@ -23,7 +23,7 @@
         @foreach([
             ['label' => 'Vehículo',   'icon' => 'truck',          'key' => "vehiculo?.patente ?? '—'",               'num' => false],
             ['label' => 'Servicio',   'icon' => 'clipboard-list', 'key' => "servicioNombre || '—'",                  'num' => false],
-            ['label' => 'Origen',     'icon' => 'map-pin',        'key' => "zonaNombre || '—'",                      'num' => false],
+            ['label' => 'Zona',       'icon' => 'map-pin',        'key' => "zonaNombre || '—'",                      'num' => false],
             ['label' => 'Turno',      'icon' => 'clock',          'key' => "turno || '—'",                           'num' => false],
             ['label' => 'Tipo',       'icon' => 'tag',            'key' => "vehiculo?.tipo ?? '—'",                  'num' => false],
             ['label' => 'Peso bruto', 'icon' => 'scale',          'key' => "brutoN > 0 ? fmtKg(brutoN) : '—'",      'num' => true],

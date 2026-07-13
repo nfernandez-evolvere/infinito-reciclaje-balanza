@@ -25,7 +25,7 @@ class ReporteMensualMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "Informe de Pesajes — {$this->periodo}",
+            subject: "Reporte de Pesajes — {$this->periodo}",
         );
     }
 

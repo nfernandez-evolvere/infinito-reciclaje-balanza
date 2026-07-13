@@ -28,6 +28,10 @@
 /storage/pail
 /vendor
 _ide_helper.php
+# Material de referencia de reportes: binarios pesados no se versionan (sí los .md/.html)
+/docs/reportes/**/*.pdf
+/docs/reportes/**/*.pptx
+/docs/reportes/**/*.xlsx
 Homestead.json
 Homestead.yaml
 Thumbs.db

@@ -22,12 +22,25 @@
 <x-layouts.app title="Usuarios">
 <div x-data="usuarios({{ Js::from($initial) }})" class="flex flex-col gap-6">
 
-    <div class="flex flex-col items-start gap-2">
-        <x-ui.typography as="h2">Usuarios</x-ui.typography>
-        <x-ui.typography as="muted">Operadores y administradores con acceso al sistema.</x-ui.typography>
+    <div class="flex items-start justify-between gap-4">
+        <div class="flex flex-col items-start gap-2">
+            <x-ui.typography as="h2">Usuarios</x-ui.typography>
+            <x-ui.typography as="muted">Operadores y administradores con acceso al sistema.</x-ui.typography>
+        </div>
+
+        <x-ui.button @click="openCreate()" class="shrink-0">
+            <x-lucide-plus class="size-4" />
+            <span class="hidden sm:inline">Agregar usuario</span>
+            <span class="sm:hidden">Agregar</span>
+        </x-ui.button>
     </div>
 
-    <x-domain.usuarios.mobile-drawers
+    <x-domain.usuarios.acciones
+        :hayFiltros="$hayFiltros"
+        :activeFilters="$activeFilters"
+    />
+
+    <x-domain.usuarios.filtros
         :filters="$filters"
         :hayFiltros="$hayFiltros"
         :activeFilters="$activeFilters"
@@ -35,7 +48,6 @@
 
     <x-domain.usuarios.tabla :usuarios="$usuarios" :activeFilters="$activeFilters" />
 
-    <x-domain.usuarios.drawer-filtros :filters="$filters" />
     <x-domain.usuarios.modal />
     <x-domain.usuarios.modal-confirm />
     <x-domain.usuarios.modal-reset-password />

@@ -30,7 +30,7 @@ La regla general es la **baja lógica**: un registro que ya operó nunca se borr
 
 ## Padrón de tipos de vehículo
 
-**Ruta:** Padrón → Vehículos (pestaña **Tipos de vehículo**)
+**Ruta:** Configuración → Vehículos (pestaña **Tipos de vehículo**)
 
 Los tipos de vehículo definen los rangos de **peso bruto** esperados para cada categoría de camión (vehículo + carga completa). El sistema usa estos rangos para detectar pesajes anómalos y alertar al operador cuando el peso registrado queda fuera de lo habitual.
 
@@ -76,7 +76,7 @@ Estos valores son una referencia — cada municipio puede necesitar ajustarlos s
 
 ### Cómo crear un tipo nuevo
 
-1. Ir a **Padrón → Vehículos**, pestaña **Tipos de vehículo**.
+1. Ir a **Configuración → Vehículos**, pestaña **Tipos de vehículo**.
 2. Hacer clic en **Nuevo tipo**.
 3. Completar el nombre y los rangos de peso.
 4. Guardar.
@@ -87,7 +87,7 @@ El tipo queda disponible de inmediato para asignarlo a vehículos.
 
 ### Cómo editar un tipo existente
 
-1. Ir a **Padrón → Vehículos**, pestaña **Tipos de vehículo**.
+1. Ir a **Configuración → Vehículos**, pestaña **Tipos de vehículo**.
 2. En la tabla, abrir el menú de acciones (⋯) del tipo a modificar.
 3. Seleccionar **Editar**.
 4. Modificar los campos necesarios.
@@ -165,7 +165,7 @@ No en nuevos pesajes. Pero si un vehículo tenía ese tipo asignado antes de des
 
 ## Padrón de vehículos
 
-**Ruta:** Padrón → Vehículos (pestaña **Vehículos**)
+**Ruta:** Configuración → Vehículos (pestaña **Vehículos**)
 
 El padrón de vehículos registra todos los camiones habilitados para operar en la balanza. Cada vehículo tiene su tara (peso vacío) cargada, que el sistema usa automáticamente para calcular el peso neto en cada pesaje.
 
@@ -173,7 +173,7 @@ El padrón de vehículos registra todos los camiones habilitados para operar en 
 
 ### Para qué se usa este padrón
 
-Sin vehículos cargados, los operadores no pueden registrar pesajes. Al ingresar una patente o número interno en la balanza, el sistema busca el vehículo en este padrón, carga su tara automáticamente y sugiere las observaciones del registro. Si el vehículo no está en el padrón o está inactivo, no aparece en los resultados.
+Sin vehículos cargados, los operadores no pueden registrar pesajes. Al ingresar una patente o número interno en la balanza, el sistema busca el vehículo en este padrón y carga automáticamente su tara, su tipo y su titular. Si el vehículo no está en el padrón o está inactivo, no aparece en los resultados.
 
 La **tara** es el campo más crítico: un error en ese valor afecta el cálculo del peso neto en todos los pesajes futuros de ese vehículo.
 
@@ -189,7 +189,7 @@ La **tara** es el campo más crítico: un error en ese valor afecta el cálculo 
 | Titular | Propietario o responsable del vehículo (ej: Municipalidad de San Juan) | Sí |
 | Tara (kg) | Peso del vehículo completamente vacío, en kilogramos enteros | Sí |
 | Capacidad (kg) | Carga máxima teórica del vehículo. Informativo, no afecta los cálculos | No |
-| Observaciones | Texto libre visible para el operador al seleccionar el vehículo. Se autocompleta en el formulario de pesaje | No |
+| Observaciones | Texto libre sobre el vehículo, para referencia del administrador en el padrón | No |
 
 > **Importante:** la tara se copia al pesaje en el momento del ingreso y no se actualiza si el padrón cambia después. Si la tara de un vehículo cambia (por una modificación estructural, por ejemplo), corregirla en el padrón afecta solo los pesajes futuros — los históricos conservan la tara original.
 
@@ -202,7 +202,7 @@ La **tara** es el campo más crítico: un error en ese valor afecta el cálculo 
 
 ### Cómo crear un vehículo nuevo
 
-1. Ir a **Padrón → Vehículos**.
+1. Ir a **Configuración → Vehículos**.
 2. Hacer clic en **Nuevo vehículo**.
 3. Completar patente, número interno, tipo, titular y tara.
 4. Opcionalmente, cargar capacidad y observaciones.
@@ -263,8 +263,8 @@ Los pesajes futuros usan la tara nueva. Los pesajes ya registrados conservan la 
 **¿Los vehículos inactivos aparecen en los reportes?**
 Sus datos históricos sí. Los reportes incluyen todos los pesajes registrados, independientemente del estado actual del vehículo. Lo que cambia es que el vehículo inactivo no aparece en el autocompletado del operador para nuevos pesajes.
 
-**¿El campo observaciones es lo que ve el operador en la balanza?**
-Sí. Al seleccionar un vehículo, el campo observaciones del padrón se autocompleta en el formulario de pesaje. El operador puede modificarlo antes de guardar, pero el cambio no se guarda en el padrón — solo queda en ese pesaje puntual.
+**¿El operador ve el campo observaciones del vehículo en la balanza?**
+No. Las observaciones del padrón de vehículos son una referencia interna del administrador; no se muestran ni se autocompletan en el formulario de pesaje del operador. El pesaje tiene su propio campo de observaciones, que se completa al editar un pesaje.
 
 **¿Qué es la capacidad y para qué sirve?**
 Es la carga máxima teórica del vehículo. No se usa en ningún cálculo automático — es un dato informativo para el admin. Puede dejarse en blanco sin afectar el funcionamiento del sistema.
@@ -273,7 +273,7 @@ Es la carga máxima teórica del vehículo. No se usa en ningún cálculo autom�
 
 ## Padrón de tipos de servicio
 
-**Ruta:** Padrón → Servicios
+**Ruta:** Configuración → Servicios
 
 Los tipos de servicio definen las categorías de operación disponibles en la balanza — Domiciliario, Barrido, Voluminoso, etc. Cada tipo puede tener un tipo de vehículo habitual sugerido, que el sistema usa como referencia en el formulario de pesaje.
 
@@ -283,7 +283,7 @@ Los tipos de servicio definen las categorías de operación disponibles en la ba
 
 Cuando el operador registra un pesaje, elige el tipo de servicio del camión que ingresa. Este dato clasifica el pesaje y permite al admin ver los reportes separados por operación (cuántas toneladas de Domiciliario, cuántas de Barrido, etc.).
 
-Además, los tipos de servicio se usan para configurar las zonas: cada zona tiene asignados los servicios que operan en ella. Sin un tipo de servicio cargado, no se puede completar esa configuración ni registrar pesajes del tipo correspondiente.
+Además, cada tipo de servicio tiene sus propias zonas de operación, que se cargan desde la misma pantalla de Servicios. Sin un tipo de servicio cargado no se pueden definir zonas ni registrar pesajes del tipo correspondiente.
 
 ---
 
@@ -316,7 +316,7 @@ Además, los tipos de servicio se usan para configurar las zonas: cada zona tien
 
 ### Cómo crear un tipo nuevo
 
-1. Ir a **Padrón → Servicios**.
+1. Ir a **Configuración → Servicios**.
 2. Hacer clic en **Nuevo tipo**.
 3. Completar el nombre y, opcionalmente, elegir el vehículo habitual.
 4. Guardar.
@@ -352,21 +352,21 @@ Para volver a activarlo, repetir el proceso y seleccionar **Activar**.
 
 **Desactivar:** cuando el tipo ya no se usa en la operación actual pero puede volver a necesitarse, o cuando tiene pesajes registrados. Es la acción recomendada en casi todos los casos.
 
-**Eliminar:** solo si el tipo fue creado por error y nunca se usó en ningún pesaje. Si el tipo tiene pesajes registrados, el sistema no permite eliminarlo y muestra un mensaje indicando que hay que desactivarlo en su lugar. Las zonas que tenían asignado ese servicio pierden esa configuración automáticamente al eliminar.
+**Eliminar:** solo si el tipo fue creado por error y nunca se usó en ningún pesaje. Si el tipo tiene pesajes registrados **o tiene zonas cargadas**, el sistema no permite eliminarlo y muestra un mensaje indicando que hay que desactivarlo en su lugar.
 
 ---
 
 ### Cómo funciona la zona y el turno en el pesaje
 
-Los turnos **no** se configuran a nivel de tipo de servicio, sino a nivel de **zona + servicio**. Esto significa que Domiciliario puede tener turno Diurna y Nocturna en Zona Norte, pero ningún turno en Zona Industrial.
+Los turnos **no** se configuran a nivel de tipo de servicio, sino a nivel de **zona**. Cada zona pertenece a un servicio. Esto significa que el servicio Domiciliario puede tener una "Zona Norte" con turno Diurna y Nocturna, y una "Zona Industrial" sin turno.
 
-La configuración se hace desde el padrón de Zonas: para cada zona, se define qué servicios operan en ella y, para cada uno, si aplican turnos.
+La configuración se hace desde el padrón de **Servicios**: se expande cada servicio y se cargan sus zonas, definiendo para cada una si aplican turnos y horarios.
 
 ---
 
 ### Relación con otros padrones
 
-**Con zonas:** cada zona tiene asignados uno o más tipos de servicio. El operador primero elige el servicio, y luego el sistema filtra las zonas disponibles según esa combinación. Si un servicio no está asignado a ninguna zona, el operador no puede usarlo en el formulario de pesaje.
+**Con zonas:** cada servicio tiene sus propias zonas. El operador primero elige el servicio, y luego el sistema le muestra las zonas de ese servicio. Si un servicio no tiene zonas cargadas, el operador no puede usarlo en el formulario de pesaje.
 
 **Con tipos de vehículo:** el campo "Vehículo habitual" es solo una referencia. No afecta qué vehículo puede ingresar — cualquier camión activo puede registrar un pesaje de cualquier servicio.
 
@@ -394,35 +394,30 @@ No hay límite. Podés crear tantos como necesite la operación.
 
 ---
 
-## Padrón de zonas
+## Zonas de cada servicio
 
-**Ruta:** Padrón → Zonas
+**Ruta:** Configuración → Servicios (expandir el servicio → "Ver zonas")
 
-Las zonas son las áreas geográficas de recolección. Se usan para agrupar pesajes en los reportes y para calcular indicadores de densidad y per cápita.
+Las zonas son las áreas geográficas de recolección. **Cada zona pertenece a un servicio** y se gestiona desde la pantalla de Servicios: expandí el servicio y usá **Agregar zona**. Se usan para agrupar pesajes en los reportes y para calcular indicadores de densidad y per cápita.
 
-### Campos del formulario
+### Campos del formulario de zona
 
 | Campo | Descripción | Obligatorio |
 |-------|-------------|-------------|
-| Nombre | Nombre de la zona (ej: Norte, Costanera) | Sí |
+| Nombre | Nombre de la zona, único dentro del servicio (ej: Norte, Costanera) | Sí |
 | Hectáreas | Superficie de la zona en hectáreas | No |
 | Cantidad de barrios | Barrios que componen la zona | No |
+| Área en el mapa | Polígono dibujado con la herramienta de mapa (para los mapas de calor) | No |
+| Turnos | Si la zona opera en turnos: nombres libres que vos cargás (ej. Diurna, Nocturna, Refuerzo), o ninguno | No |
+| Horarios de recorrido | Optativo: días y franjas horarias del recorrido | No |
 
-### Servicios asignados
-
-Después de crear la zona, asignale uno o más tipos de servicio. Para cada asignación podés configurar:
-
-| Campo | Descripción |
-|-------|-------------|
-| Tipo de servicio | Cuál servicio opera en esta zona |
-| Turnos | Si el servicio opera en turnos: **Diurna**, **Nocturna**, ambos, o ninguno |
-| Horarios de recorrido | Optativo: días y franjas horarias del recorrido |
-
-**Cómo configurar los turnos:** usá el switch "Opera con turnos". Si está apagado, el operador no ve selector de turno para esa combinación. Si está encendido, podés activar Diurna, Nocturna o ambas.
+**Cómo configurar los turnos:** usá el switch "Opera con turnos". Si está apagado, el operador no ve selector de turno para esa zona. Si está encendido, escribí el nombre del turno y presioná Enter para agregarlo como chip (podés cargar los que necesites, no hay una lista fija). Para sacar uno, tocá la × del chip.
 
 **Cómo configurar los horarios:** seleccioná los días activos (chips Lun–Dom) y cargá las franjas horarias para cada día. Podés agregar más de una franja por día.
 
-Esta configuración determina qué le aparece al operador en el formulario de pesaje: elige el servicio → ve las zonas que tienen ese servicio asignado → si la combinación tiene turnos, debe elegir turno.
+Esta configuración determina qué le aparece al operador en el formulario de pesaje: elige el servicio → ve las zonas de ese servicio → si la zona tiene turnos, debe elegir turno.
+
+> Si la misma área opera bajo dos servicios, cargá una zona en cada servicio — son zonas independientes.
 
 ### Sobre los datos geográficos
 
@@ -484,7 +479,7 @@ Solo si nunca se usó. Un registro sin pesajes ni dependencias (cargado por erro
 Los pesajes futuros usan la nueva tara. Los pesajes ya registrados conservan la tara original.
 
 **¿Puedo agregar un tipo de servicio nuevo?**
-Sí. Ir a **Padrón → Servicios** y usar el botón Agregar.
+Sí. Ir a **Configuración → Servicios** y usar el botón Agregar.
 
 **¿Qué pasa si desactivo una zona que tiene pesajes activos?**
 Los pesajes "en predio" no se ven afectados. La desactivación solo impide que la zona aparezca en nuevos pesajes.
@@ -492,9 +487,9 @@ Los pesajes "en predio" no se ven afectados. La desactivación solo impide que l
 **¿Puedo cambiar el rol de un usuario (de operador a admin)?**
 Sí, editando el usuario. El cambio de rol toma efecto en el próximo inicio de sesión.
 
-**¿Puedo modificar los turnos u horarios de un servicio ya asignado a una zona?**
-Sí. En el padrón de Zonas, en la fila del servicio asignado, usá el botón **Editar** para cambiar turnos y horarios.
+**¿Puedo modificar los turnos u horarios de una zona?**
+Sí. En **Configuración → Servicios**, expandí el servicio, y en la fila de la zona usá el botón **Editar** para cambiar turnos y horarios.
 
 ---
 
-*Documento actualizado: 18/06/2026 | Versión: 1.4*
+*Documento actualizado: 13/07/2026 | Versión: 1.5*

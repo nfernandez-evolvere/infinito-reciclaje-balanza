@@ -26,9 +26,8 @@ Cuando ingresás como admin, ves el panel con una barra lateral izquierda. Los �
 - **Pesajes** — log completo de todos los pesajes registrados
 - **Reportes** — generación, exportación y envío automático de reportes, con revisión y aprobación previa de los envíos
 
-**Padrón**
-- **Zonas** — áreas geográficas de recolección, con servicios y turnos asignados
-- **Servicios** — tipos de servicio con vehículo habitual sugerido
+**Configuración**
+- **Servicios** — tipos de servicio con su vehículo habitual sugerido y **sus zonas** de operación (áreas geográficas, con turnos y horarios)
 - **Vehículos** — padrón de todos los camiones (la pestaña Tipos incluye los tipos de vehículo con rangos de peso bruto)
 
 **Sistema**
@@ -43,7 +42,7 @@ Seguí el checklist en [`configuracion-inicial.md`](configuracion-inicial.md). E
 
 1. Tipos de vehículo (con rangos de peso bruto)
 2. Tipos de servicio (con tipo de vehículo sugerido)
-3. Zonas (con servicios, turnos y horarios asignados)
+3. Zonas de cada servicio (con turnos y horarios)
 4. Padrón de vehículos (completo, con taras verificadas)
 5. Usuarios operadores
 
@@ -66,14 +65,15 @@ Para más detalle, ver [`modulo-abms.md`](modulo-abms.md).
 
 ## Cómo leer el Dashboard
 
-El Dashboard es tu vista de control en tiempo real. Muestra:
+El Dashboard es tu vista de control de la operación. Está organizado en tres pestañas —**Hoy**, **Este mes** y un **rango personalizado**— y se actualiza solo cada 10 minutos. Muestra:
 
-- **Alertas activas** (si las hay) — en la parte superior, con un botón para revisarlas
-- **Camiones en el predio ahora** — los que entraron y todavía no salieron
-- **KPIs del día** — pesajes, toneladas, promedio por viaje, horas operativas
-- **KPIs del mes** — acumulados del mes en curso
-- **Evolución diaria** — gráfico de los últimos 7 días
-- **Por origen** y **por tipo de vehículo** — desgloses de la operación
+- **Banner de alertas** (si las hay) — en la parte superior, con la cantidad de alarmas activas y un botón para revisarlas
+- **KPIs del día** — pesajes, toneladas netas, promedio por viaje, minutos desde el último pesaje, kg/hectárea y kg/persona
+- **KPIs del mes** — días operativos, pesajes, toneladas, kg/hectárea y kg/persona
+- **Evolución diaria** — gráfico de toneladas por día (en "Este mes" y en el rango personalizado)
+- **Mapa de calor por zona** y desgloses **por tipo de vehículo** y **por zona y turno**
+
+> El Dashboard no tiene una sección de "camiones en el predio ahora": para ver qué camiones siguen en el predio, andá a **Pesajes** y filtrá por estado EN PREDIO.
 
 Para más detalle, ver [`modulo-dashboard.md`](modulo-dashboard.md).
 
@@ -94,7 +94,7 @@ Para más detalle, ver [`modulo-pesajes-admin.md`](modulo-pesajes-admin.md).
 En **Operación → Reportes**:
 
 1. Seleccioná el período (mes, trimestre o rango personalizado).
-2. Aplicá los filtros que necesites (origen, servicio, tipo de vehículo).
+2. Aplicá los filtros que necesites (servicio, zona, tipo de vehículo).
 3. Hacé clic en **Generar reporte**.
 4. Revisá la vista previa en pantalla.
 5. Exportá en PDF (para entregar al municipio) o Excel (para análisis adicional).
@@ -106,12 +106,13 @@ Para más detalle, ver [`modulo-reportes.md`](modulo-reportes.md).
 ## Cómo funcionan las alarmas
 
 El sistema monitorea la operación automáticamente y genera alertas cuando detecta situaciones inusuales:
-- Períodos sin pesajes durante el horario operativo (gaps)
-- Pesos muy por encima o por debajo del rango habitual
-- Volumen diario de toneladas muy desviado del promedio histórico
-- Frecuencias atípicas por origen
+- Pesos fuera del rango habitual del tipo de vehículo (al registrar)
+- Vehículo con un tipo no habitual para el servicio (al registrar)
+- Períodos sin pesajes durante el horario operativo o jornadas sin actividad (gaps)
+- Volumen diario de toneladas muy desviado del promedio de los últimos 30 días
+- Frecuencias atípicas por zona
 
-Las alertas aparecen en el Dashboard. Podés configurar los umbrales de detección y marcar cada alerta como resuelta una vez atendida.
+Las de peso y vehículo no habitual se generan al momento del pesaje; las de gap, volumen y frecuencia las calcula un proceso automático al día siguiente. Las alertas aparecen en el Dashboard (banner) y en el módulo de Alertas. Podés configurar los umbrales de detección y marcar cada alerta como resuelta una vez atendida.
 
 **Ruta al módulo:** Sistema → Alertas
 
@@ -141,4 +142,4 @@ Durante el horario operativo (8:00–18:00) se recomienda revisarlo al menos una
 
 ---
 
-*Documento actualizado: 18/06/2026 | Versión: 1.2*
+*Documento actualizado: 13/07/2026 | Versión: 1.3*

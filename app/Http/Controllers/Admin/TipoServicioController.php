@@ -109,7 +109,7 @@ class TipoServicioController extends Controller
             return redirect()->route('admin.tipos-servicio.index')
                 ->with('toast', $isConstraint ? [
                     'message'     => 'No se puede eliminar.',
-                    'description' => "\"{$nombre}\" tiene pesajes registrados. Desactivalo en su lugar.",
+                    'description' => "\"{$nombre}\" tiene zonas o pesajes asociados. Desactivalo en su lugar.",
                     'variant'     => 'destructive',
                 ] : $this->toastErrorData());
         } catch (\Throwable) {

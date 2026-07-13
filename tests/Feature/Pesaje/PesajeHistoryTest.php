@@ -131,9 +131,10 @@ class PesajeHistoryTest extends TestCase
     }
 
     #[Test]
-    public function operador_zona_filter_is_ignored(): void
+    public function operador_can_filter_by_zona(): void
     {
-        // El filtro por zona es exclusivo del admin: el operador lo recibe pero se ignora.
+        // El operador ve los mismos filtros que el admin (zona, servicio, tipo de
+        // vehículo, mostrar): el panel de historial ya no se los oculta.
         $zonaA = Zona::factory()->create();
         $zonaB = Zona::factory()->create();
         $this->pesajeConPatente('OZA001', ['zona_id' => $zonaA->id]);
@@ -143,6 +144,6 @@ class PesajeHistoryTest extends TestCase
             ->get(route('historial', ['zona_id' => $zonaA->id]))
             ->assertOk()
             ->assertSee('OZA001')
-            ->assertSee('OZB002');
+            ->assertDontSee('OZB002');
     }
 }

@@ -20,13 +20,10 @@ La pantalla tiene tres zonas:
 Dos botones: **Pesaje** (la pantalla actual) e **Historial**. En el extremo derecho, tu nombre de usuario y el botón para cerrar sesión.
 
 **Centro — formulario de pesaje**
-Tres pasos en columna: vehículo, tipo de servicio, peso bruto. Debajo de los tres pasos, el resumen del pesaje en tiempo real.
+Tres pasos en columna: vehículo, tipo de servicio y zona, peso bruto. A la derecha (en pantallas grandes) o en un panel desplegable (en celular), el **resumen del pesaje** en tiempo real.
 
-**Abajo — barra de estado del turno**
-Siempre visible, muestra:
-- Último pesaje registrado (patente, hora, kg netos)
-- Totales del turno (cantidad de pesajes y toneladas netas)
-- Camiones en predio en este momento
+**Abajo — barra de acciones**
+Siempre visible, con los botones **Limpiar** (o Cancelar, al editar), **Resumen** (en celular) y **Guardar pesaje**, más un texto de ayuda que indica qué falta completar.
 
 ---
 
@@ -51,9 +48,9 @@ El vehículo no está cargado en el padrón. Avisale al administrador para que l
 
 ---
 
-## Paso 2 — Elegir el tipo de servicio
+## Paso 2 — Elegir el tipo de servicio y la zona
 
-Hacé clic en el campo de servicio y elegí uno de los tipos disponibles:
+Hacé clic en el campo de servicio y elegí uno de los tipos disponibles (los que tenga configurados tu organización). Por ejemplo:
 
 | Tipo de servicio | Descripción |
 |-----------------|-------------|
@@ -63,7 +60,9 @@ Hacé clic en el campo de servicio y elegí uno de los tipos disponibles:
 | Servicios Especiales | Operativos puntuales o eventos |
 | Centros de Transferencia | Traslados desde centros intermedios |
 
-**Origen automático:** Cuando elegís el servicio, el sistema completa el origen sugerido. Si ese origen no es el correcto para ese viaje, podés cambiarlo tocando el campo de origen.
+**Zona:** Al elegir el servicio, aparece el campo **Zona** con las zonas de ese servicio. Tenés que **elegir la zona** que corresponde al viaje — no viene pre-seleccionada.
+
+**Turno:** Si la zona elegida opera con turnos, aparece un campo **Turno** que también hay que completar. Si la zona no usa turnos, ese campo no aparece.
 
 ---
 
@@ -93,15 +92,16 @@ Este aviso **no te impide guardar** — es solo para que revises si hubieras ing
 Antes de guardar, el resumen muestra:
 
 ```
-Vehículo:         ABC-123 — Compactador
-Titular:          Municipalidad de San Juan
-Número interno:   45
-Tara:             8.500 kg
+Vehículo:         ABC-123
 Servicio:         Domiciliario
-Origen:           Origen Norte
+Zona:             Zona Norte
+Turno:            Diurna
+Tipo:             Compactador
 Peso bruto:       22.300 kg
+Tara:             8.500 kg
 ─────────────────────────────
-Peso neto:        13.800 kg
+Neto estimado:    13.800 kg
+Operador:         (tu nombre)
 ```
 
 Cuando el formulario está completo, el borde del resumen cambia a verde. Ese es el indicador de que podés guardar.
@@ -141,7 +141,7 @@ Cuando un camión sale del predio, tenés que registrar su salida para que el si
 
 El estado pasa de **EN PREDIO** a **CERRADO**.
 
-> Si no marcás el egreso, el camión queda como "en predio" y el administrador puede ver esa situación en el dashboard como alerta.
+> Si no marcás el egreso, el camión queda con estado **EN PREDIO**. El administrador puede detectar esos camiones en el módulo de Pesajes filtrando por estado EN PREDIO.
 
 ---
 
@@ -173,14 +173,11 @@ El pesaje pasa al estado **CANCELADO**: ya no suma en los totales del turno ni e
 
 ---
 
-## La barra de estado del turno (siempre visible)
+## El resumen del turno
 
-En la parte de abajo de la pantalla, siempre visible sin importar en qué pantalla estés:
+Los totales del día y los camiones en predio se consultan desde la pantalla de **Historial** (botón en la barra de navegación). Ahí, arriba de la tabla, se ven la cantidad de pesajes del día, las toneladas netas, el promedio por viaje y cuántos camiones están en predio en este momento.
 
-- **Último pesaje:** patente, hora y kg netos del pesaje más reciente que registraste
-- **Pesajes del turno:** cantidad total de pesajes registrados en el turno de hoy
-- **Toneladas netas:** total acumulado de kg netos del turno, expresado en toneladas
-- **En predio:** cantidad de camiones que entraron y todavía no salieron
+La pantalla de pesaje en sí no tiene una barra fija con esos totales: se enfoca en cargar el pesaje actual. Para ver el acumulado del turno, entrá al Historial.
 
 ---
 
@@ -201,9 +198,9 @@ Sí. La hora de entrada se registra en el momento en que guardás el pesaje. No 
 **¿Qué pasa si un camión entra dos veces en el mismo turno?**
 Registrás dos pesajes por separado. El sistema permite múltiples registros del mismo vehículo en el mismo día.
 
-**¿Puedo cambiar el origen sugerido?**
-Sí. El origen que aparece es el predeterminado para ese servicio, pero podés cambiarlo para cada pesaje individual si ese viaje corresponde a otro origen.
+**¿La zona viene pre-seleccionada?**
+No. Al elegir el servicio aparecen sus zonas, pero tenés que elegir vos la zona de cada pesaje. Si la zona opera con turnos, además tenés que elegir el turno.
 
 ---
 
-*Documento actualizado: 18/06/2026 | Versión: 1.2*
+*Documento actualizado: 13/07/2026 | Versión: 1.3*

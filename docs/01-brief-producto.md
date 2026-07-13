@@ -106,7 +106,7 @@ Mantener actualizados los datos que alimentan todas las automatizaciones del sis
 |-------|-----|
 | Nombre | Identificación |
 | Servicios asociados | Relación N:M con tipos de servicio; filtra las zonas disponibles en Balanza según el servicio elegido |
-| Turnos y horarios por servicio | Configurables por combinación zona+servicio (Diurna/Nocturna, franjas por día) |
+| Turnos y horarios por servicio | Configurables por zona: los turnos son texto libre (chips, sin catálogo — el admin escribe el nombre que necesite, ej. Diurna/Nocturna/Refuerzo); franjas horarias por día |
 | Hectáreas | Cálculo densidad kg/ha |
 | Barrios | Dato descriptivo |
 | Habitantes | Reporte per cápita |

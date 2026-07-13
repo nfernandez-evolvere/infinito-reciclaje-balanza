@@ -42,6 +42,34 @@ class CancelPesajeTest extends TestCase
     }
 
     #[Test]
+    public function cancel_rechaza_motivo_de_4_caracteres(): void
+    {
+        // Borde exacto de min:5 — 4 chars falla, 5 pasa (test siguiente).
+        $pesaje = Pesaje::factory()->create(['estado' => 'En predio']);
+
+        $this->actingAs($this->operador())
+            ->patch(route('pesajes.cancelar', $pesaje), ['motivo' => str_repeat('a', 4)])
+            ->assertSessionHasErrors('motivo');
+    }
+
+    #[Test]
+    public function cancel_acepta_motivo_en_los_limites_de_longitud(): void
+    {
+        // Bordes exactos del lado válido: min:5 y max:500 se aceptan y cancelan.
+        $corto = Pesaje::factory()->create(['estado' => 'En predio']);
+        $this->actingAs($this->operador())
+            ->patch(route('pesajes.cancelar', $corto), ['motivo' => str_repeat('a', 5)])
+            ->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('pesajes', ['id' => $corto->id, 'estado' => 'Cancelado']);
+
+        $largo = Pesaje::factory()->create(['estado' => 'En predio']);
+        $this->actingAs($this->operador())
+            ->patch(route('pesajes.cancelar', $largo), ['motivo' => str_repeat('a', 500)])
+            ->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('pesajes', ['id' => $largo->id, 'estado' => 'Cancelado']);
+    }
+
+    #[Test]
     public function operador_cancels_pesaje_logs_and_redirects(): void
     {
         $pesaje = Pesaje::factory()->create(['estado' => 'En predio']);

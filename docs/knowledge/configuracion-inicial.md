@@ -29,7 +29,7 @@ Si no podés ingresar, contactá al equipo de soporte de EVOLVERE.
 
 Los tipos de vehículo definen los rangos de **peso bruto** esperados (vehículo + carga). El sistema los usa para detectar pesajes anómalos.
 
-Ir a **Padrón → Vehículos** (pestaña **Tipos de vehículo**) y verificar que estén cargados:
+Ir a **Configuración → Vehículos** (pestaña **Tipos de vehículo**) y verificar que estén cargados:
 
 | Tipo | Bruto mínimo | Bruto máximo |
 |------|------------|------------|
@@ -46,7 +46,7 @@ Ir a **Padrón → Vehículos** (pestaña **Tipos de vehículo**) y verificar qu
 
 Los tipos de servicio definen el nombre del servicio y el tipo de vehículo habitual.
 
-Ir a **Padrón → Servicios** y verificar que estén cargados:
+Ir a **Configuración → Servicios** y verificar que estén cargados:
 
 | Servicio | Tipo de vehículo sugerido |
 |----------|--------------------------|
@@ -60,28 +60,30 @@ Ir a **Padrón → Servicios** y verificar que estén cargados:
 
 ---
 
-## Paso 4 — Cargar las zonas
+## Paso 4 — Cargar las zonas de cada servicio
 
-Las zonas son las áreas geográficas de recolección. Los datos de hectáreas se usan para calcular indicadores de densidad en los reportes.
+Cada servicio tiene **sus propias zonas** de operación. Las zonas son las áreas geográficas de recolección; los datos de hectáreas se usan para calcular indicadores de densidad en los reportes.
 
-Ir a **Padrón → Zonas** y para cada zona:
+Ir a **Configuración → Servicios**, expandir el servicio (botón "Ver zonas") y usar **Agregar zona**. Para cada zona definir:
 
-**1. Crear la zona** con sus datos geográficos:
-- Nombre de la zona
+**1. Datos geográficos:**
+- Nombre de la zona (único dentro de ese servicio)
 - Hectáreas y barrios (opcionales, completar después si no están disponibles)
+- Área en el mapa (opcional): dibujá el polígono para los mapas de calor
 
-**2. Asignar los servicios que operan en esa zona.** Para cada asignación, definir:
-- Tipo de servicio
-- Turnos: usá el switch "Opera con turnos" para activar y elegir Diurna, Nocturna o ambas
+**2. Turnos y horarios de esa zona:**
+- Turnos: usá el switch "Opera con turnos" y escribí el nombre de cada uno (Enter para agregarlo como chip; no hay una lista fija, podés cargar los que necesites)
 - Horarios de recorrido (opcional): seleccioná los días activos y cargá las franjas horarias
 
-Esta configuración determina qué zonas y turnos le aparecen al operador al registrar un pesaje.
+Esta configuración determina qué zonas y turnos le aparecen al operador al registrar un pesaje del servicio elegido.
 
-**Ejemplo — Zona Norte:**
-| Servicio | Turnos | Horario |
-|----------|--------|---------|
-| Domiciliario | Diurna, Nocturna | Lun–Vie 08:00–12:00 / 20:00–02:00 |
-| Barrido | Sin turno | — |
+> Si la misma área (ej: "Zona Norte") opera bajo dos servicios, se carga una zona en cada servicio — son zonas independientes con su propia configuración.
+
+**Ejemplo — servicio Domiciliario:**
+| Zona | Turnos | Horario |
+|------|--------|---------|
+| Zona Norte | Diurna, Nocturna | Lun–Vie 08:00–12:00 / 20:00–02:00 |
+| Zona Sur | Diurna | — |
 
 > Si no tenés los datos de hectáreas al momento de la carga, podés dejarlos en cero y actualizarlos después.
 
@@ -91,7 +93,7 @@ Esta configuración determina qué zonas y turnos le aparecen al operador al reg
 
 Este es el paso más importante y el que más tiempo lleva. **Todos los camiones que van a ingresar al predio deben estar cargados antes del día 1.**
 
-Ir a **Padrón → Vehículos** y cargar cada vehículo con:
+Ir a **Configuración → Vehículos** y cargar cada vehículo con:
 
 | Campo | Descripción | Ejemplo |
 |-------|-------------|---------|
@@ -130,7 +132,7 @@ Antes de habilitar el sistema para operación real:
 
 - [ ] Tipos de vehículo cargados con rangos de peso bruto correctos
 - [ ] Tipos de servicio cargados con tipo de vehículo sugerido
-- [ ] Zonas cargadas con sus servicios asignados (al menos nombre, servicio y turno si corresponde)
+- [ ] Cada servicio con sus zonas cargadas (al menos nombre y turno si corresponde)
 - [ ] Padrón de vehículos completo y con taras verificadas
 - [ ] Usuarios operadores creados y con contraseñas entregadas
 - [ ] Hacer un pesaje de prueba con un vehículo real para verificar el autocompletado
@@ -143,10 +145,10 @@ Antes de habilitar el sistema para operación real:
 | Problema | Qué hacer |
 |----------|----------|
 | No aparece el autocompletado de un vehículo | Verificar que la patente o número interno estén cargados exactamente como el operador los ingresa |
-| El peso neto parece incorrecto | Verificar la tara del vehículo en Padrón → Vehículos |
+| El peso neto parece incorrecto | Verificar la tara del vehículo en Configuración → Vehículos |
 | Un operador no puede ingresar | Verificar que su usuario esté activo en Sistema → Usuarios |
-| Un servicio no muestra zonas en el select | Verificar que la zona tenga asignado el tipo de servicio correcto en **Padrón → Zonas** |
+| Un servicio no muestra zonas en el select | Verificar que el servicio tenga zonas cargadas en **Configuración → Servicios** (expandir el servicio → "Ver zonas") |
 
 ---
 
-*Documento actualizado: 18/06/2026 | Versión: 1.3*
+*Documento actualizado: 13/07/2026 | Versión: 1.4*

@@ -20,7 +20,7 @@
 | Aislamiento multi-tenant | 🔴 0 tests | **P0** |
 | SuperAdmin / Organización | 🔴 0 tests | P1 |
 | Reportes + Job | 🔴 0 tests (WIP) | P2 |
-| Zona / ZonaServicio CRUD | 🟠 parcial | P2 |
+| Zona CRUD (dentro de servicio) | 🟠 parcial | P2 |
 | Auth (reset/forgot) | 🟡 parcial | P3 |
 | Endpoints sueltos (`vehiculos.buscar`, `onboarding.visto`) | 🟠 | P3 |
 | Vehículo · TipoVehículo · TipoServicio · Usuario · Dashboard | 🟢 sólido | — |
@@ -63,6 +63,18 @@ public function test_admin_puede_crear(): void
 #[Test]
 public function admin_can_create_pesaje(): void
 ```
+
+> **Deuda pendiente (auditoría 2026-07):** 15 archivos aún usan el prefijo `test_`.
+> El `#[Test]` ya está presente en todos, así que **quitar el prefijo es mecánico y
+> seguro** (verificado: ningún nombre queda inválido). Hacerlo en un **commit dedicado**
+> (no mezclarlo con refactors de dominio) y, al terminar, agregar una regla a
+> `ArquitecturaTest` que prohíba `public function test_`. Archivos:
+> - **Feature:** `TipoServicioTest`, `VehiculoTest`, `PerfilTest`, `UsuarioTest`, `TipoVehiculoTest`, `LayoutTest`, `AuthTest`, `RouteProtectionTest`
+> - **Integration:** `ProfileServiceTest`, `VehiculoServiceTest`, `UsuarioServiceTest`, `TipoVehiculoServiceTest`, `TipoServicioServiceTest`
+> - **Unit:** `UserTest`, `GateTest`
+>
+> La traducción español→inglés de esos nombres es aparte (más subjetiva, oportunista).
+> Micro-nit relacionado: `ServicioZonasTest::usuario()` reimplementa `$this->operador()`.
 
 ### 2.4 Reglas de escritura
 
@@ -155,8 +167,8 @@ tests/
     │   ├── ReporteProgramadoTest.php
     │   └── GenerarReporteJobTest.php
     ├── Zona/                          🆕
-    │   ├── ZonaCrudTest.php
-    │   └── ZonaServicioTest.php
+    │   ├── ZonaCrudTest.php           (CRUD de zona dentro de su servicio + turnos/horarios)
+    │   └── ServicioZonasTest.php      (endpoint /servicios/{id}/zonas)
     ├── Vehiculo/   · Usuario/   · TipoServicio/   · TipoVehiculo/   · Dashboard/
     │   └── (mover los feature tests existentes aquí)
     └── Operador/
@@ -337,13 +349,13 @@ Aislar dependencias externas (AI, mPDF, mail) con fakes/mocks.
 - `enviarAhoraProgramado` despacha el job (`Queue::fake` → `assertPushed`).
 - Update de configuración persiste.
 
-### Fase 5 — 🟠 Zona / ZonaServicio + endpoints sueltos + Auth  ·  **P2–P3**
+### Fase 5 — 🟠 Zona (dentro de servicio) + endpoints sueltos + Auth  ·  **P2–P3**
 
 **`Feature/Zona/ZonaCrudTest.php`** — [`ZonaController`](../app/Http/Controllers/Admin/ZonaController.php) + `Store/UpdateZonaRequest`:
-- CRUD + toggle, solo admin, validaciones (nombre, hectáreas, habitantes).
+- CRUD + toggle, solo admin, validaciones (servicio, nombre único por servicio, hectáreas, habitantes), persistencia de turnos y horarios.
 
-**`Feature/Zona/ZonaServicioTest.php`** — [`ZonaServicioController`](../app/Http/Controllers/Admin/ZonaServicioController.php):
-- Vincular servicio a zona (+ turnos/horarios), update, destroy.
+**`Feature/Zona/ServicioZonasTest.php`** — [`Shared\TipoServicioController@zonas`](../app/Http/Controllers/Shared/TipoServicioController.php):
+- Endpoint `/servicios/{id}/zonas`: zonas activas del servicio con sus turnos y tipos de vehículo sugeridos.
 
 **Endpoints sueltos:**
 - `Shared\VehiculoController@buscar` (autocomplete de balanza): busca por patente/interno, scope de org.

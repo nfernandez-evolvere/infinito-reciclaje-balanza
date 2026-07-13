@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToOrganizacion;
+use App\Support\ReporteSecciones;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -23,6 +24,7 @@ class ReporteProgramado extends Model
         'nombre',
         'frecuencia',
         'cron_expresion',
+        'inicio_en',
         'destinatarios',
         'opciones',
         'activo',
@@ -31,6 +33,7 @@ class ReporteProgramado extends Model
     ];
 
     protected $casts = [
+        'inicio_en'        => 'date',
         'destinatarios'    => 'array',
         'opciones'         => 'array',
         'activo'           => 'boolean',
@@ -73,6 +76,32 @@ class ReporteProgramado extends Model
         $opcion = $this->opciones['revision'] ?? 'heredar';
 
         return in_array($opcion, ['heredar', 'revisar', 'directo'], true) ? $opcion : 'heredar';
+    }
+
+    /**
+     * True si este programado personalizó sus secciones (opciones['secciones']);
+     * false = hereda las de la configuración general.
+     */
+    public function seccionesPersonalizadas(): bool
+    {
+        return is_array($this->opciones['secciones'] ?? null);
+    }
+
+    /**
+     * Secciones del informe de este programado, resolviendo la cascada igual
+     * que requiereRevision(): la personalización propia (opciones['secciones'])
+     * sobreescribe el default de la organización; sin personalizar cae a la
+     * configuración general, y sin configuración creada, a todas las secciones.
+     *
+     * @return array{pdf: list<string>, excel: list<string>}
+     */
+    public function secciones(?ReporteConfiguracion $config): array
+    {
+        if ($this->seccionesPersonalizadas()) {
+            return ReporteSecciones::sanitizar($this->opciones['secciones']);
+        }
+
+        return $config?->secciones() ?? ReporteSecciones::sanitizar(null);
     }
 
     /**

@@ -204,8 +204,8 @@
                     </a>
                 </x-ui.table.head>
                 <x-ui.table.head>Patente / N.° interno</x-ui.table.head>
-                <x-ui.table.head>Origen</x-ui.table.head>
                 <x-ui.table.head>Servicio</x-ui.table.head>
+                <x-ui.table.head>Zona</x-ui.table.head>
                 <x-ui.table.head>Peso neto</x-ui.table.head>
                 <x-ui.table.head>Estado</x-ui.table.head>
                 <x-ui.table.head>Acciones</x-ui.table.head>
@@ -238,13 +238,13 @@
                         @endif
                     </div>
                 </x-ui.table.cell>
-                <x-ui.table.cell class="text-sm" data-label="Origen">
+                <x-ui.table.cell class="text-sm" data-label="Servicio">{{ $pesaje->tipoServicio->nombre }}</x-ui.table.cell>
+                <x-ui.table.cell class="text-sm" data-label="Zona">
                     <span>{{ $pesaje->zona->nombre }}</span>
                     @if($pesaje->turno)
                         <span class="text-muted-foreground"> — {{ $pesaje->turno }}</span>
                     @endif
                 </x-ui.table.cell>
-                <x-ui.table.cell class="text-sm" data-label="Servicio">{{ $pesaje->tipoServicio->nombre }}</x-ui.table.cell>
                 <x-ui.table.cell data-label="Peso neto">
                     <div class="flex items-center justify-center gap-1">
                         <span class="font-semibold tabular-nums text-sm">

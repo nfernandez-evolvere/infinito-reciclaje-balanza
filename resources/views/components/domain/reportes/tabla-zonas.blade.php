@@ -1,9 +1,33 @@
 @props(['zonas'])
 
-<x-ui.card variant="elevated">
+@php
+    // Agrupamos las zonas por su servicio (Zona pertenece a un TipoServicio). Cada
+    // grupo trae su subtotal — la regla del informe es que el total de un servicio es
+    // la suma de sus zonas. Grupos y filas ordenados por volumen (toneladas) desc.
+    $grupos = $zonas
+        ->groupBy('tipo_servicio_id')
+        ->map(fn ($filas) => [
+            'nombre'     => $filas->first()['tipo_servicio'],
+            'filas'      => $filas->sortByDesc('toneladas')->values(),
+            'viajes'     => $filas->sum('viajes'),
+            'toneladas'  => round($filas->sum('toneladas'), 2),
+            'porcentaje' => round($filas->sum('porcentaje'), 1),
+        ])
+        ->sortByDesc('toneladas')
+        ->values();
+@endphp
+
+<x-ui.card variant="elevated" x-data="{
+    openGrupos: [],
+    toggleGrupo(i) {
+        this.openGrupos = this.openGrupos.includes(i)
+            ? this.openGrupos.filter(x => x !== i)
+            : [...this.openGrupos, i];
+    },
+}">
     <x-ui.card.header>
         <x-ui.card.title>Por zona y turno</x-ui.card.title>
-        <x-ui.card.description>Desglose de viajes y toneladas por zona y turno. Una zona puede ocupar varias filas, una por turno.</x-ui.card.description>
+        <x-ui.card.description>Desglose de viajes y toneladas por zona y turno, agrupado por servicio. Tocá un servicio para ver sus zonas.</x-ui.card.description>
     </x-ui.card.header>
     <x-ui.card.content class="pt-0">
         @if($zonas->isEmpty())
@@ -12,33 +36,54 @@
             </div>
         @else
 
-            {{-- Mobile: compact rows --}}
-            <div class="sm:hidden space-y-1.5">
-                @foreach($zonas as $zona)
-                    <div class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg border border-border bg-background">
-                        <div class="flex flex-col gap-0.5 min-w-0">
-                            <span class="font-medium text-sm truncate">
-                                {{ $zona['nombre'] }}
-                                @if($zona['turno'])
-                                    <span class="text-muted-foreground font-normal"> · {{ $zona['turno'] }}</span>
-                                @endif
+            {{-- Mobile: secciones por servicio con filas compactas, colapsables --}}
+            <div class="sm:hidden space-y-4">
+                @foreach($grupos as $g)
+                    <div class="space-y-1.5">
+                        <button
+                            type="button"
+                            @click="toggleGrupo({{ $loop->index }})"
+                            :aria-expanded="openGrupos.includes({{ $loop->index }})"
+                            class="flex w-full items-center justify-between gap-2 px-1 py-1 cursor-pointer"
+                        >
+                            <span class="flex items-center gap-1.5 min-w-0">
+                                <x-lucide-chevron-down class="size-3.5 shrink-0 text-muted-foreground transition-transform duration-200"
+                                    x-bind:class="openGrupos.includes({{ $loop->index }}) ? 'rotate-180' : ''" />
+                                <span class="text-overline truncate">{{ $g['nombre'] }}</span>
                             </span>
-                            <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                <span><span class="tabular-nums">{{ number_format($zona['viajes']) }}</span> viajes</span>
-                                <span>·</span>
-                                <span><span class="tabular-nums">{{ number_format($zona['toneladas'], 1) }}</span> t</span>
-                                <span>·</span>
-                                <span><span class="tabular-nums">{{ number_format($zona['kg_viaje']) }}</span> kg/v</span>
-                            </div>
+                            <span class="text-xs text-muted-foreground tabular-nums shrink-0">
+                                {{ number_format($g['viajes']) }} viajes · {{ number_format($g['toneladas'], 1) }} t · {{ $g['porcentaje'] }}%
+                            </span>
+                        </button>
+                        <div x-show="openGrupos.includes({{ $loop->index }})" x-collapse x-cloak class="space-y-1.5">
+                            @foreach($g['filas'] as $zona)
+                                <div class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg border border-border bg-background">
+                                    <div class="flex flex-col gap-0.5 min-w-0">
+                                        <span class="font-medium text-sm truncate">
+                                            {{ $zona['nombre'] }}
+                                            @if($zona['turno'])
+                                                <span class="text-muted-foreground font-normal"> · {{ $zona['turno'] }}</span>
+                                            @endif
+                                        </span>
+                                        <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                            <span><span class="tabular-nums">{{ number_format($zona['viajes']) }}</span> viajes</span>
+                                            <span>·</span>
+                                            <span><span class="tabular-nums">{{ number_format($zona['toneladas'], 1) }}</span> t</span>
+                                            <span>·</span>
+                                            <span><span class="tabular-nums">{{ number_format($zona['kg_viaje']) }}</span> kg/v</span>
+                                        </div>
+                                    </div>
+                                    <span class="text-sm font-semibold tabular-nums shrink-0 text-muted-foreground">
+                                        {{ $zona['porcentaje'] }}%
+                                    </span>
+                                </div>
+                            @endforeach
                         </div>
-                        <span class="text-sm font-semibold tabular-nums shrink-0 text-muted-foreground">
-                            {{ $zona['porcentaje'] }}%
-                        </span>
                     </div>
                 @endforeach
             </div>
 
-            {{-- Desktop: tabla --}}
+            {{-- Desktop: tabla agrupada por servicio --}}
             <x-ui.table variant="flat" class="hidden sm:block">
                 <x-ui.table.header>
                     <x-ui.table.row>
@@ -52,39 +97,60 @@
                     </x-ui.table.row>
                 </x-ui.table.header>
                 <x-ui.table.body>
-                    @foreach($zonas as $zona)
-                    <x-ui.table.row>
-                        <x-ui.table.cell data-label="Zona" class="font-medium">{{ $zona['nombre'] }}</x-ui.table.cell>
-                        <x-ui.table.cell data-label="Turno">
-                            @if($zona['turno'])
-                                <x-ui.badge variant="secondary">{{ $zona['turno'] }}</x-ui.badge>
-                            @else
-                                <span class="text-muted-foreground">—</span>
-                            @endif
-                        </x-ui.table.cell>
-                        <x-ui.table.cell data-label="Viajes" class="tabular-nums">
-                            {{ number_format($zona['viajes']) }}
-                        </x-ui.table.cell>
-                        <x-ui.table.cell data-label="Toneladas" class="tabular-nums">
-                            {{ number_format($zona['toneladas'], 1) }} t
-                        </x-ui.table.cell>
-                        <x-ui.table.cell data-label="kg/viaje" class="tabular-nums text-muted-foreground">
-                            {{ number_format($zona['kg_viaje']) }} kg
-                        </x-ui.table.cell>
-                        <x-ui.table.cell data-label="kg/ha" class="tabular-nums">
-                            @if($zona['kg_ha'] !== null)
-                                <div class="flex flex-col gap-0.5">
-                                    <span>{{ number_format($zona['kg_ha'], 1) }} kg</span>
-                                    <span class="text-xs text-muted-foreground">{{ number_format($zona['kg_ha'] / 1000, 2) }} t/ha</span>
-                                </div>
-                            @else
-                                <span class="text-muted-foreground">—</span>
-                            @endif
-                        </x-ui.table.cell>
-                        <x-ui.table.cell data-label="% Total" class="tabular-nums text-muted-foreground">
-                            {{ $zona['porcentaje'] }}%
-                        </x-ui.table.cell>
-                    </x-ui.table.row>
+                    @foreach($grupos as $g)
+                        {{-- Cabecera del servicio con su subtotal — toggle del grupo --}}
+                        <x-ui.table.row
+                            class="bg-muted/40 cursor-pointer hover:bg-muted/70"
+                            @click="toggleGrupo({{ $loop->index }})"
+                            x-bind:aria-expanded="openGrupos.includes({{ $loop->index }})"
+                        >
+                            <x-ui.table.cell colspan="2" class="font-semibold text-foreground">
+                                <span class="flex items-center gap-1.5">
+                                    <x-lucide-chevron-down class="size-4 shrink-0 text-muted-foreground transition-transform duration-200"
+                                        x-bind:class="openGrupos.includes({{ $loop->index }}) ? 'rotate-180' : ''" />
+                                    {{ $g['nombre'] }}
+                                </span>
+                            </x-ui.table.cell>
+                            <x-ui.table.cell class="font-semibold tabular-nums">{{ number_format($g['viajes']) }}</x-ui.table.cell>
+                            <x-ui.table.cell class="font-semibold tabular-nums">{{ number_format($g['toneladas'], 1) }} t</x-ui.table.cell>
+                            <x-ui.table.cell colspan="2"></x-ui.table.cell>
+                            <x-ui.table.cell class="font-semibold tabular-nums text-muted-foreground">{{ $g['porcentaje'] }}%</x-ui.table.cell>
+                        </x-ui.table.row>
+
+                        @foreach($g['filas'] as $zona)
+                        <x-ui.table.row x-show="openGrupos.includes({{ $loop->parent->index }})" x-cloak>
+                            <x-ui.table.cell data-label="Zona" class="font-medium pl-6">{{ $zona['nombre'] }}</x-ui.table.cell>
+                            <x-ui.table.cell data-label="Turno">
+                                @if($zona['turno'])
+                                    <x-ui.badge variant="secondary">{{ $zona['turno'] }}</x-ui.badge>
+                                @else
+                                    <span class="text-muted-foreground">—</span>
+                                @endif
+                            </x-ui.table.cell>
+                            <x-ui.table.cell data-label="Viajes" class="tabular-nums">
+                                {{ number_format($zona['viajes']) }}
+                            </x-ui.table.cell>
+                            <x-ui.table.cell data-label="Toneladas" class="tabular-nums">
+                                {{ number_format($zona['toneladas'], 1) }} t
+                            </x-ui.table.cell>
+                            <x-ui.table.cell data-label="kg/viaje" class="tabular-nums text-muted-foreground">
+                                {{ number_format($zona['kg_viaje']) }} kg
+                            </x-ui.table.cell>
+                            <x-ui.table.cell data-label="kg/ha" class="tabular-nums">
+                                @if($zona['kg_ha'] !== null)
+                                    <div class="flex flex-col gap-0.5">
+                                        <span>{{ number_format($zona['kg_ha'], 1) }} kg</span>
+                                        <span class="text-xs text-muted-foreground">{{ number_format($zona['kg_ha'] / 1000, 2) }} t/ha</span>
+                                    </div>
+                                @else
+                                    <span class="text-muted-foreground">—</span>
+                                @endif
+                            </x-ui.table.cell>
+                            <x-ui.table.cell data-label="% Total" class="tabular-nums text-muted-foreground">
+                                {{ $zona['porcentaje'] }}%
+                            </x-ui.table.cell>
+                        </x-ui.table.row>
+                        @endforeach
                     @endforeach
                 </x-ui.table.body>
                 <x-ui.table.footer>

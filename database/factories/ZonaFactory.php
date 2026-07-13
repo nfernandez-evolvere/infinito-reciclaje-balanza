@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\TipoServicio;
 use App\Models\Zona;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -15,11 +16,12 @@ class ZonaFactory extends Factory
     public function definition(): array
     {
         return [
-            'nombre'     => $this->faker->unique()->city(),
-            'hectareas'  => $this->faker->randomFloat(1, 100, 2000),
-            'habitantes' => $this->faker->numberBetween(1000, 50000),
-            'barrios'    => null,
-            'activo'     => true,
+            'tipo_servicio_id' => TipoServicio::factory(),
+            'nombre'           => $this->faker->unique()->city(),
+            'hectareas'        => $this->faker->randomFloat(1, 100, 2000),
+            'habitantes'       => $this->faker->numberBetween(1000, 50000),
+            'barrios'          => null,
+            'activo'           => true,
         ];
     }
 

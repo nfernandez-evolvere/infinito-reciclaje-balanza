@@ -3,6 +3,7 @@
 namespace Tests\Feature\MapaCalor;
 
 use App\Models\Pesaje;
+use App\Models\TipoServicio;
 use App\Models\Zona;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -65,5 +66,29 @@ class MapaCalorTest extends TestCase
         $this->actingAs($this->admin())
             ->get('/admin/mapa-calor')
             ->assertNotFound();
+    }
+
+    #[Test]
+    public function dashboard_pasa_todos_los_servicios_activos_para_el_selector_del_mapa(): void
+    {
+        // El selector del mapa lista todos los servicios activos, incluidos los
+        // que aún no tienen zonas (muestran empty-state al elegirlos). Los
+        // inactivos no aparecen.
+        $conZonas = TipoServicio::factory()->create(['nombre' => 'Domiciliario']);
+        Zona::factory()->conGeometria()->create(['tipo_servicio_id' => $conZonas->id]);
+        TipoServicio::factory()->create(['nombre' => 'Barrido Sin Zonas']);
+        TipoServicio::factory()->create(['nombre' => 'Servicio Inactivo', 'activo' => false]);
+
+        $response = $this->actingAs($this->admin())
+            ->get(route('admin.dashboard'))
+            ->assertOk();
+
+        $servicios = collect($response->viewData('servicios'));
+
+        $this->assertEqualsCanonicalizing(
+            ['Domiciliario', 'Barrido Sin Zonas'],
+            $servicios->pluck('nombre')->all()
+        );
+        $this->assertSame(['id', 'nombre'], array_keys($servicios->first()));
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToOrganizacion;
+use App\Support\ReporteSecciones;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -29,6 +30,7 @@ class ReporteConfiguracion extends Model
         'municipalidad_nombre',
         'intro_empresa',
         'servicios',
+        'secciones',
         'ai_enabled',
         'ai_proveedor',
         'ai_api_key',
@@ -41,6 +43,7 @@ class ReporteConfiguracion extends Model
 
     protected $casts = [
         'servicios'                   => 'array',
+        'secciones'                   => 'array',
         'ai_enabled'                  => 'boolean',
         'ai_api_key'                  => 'encrypted',
         'tipo_informe_mensual_activo' => 'boolean',
@@ -49,4 +52,27 @@ class ReporteConfiguracion extends Model
     ];
 
     protected $hidden = ['ai_api_key'];
+
+    /**
+     * Secciones default de la organización, saneadas contra el catálogo.
+     * Null en la columna (o instancia sin guardar) = todas las secciones.
+     *
+     * @return array{pdf: list<string>, excel: list<string>}
+     */
+    public function secciones(): array
+    {
+        return ReporteSecciones::sanitizar($this->secciones ?? null);
+    }
+
+    /** @return list<string> */
+    public function seccionesPdf(): array
+    {
+        return $this->secciones()['pdf'];
+    }
+
+    /** @return list<string> */
+    public function seccionesExcel(): array
+    {
+        return $this->secciones()['excel'];
+    }
 }

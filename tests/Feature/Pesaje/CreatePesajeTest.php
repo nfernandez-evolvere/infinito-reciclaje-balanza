@@ -79,9 +79,16 @@ class CreatePesajeTest extends TestCase
     #[Test]
     public function store_persists_operador_id_of_authenticated_user(): void
     {
+        // Tipo de vehículo con tope amplio: el payload por defecto usa
+        // peso_bruto_kg = 20.000 y no debe chocar con el tope duro aleatorio
+        // que generaría TipoVehiculo::factory() sin overrides.
+        $tipo = TipoVehiculo::factory()->create(['peso_min_kg' => 5000, 'peso_max_kg' => 30000]);
+        $vehiculo = Vehiculo::factory()->create(['tara_kg' => 8000, 'tipo_vehiculo_id' => $tipo->id]);
         $operador = $this->operador();
 
-        $this->actingAs($operador)->post(route('pesajes.store'), $this->payload());
+        $this->actingAs($operador)->post(route('pesajes.store'), $this->payload([
+            'vehiculo_id' => $vehiculo->id,
+        ]));
 
         $this->assertDatabaseHas('pesajes', ['operador_id' => $operador->id]);
     }
@@ -129,10 +136,19 @@ class CreatePesajeTest extends TestCase
     }
 
     #[Test]
-    public function store_validates_turno_only_diurna_or_nocturna(): void
+    public function store_accepts_any_turno_text_written_for_the_zona(): void
+    {
+        // Turno es texto libre (sin catálogo): cualquier string corto es válido.
+        $this->actingAs($this->operador())
+            ->post(route('pesajes.store'), $this->payload(['turno' => 'Refuerzo']))
+            ->assertSessionDoesntHaveErrors('turno');
+    }
+
+    #[Test]
+    public function store_validates_turno_max_20_chars(): void
     {
         $this->actingAs($this->operador())
-            ->post(route('pesajes.store'), $this->payload(['turno' => 'Mañana']))
+            ->post(route('pesajes.store'), $this->payload(['turno' => str_repeat('a', 21)]))
             ->assertSessionHasErrors('turno');
     }
 
@@ -142,6 +158,84 @@ class CreatePesajeTest extends TestCase
         $this->actingAs($this->operador())
             ->post(route('pesajes.store'), $this->payload(['observaciones' => str_repeat('a', 501)]))
             ->assertSessionHasErrors('observaciones');
+    }
+
+    #[Test]
+    public function store_rechaza_bruto_menor_a_la_tara_del_vehiculo(): void
+    {
+        // Regla custom de StorePesajeRequest::withValidator — borde exacto: la
+        // condición es `bruto < tara`, así que tara - 1 debe fallar.
+        $tipo = TipoVehiculo::factory()->create(['peso_min_kg' => 1000, 'peso_max_kg' => 30000]);
+        $vehiculo = Vehiculo::factory()->create(['tara_kg' => 8000, 'tipo_vehiculo_id' => $tipo->id]);
+
+        $this->actingAs($this->operador())
+            ->post(route('pesajes.store'), $this->payload([
+                'vehiculo_id'   => $vehiculo->id,
+                'peso_bruto_kg' => 7999,
+            ]))
+            ->assertSessionHasErrors('peso_bruto_kg');
+
+        $this->assertDatabaseCount('pesajes', 0);
+    }
+
+    #[Test]
+    public function store_acepta_bruto_igual_a_la_tara(): void
+    {
+        // Borde exacto del lado válido: bruto == tara pasa la regla y produce neto 0.
+        $tipo = TipoVehiculo::factory()->create(['peso_min_kg' => 1000, 'peso_max_kg' => 30000]);
+        $vehiculo = Vehiculo::factory()->create(['tara_kg' => 8000, 'tipo_vehiculo_id' => $tipo->id]);
+
+        $this->actingAs($this->operador())
+            ->post(route('pesajes.store'), $this->payload([
+                'vehiculo_id'   => $vehiculo->id,
+                'peso_bruto_kg' => 8000,
+            ]))
+            ->assertSessionHasNoErrors();
+
+        $pesaje = Pesaje::firstOrFail();
+        $this->assertSame(8000, $pesaje->peso_bruto_kg);
+        $this->assertSame(0, $pesaje->peso_neto_kg);
+    }
+
+    #[Test]
+    public function store_rechaza_bruto_por_encima_del_tope_duro(): void
+    {
+        // Tope duro = peso_max × FACTOR_TOPE_PESO (2) = 20.000 kg. Borde exacto:
+        // la condición es `bruto > tope`, así que tope + 1 debe fallar y no persistir.
+        $tipo = TipoVehiculo::factory()->create(['peso_min_kg' => 5000, 'peso_max_kg' => 10000]);
+        $vehiculo = Vehiculo::factory()->create(['tara_kg' => 4000, 'tipo_vehiculo_id' => $tipo->id]);
+
+        $this->actingAs($this->operador())
+            ->post(route('pesajes.store'), $this->payload([
+                'vehiculo_id'   => $vehiculo->id,
+                'peso_bruto_kg' => 20001,
+            ]))
+            ->assertSessionHasErrors('peso_bruto_kg');
+
+        $this->assertDatabaseCount('pesajes', 0);
+    }
+
+    #[Test]
+    public function store_acepta_bruto_igual_al_tope_duro_con_alerta(): void
+    {
+        // Borde exacto del lado válido: bruto == tope (20.000) pasa la regla, pero
+        // como sigue por encima del máximo habitual (10.000) se guarda con alerta.
+        $admin = $this->admin();
+        app('organizacion')->users()->syncWithoutDetaching([$admin->id]);
+
+        $tipo = TipoVehiculo::factory()->create(['peso_min_kg' => 5000, 'peso_max_kg' => 10000]);
+        $vehiculo = Vehiculo::factory()->create(['tara_kg' => 4000, 'tipo_vehiculo_id' => $tipo->id]);
+
+        $this->actingAs($this->operador())
+            ->post(route('pesajes.store'), $this->payload([
+                'vehiculo_id'   => $vehiculo->id,
+                'peso_bruto_kg' => 20000,
+            ]))
+            ->assertSessionHasNoErrors();
+
+        $pesaje = Pesaje::firstOrFail();
+        $this->assertSame(20000, $pesaje->peso_bruto_kg);
+        $this->assertTrue($pesaje->alerta_peso);
     }
 
     // ── Integración con Alertas ───────────────────────────────────────
@@ -156,11 +250,12 @@ class CreatePesajeTest extends TestCase
         $tipo = TipoVehiculo::factory()->create(['peso_min_kg' => 5000, 'peso_max_kg' => 10000]);
         $vehiculo = Vehiculo::factory()->create(['tara_kg' => 4000, 'tipo_vehiculo_id' => $tipo->id]);
 
-        // Peso bruto fuera del rango del tipo (> 10.000 kg)
+        // Peso bruto fuera del rango (> 10.000 kg) pero dentro del tope duro
+        // (≤ 20.000 kg = peso_max × FACTOR_TOPE_PESO): genera alerta, no bloquea.
         $this->actingAs($this->operador())
             ->post(route('pesajes.store'), $this->payload([
                 'vehiculo_id'   => $vehiculo->id,
-                'peso_bruto_kg' => 25000,
+                'peso_bruto_kg' => 15000,
             ]));
 
         $pesaje = Pesaje::firstOrFail();

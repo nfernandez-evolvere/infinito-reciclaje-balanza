@@ -7,44 +7,38 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreZonaRequest;
 use App\Http\Requests\UpdateZonaRequest;
 use App\Models\Zona;
-use App\Repositories\TipoServicioRepository;
 use App\Services\ZonaService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\View\View;
 
 class ZonaController extends Controller
 {
     use WithToastFlash;
 
+    private const INDEX = 'admin.tipos-servicio.index';
+
     public function __construct(
         protected ZonaService $service,
-        protected TipoServicioRepository $tipoServicioRepository,
     ) {}
-
-    public function index(Request $request): View
-    {
-        $filters = $request->only(['nombre', 'activo']);
-        $zonas = $this->service->listar($filters);
-        $tiposServicio = $this->tipoServicioRepository->activos();
-
-        return view('modules.admin.zonas.index', compact('zonas', 'filters', 'tiposServicio'));
-    }
 
     public function store(StoreZonaRequest $request): RedirectResponse
     {
         try {
-            $zona = $this->service->crear($request->validated());
+            $validated = $request->validated();
+            $turnos = $validated['turnos'] ?? [];
+            $horarios = $validated['horarios'] ?? [];
+            unset($validated['turnos'], $validated['horarios']);
 
-            return redirect()->route('admin.zonas.index')
+            $zona = $this->service->crear($validated, $turnos, $horarios);
+
+            return redirect()->route(self::INDEX)
                 ->with('toast', [
                     'message'     => 'Zona creada.',
-                    'description' => "\"{$zona->nombre}\" quedó disponible para asignar servicios.",
+                    'description' => "\"{$zona->nombre}\" quedó disponible en el formulario de pesaje.",
                     'variant'     => 'success',
                 ]);
         } catch (\Throwable) {
-            return $this->toastError('admin.zonas.index');
+            return $this->toastError(self::INDEX);
         }
     }
 
@@ -52,16 +46,20 @@ class ZonaController extends Controller
     {
         try {
             $validated = $request->validated();
-            $this->service->actualizar($zona, $validated);
+            $turnos = $validated['turnos'] ?? [];
+            $horarios = $validated['horarios'] ?? [];
+            unset($validated['turnos'], $validated['horarios']);
 
-            return redirect()->route('admin.zonas.index')
+            $this->service->actualizar($zona, $validated, $turnos, $horarios);
+
+            return redirect()->route(self::INDEX)
                 ->with('toast', [
                     'message'     => 'Cambios guardados.',
                     'description' => "\"{$validated['nombre']}\" fue actualizada.",
                     'variant'     => 'success',
                 ]);
         } catch (\Throwable) {
-            return $this->toastError('admin.zonas.index');
+            return $this->toastError(self::INDEX);
         }
     }
 
@@ -84,9 +82,9 @@ class ZonaController extends Controller
                 ];
             }
 
-            return redirect()->route('admin.zonas.index')->with('toast', $toast);
+            return redirect()->route(self::INDEX)->with('toast', $toast);
         } catch (\Throwable) {
-            return $this->toastError('admin.zonas.index');
+            return $this->toastError(self::INDEX);
         }
     }
 
@@ -97,7 +95,7 @@ class ZonaController extends Controller
         try {
             $this->service->eliminar($zona);
 
-            return redirect()->route('admin.zonas.index')
+            return redirect()->route(self::INDEX)
                 ->with('toast', [
                     'message'     => 'Zona eliminada.',
                     'description' => 'Los pesajes históricos no se ven afectados.',
@@ -106,14 +104,14 @@ class ZonaController extends Controller
         } catch (QueryException $e) {
             $isConstraint = in_array($e->getCode(), ['23000', '23503']);
 
-            return redirect()->route('admin.zonas.index')
+            return redirect()->route(self::INDEX)
                 ->with('toast', $isConstraint ? [
                     'message'     => 'No se puede eliminar.',
                     'description' => "\"{$nombre}\" tiene pesajes registrados. Desactivala en su lugar.",
                     'variant'     => 'destructive',
                 ] : $this->toastErrorData());
         } catch (\Throwable) {
-            return $this->toastError('admin.zonas.index');
+            return $this->toastError(self::INDEX);
         }
     }
 }

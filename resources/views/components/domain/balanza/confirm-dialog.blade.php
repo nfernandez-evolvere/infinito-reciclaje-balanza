@@ -24,7 +24,7 @@
                 <div class="text-sm font-semibold" x-text="servicioNombre"></div>
             </div>
             <div>
-                <div class="text-overline mb-0.5">Origen</div>
+                <div class="text-overline mb-0.5">Zona</div>
                 <div class="text-sm font-semibold" x-text="zonaNombre"></div>
             </div>
             <template x-if="turno">

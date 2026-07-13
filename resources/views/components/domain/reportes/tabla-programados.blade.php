@@ -1,7 +1,7 @@
 @props(['programados'])
 
 @php
-    $tiposLabel = ['informe_mensual' => 'Informe', 'alertas' => 'Alertas'];
+    $tiposLabel = ['informe_mensual' => 'Reporte', 'alertas' => 'Alertas'];
     $frecLabels = ['diaria' => 'Diaria', 'semanal' => 'Semanal', 'quincenal' => 'Quincenal', 'mensual' => 'Mensual'];
 @endphp
 
@@ -45,8 +45,19 @@
                         </x-ui.dropdown-menu.trigger>
                         <x-ui.dropdown-menu.content align="end">
                             <x-ui.dropdown-menu.item
-                                @click="openEdit({{ Js::from(['id' => $p->id, 'nombre' => $p->nombre, 'tipo' => $p->tipo, 'frecuencia' => $p->frecuencia, 'destinatarios_str' => implode(', ', $p->destinatarios), 'formatos' => $p->formatos(), 'revision' => $p->revisionOpcion(), 'activo' => $p->activo]) }})">
+                                @click="openEdit({{ Js::from(['id' => $p->id, 'nombre' => $p->nombre, 'tipo' => $p->tipo, 'frecuencia' => $p->frecuencia, 'proximo' => $p->proximo_envio_at?->format('Y-m-d'), 'destinatarios_str' => implode(', ', $p->destinatarios), 'formatos' => $p->formatos(), 'revision' => $p->revisionOpcion(), 'secciones' => $p->seccionesPersonalizadas() ? $p->secciones(null) : null]) }})">
                                 <x-lucide-pencil class="size-4" /> Editar
+                            </x-ui.dropdown-menu.item>
+                            <x-ui.dropdown-menu.item
+                                variant="{{ $p->activo ? 'destructive' : 'default' }}"
+                                :closeOnClick="false"
+                                @click="confirmToggle({{ $p->id }}, '{{ addslashes($p->nombre) }}', {{ $p->activo ? 'true' : 'false' }}); open = false"
+                            >
+                                @if($p->activo)
+                                    <x-lucide-ban class="size-4" /> Desactivar
+                                @else
+                                    <x-lucide-circle-check class="size-4" /> Activar
+                                @endif
                             </x-ui.dropdown-menu.item>
                             <x-ui.dropdown-menu.item @click="confirmEnviar({{ $p->id }}, '{{ addslashes($p->nombre) }}', '{{ route('admin.reportes.programados.enviar-ahora', $p) }}')">
                                 <x-lucide-send class="size-4" /> Enviar ahora
@@ -58,6 +69,9 @@
                                 <x-lucide-file-spreadsheet class="size-4" /> Descargar Excel
                             </x-ui.dropdown-menu.item>
                             <x-ui.dropdown-menu.separator />
+                            <form id="toggle-{{ $p->id }}" method="POST" action="{{ route('admin.reportes.programados.toggle', $p) }}">
+                                @csrf @method('PATCH')
+                            </form>
                             <form id="delete-{{ $p->id }}" method="POST" action="{{ route('admin.reportes.programados.destroy', $p) }}">
                                 @csrf @method('DELETE')
                             </form>
@@ -142,8 +156,19 @@
                             </x-ui.dropdown-menu.trigger>
                             <x-ui.dropdown-menu.content align="end">
                                 <x-ui.dropdown-menu.item
-                                    @click="openEdit({{ Js::from(['id' => $p->id, 'nombre' => $p->nombre, 'tipo' => $p->tipo, 'frecuencia' => $p->frecuencia, 'destinatarios_str' => implode(', ', $p->destinatarios), 'formatos' => $p->formatos(), 'revision' => $p->revisionOpcion(), 'activo' => $p->activo]) }})">
+                                    @click="openEdit({{ Js::from(['id' => $p->id, 'nombre' => $p->nombre, 'tipo' => $p->tipo, 'frecuencia' => $p->frecuencia, 'proximo' => $p->proximo_envio_at?->format('Y-m-d'), 'destinatarios_str' => implode(', ', $p->destinatarios), 'formatos' => $p->formatos(), 'revision' => $p->revisionOpcion(), 'secciones' => $p->seccionesPersonalizadas() ? $p->secciones(null) : null]) }})">
                                     <x-lucide-pencil class="size-4" /> Editar
+                                </x-ui.dropdown-menu.item>
+                                <x-ui.dropdown-menu.item
+                                    variant="{{ $p->activo ? 'destructive' : 'default' }}"
+                                    :closeOnClick="false"
+                                    @click="confirmToggle({{ $p->id }}, '{{ addslashes($p->nombre) }}', {{ $p->activo ? 'true' : 'false' }}); open = false"
+                                >
+                                    @if($p->activo)
+                                        <x-lucide-ban class="size-4" /> Desactivar
+                                    @else
+                                        <x-lucide-circle-check class="size-4" /> Activar
+                                    @endif
                                 </x-ui.dropdown-menu.item>
                                 <x-ui.dropdown-menu.item @click="confirmEnviar({{ $p->id }}, '{{ addslashes($p->nombre) }}', '{{ route('admin.reportes.programados.enviar-ahora', $p) }}')">
                                     <x-lucide-send class="size-4" /> Enviar ahora
@@ -155,6 +180,9 @@
                                     <x-lucide-file-spreadsheet class="size-4" /> Descargar Excel
                                 </x-ui.dropdown-menu.item>
                                 <x-ui.dropdown-menu.separator />
+                                <form id="toggle-{{ $p->id }}" method="POST" action="{{ route('admin.reportes.programados.toggle', $p) }}">
+                                    @csrf @method('PATCH')
+                                </form>
                                 <form id="delete-{{ $p->id }}" method="POST" action="{{ route('admin.reportes.programados.destroy', $p) }}">
                                     @csrf @method('DELETE')
                                 </form>
