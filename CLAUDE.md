@@ -17,6 +17,7 @@ Los documentos están numerados en orden de lectura recomendado.
 | [`docs/09-deployment-docker.md`](docs/09-deployment-docker.md) | Infraestructura Docker: imagen multi-stage, compose dev/prod, blue-green con nginx edge, CI/CD (GitHub Actions → GHCR → SSH), runbook de servidor y troubleshooting |
 | [`docs/11-entorno-local-macos.md`](docs/11-entorno-local-macos.md) | Puesta en marcha local en macOS sin PHP: SQL Server en Docker, migraciones, seeds, credenciales sembradas y cómo ver la BD con un administrador |
 | [`docs/10-oportunidades-girsu.md`](docs/10-oportunidades-girsu.md) | Análisis de producto: oportunidades de funcionalidades a partir del marco GIRSU nacional (Ley 25.916, Decreto 779/22, ENGIRSU 2025), matriz de priorización y roadmap post go-live |
+| [`docs/13-deploy-desde-cero-vps.md`](docs/13-deploy-desde-cero-vps.md) | Guía operativa desde cero: deploy completo en una VPS nueva paso a paso (poblar GHCR, secrets, bootstrap del server, edge, Cloudflare, primer deploy manual) y troubleshooting de los errores reales |
 | [`docs/knowledge/README.md`](docs/knowledge/README.md) | Base de conocimiento de usuario: onboarding, configuración inicial y referencia de cada módulo (preparada para RAG) |
 
 > **Al escribir cualquier texto en vistas Blade, consultar `docs/06-ux-writing.md`.**
